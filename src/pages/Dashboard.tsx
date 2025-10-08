@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { LogOut, Plus, Home, Users, Mail } from "lucide-react";
+import { LogOut, Plus, Home, Users, Mail, Archive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { PropertyCard } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
+import { ArchiveToggle } from "@/components/ArchiveToggle";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -16,8 +17,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [pendingInvitations, setPendingInvitations] = useState(0);
+  const [propertyView, setPropertyView] = useState<"active" | "archived">("active");
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const activeProperties = properties.filter(p => p.status === "active");
+  const archivedProperties = properties.filter(p => p.status === "inactive");
+  const displayedProperties = propertyView === "active" ? activeProperties : archivedProperties;
 
   useEffect(() => {
     const checkUser = async () => {
@@ -168,6 +174,17 @@ export default function Dashboard() {
             </Button>
           </div>
 
+          {properties.length > 0 && (
+            <div className="mb-6">
+              <ArchiveToggle
+                activeCount={activeProperties.length}
+                archivedCount={archivedProperties.length}
+                currentView={propertyView}
+                onViewChange={setPropertyView}
+              />
+            </div>
+          )}
+
           {properties.length === 0 ? (
             <div className="text-center py-12 bg-card border border-border rounded-lg">
               <Home className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -178,9 +195,21 @@ export default function Dashboard() {
                 Create Property
               </Button>
             </div>
+          ) : displayedProperties.length === 0 ? (
+            <div className="text-center py-12 bg-card border border-border rounded-lg">
+              <Archive className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                No {propertyView} properties
+              </h3>
+              <p className="text-muted-foreground">
+                {propertyView === "active" 
+                  ? "All properties are archived" 
+                  : "No archived properties yet"}
+              </p>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {properties.map((property) => (
+              {displayedProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
                   property={property}
