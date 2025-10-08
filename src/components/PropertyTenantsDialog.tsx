@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,12 +31,7 @@ interface PropertyTenantsDialogProps {
   propertyTitle: string;
 }
 
-export function PropertyTenantsDialog({
-  open,
-  onOpenChange,
-  propertyId,
-  propertyTitle,
-}: PropertyTenantsDialogProps) {
+export function PropertyTenantsDialog({ open, onOpenChange, propertyId, propertyTitle }: PropertyTenantsDialogProps) {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [removingTenant, setRemovingTenant] = useState<Tenant | null>(null);
@@ -69,7 +58,7 @@ export function PropertyTenantsDialog({
             first_name,
             last_name
           )
-        `
+        `,
         )
         .eq("property_id", propertyId);
 
@@ -77,7 +66,7 @@ export function PropertyTenantsDialog({
 
       const formattedTenants =
         data?.map((item: any) => {
-          const profile = item.profiles;
+          const profile = item.profiles?.[0];
           return {
             id: item.id,
             tenant_id: item.tenant_id,
@@ -104,10 +93,7 @@ export function PropertyTenantsDialog({
     if (!removingTenant) return;
 
     try {
-      const { error } = await supabase
-        .from("property_tenants")
-        .delete()
-        .eq("id", removingTenant.id);
+      const { error } = await supabase.from("property_tenants").delete().eq("id", removingTenant.id);
 
       if (error) throw error;
 
@@ -144,16 +130,12 @@ export function PropertyTenantsDialog({
               <Users className="h-5 w-5" />
               Manage Tenants
             </DialogTitle>
-            <DialogDescription>
-              Tenants assigned to {propertyTitle}
-            </DialogDescription>
+            <DialogDescription>Tenants assigned to {propertyTitle}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Loading tenants...
-              </div>
+              <div className="text-center py-8 text-muted-foreground">Loading tenants...</div>
             ) : tenants.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -162,24 +144,15 @@ export function PropertyTenantsDialog({
             ) : (
               <div className="space-y-2">
                 {tenants.map((tenant) => (
-                  <div
-                    key={tenant.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
+                  <div key={tenant.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <p className="font-medium">{getTenantName(tenant)}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {tenant.email}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{tenant.email}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Added {new Date(tenant.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setRemovingTenant(tenant)}
-                    >
+                    <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)}>
                       <UserMinus className="h-4 w-4 mr-2" />
                       Remove
                     </Button>
@@ -191,23 +164,18 @@ export function PropertyTenantsDialog({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!removingTenant}
-        onOpenChange={(open) => !open && setRemovingTenant(null)}
-      >
+      <AlertDialog open={!!removingTenant} onOpenChange={(open) => !open && setRemovingTenant(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Tenant?</AlertDialogTitle>
             <AlertDialogDescription>
-              Remove {removingTenant && getTenantName(removingTenant)} from{" "}
-              {propertyTitle}? They will lose access to this property.
+              Remove {removingTenant && getTenantName(removingTenant)} from {propertyTitle}? They will lose access to
+              this property.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRemoveTenant}>
-              Remove
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleRemoveTenant}>Remove</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
