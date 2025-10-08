@@ -15,7 +15,7 @@ interface Invitation {
     title: string;
     address: string | null;
     description: string | null;
-  };
+  } | null;
 }
 
 export default function Invitations() {
@@ -194,13 +194,13 @@ export default function Invitations() {
             {invitations.map((invitation) => (
               <Card key={invitation.id}>
                 <CardHeader>
-                  <CardTitle>{invitation.properties.title}</CardTitle>
+                  <CardTitle>{invitation.properties?.title || "Property"}</CardTitle>
                   <CardDescription>
-                    {invitation.properties.address || "No address provided"}
+                    {invitation.properties?.address || "No address provided"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {invitation.properties.description && (
+                  {invitation.properties?.description && (
                     <p className="text-sm text-muted-foreground mb-4">
                       {invitation.properties.description}
                     </p>
