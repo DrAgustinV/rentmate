@@ -1,11 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Trash2, Edit, Mail, Archive } from "lucide-react";
-import { useState } from "react";
+import { MapPin, Calendar, Trash2, Edit, Mail, Archive, Users } from "lucide-react";
+import { useState, useEffect } from "react";
 import { InviteTenantDialog } from "./InviteTenantDialog";
 import { EditPropertyDialog } from "./EditPropertyDialog";
 import { DeletePropertyDialog } from "./DeletePropertyDialog";
+import { PropertyTenantsDialog } from "./PropertyTenantsDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PropertyCardProps {
   property: any;
@@ -17,6 +19,28 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [tenantsOpen, setTenantsOpen] = useState(false);
+  const [tenantCount, setTenantCount] = useState(0);
+
+  useEffect(() => {
+    if (isManager) {
+      fetchTenantCount();
+    }
+  }, [property.id, isManager]);
+
+  const fetchTenantCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from("property_tenants")
+        .select("*", { count: "exact", head: true })
+        .eq("property_id", property.id);
+
+      if (error) throw error;
+      setTenantCount(count || 0);
+    } catch (error) {
+      console.error("Error fetching tenant count:", error);
+    }
+  };
 
   const statusColor = property.status === "active" ? "bg-success" : "bg-muted";
   const statusText = property.status === "active" ? "Active" : "Inactive";
@@ -85,25 +109,36 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 <Edit className="h-4 w-4" />
                 Edit
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDeleteOpen(true)}
-                className="flex-1 gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                Archive
-              </Button>
-            </div>
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setDeleteOpen(true)}
+              className="flex-1 gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Archive
+            </Button>
+          </div>
+          <div className="w-full flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTenantsOpen(true)}
+              className="flex-1 gap-2"
+            >
+              <Users className="h-4 w-4" />
+              Manage Tenants {tenantCount > 0 && `(${tenantCount})`}
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
               onClick={() => setInviteOpen(true)}
-              className="w-full gap-2"
+              className="flex-1 gap-2"
             >
               <Mail className="h-4 w-4" />
               Invite Tenant
             </Button>
+          </div>
           </CardFooter>
         )}
       </Card>
@@ -134,6 +169,13 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           setDeleteOpen(false);
           onUpdate();
         }}
+      />
+
+      <PropertyTenantsDialog
+        open={tenantsOpen}
+        onOpenChange={setTenantsOpen}
+        propertyId={property.id}
+        propertyTitle={property.title}
       />
     </>
   );
