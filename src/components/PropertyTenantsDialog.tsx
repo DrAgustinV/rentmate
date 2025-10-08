@@ -76,14 +76,17 @@ export function PropertyTenantsDialog({
       if (error) throw error;
 
       const formattedTenants =
-        data?.map((item: any) => ({
-          id: item.id,
-          tenant_id: item.tenant_id,
-          email: item.profiles?.email || "Unknown",
-          first_name: item.profiles?.first_name,
-          last_name: item.profiles?.last_name,
-          created_at: item.created_at,
-        })) || [];
+        data?.map((item: any) => {
+          const profile = item.profiles;
+          return {
+            id: item.id,
+            tenant_id: item.tenant_id,
+            email: profile?.email || "Unknown",
+            first_name: profile?.first_name || null,
+            last_name: profile?.last_name || null,
+            created_at: item.created_at,
+          };
+        }) || [];
 
       setTenants(formattedTenants);
     } catch (error: any) {
