@@ -64,7 +64,7 @@ export function PropertyTenantsDialog({
           id,
           tenant_id,
           created_at,
-          profiles!property_tenants_tenant_id_fkey (
+          profiles!fk_property_tenants_profiles (
             email,
             first_name,
             last_name
