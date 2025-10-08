@@ -67,6 +67,7 @@ export function PropertyTenantsDialog({ open, onOpenChange, propertyId, property
       const formattedTenants =
         data?.map((item: any) => {
           const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+
           return {
             id: item.id,
             tenant_id: item.tenant_id,
