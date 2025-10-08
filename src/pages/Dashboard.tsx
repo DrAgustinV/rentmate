@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { LogOut, Plus, Home, Users } from "lucide-react";
+import { LogOut, Plus, Home, Users, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 import { PropertyCard } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [tenantProperties, setTenantProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [pendingInvitations, setPendingInvitations] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -26,6 +28,7 @@ export default function Dashboard() {
       }
       setUser(session.user);
       await fetchProperties(session.user.id);
+      await fetchPendingInvitations();
     };
 
     checkUser();
@@ -85,6 +88,29 @@ export default function Dashboard() {
     }
   };
 
+  const fetchPendingInvitations = async () => {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!profile) return;
+
+      const { count } = await supabase
+        .from("invitations")
+        .select("*", { count: "exact", head: true })
+        .eq("email", profile.email)
+        .eq("status", "pending")
+        .gt("expires_at", new Date().toISOString());
+
+      setPendingInvitations(count || 0);
+    } catch (error) {
+      console.error("Error fetching invitations:", error);
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
@@ -108,10 +134,21 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             FlatMate
           </h1>
-          <Button variant="ghost" size="sm" onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate("/invitations")} className="relative">
+              <Mail className="mr-2 h-4 w-4" />
+              Invitations
+              {pendingInvitations > 0 && (
+                <Badge variant="destructive" className="ml-2 px-1.5 py-0 text-xs">
+                  {pendingInvitations}
+                </Badge>
+              )}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
