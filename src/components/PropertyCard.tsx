@@ -1,8 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Trash2, Edit, Mail, Archive, Users } from "lucide-react";
+import { MapPin, Calendar, Trash2, Edit, Mail, Archive, Users, Ticket, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { InviteTenantDialog } from "./InviteTenantDialog";
 import { EditPropertyDialog } from "./EditPropertyDialog";
 import { DeletePropertyDialog } from "./DeletePropertyDialog";
@@ -21,11 +22,14 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [tenantsOpen, setTenantsOpen] = useState(false);
   const [tenantCount, setTenantCount] = useState(0);
+  const [ticketCount, setTicketCount] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isManager) {
       fetchTenantCount();
     }
+    fetchTicketCount();
   }, [property.id, isManager]);
 
   const fetchTenantCount = async () => {
@@ -39,6 +43,21 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
       setTenantCount(count || 0);
     } catch (error) {
       console.error("Error fetching tenant count:", error);
+    }
+  };
+
+  const fetchTicketCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from("tickets")
+        .select("*", { count: "exact", head: true })
+        .eq("property_id", property.id)
+        .in("status", ["open", "in_progress"]);
+
+      if (error) throw error;
+      setTicketCount(count || 0);
+    } catch (error) {
+      console.error("Error fetching ticket count:", error);
     }
   };
 
@@ -97,48 +116,72 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           )}
         </CardContent>
 
-        {isManager && property.status === "active" && (
+        {property.status === "active" && (
           <CardFooter className="border-t bg-muted/50 pt-4 flex-col gap-2">
             <div className="w-full flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setEditOpen(true)}
+                onClick={() => navigate(`/properties/${property.id}/tickets`)}
                 className="flex-1 gap-2"
               >
-                <Edit className="h-4 w-4" />
-                Edit
+                <Ticket className="h-4 w-4" />
+                View Tickets {ticketCount > 0 && `(${ticketCount})`}
               </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDeleteOpen(true)}
-              className="flex-1 gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Archive
-            </Button>
-          </div>
-          <div className="w-full flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setTenantsOpen(true)}
-              className="flex-1 gap-2"
-            >
-              <Users className="h-4 w-4" />
-              Manage Tenants {tenantCount > 0 && `(${tenantCount})`}
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => setInviteOpen(true)}
-              className="flex-1 gap-2"
-            >
-              <Mail className="h-4 w-4" />
-              Invite Tenant
-            </Button>
-          </div>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => navigate(`/properties/${property.id}/tickets?create=true`)}
+                className="flex-1 gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Create Ticket
+              </Button>
+            </div>
+            {isManager && (
+              <>
+                <div className="w-full flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditOpen(true)}
+                    className="flex-1 gap-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDeleteOpen(true)}
+                    className="flex-1 gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Archive
+                  </Button>
+                </div>
+                <div className="w-full flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setTenantsOpen(true)}
+                    className="flex-1 gap-2"
+                  >
+                    <Users className="h-4 w-4" />
+                    Manage Tenants {tenantCount > 0 && `(${tenantCount})`}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setInviteOpen(true)}
+                    className="flex-1 gap-2"
+                  >
+                    <Mail className="h-4 w-4" />
+                    Invite Tenant
+                  </Button>
+                </div>
+              </>
+            )}
           </CardFooter>
         )}
       </Card>

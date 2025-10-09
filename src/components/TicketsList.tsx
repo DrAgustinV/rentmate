@@ -81,7 +81,12 @@ export function TicketsList({ tickets, isLoading }: TicketsListProps) {
             <TableRow
               key={ticket.id}
               className="cursor-pointer hover:bg-muted/50"
-              onClick={() => navigate(`/tickets/${ticket.id}`)}
+              onClick={() => {
+                const propertyId = ticket.properties?.id;
+                if (propertyId) {
+                  navigate(`/properties/${propertyId}/tickets/${ticket.id}`);
+                }
+              }}
             >
               <TableCell className="font-mono text-sm">
                 {ticket.ticket_number}

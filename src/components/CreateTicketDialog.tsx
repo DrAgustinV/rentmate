@@ -25,15 +25,17 @@ import { Loader2 } from "lucide-react";
 interface CreateTicketDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  propertyId?: string;
+  onSuccess?: () => void;
 }
 
-export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogProps) {
+export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }: CreateTicketDialogProps) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     type: "issue" as "issue" | "request" | "incident",
     priority: "medium" as "low" | "medium" | "high" | "urgent",
-    propertyId: "",
+    propertyId: propertyId || "",
   });
 
   const { toast } = useToast();
@@ -96,6 +98,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["property-tickets"] });
       toast({
         title: "Ticket created",
         description: "Your ticket has been created successfully.",
@@ -106,8 +109,9 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         description: "",
         type: "issue",
         priority: "medium",
-        propertyId: "",
+        propertyId: propertyId || "",
       });
+      onSuccess?.();
     },
     onError: (error) => {
       toast({
@@ -142,26 +146,28 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="property">Property *</Label>
-            <Select
-              value={formData.propertyId}
-              onValueChange={(value) =>
-                setFormData({ ...formData, propertyId: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select property" />
-              </SelectTrigger>
-              <SelectContent>
-                {properties?.map((property) => (
-                  <SelectItem key={property.id} value={property.id}>
-                    {property.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!propertyId && (
+            <div className="space-y-2">
+              <Label htmlFor="property">Property *</Label>
+              <Select
+                value={formData.propertyId}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, propertyId: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select property" />
+                </SelectTrigger>
+                <SelectContent>
+                  {properties?.map((property) => (
+                    <SelectItem key={property.id} value={property.id}>
+                      {property.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
