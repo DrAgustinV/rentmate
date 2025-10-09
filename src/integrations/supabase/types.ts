@@ -172,6 +172,265 @@ export type Database = {
           },
         ]
       }
+      system_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          ticket_id: string
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          ticket_id: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          ticket_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_activities_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_attachments: {
+        Row: {
+          created_at: string
+          file_path: string
+          file_size_bytes: number
+          file_type: string
+          id: string
+          original_filename: string
+          ticket_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          file_size_bytes: number
+          file_type: string
+          id?: string
+          original_filename: string
+          ticket_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          file_size_bytes?: number
+          file_type?: string
+          id?: string
+          original_filename?: string
+          ticket_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_attachments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_comments: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          is_internal: boolean
+          ticket_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          ticket_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          ticket_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_comments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          property_id: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["ticket_status"]
+          ticket_number: string
+          title: string
+          type: Database["public"]["Enums"]["ticket_type"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          property_id: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          ticket_number?: string
+          title: string
+          type: Database["public"]["Enums"]["ticket_type"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          property_id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          ticket_number?: string
+          title?: string
+          type?: Database["public"]["Enums"]["ticket_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -198,6 +457,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_upload_photo: {
+        Args: { _file_size_bytes: number; _ticket_id: string }
+        Returns: boolean
+      }
+      can_upload_video: {
+        Args: { _file_size_bytes: number; _ticket_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -225,6 +492,9 @@ export type Database = {
         | "property_inactive"
         | "already_tenant"
       property_status: "active" | "inactive"
+      ticket_priority: "low" | "medium" | "high" | "urgent"
+      ticket_status: "open" | "in_progress" | "resolved" | "cancelled"
+      ticket_type: "issue" | "request" | "incident"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -368,6 +638,9 @@ export const Constants = {
         "already_tenant",
       ],
       property_status: ["active", "inactive"],
+      ticket_priority: ["low", "medium", "high", "urgent"],
+      ticket_status: ["open", "in_progress", "resolved", "cancelled"],
+      ticket_type: ["issue", "request", "incident"],
     },
   },
 } as const
