@@ -45,11 +45,27 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      // Step 1: Get property IDs where user is a tenant
+      const { data: tenantProps } = await supabase
+        .from("property_tenants")
+        .select("property_id")
+        .eq("tenant_id", user.id);
+
+      const tenantPropertyIds = tenantProps?.map(tp => tp.property_id) || [];
+
+      // Step 2: Fetch properties where user is manager OR tenant
+      let query = supabase
         .from("properties")
         .select("id, title")
-        .or(`manager_id.eq.${user.id},id.in.(select property_id from property_tenants where tenant_id = ${user.id})`)
         .eq("status", "active");
+
+      if (tenantPropertyIds.length > 0) {
+        query = query.or(`manager_id.eq.${user.id},id.in.(${tenantPropertyIds.join(",")})`);
+      } else {
+        query = query.eq("manager_id", user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       return data;
