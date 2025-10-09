@@ -6,7 +6,15 @@ import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
+import { CommentsList } from "@/components/ticket/CommentsList";
+import { CommentInput } from "@/components/ticket/CommentInput";
+import { AttachmentGallery } from "@/components/ticket/AttachmentGallery";
+import { AttachmentUpload } from "@/components/ticket/AttachmentUpload";
+import { ActivityTimeline } from "@/components/ticket/ActivityTimeline";
+import { StatusManager } from "@/components/ticket/StatusManager";
+import { useEffect } from "react";
 
 const statusColors = {
   open: "bg-blue-500",
@@ -33,7 +41,7 @@ const TicketDetail = () => {
         .from("tickets")
         .select(`
           *,
-          properties (id, title, address),
+          properties (id, title, address, manager_id),
           profiles!tickets_created_by_fkey (id, first_name, last_name, email)
         `)
         .eq("id", ticketId!)
@@ -44,6 +52,111 @@ const TicketDetail = () => {
     },
     enabled: !!ticketId,
   });
+
+  // Fetch comments
+  const { data: comments = [] } = useQuery({
+    queryKey: ["ticket-comments", ticketId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ticket_comments")
+        .select(`
+          *,
+          profiles (first_name, last_name, email)
+        `)
+        .eq("ticket_id", ticketId!)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!ticketId,
+  });
+
+  // Fetch attachments
+  const { data: attachments = [] } = useQuery({
+    queryKey: ["ticket-attachments", ticketId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ticket_attachments")
+        .select(`
+          *,
+          profiles (first_name, last_name)
+        `)
+        .eq("ticket_id", ticketId!)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!ticketId,
+  });
+
+  // Fetch activities
+  const { data: activities = [] } = useQuery({
+    queryKey: ["ticket-activities", ticketId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ticket_activities")
+        .select(`
+          *,
+          profiles (first_name, last_name)
+        `)
+        .eq("ticket_id", ticketId!)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!ticketId,
+  });
+
+  // Get current user and check if manager
+  const { data: currentUser } = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
+  const isManager = ticket?.properties?.manager_id === currentUser?.id;
+  const canDelete = currentUser?.id === ticket?.created_by && 
+    !["resolved", "cancelled"].includes(ticket?.status);
+
+  // Real-time subscription for comments
+  useEffect(() => {
+    if (!ticketId) return;
+
+    const channel = supabase
+      .channel(`ticket-comments-${ticketId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "ticket_comments",
+          filter: `ticket_id=eq.${ticketId}`,
+        },
+        () => {
+          // Refetch comments when new one is added
+          supabase
+            .from("ticket_comments")
+            .select(`*, profiles (first_name, last_name, email)`)
+            .eq("ticket_id", ticketId)
+            .order("created_at", { ascending: true })
+            .then(({ data }) => {
+              if (data) {
+                // Update query cache
+              }
+            });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [ticketId]);
 
   if (isLoading) {
     return (
@@ -76,21 +189,29 @@ const TicketDetail = () => {
       <div className="grid gap-6">
         <Card>
           <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
                 <CardTitle className="text-2xl">{ticket.title}</CardTitle>
                 <CardDescription className="mt-2">
                   {ticket.properties?.title}
                   {ticket.properties?.address && ` - ${ticket.properties.address}`}
                 </CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Badge className={statusColors[ticket.status as keyof typeof statusColors]}>
-                  {ticket.status.replace("_", " ")}
-                </Badge>
-                <Badge className={priorityColors[ticket.priority as keyof typeof priorityColors]}>
-                  {ticket.priority}
-                </Badge>
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-2">
+                  <Badge className={statusColors[ticket.status as keyof typeof statusColors]}>
+                    {ticket.status.replace("_", " ")}
+                  </Badge>
+                  <Badge className={priorityColors[ticket.priority as keyof typeof priorityColors]}>
+                    {ticket.priority}
+                  </Badge>
+                </div>
+                <StatusManager
+                  ticketId={ticket.id}
+                  currentStatus={ticket.status}
+                  currentPriority={ticket.priority}
+                  isManager={isManager}
+                />
               </div>
             </div>
           </CardHeader>
@@ -119,36 +240,27 @@ const TicketDetail = () => {
               </div>
             </div>
 
+            <Separator />
+
             <div>
               <h3 className="font-semibold mb-2">Description</h3>
               <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
             </div>
 
             {ticket.resolution_notes && (
-              <div>
-                <h3 className="font-semibold mb-2">Resolution Notes</h3>
-                <p className="text-sm whitespace-pre-wrap">{ticket.resolution_notes}</p>
-                {ticket.resolved_at && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Resolved on {format(new Date(ticket.resolved_at), "PPP")}
-                  </p>
-                )}
-              </div>
+              <>
+                <Separator />
+                <div>
+                  <h3 className="font-semibold mb-2">Resolution Notes</h3>
+                  <p className="text-sm whitespace-pre-wrap">{ticket.resolution_notes}</p>
+                  {ticket.resolved_at && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Resolved on {format(new Date(ticket.resolved_at), "PPP")}
+                    </p>
+                  )}
+                </div>
+              </>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Comments & Activity</CardTitle>
-            <CardDescription>
-              View ticket history and add comments
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground text-center py-8">
-              Comments and activity timeline coming soon
-            </p>
           </CardContent>
         </Card>
 
@@ -159,10 +271,45 @@ const TicketDetail = () => {
               Photos and videos related to this ticket
             </CardDescription>
           </CardHeader>
+          <CardContent className="space-y-4">
+            <AttachmentGallery
+              attachments={attachments}
+              ticketId={ticket.id}
+              canDelete={canDelete}
+            />
+            {!["resolved", "cancelled"].includes(ticket.status) && (
+              <>
+                <Separator />
+                <AttachmentUpload ticketId={ticket.id} />
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Comments</CardTitle>
+            <CardDescription>
+              Discuss this ticket with your team
+            </CardDescription>
+          </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground text-center py-8">
-              File attachments coming soon
-            </p>
+            <CommentsList comments={comments} />
+            {!["resolved", "cancelled"].includes(ticket.status) && (
+              <CommentInput ticketId={ticket.id} isManager={isManager} />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Activity Timeline</CardTitle>
+            <CardDescription>
+              Track all changes and updates
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ActivityTimeline activities={activities} />
           </CardContent>
         </Card>
       </div>
