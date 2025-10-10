@@ -140,6 +140,8 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string | null
+          document_category: string | null
+          document_title: string
           file_name: string
           file_path: string
           file_size_bytes: number
@@ -156,6 +158,8 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
+          document_category?: string | null
+          document_title?: string
           file_name: string
           file_path: string
           file_size_bytes: number
@@ -172,6 +176,8 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string | null
+          document_category?: string | null
+          document_title?: string
           file_name?: string
           file_path?: string
           file_size_bytes?: number

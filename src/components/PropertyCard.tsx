@@ -67,14 +67,17 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
 
   const fetchDocumentCount = async () => {
     try {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from("property_documents")
-        .select("*", { count: "exact", head: true })
+        .select("document_title", { count: "exact", head: false })
         .eq("property_id", property.id)
         .eq("is_latest_version", true);
 
       if (error) throw error;
-      setDocumentCount(count || 0);
+      if (data) {
+        const uniqueTitles = new Set(data.map(d => d.document_title));
+        setDocumentCount(uniqueTitles.size);
+      }
     } catch (error) {
       console.error("Error fetching document count:", error);
     }

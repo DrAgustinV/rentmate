@@ -12,6 +12,8 @@ import { toast } from "sonner";
 interface PropertyDocumentUploadProps {
   propertyId: string;
   onUploadComplete: () => void;
+  parentDocumentId?: string;
+  parentDocumentTitle?: string;
 }
 
 const ALLOWED_TYPES = [
@@ -46,9 +48,12 @@ const ALLOWED_EXTENSIONS = [
 export default function PropertyDocumentUpload({
   propertyId,
   onUploadComplete,
+  parentDocumentId,
+  parentDocumentTitle,
 }: PropertyDocumentUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
+  const [documentTitle, setDocumentTitle] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,6 +83,21 @@ export default function PropertyDocumentUpload({
     },
   });
 
+  const { data: parentDocument } = useQuery({
+    queryKey: ["parent-document", parentDocumentId],
+    queryFn: async () => {
+      if (!parentDocumentId) return null;
+      const { data, error } = await supabase
+        .from("property_documents")
+        .select("*")
+        .eq("id", parentDocumentId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!parentDocumentId,
+  });
+
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       if (!currentUser) throw new Error("Not authenticated");
@@ -102,34 +122,27 @@ export default function PropertyDocumentUpload({
         throw new Error("Upload validation failed. Check document count and size limits.");
       }
 
-      // Check for existing documents with similar names (versioning)
-      const { data: existingDocs } = await supabase
-        .from("property_documents")
-        .select("*")
-        .eq("property_id", propertyId)
-        .eq("is_latest_version", true);
-
-      const baseName = file.name.replace(/\.[^.]+$/, "");
-      const extension = file.name.match(/\.[^.]+$/)?.[0] || "";
-      const similarDoc = existingDocs?.find((doc) => {
-        const docBaseName = doc.file_name.replace(/(_v\d+)?(\.[^.]+)$/, "");
-        return docBaseName === baseName || doc.file_name.startsWith(baseName);
-      });
-
       let version = 1;
       let parentDocId = null;
+      let finalTitle = documentTitle.trim();
 
-      if (similarDoc) {
-        version = similarDoc.version + 1;
-        parentDocId = similarDoc.id;
+      if (parentDocumentId && parentDocument) {
+        // Explicit version upload
+        version = parentDocument.version + 1;
+        parentDocId = parentDocumentId;
+        finalTitle = parentDocument.document_title;
 
         // Mark previous version as not latest
         await supabase
           .from("property_documents")
           .update({ is_latest_version: false })
-          .eq("id", similarDoc.id);
+          .eq("id", parentDocumentId);
+      } else if (!finalTitle) {
+        throw new Error("Document title is required");
       }
 
+      const extension = file.name.match(/\.[^.]+$/)?.[0] || "";
+      const baseName = file.name.replace(/\.[^.]+$/, "");
       const fileName = `${baseName}_v${version}${extension}`;
       const filePath = `${propertyId}/${crypto.randomUUID()}_v${version}${extension}`;
 
@@ -147,6 +160,7 @@ export default function PropertyDocumentUpload({
       const { error: dbError } = await supabase.from("property_documents").insert({
         property_id: propertyId,
         uploaded_by: currentUser.id,
+        document_title: finalTitle,
         file_name: fileName,
         file_path: filePath,
         file_type: fileType,
@@ -166,6 +180,7 @@ export default function PropertyDocumentUpload({
       toast.success("Document uploaded successfully");
       setSelectedFile(null);
       setDescription("");
+      setDocumentTitle("");
       setUploadProgress(0);
       onUploadComplete();
     },
@@ -271,6 +286,38 @@ export default function PropertyDocumentUpload({
 
       {selectedFile && (
         <>
+          {parentDocumentId && parentDocument && (
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+              <div className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                <FileText className="h-5 w-5" />
+                <div>
+                  <p className="font-medium">Uploading new version of:</p>
+                  <p className="text-sm">{parentDocument.document_title} (current version: {parentDocument.version})</p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">Your file will be saved as version {parentDocument.version + 1}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!parentDocumentId && (
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="documentTitle">
+                Document Title <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="documentTitle"
+                placeholder="e.g., Lease Agreement, Insurance Policy, Inventory Report"
+                value={documentTitle}
+                onChange={(e) => setDocumentTitle(e.target.value)}
+                disabled={uploadMutation.isPending}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Give this document a descriptive title. All versions will share this title.
+              </p>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="description">Description (Optional)</Label>
             <Textarea

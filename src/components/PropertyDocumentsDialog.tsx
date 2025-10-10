@@ -29,6 +29,8 @@ interface Document {
   id: string;
   property_id: string;
   uploaded_by: string;
+  document_title: string;
+  document_category: string | null;
   file_name: string;
   file_path: string;
   file_type: string;
@@ -53,6 +55,10 @@ export default function PropertyDocumentsDialog({
 }: PropertyDocumentsDialogProps) {
   const [expandedDocs, setExpandedDocs] = useState<Set<string>>(new Set());
   const [showUpload, setShowUpload] = useState(false);
+  const [uploadingVersionFor, setUploadingVersionFor] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
   const queryClient = useQueryClient();
 
   const { data: documents = [], isLoading } = useQuery({
@@ -147,13 +153,13 @@ export default function PropertyDocumentsDialog({
     });
   };
 
-  // Group documents by base name (without version numbers)
+  // Group documents by their document_title
   const groupedDocs = documents.reduce((acc, doc) => {
-    const baseName = doc.file_name.replace(/(_v\d+)?(\.[^.]+)$/, "$2");
-    if (!acc[baseName]) {
-      acc[baseName] = [];
+    const title = doc.document_title;
+    if (!acc[title]) {
+      acc[title] = [];
     }
-    acc[baseName].push(doc);
+    acc[title].push(doc);
     return acc;
   }, {} as Record<string, DocumentWithUploader[]>);
 
@@ -183,15 +189,18 @@ export default function PropertyDocumentsDialog({
             {showUpload ? "Hide Upload" : "Upload New Document"}
           </Button>
 
-          {showUpload && (
-            <PropertyDocumentUpload
-              propertyId={propertyId}
-              onUploadComplete={() => {
-                setShowUpload(false);
-                queryClient.invalidateQueries({ queryKey: ["property-documents", propertyId] });
-              }}
-            />
-          )}
+        {showUpload && (
+          <PropertyDocumentUpload
+            propertyId={propertyId}
+            parentDocumentId={uploadingVersionFor?.id}
+            parentDocumentTitle={uploadingVersionFor?.title}
+            onUploadComplete={() => {
+              setShowUpload(false);
+              setUploadingVersionFor(null);
+              queryClient.invalidateQueries({ queryKey: ["property-documents", propertyId] });
+            }}
+          />
+        )}
 
           <Separator />
 
@@ -202,13 +211,13 @@ export default function PropertyDocumentsDialog({
               <p className="text-muted-foreground text-center py-8">No documents uploaded yet</p>
             ) : (
               <div className="space-y-4">
-                {Object.entries(groupedDocs).map(([baseName, docs]) => {
+                {Object.entries(groupedDocs).map(([title, docs]) => {
                   const latestDoc = docs.find((d) => d.is_latest_version) || docs[0];
                   const hasVersions = docs.length > 1;
-                  const isExpanded = expandedDocs.has(baseName);
+                  const isExpanded = expandedDocs.has(title);
 
                   return (
-                    <div key={baseName} className="border rounded-lg p-4 space-y-3">
+                    <div key={title} className="border rounded-lg p-4 space-y-3">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
@@ -216,7 +225,7 @@ export default function PropertyDocumentsDialog({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => toggleExpand(baseName)}
+                                onClick={() => toggleExpand(title)}
                                 className="h-6 w-6 p-0"
                               >
                                 {isExpanded ? (
@@ -227,14 +236,17 @@ export default function PropertyDocumentsDialog({
                               </Button>
                             )}
                             <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                            <h4 className="font-medium truncate">{latestDoc.file_name}</h4>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-base truncate">{latestDoc.document_title}</h4>
+                              <p className="text-xs text-muted-foreground truncate">{latestDoc.file_name}</p>
+                            </div>
                             {latestDoc.is_latest_version && (
-                              <Badge variant="default">Latest</Badge>
+                              <Badge variant="default">v{latestDoc.version}</Badge>
                             )}
                           </div>
                           <div className="text-sm text-muted-foreground space-y-1 ml-8">
                             <p>
-                              Version {latestDoc.version} · {formatFileSize(latestDoc.file_size_bytes)} ·
+                              {formatFileSize(latestDoc.file_size_bytes)} ·
                               Uploaded by {getUploaderName(latestDoc)} ·{" "}
                               {format(new Date(latestDoc.created_at), "MMM dd, yyyy")}
                             </p>
@@ -244,6 +256,20 @@ export default function PropertyDocumentsDialog({
                           </div>
                         </div>
                         <div className="flex gap-2 flex-shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setUploadingVersionFor({
+                                id: latestDoc.id,
+                                title: latestDoc.document_title,
+                              });
+                              setShowUpload(true);
+                            }}
+                            title="Upload a new version of this document"
+                          >
+                            <Upload className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
