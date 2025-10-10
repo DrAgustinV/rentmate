@@ -181,22 +181,46 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-3xl font-bold flex items-center gap-2">
-                <Home className="h-8 w-8 text-primary" />
-                My Properties
-              </h2>
-              <p className="text-muted-foreground mt-1">Properties you manage</p>
+        {/* Empty State: No managed properties AND no tenant properties */}
+        {properties.length === 0 && tenantProperties.length === 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Card 1: Create Property */}
+            <div className="text-center py-12 bg-card border border-border rounded-lg">
+              <Home className="h-12 w-12 text-primary mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Manage Properties</h3>
+              <p className="text-muted-foreground mb-4">Create and manage your own properties</p>
+              <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Property
+              </Button>
             </div>
-            <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Property
-            </Button>
-          </div>
 
-          {properties.length > 0 && (
+            {/* Card 2: Waiting for Access */}
+            <div className="text-center py-12 bg-card border border-border rounded-lg">
+              <Users className="h-12 w-12 text-accent mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Tenant Access</h3>
+              <p className="text-muted-foreground">You haven't been added to any properties yet. Contact your property manager to get access.</p>
+            </div>
+          </div>
+        )}
+
+        {/* My Properties Section - Only show if user has managed properties */}
+        {properties.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-3xl font-bold flex items-center gap-2">
+                  <Home className="h-8 w-8 text-primary" />
+                  My Properties
+                </h2>
+                <p className="text-muted-foreground mt-1">Properties you manage</p>
+              </div>
+              <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Property
+              </Button>
+            </div>
+
             <div className="mb-6">
               <ArchiveToggle
                 activeCount={activeProperties.length}
@@ -205,44 +229,35 @@ export default function Dashboard() {
                 onViewChange={setPropertyView}
               />
             </div>
-          )}
 
-          {properties.length === 0 ? (
-            <div className="text-center py-12 bg-card border border-border rounded-lg">
-              <Home className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No properties yet</h3>
-              <p className="text-muted-foreground mb-4">Create your first property to get started</p>
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Property
-              </Button>
-            </div>
-          ) : displayedProperties.length === 0 ? (
-            <div className="text-center py-12 bg-card border border-border rounded-lg">
-              <Archive className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
-                No {propertyView} properties
-              </h3>
-              <p className="text-muted-foreground">
-                {propertyView === "active" 
-                  ? "All properties are archived" 
-                  : "No archived properties yet"}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayedProperties.map((property) => (
-                <PropertyCard
-                  key={property.id}
-                  property={property}
-                  isManager={true}
-                  onUpdate={() => fetchProperties(user!.id)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+            {displayedProperties.length === 0 ? (
+              <div className="text-center py-12 bg-card border border-border rounded-lg">
+                <Archive className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">
+                  No {propertyView} properties
+                </h3>
+                <p className="text-muted-foreground">
+                  {propertyView === "active" 
+                    ? "All properties are archived" 
+                    : "No archived properties yet"}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedProperties.map((property) => (
+                  <PropertyCard
+                    key={property.id}
+                    property={property}
+                    isManager={true}
+                    onUpdate={() => fetchProperties(user!.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
+        {/* Tenant Properties Section - Only show if user has tenant properties */}
         {tenantProperties.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
