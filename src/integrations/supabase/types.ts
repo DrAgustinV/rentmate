@@ -136,6 +136,72 @@ export type Database = {
         }
         Relationships: []
       }
+      property_documents: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          file_name: string
+          file_path: string
+          file_size_bytes: number
+          file_type: string
+          id: string
+          is_latest_version: boolean | null
+          mime_type: string
+          parent_document_id: string | null
+          property_id: string
+          updated_at: string | null
+          uploaded_by: string
+          version: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          file_name: string
+          file_path: string
+          file_size_bytes: number
+          file_type: string
+          id?: string
+          is_latest_version?: boolean | null
+          mime_type: string
+          parent_document_id?: string | null
+          property_id: string
+          updated_at?: string | null
+          uploaded_by: string
+          version?: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          file_size_bytes?: number
+          file_type?: string
+          id?: string
+          is_latest_version?: boolean | null
+          mime_type?: string
+          parent_document_id?: string | null
+          property_id?: string
+          updated_at?: string | null
+          uploaded_by?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_documents_parent_document_id_fkey"
+            columns: ["parent_document_id"]
+            isOneToOne: false
+            referencedRelation: "property_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_documents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_tenants: {
         Row: {
           created_at: string
@@ -459,6 +525,10 @@ export type Database = {
     Functions: {
       can_upload_photo: {
         Args: { _file_size_bytes: number; _ticket_id: string }
+        Returns: boolean
+      }
+      can_upload_property_document: {
+        Args: { _file_size_bytes: number; _property_id: string }
         Returns: boolean
       }
       can_upload_video: {

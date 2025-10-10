@@ -1,13 +1,14 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Trash2, Edit, Mail, Archive, Users, Ticket, Plus } from "lucide-react";
+import { MapPin, Calendar, Trash2, Edit, Mail, Archive, Users, Ticket, Plus, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { InviteTenantDialog } from "./InviteTenantDialog";
 import { EditPropertyDialog } from "./EditPropertyDialog";
 import { DeletePropertyDialog } from "./DeletePropertyDialog";
 import { PropertyTenantsDialog } from "./PropertyTenantsDialog";
+import PropertyDocumentsDialog from "./PropertyDocumentsDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 interface PropertyCardProps {
@@ -21,8 +22,10 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [tenantsOpen, setTenantsOpen] = useState(false);
+  const [documentsOpen, setDocumentsOpen] = useState(false);
   const [tenantCount, setTenantCount] = useState(0);
   const [ticketCount, setTicketCount] = useState(0);
+  const [documentCount, setDocumentCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,6 +33,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
       fetchTenantCount();
     }
     fetchTicketCount();
+    fetchDocumentCount();
   }, [property.id, isManager]);
 
   const fetchTenantCount = async () => {
@@ -58,6 +62,21 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
       setTicketCount(count || 0);
     } catch (error) {
       console.error("Error fetching ticket count:", error);
+    }
+  };
+
+  const fetchDocumentCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from("property_documents")
+        .select("*", { count: "exact", head: true })
+        .eq("property_id", property.id)
+        .eq("is_latest_version", true);
+
+      if (error) throw error;
+      setDocumentCount(count || 0);
+    } catch (error) {
+      console.error("Error fetching document count:", error);
     }
   };
 
@@ -136,6 +155,17 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
               >
                 <Plus className="h-4 w-4" />
                 Create Ticket
+              </Button>
+            </div>
+            <div className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDocumentsOpen(true)}
+                className="w-full gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Documents {documentCount > 0 && `(${documentCount})`}
               </Button>
             </div>
             {isManager && (
@@ -219,6 +249,13 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
         onOpenChange={setTenantsOpen}
         propertyId={property.id}
         propertyTitle={property.title}
+      />
+
+      <PropertyDocumentsDialog
+        open={documentsOpen}
+        onOpenChange={setDocumentsOpen}
+        propertyId={property.id}
+        isManager={isManager}
       />
     </>
   );
