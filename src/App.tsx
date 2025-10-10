@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Invitations from "./pages/Invitations";
 import PropertyTickets from "./pages/PropertyTickets";
 import TicketDetail from "./pages/TicketDetail";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/invitations" element={<Invitations />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/properties/:propertyId/tickets" element={<PropertyTickets />} />
           <Route path="/properties/:propertyId/tickets/:ticketId" element={<TicketDetail />} />
           <Route path="/tickets" element={<Navigate to="/dashboard" replace />} />
