@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { LogOut, Plus, Home, Users, Mail, Archive } from "lucide-react";
+import { LogOut, Plus, Home, Users, Mail, Archive, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { PropertyCard } from "@/components/PropertyCard";
@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [pendingInvitations, setPendingInvitations] = useState(0);
   const [propertyView, setPropertyView] = useState<"active" | "archived">("active");
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -35,6 +36,7 @@ export default function Dashboard() {
       setUser(session.user);
       await fetchProperties(session.user.id);
       await fetchPendingInvitations();
+      await checkAdminRole(session.user.id);
     };
 
     checkUser();
@@ -117,6 +119,20 @@ export default function Dashboard() {
     }
   };
 
+  const checkAdminRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.rpc("has_role", {
+        _user_id: userId,
+        _role: "admin",
+      });
+
+      if (error) throw error;
+      setIsAdmin(data || false);
+    } catch (error) {
+      console.error("Error checking admin role:", error);
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
@@ -141,6 +157,12 @@ export default function Dashboard() {
             FlatMate
           </h1>
           <div className="flex gap-2">
+            {isAdmin && (
+              <Button variant="destructive" size="sm" onClick={() => navigate("/admin")}>
+                <Shield className="mr-2 h-4 w-4" />
+                Admin Dashboard
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={() => navigate("/invitations")} className="relative">
               <Mail className="mr-2 h-4 w-4" />
               Invitations
