@@ -244,6 +244,70 @@ export type Database = {
           },
         ]
       }
+      recurring_schedules: {
+        Row: {
+          created_at: string
+          created_by: string
+          end_date: string | null
+          frequency: string
+          id: string
+          is_active: boolean
+          next_run_date: string
+          property_id: string
+          start_date: string
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          end_date?: string | null
+          frequency: string
+          id?: string
+          is_active?: boolean
+          next_run_date: string
+          property_id: string
+          start_date: string
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          next_run_date?: string
+          property_id?: string
+          start_date?: string
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_schedules_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_schedules_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           created_at: string | null
@@ -420,6 +484,57 @@ export type Database = {
           },
         ]
       }
+      ticket_templates: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          property_id: string
+          title: string
+          type: Database["public"]["Enums"]["ticket_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          property_id: string
+          title: string
+          type: Database["public"]["Enums"]["ticket_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          property_id?: string
+          title?: string
+          type?: Database["public"]["Enums"]["ticket_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_templates_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tickets: {
         Row: {
           assigned_to: string | null
@@ -570,7 +685,15 @@ export type Database = {
       property_status: "active" | "inactive"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "cancelled"
-      ticket_type: "issue" | "request" | "incident"
+      ticket_type:
+        | "issue"
+        | "request"
+        | "incident"
+        | "maintenance"
+        | "repair"
+        | "inspection"
+        | "cleaning"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -716,7 +839,16 @@ export const Constants = {
       property_status: ["active", "inactive"],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "resolved", "cancelled"],
-      ticket_type: ["issue", "request", "incident"],
+      ticket_type: [
+        "issue",
+        "request",
+        "incident",
+        "maintenance",
+        "repair",
+        "inspection",
+        "cleaning",
+        "other",
+      ],
     },
   },
 } as const

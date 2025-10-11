@@ -11,6 +11,8 @@ import PropertyTickets from "./pages/PropertyTickets";
 import TicketDetail from "./pages/TicketDetail";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import TemplatesManager from "./pages/TemplatesManager";
+import MaintenanceCalendar from "./pages/MaintenanceCalendar";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/properties/:propertyId/tickets" element={<PropertyTickets />} />
           <Route path="/properties/:propertyId/tickets/:ticketId" element={<TicketDetail />} />
+          <Route path="/templates-manager/:propertyId" element={<TemplatesManager />} />
+          <Route path="/maintenance-calendar/:propertyId" element={<MaintenanceCalendar />} />
           <Route path="/tickets" element={<Navigate to="/dashboard" replace />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

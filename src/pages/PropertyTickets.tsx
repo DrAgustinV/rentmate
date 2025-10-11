@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft } from "lucide-react";
+import { Plus, ArrowLeft, FileText } from "lucide-react";
 import { CreateTicketDialog } from "@/components/CreateTicketDialog";
 import { TicketsList } from "@/components/TicketsList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -84,10 +84,19 @@ const PropertyTickets = () => {
             {property?.address ? `${property.address} - ` : ""}Manage tickets and requests
           </p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Ticket
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/templates-manager/${propertyId}`)}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Templates
+          </Button>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Ticket
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="all" className="w-full">
