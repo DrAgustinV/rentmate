@@ -132,6 +132,22 @@ const PropertyMaintenance = () => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="templates" className="mt-6">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <FileText className="h-6 w-6" />
+                Maintenance Templates
+              </h2>
+              <Button onClick={() => setCreateTemplateOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                New Template
+              </Button>
+            </div>
+            <TemplatesManager />
+          </div>
+        </TabsContent>
+
         <TabsContent value="calendar" className="mt-6">
           <MaintenanceCalendar />
         </TabsContent>
