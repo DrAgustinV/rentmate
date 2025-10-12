@@ -42,12 +42,14 @@ const PropertyMaintenance = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tickets")
-        .select(`
+        .select(
+          `
           *,
           properties (id, title),
           profiles!tickets_created_by_fkey (id, first_name, last_name, email),
           ticket_templates (id, title)
-        `)
+        `,
+        )
         .eq("property_id", propertyId!)
         .not("source_template_id", "is", null)
         .order("created_at", { ascending: false });
@@ -69,11 +71,7 @@ const PropertyMaintenance = () => {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Button
-        variant="ghost"
-        className="mb-4"
-        onClick={() => navigate("/dashboard")}
-      >
+      <Button variant="ghost" className="mb-4" onClick={() => navigate("/dashboard")}>
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Dashboard
       </Button>
@@ -109,12 +107,6 @@ const PropertyMaintenance = () => {
 
         <TabsContent value="scheduled" className="mt-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5" />
-                Recurring Maintenance Tickets
-              </CardTitle>
-            </CardHeader>
             <CardContent>
               <Tabs defaultValue="all" className="w-full">
                 <TabsList className="grid w-full max-w-md grid-cols-3 mb-4">
@@ -133,9 +125,7 @@ const PropertyMaintenance = () => {
 
                 <TabsContent value="active">
                   <TicketsList
-                    tickets={recurringTickets?.filter((t) => 
-                      t.status === "open" || t.status === "in_progress"
-                    ) || []}
+                    tickets={recurringTickets?.filter((t) => t.status === "open" || t.status === "in_progress") || []}
                     isLoading={isLoadingTickets}
                     showRecurringBadge={true}
                   />
@@ -174,11 +164,7 @@ const PropertyMaintenance = () => {
         </TabsContent>
       </Tabs>
 
-      <CreateTemplateDialog
-        open={createTemplateOpen}
-        onOpenChange={setCreateTemplateOpen}
-        propertyId={propertyId!}
-      />
+      <CreateTemplateDialog open={createTemplateOpen} onOpenChange={setCreateTemplateOpen} propertyId={propertyId!} />
 
       <CreateRecurringScheduleDialog
         open={createScheduleOpen}
