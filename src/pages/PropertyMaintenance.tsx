@@ -3,24 +3,18 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Calendar as CalendarIcon, FileText, Wrench } from "lucide-react";
+import { ArrowLeft, Plus, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CreateTemplateDialog } from "@/components/CreateTemplateDialog";
-import { CreateRecurringScheduleDialog } from "@/components/CreateRecurringScheduleDialog";
-import { CreateTicketDialog } from "@/components/CreateTicketDialog";
-import { TicketsList } from "@/components/TicketsList";
+import { CreateMaintenanceTaskDialog } from "@/components/CreateMaintenanceTaskDialog";
 import MaintenanceCalendar from "./MaintenanceCalendar";
 import TemplatesManager from "./TemplatesManager";
+import ScheduledTasks from "./ScheduledTasks";
 
 const PropertyMaintenance = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
   const navigate = useNavigate();
-  const [createTemplateOpen, setCreateTemplateOpen] = useState(false);
-  const [createScheduleOpen, setCreateScheduleOpen] = useState(false);
-  const [createMaintenanceOpen, setCreateMaintenanceOpen] = useState(false);
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
 
   const { data: property, isLoading: isLoadingProperty } = useQuery({
     queryKey: ["property", propertyId],
@@ -37,28 +31,6 @@ const PropertyMaintenance = () => {
     enabled: !!propertyId,
   });
 
-  const { data: recurringTickets, isLoading: isLoadingTickets } = useQuery({
-    queryKey: ["recurring-tickets", propertyId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tickets")
-        .select(
-          `
-          *,
-          properties (id, title),
-          profiles!tickets_created_by_fkey (id, first_name, last_name, email),
-          ticket_templates (id, title)
-        `,
-        )
-        .eq("property_id", propertyId!)
-        .not("source_template_id", "is", null)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!propertyId,
-  });
 
   if (isLoadingProperty) {
     return (
@@ -87,56 +59,27 @@ const PropertyMaintenance = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="scheduled" className="w-full">
+      <Tabs defaultValue="tasks" className="w-full">
         <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsTrigger value="tasks">Maintenance Tasks</TabsTrigger>
           <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="calendar">Calendar</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="scheduled" className="mt-6">
-          <Card>
-            <CardContent>
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full max-w-md grid-cols-3 mb-4">
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="active">Active</TabsTrigger>
-                  <TabsTrigger value="resolved">Resolved</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="all">
-                  <TicketsList
-                    tickets={recurringTickets || []}
-                    isLoading={isLoadingTickets}
-                    showRecurringBadge={true}
-                  />
-                </TabsContent>
-
-                <TabsContent value="active">
-                  <TicketsList
-                    tickets={recurringTickets?.filter((t) => t.status === "open" || t.status === "in_progress") || []}
-                    isLoading={isLoadingTickets}
-                    showRecurringBadge={true}
-                  />
-                </TabsContent>
-
-                <TabsContent value="resolved">
-                  <TicketsList
-                    tickets={recurringTickets?.filter((t) => t.status === "resolved") || []}
-                    isLoading={isLoadingTickets}
-                    showRecurringBadge={true}
-                  />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+        <TabsContent value="tasks" className="mt-6">
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <Button onClick={() => setCreateTaskOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                New Maintenance Task
+              </Button>
+            </div>
+            <TemplatesManager propertyId={propertyId!} />
+          </div>
         </TabsContent>
 
-        <TabsContent value="templates" className="mt-6">
-          <div className="space-y-4">
-            <div className="flex justify-between items-center"></div>
-            <TemplatesManager />
-          </div>
+        <TabsContent value="scheduled" className="mt-6">
+          <ScheduledTasks propertyId={propertyId!} />
         </TabsContent>
 
         <TabsContent value="calendar" className="mt-6">
@@ -144,19 +87,10 @@ const PropertyMaintenance = () => {
         </TabsContent>
       </Tabs>
 
-      <CreateTemplateDialog open={createTemplateOpen} onOpenChange={setCreateTemplateOpen} propertyId={propertyId!} />
-
-      <CreateRecurringScheduleDialog
-        open={createScheduleOpen}
-        onOpenChange={setCreateScheduleOpen}
+      <CreateMaintenanceTaskDialog
+        open={createTaskOpen}
+        onOpenChange={setCreateTaskOpen}
         propertyId={propertyId!}
-      />
-
-      <CreateTicketDialog
-        open={createMaintenanceOpen}
-        onOpenChange={setCreateMaintenanceOpen}
-        propertyId={propertyId}
-        onSuccess={() => {}}
       />
     </div>
   );
