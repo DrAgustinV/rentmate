@@ -547,6 +547,7 @@ export type Database = {
           resolution_notes: string | null
           resolved_at: string | null
           resolved_by: string | null
+          source_template_id: string | null
           status: Database["public"]["Enums"]["ticket_status"]
           ticket_number: string
           title: string
@@ -564,6 +565,7 @@ export type Database = {
           resolution_notes?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
+          source_template_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           ticket_number?: string
           title: string
@@ -581,6 +583,7 @@ export type Database = {
           resolution_notes?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
+          source_template_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           ticket_number?: string
           title?: string
@@ -614,6 +617,13 @@ export type Database = {
             columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_source_template_id_fkey"
+            columns: ["source_template_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_templates"
             referencedColumns: ["id"]
           },
         ]

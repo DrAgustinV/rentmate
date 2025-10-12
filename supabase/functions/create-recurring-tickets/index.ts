@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
           priority: template.priority,
           status: 'open',
           created_by: template.created_by,
+          source_template_id: template.id,
         });
 
       if (ticketError) {

@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import { RotateCw } from "lucide-react";
 
 interface Ticket {
   id: string;
@@ -19,12 +20,15 @@ interface Ticket {
   priority: string;
   type: string;
   created_at: string;
+  source_template_id?: string | null;
   properties: { id: string; title: string } | null;
+  ticket_templates?: { title: string } | null;
 }
 
 interface TicketsListProps {
   tickets: Ticket[];
   isLoading: boolean;
+  showRecurringBadge?: boolean;
 }
 
 const statusColors = {
@@ -41,7 +45,7 @@ const priorityColors = {
   urgent: "bg-red-500",
 };
 
-export function TicketsList({ tickets, isLoading }: TicketsListProps) {
+export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: TicketsListProps) {
   const navigate = useNavigate();
 
   if (isLoading) {
@@ -91,7 +95,17 @@ export function TicketsList({ tickets, isLoading }: TicketsListProps) {
               <TableCell className="font-mono text-sm">
                 {ticket.ticket_number}
               </TableCell>
-              <TableCell className="font-medium">{ticket.title}</TableCell>
+              <TableCell className="font-medium">
+                <div className="flex items-center gap-2">
+                  {ticket.title}
+                  {showRecurringBadge && ticket.source_template_id && (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <RotateCw className="h-3 w-3" />
+                      Recurring
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
               <TableCell>{ticket.properties?.title || "N/A"}</TableCell>
               <TableCell className="capitalize">{ticket.type}</TableCell>
               <TableCell>

@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Invitations from "./pages/Invitations";
 import PropertyTickets from "./pages/PropertyTickets";
+import PropertyMaintenance from "./pages/PropertyMaintenance";
 import TicketDetail from "./pages/TicketDetail";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/invitations" element={<Invitations />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/properties/:propertyId/tickets" element={<PropertyTickets />} />
+          <Route path="/properties/:propertyId/maintenance" element={<PropertyMaintenance />} />
           <Route path="/properties/:propertyId/tickets/:ticketId" element={<TicketDetail />} />
           <Route path="/templates-manager/:propertyId" element={<TemplatesManager />} />
           <Route path="/maintenance-calendar/:propertyId" element={<MaintenanceCalendar />} />

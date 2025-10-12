@@ -49,6 +49,7 @@ const PropertyTickets = () => {
           profiles!tickets_created_by_fkey (id, first_name, last_name, email)
         `)
         .eq("property_id", propertyId!)
+        .is("source_template_id", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -84,19 +85,10 @@ const PropertyTickets = () => {
             {property?.address ? `${property.address} - ` : ""}Manage tickets and requests
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/templates-manager/${propertyId}`)}
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            Templates
-          </Button>
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Ticket
-          </Button>
-        </div>
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Ticket
+        </Button>
       </div>
 
       <Tabs defaultValue="all" className="w-full">

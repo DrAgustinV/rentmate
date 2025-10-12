@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Trash2, Edit, Mail, Archive, Users, Ticket, Plus, FileText } from "lucide-react";
+import { MapPin, Calendar, Trash2, Edit, Mail, Archive, Users, Ticket, Wrench, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { InviteTenantDialog } from "./InviteTenantDialog";
@@ -148,16 +148,15 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 className="flex-1 gap-2"
               >
                 <Ticket className="h-4 w-4" />
-                View Tickets {ticketCount > 0 && `(${ticketCount})`}
+                Tickets {ticketCount > 0 && `(${ticketCount})`}
               </Button>
               <Button
-                variant="default"
                 size="sm"
-                onClick={() => navigate(`/properties/${property.id}/tickets?create=true`)}
+                onClick={() => navigate(`/properties/${property.id}/maintenance`)}
                 className="flex-1 gap-2"
               >
-                <Plus className="h-4 w-4" />
-                Create Ticket
+                <Wrench className="h-4 w-4" />
+                Maintenance
               </Button>
             </div>
             <div className="w-full">
