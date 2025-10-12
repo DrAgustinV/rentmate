@@ -1,12 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -61,76 +54,132 @@ export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: 
   }
 
   if (tickets.length === 0) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        No tickets found
-      </div>
-    );
+    return <div className="text-center py-12 text-muted-foreground">No tickets found</div>;
   }
-
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Ticket #</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Property</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead>Schedule #</TableHead>
+            <TableHead>Template Title</TableHead>
+            <TableHead>Frequency</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead>Completed By</TableHead>
+            <TableHead>Next Run</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tickets.map((ticket) => (
-            <TableRow
-              key={ticket.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => {
-                const propertyId = ticket.properties?.id;
-                if (propertyId) {
-                  navigate(`/properties/${propertyId}/tickets/${ticket.id}`);
-                }
-              }}
-            >
-              <TableCell className="font-mono text-sm">
-                {ticket.ticket_number}
-              </TableCell>
+          {schedules?.map((schedule) => (
+            <TableRow key={schedule.id} className="cursor-pointer hover:bg-muted/50">
+              <TableCell className="font-mono text-sm">{schedule.id}</TableCell>
               <TableCell className="font-medium">
                 <div className="flex items-center gap-2">
-                  {ticket.title}
-                  {showRecurringBadge && ticket.source_template_id && (
-                    <Badge variant="outline" className="flex items-center gap-1">
-                      <RotateCw className="h-3 w-3" />
-                      Recurring
-                    </Badge>
-                  )}
+                  {schedule.ticket_templates?.title}
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <RotateCw className="h-3 w-3" />
+                    Recurring
+                  </Badge>
                 </div>
               </TableCell>
-              <TableCell>{ticket.properties?.title || "N/A"}</TableCell>
-              <TableCell className="capitalize">{ticket.type}</TableCell>
+              <TableCell className="capitalize">{schedule.frequency}</TableCell>
               <TableCell>
-                <Badge className={statusColors[ticket.status as keyof typeof statusColors]}>
-                  {ticket.status.replace("_", " ")}
+                <Badge className={schedule.is_active ? "bg-green-500" : "bg-gray-500"}>
+                  {schedule.is_active ? "Active" : "Inactive"}
                 </Badge>
               </TableCell>
+              <TableCell>{schedule.next_run_date}</TableCell>
               <TableCell>
-                <Badge className={priorityColors[ticket.priority as keyof typeof priorityColors]}>
-                  {ticket.priority}
-                </Badge>
-              </TableCell>
-              <TableCell>{format(new Date(ticket.created_at), "PPP")}</TableCell>
-              <TableCell>
-                {ticket.status === "resolved" && ticket.resolver
-                  ? `${ticket.resolver.first_name} ${ticket.resolver.last_name}`
-                  : "-"}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleScheduleMutation.mutate({
+                      scheduleId: schedule.id,
+                      isActive: schedule.is_active,
+                    });
+                  }}
+                >
+                  {schedule.is_active ? "Pause" : "Resume"}
+                </Button>
               </TableCell>
             </TableRow>
           ))}
+          {!schedules?.length && (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                No schedules yet. Create your first recurring schedule.
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>
   );
+  // return (
+  //   <div className="rounded-md border">
+  //     <Table>
+  //       <TableHeader>
+  //         <TableRow>
+  //           <TableHead>Ticket #</TableHead>
+  //           <TableHead>Title</TableHead>
+  //           <TableHead>Property</TableHead>
+  //           <TableHead>Type</TableHead>
+  //           <TableHead>Status</TableHead>
+  //           <TableHead>Priority</TableHead>
+  //           <TableHead>Created</TableHead>
+  //           <TableHead>Completed By</TableHead>
+  //         </TableRow>
+  //       </TableHeader>
+  //       <TableBody>
+  //         {tickets.map((ticket) => (
+  //           <TableRow
+  //             key={ticket.id}
+  //             className="cursor-pointer hover:bg-muted/50"
+  //             onClick={() => {
+  //               const propertyId = ticket.properties?.id;
+  //               if (propertyId) {
+  //                 navigate(`/properties/${propertyId}/tickets/${ticket.id}`);
+  //               }
+  //             }}
+  //           >
+  //             <TableCell className="font-mono text-sm">
+  //               {ticket.ticket_number}
+  //             </TableCell>
+  //             <TableCell className="font-medium">
+  //               <div className="flex items-center gap-2">
+  //                 {ticket.title}
+  //                 {showRecurringBadge && ticket.source_template_id && (
+  //                   <Badge variant="outline" className="flex items-center gap-1">
+  //                     <RotateCw className="h-3 w-3" />
+  //                     Recurring
+  //                   </Badge>
+  //                 )}
+  //               </div>
+  //             </TableCell>
+  //             <TableCell>{ticket.properties?.title || "N/A"}</TableCell>
+  //             <TableCell className="capitalize">{ticket.type}</TableCell>
+  //             <TableCell>
+  //               <Badge className={statusColors[ticket.status as keyof typeof statusColors]}>
+  //                 {ticket.status.replace("_", " ")}
+  //               </Badge>
+  //             </TableCell>
+  //             <TableCell>
+  //               <Badge className={priorityColors[ticket.priority as keyof typeof priorityColors]}>
+  //                 {ticket.priority}
+  //               </Badge>
+  //             </TableCell>
+  //             <TableCell>{format(new Date(ticket.created_at), "PPP")}</TableCell>
+  //             <TableCell>
+  //               {ticket.status === "resolved" && ticket.resolver
+  //                 ? `${ticket.resolver.first_name} ${ticket.resolver.last_name}`
+  //                 : "-"}
+  //             </TableCell>
+  //           </TableRow>
+  //         ))}
+  //       </TableBody>
+  //     </Table>
+  //   </div>
+  // );
 }
