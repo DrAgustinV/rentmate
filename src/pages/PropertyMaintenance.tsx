@@ -31,6 +31,36 @@ const PropertyMaintenance = () => {
     enabled: !!propertyId,
   });
 
+  const { data: userRole } = useQuery({
+    queryKey: ["user-role", propertyId],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return { isManager: false, isTenant: false };
+      
+      // Check if manager
+      const { data: property } = await supabase
+        .from("properties")
+        .select("manager_id")
+        .eq("id", propertyId!)
+        .maybeSingle();
+      
+      const isManager = property?.manager_id === user.id;
+      
+      // Check if tenant
+      const { data: tenantRel } = await supabase
+        .from("property_tenants")
+        .select("id")
+        .eq("property_id", propertyId!)
+        .eq("tenant_id", user.id)
+        .maybeSingle();
+      
+      const isTenant = !!tenantRel;
+      
+      return { isManager, isTenant };
+    },
+    enabled: !!propertyId,
+  });
+
 
   if (isLoadingProperty) {
     return (
@@ -59,24 +89,28 @@ const PropertyMaintenance = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="tasks" className="w-full">
-        <TabsList className="grid w-full max-w-2xl grid-cols-3">
-          <TabsTrigger value="tasks">Maintenance Tasks</TabsTrigger>
+      <Tabs defaultValue={userRole?.isManager ? "tasks" : "scheduled"} className="w-full">
+        <TabsList className={`grid w-full max-w-2xl ${userRole?.isManager ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          {userRole?.isManager && (
+            <TabsTrigger value="tasks">Maintenance Tasks</TabsTrigger>
+          )}
           <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
           <TabsTrigger value="calendar">Calendar</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="tasks" className="mt-6">
-          <div className="space-y-4">
-            <div className="flex justify-end">
-              <Button onClick={() => setCreateTaskOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                New Maintenance Task
-              </Button>
+        {userRole?.isManager && (
+          <TabsContent value="tasks" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-end">
+                <Button onClick={() => setCreateTaskOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Maintenance Task
+                </Button>
+              </div>
+              <TemplatesManager propertyId={propertyId!} />
             </div>
-            <TemplatesManager propertyId={propertyId!} />
-          </div>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         <TabsContent value="scheduled" className="mt-6">
           <ScheduledTasks propertyId={propertyId!} />

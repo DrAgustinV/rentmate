@@ -1,20 +1,33 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { format, parseISO, isPast } from "date-fns";
-import { AlertCircle, Clock } from "lucide-react";
+import { AlertCircle, Clock, Play, CheckCircle } from "lucide-react";
+import { CompleteTaskDialog } from "@/components/maintenance/CompleteTaskDialog";
+import { toast } from "@/hooks/use-toast";
 
 interface ScheduledTasksProps {
   propertyId: string;
 }
 
 const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [completingTask, setCompletingTask] = useState<{
+    scheduleId: string;
+    ticketId: string;
+    taskTitle: string;
+  } | null>(null);
+
   const { data: scheduledTasks, isLoading } = useQuery({
     queryKey: ["scheduled-tasks", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: schedules, error } = await supabase
         .from("recurring_schedules")
         .select(
           `
@@ -27,7 +40,8 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
             id,
             title,
             type,
-            priority
+            priority,
+            description
           )
         `
         )
@@ -37,10 +51,171 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
         .order("next_run_date", { ascending: true });
 
       if (error) throw error;
-      return data;
+
+      // Fetch associated tickets for each schedule
+      const schedulesWithTickets = await Promise.all(
+        (schedules || []).map(async (schedule) => {
+          const template = schedule.ticket_templates as any;
+          const { data: ticket } = await supabase
+            .from("tickets")
+            .select("id, status, resolved_at")
+            .eq("source_template_id", template?.id)
+            .eq("property_id", propertyId)
+            .gte("created_at", schedule.next_run_date)
+            .maybeSingle();
+
+          return { ...schedule, ticket };
+        })
+      );
+
+      return schedulesWithTickets;
     },
     enabled: !!propertyId,
   });
+
+  const startTaskMutation = useMutation({
+    mutationFn: async ({ schedule, template }: { schedule: any; template: any }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const existingTicket = schedule.ticket;
+
+      if (existingTicket) {
+        const { error } = await supabase
+          .from("tickets")
+          .update({ status: "in_progress" })
+          .eq("id", existingTicket.id);
+
+        if (error) throw error;
+
+        await supabase.from("ticket_activities").insert({
+          ticket_id: existingTicket.id,
+          user_id: user.id,
+          activity_type: "status_change",
+          old_value: { status: existingTicket.status },
+          new_value: { status: "in_progress" },
+        });
+
+        return existingTicket.id;
+      } else {
+        const { data: newTicket, error } = await supabase
+          .from("tickets")
+          .insert({
+            property_id: propertyId,
+            source_template_id: template.id,
+            title: template.title,
+            description: template.description,
+            type: template.type,
+            priority: template.priority,
+            status: "in_progress",
+            created_by: user.id,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        await supabase.from("ticket_activities").insert({
+          ticket_id: newTicket.id,
+          user_id: user.id,
+          activity_type: "status_change",
+          old_value: null,
+          new_value: { status: "in_progress" },
+        });
+
+        return newTicket.id;
+      }
+    },
+    onSuccess: (ticketId) => {
+      queryClient.invalidateQueries({ queryKey: ["scheduled-tasks", propertyId] });
+      toast({
+        title: "Task started",
+        description: "You can now track progress and add updates",
+        action: (
+          <Button variant="outline" size="sm" onClick={() => navigate(`/tickets/${ticketId}`)}>
+            View Ticket
+          </Button>
+        ),
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to start task",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const completeTaskMutation = useMutation({
+    mutationFn: async ({ ticketId, notes }: { ticketId: string; notes: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from("tickets")
+        .update({
+          status: "resolved",
+          resolved_at: new Date().toISOString(),
+          resolved_by: user.id,
+          resolution_notes: notes,
+        })
+        .eq("id", ticketId);
+
+      if (error) throw error;
+
+      await supabase.from("ticket_activities").insert({
+        ticket_id: ticketId,
+        user_id: user.id,
+        activity_type: "status_change",
+        old_value: { status: "in_progress" },
+        new_value: { status: "resolved" },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["scheduled-tasks", propertyId] });
+      toast({ title: "Task completed successfully" });
+      setCompletingTask(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to complete task",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleStartTask = (schedule: any) => {
+    const template = schedule.ticket_templates;
+    startTaskMutation.mutate({ schedule, template });
+  };
+
+  const handleCompleteTask = (schedule: any, ticket: any) => {
+    const template = schedule.ticket_templates;
+    setCompletingTask({
+      scheduleId: schedule.id,
+      ticketId: ticket.id,
+      taskTitle: template?.title || "Task",
+    });
+  };
+
+  const getStatusVariant = (status: string | null) => {
+    if (!status) return "outline";
+    switch (status) {
+      case "resolved":
+        return "default";
+      case "in_progress":
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
+
+  const formatStatus = (status: string | null) => {
+    if (!status) return "Not Started";
+    return status.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  };
 
   const priorityColors = {
     low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -79,49 +254,103 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
   }
 
   return (
-    <div className="space-y-3">
-      {scheduledTasks.map((schedule) => {
-        const template = schedule.ticket_templates as any;
-        const nextRunDate = parseISO(schedule.next_run_date);
-        const isOverdue = isPast(nextRunDate);
+    <>
+      <div className="space-y-3">
+        {scheduledTasks.map((schedule) => {
+          const template = schedule.ticket_templates as any;
+          const ticket = schedule.ticket;
+          const nextRunDate = parseISO(schedule.next_run_date);
+          const isOverdue = isPast(nextRunDate) && ticket?.status !== "resolved";
 
-        return (
-          <Card key={schedule.id} className={isOverdue ? "border-orange-500/50" : ""}>
-            <CardContent className="py-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+          return (
+            <Card key={schedule.id} className={isOverdue ? "border-orange-500/50" : ""}>
+              <CardContent className="py-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      {isOverdue && (
+                        <AlertCircle className="h-4 w-4 text-orange-500" />
+                      )}
+                      <h3 className="font-semibold">{template?.title}</h3>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className={typeColors[template?.type as keyof typeof typeColors]}>
+                        {template?.type}
+                      </Badge>
+                      <Badge variant="outline" className={priorityColors[template?.priority as keyof typeof priorityColors]}>
+                        {template?.priority}
+                      </Badge>
+                      <Badge variant="outline" className="capitalize">
+                        {schedule.frequency}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="text-right ml-4">
+                    <p className={`text-sm font-medium ${isOverdue ? "text-orange-500" : "text-muted-foreground"}`}>
+                      {format(nextRunDate, "dd MMMM yyyy")}
+                    </p>
                     {isOverdue && (
-                      <AlertCircle className="h-4 w-4 text-orange-500" />
+                      <p className="text-xs text-orange-500">Overdue</p>
                     )}
-                    <h3 className="font-semibold">{template?.title}</h3>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className={typeColors[template?.type as keyof typeof typeColors]}>
-                      {template?.type}
-                    </Badge>
-                    <Badge variant="outline" className={priorityColors[template?.priority as keyof typeof priorityColors]}>
-                      {template?.priority}
-                    </Badge>
-                    <Badge variant="outline" className="capitalize">
-                      {schedule.frequency}
-                    </Badge>
                   </div>
                 </div>
-                <div className="text-right ml-4">
-                  <p className={`text-sm font-medium ${isOverdue ? "text-orange-500" : "text-muted-foreground"}`}>
-                    {format(nextRunDate, "dd MMMM yyyy")}
-                  </p>
-                  {isOverdue && (
-                    <p className="text-xs text-orange-500">Overdue</p>
-                  )}
+
+                <div className="mt-4 pt-3 border-t flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={getStatusVariant(ticket?.status)}>
+                      {formatStatus(ticket?.status)}
+                    </Badge>
+                    {isOverdue && (
+                      <Badge variant="destructive" className="animate-pulse">
+                        Overdue
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2">
+                    {(!ticket || ticket.status === "open") && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleStartTask(schedule)}
+                        disabled={startTaskMutation.isPending}
+                      >
+                        <Play className="mr-1 h-3 w-3" />
+                        Start Task
+                      </Button>
+                    )}
+                    {ticket?.status === "in_progress" && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleCompleteTask(schedule, ticket)}
+                        disabled={completeTaskMutation.isPending}
+                      >
+                        <CheckCircle className="mr-1 h-3 w-3" />
+                        Mark Complete
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <CompleteTaskDialog
+        open={!!completingTask}
+        onOpenChange={(open) => !open && setCompletingTask(null)}
+        taskTitle={completingTask?.taskTitle || ""}
+        onComplete={(notes) => {
+          if (completingTask) {
+            completeTaskMutation.mutate({
+              ticketId: completingTask.ticketId,
+              notes,
+            });
+          }
+        }}
+        isLoading={completeTaskMutation.isPending}
+      />
+    </>
   );
 };
 
