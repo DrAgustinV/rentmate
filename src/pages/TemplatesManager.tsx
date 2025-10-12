@@ -130,7 +130,7 @@ export default function TemplatesManager() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">Maintenance Templates</h1>
+          <h1 className="text-3xl font-bold">Maintenance Tasks & Schedules</h1>
           {property && (
             <p className="text-muted-foreground">
               {property.title} - {property.address}
@@ -149,11 +149,11 @@ export default function TemplatesManager() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Templates
+                Maintenance Tasks
               </CardTitle>
               <Button onClick={() => setCreateTemplateOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                New Template
+                New Task
               </Button>
             </div>
           </CardHeader>
@@ -194,7 +194,7 @@ export default function TemplatesManager() {
               ))}
               {!templates?.length && (
                 <p className="text-center text-muted-foreground py-8">
-                  No templates yet. Create your first template.
+                  No maintenance tasks yet. Create your first task.
                 </p>
               )}
             </div>

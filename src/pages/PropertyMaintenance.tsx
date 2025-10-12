@@ -47,7 +47,8 @@ const PropertyMaintenance = () => {
           *,
           properties (id, title),
           profiles!tickets_created_by_fkey (id, first_name, last_name, email),
-          ticket_templates (id, title)
+          ticket_templates (id, title),
+          resolver:profiles!tickets_resolved_by_fkey (id, first_name, last_name)
         `,
         )
         .eq("property_id", propertyId!)
@@ -93,70 +94,57 @@ const PropertyMaintenance = () => {
           </Button>
           <Button onClick={() => setCreateMaintenanceOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            New Maintenance
+            New Maintenance Task
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="scheduled" className="w-full">
-        <TabsList className="grid w-full max-w-2xl grid-cols-3">
+      <Tabs defaultValue="tasks" className="w-full">
+        <TabsList className="grid w-full max-w-3xl grid-cols-4">
+          <TabsTrigger value="tasks">Maintenance Tasks</TabsTrigger>
           <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
           <TabsTrigger value="calendar">Calendar</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="scheduled" className="mt-6">
-          <Card>
-            <CardContent>
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full max-w-md grid-cols-3 mb-4">
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="active">Active</TabsTrigger>
-                  <TabsTrigger value="resolved">Resolved</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="all">
-                  <TicketsList
-                    tickets={recurringTickets || []}
-                    isLoading={isLoadingTickets}
-                    showRecurringBadge={true}
-                  />
-                </TabsContent>
-
-                <TabsContent value="active">
-                  <TicketsList
-                    tickets={recurringTickets?.filter((t) => t.status === "open" || t.status === "in_progress") || []}
-                    isLoading={isLoadingTickets}
-                    showRecurringBadge={true}
-                  />
-                </TabsContent>
-
-                <TabsContent value="resolved">
-                  <TicketsList
-                    tickets={recurringTickets?.filter((t) => t.status === "resolved") || []}
-                    isLoading={isLoadingTickets}
-                    showRecurringBadge={true}
-                  />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="templates" className="mt-6">
+        <TabsContent value="tasks" className="mt-6">
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold flex items-center gap-2">
                 <FileText className="h-6 w-6" />
-                Maintenance Templates
+                Maintenance Tasks
               </h2>
               <Button onClick={() => setCreateTemplateOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                New Template
+                New Task
               </Button>
             </div>
             <TemplatesManager />
           </div>
+        </TabsContent>
+
+        <TabsContent value="scheduled" className="mt-6">
+          <Card>
+            <CardContent>
+              <TicketsList
+                tickets={recurringTickets?.filter((t) => t.status === "open" || t.status === "in_progress") || []}
+                isLoading={isLoadingTickets}
+                showRecurringBadge={true}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="completed" className="mt-6">
+          <Card>
+            <CardContent>
+              <TicketsList
+                tickets={recurringTickets?.filter((t) => t.status === "resolved") || []}
+                isLoading={isLoadingTickets}
+                showRecurringBadge={true}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="calendar" className="mt-6">

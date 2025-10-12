@@ -23,6 +23,8 @@ interface Ticket {
   source_template_id?: string | null;
   properties: { id: string; title: string } | null;
   ticket_templates?: { title: string } | null;
+  resolved_by?: string | null;
+  resolver?: { first_name: string; last_name: string } | null;
 }
 
 interface TicketsListProps {
@@ -78,6 +80,7 @@ export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: 
             <TableHead>Status</TableHead>
             <TableHead>Priority</TableHead>
             <TableHead>Created</TableHead>
+            <TableHead>Completed By</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -119,6 +122,11 @@ export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: 
                 </Badge>
               </TableCell>
               <TableCell>{format(new Date(ticket.created_at), "PPP")}</TableCell>
+              <TableCell>
+                {ticket.status === "resolved" && ticket.resolver
+                  ? `${ticket.resolver.first_name} ${ticket.resolver.last_name}`
+                  : "-"}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
