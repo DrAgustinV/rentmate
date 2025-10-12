@@ -75,6 +75,39 @@ const PropertyMaintenance = () => {
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Dashboard
       </Button>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Wrench className="h-8 w-8" />
+            Maintenance
+          </h1>
+          <p className="text-muted-foreground">
+            {property?.title} {property?.address ? `- ${property.address}` : ""} - Manage scheduled maintenance
+          </p>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Wrench className="h-8 w-8" />
+            Maintenance
+          </h1>
+          <p className="text-muted-foreground">
+            {property?.title} {property?.address ? `- ${property.address}` : ""} - Manage scheduled maintenance
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setCreateScheduleOpen(true)}>
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            New Schedule
+          </Button>
+          <Button onClick={() => setCreateMaintenanceOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Maintenance
+          </Button>
+        </div>
+      </div>
 
       <Tabs defaultValue="scheduled" className="w-full">
         <TabsList className="grid w-full max-w-2xl grid-cols-3">
