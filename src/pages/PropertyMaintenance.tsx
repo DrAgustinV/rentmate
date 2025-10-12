@@ -95,8 +95,8 @@ const PropertyMaintenance = () => {
             <Plus className="mr-2 h-4 w-4" />
             New Maintenance
           </Button>
-        </div>
-      </div> */}
+        </div> */}
+      </div>
 
       <Tabs defaultValue="scheduled" className="w-full">
         <TabsList className="grid w-full max-w-2xl grid-cols-3">
