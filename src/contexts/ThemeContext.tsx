@@ -130,6 +130,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
           accent_color: updatedPrefs.accent_color,
           font_size: updatedPrefs.font_size,
           date_format: updatedPrefs.date_format,
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
