@@ -1,15 +1,17 @@
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/dateUtils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Privacy() {
+  const { t } = useLanguage();
   const lastUpdated = new Date('2024-01-01');
 
   return (
     <AppLayout>
       <div className="container max-w-4xl py-8">
-        <h1 className="text-4xl font-bold mb-2">Privacy Policy</h1>
-        <p className="text-muted-foreground mb-8">Last updated: {formatDate(lastUpdated)}</p>
+        <h1 className="text-4xl font-bold mb-2">{t('privacy.title')}</h1>
+        <p className="text-muted-foreground mb-8">{t('privacy.lastUpdated')}: {formatDate(lastUpdated)}</p>
         
         <div className="space-y-6">
           <Card>

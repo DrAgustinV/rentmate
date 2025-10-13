@@ -1,8 +1,10 @@
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/dateUtils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Terms() {
+  const { t } = useLanguage();
   const lastUpdated = new Date('2024-01-01');
 
   return (

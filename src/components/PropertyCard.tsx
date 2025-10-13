@@ -10,6 +10,7 @@ import { DeletePropertyDialog } from "./DeletePropertyDialog";
 import { PropertyTenantsDialog } from "./PropertyTenantsDialog";
 import PropertyDocumentsDialog from "./PropertyDocumentsDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PropertyCardProps {
   property: any;
@@ -18,6 +19,7 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProps) {
+  const { t } = useLanguage();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
