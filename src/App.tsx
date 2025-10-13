@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Invitations from "./pages/Invitations";
+import Settings from "./pages/Settings";
 import PropertyTickets from "./pages/PropertyTickets";
 import PropertyMaintenance from "./pages/PropertyMaintenance";
 import TicketDetail from "./pages/TicketDetail";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/invitations" element={<Invitations />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/properties/:propertyId/tickets" element={<PropertyTickets />} />
           <Route path="/properties/:propertyId/maintenance" element={<PropertyMaintenance />} />
