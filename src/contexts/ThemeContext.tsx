@@ -58,8 +58,9 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     document.documentElement.classList.remove('text-sm', 'text-base', 'text-lg');
     document.documentElement.classList.add(fontSizeMap[prefs.font_size]);
     
-    // Apply date format
+    // Apply date format and locale
     setUserDateFormat(prefs.date_format);
+    setUserLocale(prefs.language || 'en');
     
     // Store in localStorage for quick load
     localStorage.setItem('user-preferences', JSON.stringify(prefs));

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatDate } from "@/lib/dateUtils";
 
 export function TicketsTable() {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ export function TicketsTable() {
                   {ticket.priority}
                 </Badge>
               </TableCell>
-              <TableCell>{new Date(ticket.created_at).toLocaleDateString()}</TableCell>
+              <TableCell>{formatDate(ticket.created_at)}</TableCell>
               <TableCell>
                 <Button
                   variant="ghost"

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Shield, User } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatDate } from "@/lib/dateUtils";
 
 type UserRole = "admin" | "user";
 
@@ -95,7 +96,7 @@ export function UsersTable() {
                 </div>
               </TableCell>
               <TableCell>
-                {new Date(user.created_at).toLocaleDateString()}
+                {formatDate(user.created_at)}
               </TableCell>
               <TableCell>
                 <Select

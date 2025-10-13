@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserMinus, Users } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatDate } from "@/lib/dateUtils";
 
 interface Tenant {
   id: string;
@@ -152,7 +153,7 @@ export function PropertyTenantsDialog({ open, onOpenChange, propertyId, property
                       <p className="font-medium">{getTenantName(tenant)}</p>
                       <p className="text-sm text-muted-foreground">{tenant.email}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {t('dialogs.manageTenants.added')} {new Date(tenant.created_at).toLocaleDateString()}
+                        {t('dialogs.manageTenants.added')} {formatDate(tenant.created_at)}
                       </p>
                     </div>
                     <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)}>

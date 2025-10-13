@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatDate } from "@/lib/dateUtils";
 
 interface Invitation {
   id: string;
@@ -203,7 +204,7 @@ export default function Invitations() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground mb-4">
-                    {t('invitations.expires')}: {new Date(invitation.expires_at).toLocaleDateString()}
+                    {t('invitations.expires')}: {formatDate(invitation.expires_at)}
                   </p>
                   <div className="flex gap-2">
                     <Button

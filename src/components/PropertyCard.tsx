@@ -12,6 +12,7 @@ import { PropertyTenantsDialog } from "./PropertyTenantsDialog";
 import PropertyDocumentsDialog from "./PropertyDocumentsDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatDate } from "@/lib/dateUtils";
 
 interface PropertyCardProps {
   property: any;
@@ -210,7 +211,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              <span>{new Date(property.created_at).toLocaleDateString()}</span>
+              <span>{formatDate(property.created_at)}</span>
             </div>
           </div>
 
@@ -221,7 +222,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 <span className="font-medium">{t('properties.archivedDetails')}</span>
               </div>
               <div className="space-y-1 text-xs text-muted-foreground">
-                <p>{t('properties.archivedOn')}: {new Date(property.deleted_at).toLocaleDateString()}</p>
+                <p>{t('properties.archivedOn')}: {formatDate(property.deleted_at)}</p>
                 {property.delete_reason && (
                   <p>{t('properties.reason')}: {property.delete_reason.replace(/_/g, ' ')}</p>
                 )}

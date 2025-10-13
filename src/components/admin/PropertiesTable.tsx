@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatDate } from "@/lib/dateUtils";
 
 export function PropertiesTable() {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ export function PropertiesTable() {
                 </Badge>
               </TableCell>
               <TableCell>
-                {new Date(property.created_at).toLocaleDateString()}
+                {formatDate(property.created_at)}
               </TableCell>
               <TableCell>
                 <Button
