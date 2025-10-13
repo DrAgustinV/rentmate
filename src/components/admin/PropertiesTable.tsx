@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function PropertiesTable() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ["admin-properties"],
@@ -33,7 +35,7 @@ export function PropertiesTable() {
   });
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading properties...</div>;
+    return <div className="text-center py-8">{t('admin.loadingProperties')}</div>;
   }
 
   return (
@@ -41,12 +43,12 @@ export function PropertiesTable() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Address</TableHead>
-            <TableHead>Manager</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>{t('admin.propertyTitle')}</TableHead>
+            <TableHead>{t('admin.address')}</TableHead>
+            <TableHead>{t('admin.manager')}</TableHead>
+            <TableHead>{t('admin.status')}</TableHead>
+            <TableHead>{t('admin.created')}</TableHead>
+            <TableHead>{t('admin.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

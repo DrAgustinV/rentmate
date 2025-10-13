@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function TicketsTable() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const { data: tickets, isLoading } = useQuery({
     queryKey: ["admin-tickets"],
@@ -30,7 +32,7 @@ export function TicketsTable() {
   });
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading tickets...</div>;
+    return <div className="text-center py-8">{t('admin.loadingTickets')}</div>;
   }
 
   return (
@@ -38,13 +40,13 @@ export function TicketsTable() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Ticket #</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>{t('admin.ticketNumber')}</TableHead>
+            <TableHead>{t('admin.propertyTitle')}</TableHead>
+            <TableHead>{t('admin.type')}</TableHead>
+            <TableHead>{t('admin.status')}</TableHead>
+            <TableHead>{t('admin.priority')}</TableHead>
+            <TableHead>{t('admin.created')}</TableHead>
+            <TableHead>{t('admin.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

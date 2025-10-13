@@ -9,10 +9,12 @@ import { TicketsTable } from "@/components/admin/TicketsTable";
 import { UsersTable } from "@/components/admin/UsersTable";
 import { SystemSettings } from "@/components/admin/SystemSettings";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Admin() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     checkAdminRole();
@@ -56,35 +58,35 @@ export default function Admin() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage users, properties, tickets, and system settings</p>
+          <h1 className="text-3xl font-bold text-foreground">{t('admin.dashboardTitle')}</h1>
+          <p className="text-muted-foreground">{t('admin.description')}</p>
         </div>
 
         <Tabs defaultValue="users" className="space-y-4">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">
               <Users className="mr-2 h-4 w-4" />
-              Users
+              {t('admin.users')}
             </TabsTrigger>
             <TabsTrigger value="properties">
               <Building2 className="mr-2 h-4 w-4" />
-              Properties
+              {t('admin.properties')}
             </TabsTrigger>
             <TabsTrigger value="tickets">
               <Ticket className="mr-2 h-4 w-4" />
-              Tickets
+              {t('admin.tickets')}
             </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="mr-2 h-4 w-4" />
-              Settings
+              {t('admin.settings')}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users">
             <Card>
               <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>View all users and manage their roles</CardDescription>
+                <CardTitle>{t('admin.userManagement')}</CardTitle>
+                <CardDescription>{t('admin.userManagementDesc')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <UsersTable />
@@ -95,8 +97,8 @@ export default function Admin() {
           <TabsContent value="properties">
             <Card>
               <CardHeader>
-                <CardTitle>All Properties</CardTitle>
-                <CardDescription>View and manage all properties in the system</CardDescription>
+                <CardTitle>{t('admin.allProperties')}</CardTitle>
+                <CardDescription>{t('admin.allPropertiesDesc')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <PropertiesTable />
@@ -107,8 +109,8 @@ export default function Admin() {
           <TabsContent value="tickets">
             <Card>
               <CardHeader>
-                <CardTitle>All Tickets</CardTitle>
-                <CardDescription>View and manage all tickets across all properties</CardDescription>
+                <CardTitle>{t('admin.allTickets')}</CardTitle>
+                <CardDescription>{t('admin.allTicketsDesc')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <TicketsTable />
@@ -119,8 +121,8 @@ export default function Admin() {
           <TabsContent value="settings">
             <Card>
               <CardHeader>
-                <CardTitle>System Settings</CardTitle>
-                <CardDescription>Configure system-wide settings and limits</CardDescription>
+                <CardTitle>{t('admin.systemSettings')}</CardTitle>
+                <CardDescription>{t('admin.systemSettingsDesc')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <SystemSettings />

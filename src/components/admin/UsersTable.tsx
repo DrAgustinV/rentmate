@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Shield, User } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type UserRole = "admin" | "user";
 
 export function UsersTable() {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -44,15 +46,15 @@ export function UsersTable() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-      toast.success("Role added successfully");
+      toast.success(t('admin.roleAddedSuccess'));
     },
     onError: (error) => {
-      toast.error("Failed to add role: " + error.message);
+      toast.error(t('admin.roleAddedError') + ": " + error.message);
     },
   });
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading users...</div>;
+    return <div className="text-center py-8">{t('admin.loadingUsers')}</div>;
   }
 
   return (
@@ -60,12 +62,12 @@ export function UsersTable() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>Roles</TableHead>
-            <TableHead>Joined</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>{t('admin.name')}</TableHead>
+            <TableHead>{t('admin.email')}</TableHead>
+            <TableHead>{t('admin.phone')}</TableHead>
+            <TableHead>{t('admin.roles')}</TableHead>
+            <TableHead>{t('admin.joined')}</TableHead>
+            <TableHead>{t('admin.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -81,13 +83,13 @@ export function UsersTable() {
                   {user.roles.includes("admin") && (
                     <Badge variant="destructive">
                       <Shield className="mr-1 h-3 w-3" />
-                      Admin
+                      {t('admin.adminRole')}
                     </Badge>
                   )}
                   {user.roles.includes("user") && (
                     <Badge variant="secondary">
                       <User className="mr-1 h-3 w-3" />
-                      User
+                      {t('admin.userRole')}
                     </Badge>
                   )}
                 </div>
@@ -102,11 +104,11 @@ export function UsersTable() {
                   }
                 >
                   <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Add role" />
+                    <SelectValue placeholder={t('admin.addRole')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="admin">{t('admin.adminRole')}</SelectItem>
+                    <SelectItem value="user">{t('admin.userRole')}</SelectItem>
                   </SelectContent>
                 </Select>
               </TableCell>
