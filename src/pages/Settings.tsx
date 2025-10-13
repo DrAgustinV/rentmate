@@ -95,13 +95,12 @@ export default function Settings() {
     try {
       const { error } = await supabase
         .from("profiles")
-        .upsert({
-          id: user.id,
-          email: user.email || "",
+        .update({
           first_name: firstName,
           last_name: lastName,
           updated_at: new Date().toISOString(),
-        });
+        })
+        .eq("id", user.id);
 
       if (error) throw error;
 
