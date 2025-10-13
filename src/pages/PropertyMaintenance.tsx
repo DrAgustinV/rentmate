@@ -11,10 +11,12 @@ import MaintenanceCalendar from "./MaintenanceCalendar";
 import TemplatesManager from "./TemplatesManager";
 import ScheduledTasks from "./ScheduledTasks";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const PropertyMaintenance = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const { t } = useLanguage();
 
   const { data: property, isLoading: isLoadingProperty } = useQuery({
     queryKey: ["property", propertyId],
@@ -77,10 +79,10 @@ const PropertyMaintenance = () => {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Wrench className="h-8 w-8" />
-            Maintenance
+            {t('maintenance.title')}
           </h1>
           <p className="text-muted-foreground">
-            {property?.title} {property?.address ? `- ${property.address}` : ""} - Manage scheduled maintenance
+            {property?.title} {property?.address ? `- ${property.address}` : ""} - {t('maintenance.manageScheduled')}
           </p>
         </div>
       </div>
@@ -88,10 +90,10 @@ const PropertyMaintenance = () => {
       <Tabs defaultValue={userRole?.isManager ? "tasks" : "scheduled"} className="w-full">
         <TabsList className={`grid w-full max-w-2xl ${userRole?.isManager ? 'grid-cols-3' : 'grid-cols-2'}`}>
           {userRole?.isManager && (
-            <TabsTrigger value="tasks">Maintenance Tasks</TabsTrigger>
+            <TabsTrigger value="tasks">{t('maintenance.tabs.tasks')}</TabsTrigger>
           )}
-          <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
-          <TabsTrigger value="calendar">Calendar</TabsTrigger>
+          <TabsTrigger value="scheduled">{t('maintenance.tabs.scheduled')}</TabsTrigger>
+          <TabsTrigger value="calendar">{t('maintenance.tabs.calendar')}</TabsTrigger>
         </TabsList>
 
         {userRole?.isManager && (
@@ -100,7 +102,7 @@ const PropertyMaintenance = () => {
               <div className="flex justify-end">
                 <Button onClick={() => setCreateTaskOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
-                  New Maintenance Task
+                  {t('maintenance.buttons.newTask')}
                 </Button>
               </div>
               <TemplatesManager propertyId={propertyId!} />

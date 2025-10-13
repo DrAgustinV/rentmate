@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CompleteTaskDialogProps {
   open: boolean;
@@ -34,12 +35,13 @@ export const CompleteTaskDialog = ({
 }: CompleteTaskDialogProps) => {
   const navigate = useNavigate();
   const [resolutionNotes, setResolutionNotes] = useState("");
+  const { t } = useLanguage();
 
   const handleComplete = () => {
     if (!resolutionNotes.trim()) {
       toast({
-        title: "Notes required",
-        description: "Please describe the work completed",
+        title: t('maintenance.completeTask.notesRequired'),
+        description: t('maintenance.completeTask.notesRequiredMessage'),
         variant: "destructive",
       });
       return;
@@ -63,17 +65,17 @@ export const CompleteTaskDialog = ({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Complete Maintenance Task</DialogTitle>
+          <DialogTitle>{t('maintenance.completeTask.title')}</DialogTitle>
           <DialogDescription>
-            Please provide notes about the work completed for: {taskTitle}
+            {t('maintenance.completeTask.description')} {taskTitle}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="resolution-notes">Completion Notes *</Label>
+            <Label htmlFor="resolution-notes">{t('maintenance.completeTask.notesLabel')}</Label>
             <Textarea
               id="resolution-notes"
-              placeholder="Describe what was done, any issues encountered, parts replaced, etc..."
+              placeholder={t('maintenance.completeTask.notesPlaceholder')}
               value={resolutionNotes}
               onChange={(e) => setResolutionNotes(e.target.value)}
               className="min-h-[120px]"
@@ -82,10 +84,10 @@ export const CompleteTaskDialog = ({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleComplete} disabled={isLoading}>
-            {isLoading ? "Completing..." : "Mark as Complete"}
+            {isLoading ? t('maintenance.completeTask.completing') : t('maintenance.completeTask.completeButton')}
           </Button>
         </DialogFooter>
       </DialogContent>

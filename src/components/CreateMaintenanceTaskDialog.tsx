@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreateMaintenanceTaskDialogProps {
   open: boolean;
@@ -37,6 +38,7 @@ export const CreateMaintenanceTaskDialog = ({
   const [isActive, setIsActive] = useState(true);
 
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const createTaskMutation = useMutation({
     mutationFn: async () => {
@@ -85,8 +87,8 @@ export const CreateMaintenanceTaskDialog = ({
       queryClient.invalidateQueries({ queryKey: ["ticket-templates"] });
       queryClient.invalidateQueries({ queryKey: ["recurring-schedules"] });
       toast({
-        title: "Maintenance task created",
-        description: "Your maintenance task has been scheduled successfully.",
+        title: t('maintenance.createTask.success'),
+        description: t('maintenance.createTask.successMessage'),
       });
       onOpenChange(false);
       resetForm();
@@ -94,8 +96,8 @@ export const CreateMaintenanceTaskDialog = ({
     onError: (error) => {
       console.error("Error creating maintenance task:", error);
       toast({
-        title: "Error",
-        description: "Failed to create maintenance task. Please try again.",
+        title: t('maintenance.createTask.error'),
+        description: t('maintenance.createTask.errorMessage'),
         variant: "destructive",
       });
     },
@@ -116,8 +118,8 @@ export const CreateMaintenanceTaskDialog = ({
     e.preventDefault();
     if (!title.trim() || !type || !startDate) {
       toast({
-        title: "Missing fields",
-        description: "Please fill in all required fields.",
+        title: t('maintenance.createTask.missingFields'),
+        description: t('maintenance.createTask.missingFieldsMessage'),
         variant: "destructive",
       });
       return;
@@ -129,71 +131,71 @@ export const CreateMaintenanceTaskDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Maintenance Task</DialogTitle>
+          <DialogTitle>{t('maintenance.createTask.title')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Task Title *</Label>
+              <Label htmlFor="title">{t('maintenance.createTask.taskTitle')}</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Clean Swimming Pool"
+                placeholder={t('maintenance.createTask.titlePlaceholder')}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t('maintenance.createTask.description')}</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe the maintenance task..."
+                placeholder={t('maintenance.createTask.descriptionPlaceholder')}
                 rows={3}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="type">Type *</Label>
+                <Label htmlFor="type">{t('maintenance.createTask.type')}</Label>
                 <Select value={type} onValueChange={setType}>
                   <SelectTrigger id="type">
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder={t('maintenance.createTask.selectType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="repair">Repair</SelectItem>
-                    <SelectItem value="inspection">Inspection</SelectItem>
-                    <SelectItem value="cleaning">Cleaning</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="maintenance">{t('maintenance.createTask.types.maintenance')}</SelectItem>
+                    <SelectItem value="repair">{t('maintenance.createTask.types.repair')}</SelectItem>
+                    <SelectItem value="inspection">{t('maintenance.createTask.types.inspection')}</SelectItem>
+                    <SelectItem value="cleaning">{t('maintenance.createTask.types.cleaning')}</SelectItem>
+                    <SelectItem value="other">{t('maintenance.createTask.types.other')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
+                <Label htmlFor="priority">{t('maintenance.createTask.priority')}</Label>
                 <Select value={priority} onValueChange={setPriority}>
                   <SelectTrigger id="priority">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectItem value="low">{t('maintenance.createTask.priorities.low')}</SelectItem>
+                    <SelectItem value="medium">{t('maintenance.createTask.priorities.medium')}</SelectItem>
+                    <SelectItem value="high">{t('maintenance.createTask.priorities.high')}</SelectItem>
+                    <SelectItem value="urgent">{t('maintenance.createTask.priorities.urgent')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="border-t pt-4">
-              <h3 className="font-medium mb-4">Schedule Details</h3>
+              <h3 className="font-medium mb-4">{t('maintenance.createTask.scheduleDetails')}</h3>
               
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
-                  <Label>Start Date *</Label>
+                  <Label>{t('maintenance.createTask.startDate')}</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -204,7 +206,7 @@ export const CreateMaintenanceTaskDialog = ({
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {startDate ? format(startDate, "PPP") : "Pick a date"}
+                        {startDate ? format(startDate, "PPP") : t('maintenance.createTask.pickDate')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -214,7 +216,7 @@ export const CreateMaintenanceTaskDialog = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>End Date (Optional)</Label>
+                  <Label>{t('maintenance.createTask.endDate')}</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -225,7 +227,7 @@ export const CreateMaintenanceTaskDialog = ({
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {endDate ? format(endDate, "PPP") : "Pick a date"}
+                        {endDate ? format(endDate, "PPP") : t('maintenance.createTask.pickDate')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -236,23 +238,23 @@ export const CreateMaintenanceTaskDialog = ({
               </div>
 
               <div className="space-y-2 mb-4">
-                <Label htmlFor="frequency">Frequency</Label>
+                <Label htmlFor="frequency">{t('maintenance.createTask.frequency')}</Label>
                 <Select value={frequency} onValueChange={setFrequency}>
                   <SelectTrigger id="frequency">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="quarterly">Quarterly</SelectItem>
-                    <SelectItem value="yearly">Yearly</SelectItem>
+                    <SelectItem value="daily">{t('maintenance.createTask.frequencies.daily')}</SelectItem>
+                    <SelectItem value="weekly">{t('maintenance.createTask.frequencies.weekly')}</SelectItem>
+                    <SelectItem value="monthly">{t('maintenance.createTask.frequencies.monthly')}</SelectItem>
+                    <SelectItem value="quarterly">{t('maintenance.createTask.frequencies.quarterly')}</SelectItem>
+                    <SelectItem value="yearly">{t('maintenance.createTask.frequencies.yearly')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex items-center justify-between">
-                <Label htmlFor="active">Active</Label>
+                <Label htmlFor="active">{t('maintenance.createTask.active')}</Label>
                 <Switch id="active" checked={isActive} onCheckedChange={setIsActive} />
               </div>
             </div>
@@ -260,10 +262,10 @@ export const CreateMaintenanceTaskDialog = ({
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={createTaskMutation.isPending}>
-              {createTaskMutation.isPending ? "Creating..." : "Create Task"}
+              {createTaskMutation.isPending ? t('maintenance.createTask.creating') : t('maintenance.createTask.createButton')}
             </Button>
           </div>
         </form>
