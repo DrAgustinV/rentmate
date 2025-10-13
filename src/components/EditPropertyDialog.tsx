@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -27,6 +28,7 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
   const [title, setTitle] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -35,6 +37,7 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
       setTitle(property.title || "");
       setAddress(property.address || "");
       setDescription(property.description || "");
+      setPhotoUrl(property.images?.[0] || "");
     }
   }, [property]);
 
@@ -55,6 +58,7 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
           title: data.title,
           address: data.address || null,
           description: data.description || null,
+          images: photoUrl ? [photoUrl] : [],
           last_modified_by: user.id,
         })
         .eq("id", property.id);
@@ -93,6 +97,13 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
           <DialogTitle>{t('dialogs.editProperty.title')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <PropertyPhotoUpload
+            propertyId={property?.id}
+            currentPhoto={photoUrl}
+            onPhotoChange={setPhotoUrl}
+            disabled={loading}
+          />
+
           <div className="space-y-2">
             <Label htmlFor="edit-title">{t('dialogs.createProperty.titleLabel')}</Label>
             <Input

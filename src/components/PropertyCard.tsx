@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Trash2, Edit, Mail, Archive, Users, Ticket, Wrench, FileText } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MapPin, Calendar, Trash2, Edit, Mail, Archive, Users, Ticket, Wrench, FileText, Home, Image as ImageIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { InviteTenantDialog } from "./InviteTenantDialog";
@@ -28,7 +29,31 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
   const [tenantCount, setTenantCount] = useState(0);
   const [ticketCount, setTicketCount] = useState(0);
   const [documentCount, setDocumentCount] = useState(0);
+  const [tenantStatus, setTenantStatus] = useState<{
+    status: 'occupied' | 'invited' | 'free';
+    tenant_name?: string;
+    tenant_email?: string;
+    pending_invites?: number;
+  } | null>(null);
+  const [loadingStatus, setLoadingStatus] = useState(true);
   const navigate = useNavigate();
+
+  const fetchTenantStatus = async () => {
+    try {
+      setLoadingStatus(true);
+      const { data, error } = await supabase
+        .rpc('get_property_tenant_status', { p_property_id: property.id });
+      
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setTenantStatus(data[0] as any);
+      }
+    } catch (error) {
+      console.error("Error fetching tenant status:", error);
+    } finally {
+      setLoadingStatus(false);
+    }
+  };
 
   useEffect(() => {
     if (isManager) {
@@ -36,6 +61,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
     }
     fetchTicketCount();
     fetchDocumentCount();
+    fetchTenantStatus();
   }, [property.id, isManager]);
 
   const fetchTenantCount = async () => {
@@ -103,19 +129,76 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
     <>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
         <CardHeader className="bg-gradient-to-br from-card to-secondary/20 pb-4">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <CardTitle className="text-xl mb-2">{property.title}</CardTitle>
-              {property.address && (
-                <CardDescription className="flex items-center gap-1 text-sm">
-                  <MapPin className="h-3 w-3" />
-                  {property.address}
-                </CardDescription>
+          <div className="flex items-start gap-4">
+            {/* Property Photo */}
+            <div className="flex-shrink-0">
+              {property.images?.[0] ? (
+                <img 
+                  src={property.images[0]} 
+                  alt={property.title}
+                  className="w-24 h-24 rounded-lg object-cover shadow-md border-2 border-border"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-lg bg-muted/50 flex items-center justify-center border-2 border-dashed border-border">
+                  <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                </div>
               )}
             </div>
-            <Badge variant={statusBadge.variant} className={statusBadge.className}>
-              {statusBadge.text}
-            </Badge>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-xl mb-2 truncate">{property.title}</CardTitle>
+                  {property.address && (
+                    <CardDescription className="flex items-center gap-1 text-sm">
+                      <MapPin className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{property.address}</span>
+                    </CardDescription>
+                  )}
+                </div>
+                <Badge variant={statusBadge.variant} className={statusBadge.className}>
+                  {statusBadge.text}
+                </Badge>
+              </div>
+
+              {/* Tenant Status */}
+              {!isEndingTenancy && !isArchived && (
+                <div className="mt-3 pt-3 border-t border-border/50">
+                  {loadingStatus ? (
+                    <Skeleton className="h-5 w-32" />
+                  ) : tenantStatus && (
+                    <>
+                      {tenantStatus.status === 'occupied' && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="h-4 w-4 text-green-600" />
+                          <span className="font-medium text-green-600">
+                            {t('properties.tenant')}: {tenantStatus.tenant_name}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {tenantStatus.status === 'invited' && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Mail className="h-4 w-4 text-orange-600" />
+                          <span className="font-medium text-orange-600">
+                            {t('properties.invited')} ({tenantStatus.pending_invites} {t('properties.pending')})
+                          </span>
+                        </div>
+                      )}
+                      
+                      {tenantStatus.status === 'free' && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Home className="h-4 w-4 text-blue-600" />
+                          <span className="font-medium text-blue-600">
+                            {t('properties.freeToRent')}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </CardHeader>
 

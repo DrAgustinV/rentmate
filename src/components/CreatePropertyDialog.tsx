@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { z } from "zod";
 
 const propertySchema = z.object({
@@ -24,6 +25,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
   const [title, setTitle] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -41,6 +43,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
         title: data.title,
         address: data.address || null,
         description: data.description || null,
+        images: photoUrl ? [photoUrl] : [],
         manager_id: user.id,
       });
 
@@ -54,6 +57,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
       setTitle("");
       setAddress("");
       setDescription("");
+      setPhotoUrl("");
       onSuccess();
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -81,6 +85,12 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
           <DialogTitle>Create New Property</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <PropertyPhotoUpload
+            currentPhoto={photoUrl}
+            onPhotoChange={setPhotoUrl}
+            disabled={loading}
+          />
+
           <div className="space-y-2">
             <Label htmlFor="title">Property Title *</Label>
             <Input

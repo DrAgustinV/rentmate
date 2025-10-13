@@ -724,6 +724,15 @@ export type Database = {
         Args: { _file_size_bytes: number; _ticket_id: string }
         Returns: boolean
       }
+      get_property_tenant_status: {
+        Args: { p_property_id: string }
+        Returns: {
+          pending_invites: number
+          status: string
+          tenant_email: string
+          tenant_name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
