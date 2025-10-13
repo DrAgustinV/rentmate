@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { RotateCw } from "lucide-react";
 
 interface Ticket {
@@ -106,7 +106,7 @@ export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: 
                   {ticket.priority}
                 </Badge>
               </TableCell>
-              <TableCell>{format(new Date(ticket.created_at), "PPP")}</TableCell>
+              <TableCell>{formatDate(ticket.created_at)}</TableCell>
               <TableCell>
                 {ticket.status === "resolved" && ticket.resolver
                   ? `${ticket.resolver.first_name} ${ticket.resolver.last_name}`

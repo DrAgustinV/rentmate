@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDateTime } from "@/lib/dateUtils";
 import { Clock, AlertCircle, Flag, UserCheck } from "lucide-react";
 
 interface Activity {
@@ -91,7 +91,7 @@ export const ActivityTimeline = ({ activities }: ActivityTimelineProps) => {
               {formatActivityMessage(activity)}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {format(new Date(activity.created_at), "PPp")}
+              {formatDateTime(activity.created_at)}
             </p>
           </div>
         </div>

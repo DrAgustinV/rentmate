@@ -11,6 +11,7 @@ import { User } from "@supabase/supabase-js";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCircle, Bell, Lock, Palette } from "lucide-react";
+import { AppearanceSettings } from "@/components/AppearanceSettings";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -213,9 +214,7 @@ export default function Settings() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Theme customization coming soon. You can customize colors and appearance preferences here.
-                </p>
+                <AppearanceSettings />
               </CardContent>
             </Card>
           </TabsContent>

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Edit, Trash2, Pause, Play } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { EditMaintenanceTaskDialog } from "@/components/EditMaintenanceTaskDialog";
 import {
   AlertDialog,

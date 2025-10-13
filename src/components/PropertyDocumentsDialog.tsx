@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileText, Download, Trash2, Upload, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatDateTime } from "@/lib/dateUtils";
 import PropertyDocumentUpload from "./PropertyDocumentUpload";
 import PropertyDocumentVersionHistory from "./PropertyDocumentVersionHistory";
 
@@ -248,7 +248,7 @@ export default function PropertyDocumentsDialog({
                             <p>
                               {formatFileSize(latestDoc.file_size_bytes)} ·
                               Uploaded by {getUploaderName(latestDoc)} ·{" "}
-                              {format(new Date(latestDoc.created_at), "MMM dd, yyyy")}
+                              {formatDateTime(latestDoc.created_at)}
                             </p>
                             {latestDoc.description && (
                               <p className="italic">{latestDoc.description}</p>

@@ -119,11 +119,31 @@ All colors MUST be HSL.
 }
 
 @layer base {
+  :root {
+    /* Font sizes */
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+  }
+  
+  /* Font size utilities */
+  html.text-sm {
+    font-size: var(--font-size-sm);
+  }
+  
+  html.text-base {
+    font-size: var(--font-size-base);
+  }
+  
+  html.text-lg {
+    font-size: var(--font-size-lg);
+  }
+  
   * {
-    @apply border-border;
+    @apply border-border transition-colors duration-200;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-200;
   }
 }

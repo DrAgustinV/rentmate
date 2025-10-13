@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Image, Video, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { format } from "date-fns";
+import { formatDateTime } from "@/lib/dateUtils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 
@@ -174,7 +174,7 @@ const AttachmentCard = ({ attachment, getFileUrl, onImageClick, onDelete }: any)
       <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm p-2 text-xs">
         <p className="truncate font-medium">{attachment.original_filename}</p>
         <p className="text-muted-foreground">
-          {format(new Date(attachment.created_at), "PP")}
+          {formatDateTime(attachment.created_at)}
         </p>
       </div>
     </div>
@@ -213,7 +213,7 @@ const VideoCard = ({ attachment, getFileUrl, onDelete }: any) => {
       <div className="p-3 text-xs">
         <p className="truncate font-medium">{attachment.original_filename}</p>
         <p className="text-muted-foreground">
-          {format(new Date(attachment.created_at), "PP")} • {(attachment.file_size_bytes / 1024 / 1024).toFixed(2)} MB
+          {formatDateTime(attachment.created_at)} • {(attachment.file_size_bytes / 1024 / 1024).toFixed(2)} MB
         </p>
       </div>
     </div>

@@ -12,6 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 

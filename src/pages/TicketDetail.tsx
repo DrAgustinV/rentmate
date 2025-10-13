@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { format } from "date-fns";
+import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { CommentsList } from "@/components/ticket/CommentsList";
 import { CommentInput } from "@/components/ticket/CommentInput";
 import { AttachmentGallery } from "@/components/ticket/AttachmentGallery";
@@ -228,7 +228,7 @@ const TicketDetail = () => {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Created</p>
-                  <p>{format(new Date(ticket.created_at), "PPP")}</p>
+                  <p>{formatDate(ticket.created_at)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Created By</p>
@@ -254,7 +254,7 @@ const TicketDetail = () => {
                   <p className="text-sm whitespace-pre-wrap">{ticket.resolution_notes}</p>
                   {ticket.resolved_at && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      Resolved on {format(new Date(ticket.resolved_at), "PPP")}
+                      Resolved on {formatDate(ticket.resolved_at)}
                     </p>
                   )}
                 </div>

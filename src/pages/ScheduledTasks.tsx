@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format, parseISO, isPast } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { AlertCircle, Clock, Play, CheckCircle } from "lucide-react";
 import { CompleteTaskDialog } from "@/components/maintenance/CompleteTaskDialog";
 import { toast } from "@/hooks/use-toast";

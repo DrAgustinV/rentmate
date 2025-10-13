@@ -628,6 +628,42 @@ export type Database = {
           },
         ]
       }
+      user_preferences: {
+        Row: {
+          accent_color: string | null
+          created_at: string | null
+          date_format: string | null
+          font_size: string | null
+          id: string
+          primary_color: string | null
+          theme_mode: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          accent_color?: string | null
+          created_at?: string | null
+          date_format?: string | null
+          font_size?: string | null
+          id?: string
+          primary_color?: string | null
+          theme_mode?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          accent_color?: string | null
+          created_at?: string | null
+          date_format?: string | null
+          font_size?: string | null
+          id?: string
+          primary_color?: string | null
+          theme_mode?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

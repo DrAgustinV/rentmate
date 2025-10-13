@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Download, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { formatDateTime } from "@/lib/dateUtils";
 
 interface VersionDocument {
   id: string;
@@ -51,7 +51,7 @@ export default function PropertyDocumentVersionHistory({
               <div className="text-xs text-muted-foreground space-y-0.5">
                 <p>
                   {formatFileSize(version.file_size_bytes)} · {getUploaderName(version)} ·{" "}
-                  {format(new Date(version.created_at), "MMM dd, yyyy")}
+                  {formatDateTime(version.created_at)}
                 </p>
                 {version.description && <p className="italic">{version.description}</p>}
               </div>

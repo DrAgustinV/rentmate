@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { formatDateTime } from "@/lib/dateUtils";
 
 interface Comment {
   id: string;
@@ -45,7 +45,7 @@ export const CommentsList = ({ comments }: CommentsListProps) => {
                   {comment.profiles.first_name} {comment.profiles.last_name}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {format(new Date(comment.created_at), "PPp")}
+                  {formatDateTime(comment.created_at)}
                 </span>
                 {comment.is_internal && (
                   <Badge variant="secondary" className="text-xs">Internal</Badge>

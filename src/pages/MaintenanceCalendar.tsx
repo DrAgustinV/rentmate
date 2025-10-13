@@ -6,6 +6,7 @@ import { Calendar } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { useState } from "react";
 import { AppLayout } from "@/components/layouts/AppLayout";
 
