@@ -14,6 +14,10 @@ import TicketDetail from "./pages/TicketDetail";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import MaintenanceCalendar from "./pages/MaintenanceCalendar";
+import About from "./pages/About";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Help from "./pages/Help";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +39,10 @@ const App = () => (
           <Route path="/properties/:propertyId/tickets/:ticketId" element={<TicketDetail />} />
           <Route path="/maintenance-calendar/:propertyId" element={<MaintenanceCalendar />} />
           <Route path="/tickets" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/help" element={<Help />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
