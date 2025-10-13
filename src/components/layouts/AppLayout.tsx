@@ -20,3 +20,5 @@ export function AppLayout({ children, showBreadcrumbs = true }: AppLayoutProps) 
     </div>
   );
 }
+
+export default AppLayout;
