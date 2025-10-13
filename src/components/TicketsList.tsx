@@ -64,7 +64,6 @@ export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: 
           <TableRow>
             <TableHead>Ticket #</TableHead>
             <TableHead>Title</TableHead>
-            <TableHead>Property</TableHead>
             <TableHead>Type</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Priority</TableHead>
@@ -96,7 +95,6 @@ export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: 
                   )}
                 </div>
               </TableCell>
-              <TableCell>{ticket.properties?.title || "N/A"}</TableCell>
               <TableCell className="capitalize">{ticket.type}</TableCell>
               <TableCell>
                 <Badge className={statusColors[ticket.status as keyof typeof statusColors]}>
