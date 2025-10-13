@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCircle, Bell, Lock, Palette } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Language } from "@/lib/i18n/translations";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ export default function Settings() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [saving, setSaving] = useState(false);
-  const { t } = useLanguage();
+  const { t, language, changeLanguage } = useLanguage();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -194,6 +196,33 @@ export default function Settings() {
                   <p className="text-xs text-muted-foreground">
                     {t('settings.emailNote')}
                   </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <Label htmlFor="language">{t('settings.languageLabel')}</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {t('settings.languageDesc')}
+                  </p>
+                  <RadioGroup
+                    value={language}
+                    onValueChange={(value) => changeLanguage(value as Language)}
+                    className="space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="en" id="lang-en" />
+                      <Label htmlFor="lang-en" className="cursor-pointer font-normal">
+                        🇬🇧 English
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="es" id="lang-es" />
+                      <Label htmlFor="lang-es" className="cursor-pointer font-normal">
+                        🇪🇸 Español
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
 
                 <Separator />

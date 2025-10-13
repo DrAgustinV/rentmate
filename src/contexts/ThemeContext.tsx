@@ -98,6 +98,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
           accent_color: data.accent_color,
           font_size: data.font_size as 'sm' | 'md' | 'lg',
           date_format: data.date_format,
+          language: data.language || 'en',
         };
         applyTheme(prefs);
         setPreferences(prefs);
@@ -132,6 +133,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
           accent_color: updatedPrefs.accent_color,
           font_size: updatedPrefs.font_size,
           date_format: updatedPrefs.date_format,
+          language: updatedPrefs.language,
         }, {
           onConflict: 'user_id'
         });
