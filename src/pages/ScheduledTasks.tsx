@@ -24,6 +24,39 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
     taskTitle: string;
   } | null>(null);
 
+  // Helper function to calculate date range for current schedule cycle
+  const getScheduleCycleDates = (nextRunDate: string, frequency: string) => {
+    const next = parseISO(nextRunDate);
+    let cycleStart: Date;
+    
+    switch (frequency) {
+      case 'daily':
+        cycleStart = new Date(next);
+        cycleStart.setDate(cycleStart.getDate() - 1);
+        break;
+      case 'weekly':
+        cycleStart = new Date(next);
+        cycleStart.setDate(cycleStart.getDate() - 7);
+        break;
+      case 'monthly':
+        cycleStart = new Date(next);
+        cycleStart.setMonth(cycleStart.getMonth() - 1);
+        break;
+      case 'yearly':
+        cycleStart = new Date(next);
+        cycleStart.setFullYear(cycleStart.getFullYear() - 1);
+        break;
+      default:
+        cycleStart = new Date(next);
+        cycleStart.setDate(cycleStart.getDate() - 1);
+    }
+    
+    return {
+      start: format(cycleStart, "yyyy-MM-dd'T'HH:mm:ss"),
+      end: format(next, "yyyy-MM-dd") + 'T23:59:59'
+    };
+  };
+
   const { data: scheduledTasks, isLoading } = useQuery({
     queryKey: ["scheduled-tasks", propertyId],
     queryFn: async () => {
@@ -56,12 +89,17 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
       const schedulesWithTickets = await Promise.all(
         (schedules || []).map(async (schedule) => {
           const template = schedule.ticket_templates as any;
+          const cycleDates = getScheduleCycleDates(schedule.next_run_date, schedule.frequency);
+          
           const { data: ticket } = await supabase
             .from("tickets")
             .select("id, status, resolved_at")
             .eq("source_template_id", template?.id)
             .eq("property_id", propertyId)
-            .gte("created_at", schedule.next_run_date)
+            .gte("created_at", cycleDates.start)
+            .lte("created_at", cycleDates.end)
+            .order("created_at", { ascending: false })
+            .limit(1)
             .maybeSingle();
 
           return { ...schedule, ticket };
