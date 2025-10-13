@@ -15,6 +15,7 @@ import { AttachmentUpload } from "@/components/ticket/AttachmentUpload";
 import { ActivityTimeline } from "@/components/ticket/ActivityTimeline";
 import { StatusManager } from "@/components/ticket/StatusManager";
 import { useEffect } from "react";
+import { RotateCw, Calendar } from "lucide-react";
 
 const statusColors = {
   open: "bg-blue-500",
@@ -42,7 +43,8 @@ const TicketDetail = () => {
         .select(`
           *,
           properties (id, title, address, manager_id),
-          profiles!tickets_created_by_fkey (id, first_name, last_name, email)
+          profiles!tickets_created_by_fkey (id, first_name, last_name, email),
+          ticket_templates (title, description)
         `)
         .eq("id", ticketId!)
         .single();
@@ -191,7 +193,15 @@ const TicketDetail = () => {
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <CardTitle className="text-2xl">{ticket.title}</CardTitle>
+                <div className="flex items-center gap-2 mb-2">
+                  <CardTitle className="text-2xl">{ticket.title}</CardTitle>
+                  {ticket.source_template_id && (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <RotateCw className="h-3 w-3" />
+                      Scheduled Maintenance
+                    </Badge>
+                  )}
+                </div>
                 <CardDescription className="mt-2">
                   {ticket.properties?.title}
                   {ticket.properties?.address && ` - ${ticket.properties.address}`}

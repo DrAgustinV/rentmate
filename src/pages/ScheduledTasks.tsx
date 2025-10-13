@@ -346,7 +346,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
                   </div>
 
                   <div className="flex gap-2">
-                    {(!ticket || ticket.status === "open") && (
+                    {!ticket && (
                       <Button
                         size="sm"
                         onClick={() => handleStartTask(schedule)}
@@ -356,14 +356,13 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
                         Start Task
                       </Button>
                     )}
-                    {ticket?.status === "in_progress" && (
+                    {ticket && (
                       <Button
                         size="sm"
-                        onClick={() => handleCompleteTask(schedule, ticket)}
-                        disabled={completeTaskMutation.isPending}
+                        variant="outline"
+                        onClick={() => navigate(`/properties/${propertyId}/tickets/${ticket.id}`)}
                       >
-                        <CheckCircle className="mr-1 h-3 w-3" />
-                        Mark Complete
+                        View Ticket
                       </Button>
                     )}
                   </div>
@@ -378,6 +377,8 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
         open={!!completingTask}
         onOpenChange={(open) => !open && setCompletingTask(null)}
         taskTitle={completingTask?.taskTitle || ""}
+        ticketId={completingTask?.ticketId}
+        propertyId={propertyId}
         onComplete={(notes) => {
           if (completingTask) {
             completeTaskMutation.mutate({

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,8 @@ interface CompleteTaskDialogProps {
   taskTitle: string;
   onComplete: (notes: string) => void;
   isLoading?: boolean;
+  ticketId?: string;
+  propertyId?: string;
 }
 
 export const CompleteTaskDialog = ({
@@ -26,7 +29,10 @@ export const CompleteTaskDialog = ({
   taskTitle,
   onComplete,
   isLoading = false,
+  ticketId,
+  propertyId,
 }: CompleteTaskDialogProps) => {
+  const navigate = useNavigate();
   const [resolutionNotes, setResolutionNotes] = useState("");
 
   const handleComplete = () => {
@@ -39,6 +45,13 @@ export const CompleteTaskDialog = ({
       return;
     }
     onComplete(resolutionNotes.trim());
+    
+    // Navigate to ticket detail after completion if available
+    if (ticketId && propertyId) {
+      setTimeout(() => {
+        navigate(`/properties/${propertyId}/tickets/${ticketId}`);
+      }, 500);
+    }
   };
 
   const handleClose = () => {

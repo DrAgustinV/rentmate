@@ -49,7 +49,6 @@ const PropertyTickets = () => {
           profiles!tickets_created_by_fkey (id, first_name, last_name, email)
         `)
         .eq("property_id", propertyId!)
-        .is("source_template_id", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -100,13 +99,14 @@ const PropertyTickets = () => {
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
-          <TicketsList tickets={tickets || []} isLoading={isLoadingTickets} />
+          <TicketsList tickets={tickets || []} isLoading={isLoadingTickets} showRecurringBadge />
         </TabsContent>
 
         <TabsContent value="open" className="mt-6">
           <TicketsList
             tickets={tickets?.filter((t) => t.status === "open") || []}
             isLoading={isLoadingTickets}
+            showRecurringBadge
           />
         </TabsContent>
 
@@ -114,6 +114,7 @@ const PropertyTickets = () => {
           <TicketsList
             tickets={tickets?.filter((t) => t.status === "in_progress") || []}
             isLoading={isLoadingTickets}
+            showRecurringBadge
           />
         </TabsContent>
 
@@ -121,6 +122,7 @@ const PropertyTickets = () => {
           <TicketsList
             tickets={tickets?.filter((t) => t.status === "resolved") || []}
             isLoading={isLoadingTickets}
+            showRecurringBadge
           />
         </TabsContent>
       </Tabs>
