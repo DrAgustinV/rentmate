@@ -14,11 +14,13 @@ export function TicketsTable() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tickets")
-        .select(`
+        .select(
+          `
           *,
           property:properties (title),
           creator:created_by (first_name, last_name)
-        `)
+        `,
+        )
         .order("created_at", { ascending: false })
         .limit(50);
 
@@ -38,7 +40,6 @@ export function TicketsTable() {
           <TableRow>
             <TableHead>Ticket #</TableHead>
             <TableHead>Title</TableHead>
-            <TableHead>Property</TableHead>
             <TableHead>Type</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Priority</TableHead>
@@ -49,22 +50,15 @@ export function TicketsTable() {
         <TableBody>
           {tickets?.map((ticket) => (
             <TableRow key={ticket.id}>
-              <TableCell className="font-mono text-sm">
-                {ticket.ticket_number}
-              </TableCell>
+              <TableCell className="font-mono text-sm">{ticket.ticket_number}</TableCell>
               <TableCell className="font-medium">{ticket.title}</TableCell>
-              <TableCell>{ticket.property?.title || "-"}</TableCell>
               <TableCell>
                 <Badge variant="outline">{ticket.type}</Badge>
               </TableCell>
               <TableCell>
                 <Badge
                   variant={
-                    ticket.status === "open"
-                      ? "destructive"
-                      : ticket.status === "in_progress"
-                      ? "default"
-                      : "secondary"
+                    ticket.status === "open" ? "destructive" : ticket.status === "in_progress" ? "default" : "secondary"
                   }
                 >
                   {ticket.status.replace("_", " ")}
@@ -73,26 +67,18 @@ export function TicketsTable() {
               <TableCell>
                 <Badge
                   variant={
-                    ticket.priority === "high"
-                      ? "destructive"
-                      : ticket.priority === "medium"
-                      ? "default"
-                      : "secondary"
+                    ticket.priority === "high" ? "destructive" : ticket.priority === "medium" ? "default" : "secondary"
                   }
                 >
                   {ticket.priority}
                 </Badge>
               </TableCell>
-              <TableCell>
-                {new Date(ticket.created_at).toLocaleDateString()}
-              </TableCell>
+              <TableCell>{new Date(ticket.created_at).toLocaleDateString()}</TableCell>
               <TableCell>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() =>
-                    navigate(`/properties/${ticket.property_id}/tickets/${ticket.id}`)
-                  }
+                  onClick={() => navigate(`/properties/${ticket.property_id}/tickets/${ticket.id}`)}
                 >
                   <ExternalLink className="h-4 w-4" />
                 </Button>
