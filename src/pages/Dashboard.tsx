@@ -17,14 +17,19 @@ export default function Dashboard() {
   const [tenantProperties, setTenantProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [propertyView, setPropertyView] = useState<"active" | "archived">("active");
+  const [propertyView, setPropertyView] = useState<"active" | "ending_tenancy" | "archived">("active");
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
 
   const activeProperties = properties.filter(p => p.status === "active");
+  const endingTenancyProperties = properties.filter(p => p.status === "ending_tenancy");
   const archivedProperties = properties.filter(p => p.status === "inactive");
-  const displayedProperties = propertyView === "active" ? activeProperties : archivedProperties;
+  
+  const displayedProperties = 
+    propertyView === "active" ? activeProperties : 
+    propertyView === "ending_tenancy" ? endingTenancyProperties : 
+    archivedProperties;
 
   useEffect(() => {
     const checkUser = async () => {
@@ -153,6 +158,7 @@ export default function Dashboard() {
             <div className="mb-6">
               <ArchiveToggle
                 activeCount={activeProperties.length}
+                endingTenancyCount={endingTenancyProperties.length}
                 archivedCount={archivedProperties.length}
                 currentView={propertyView}
                 onViewChange={setPropertyView}
@@ -163,12 +169,14 @@ export default function Dashboard() {
               <div className="text-center py-12 bg-card border border-border rounded-lg">
                 <Archive className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">
-                  {propertyView === "active" ? t('dashboard.noActiveProperties') : t('dashboard.noArchivedProperties')}
+                  {propertyView === "active" && t('dashboard.noActiveProperties')}
+                  {propertyView === "ending_tenancy" && "No properties ending tenancy"}
+                  {propertyView === "archived" && t('dashboard.noArchivedProperties')}
                 </h3>
                 <p className="text-muted-foreground">
-                  {propertyView === "active" 
-                    ? t('dashboard.allPropertiesArchived')
-                    : t('dashboard.noArchivedProperties')}
+                  {propertyView === "active" && "All properties are either ending tenancy or archived"}
+                  {propertyView === "ending_tenancy" && "No properties are currently ending tenancy"}
+                  {propertyView === "archived" && t('dashboard.noArchivedProperties')}
                 </p>
               </div>
             ) : (

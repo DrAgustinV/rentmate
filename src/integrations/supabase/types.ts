@@ -97,6 +97,7 @@ export type Database = {
           last_modified_by: string | null
           manager_id: string
           modification_reason: string | null
+          previous_property_id: string | null
           status: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at: string
@@ -113,6 +114,7 @@ export type Database = {
           last_modified_by?: string | null
           manager_id: string
           modification_reason?: string | null
+          previous_property_id?: string | null
           status?: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at?: string
@@ -129,12 +131,21 @@ export type Database = {
           last_modified_by?: string | null
           manager_id?: string
           modification_reason?: string | null
+          previous_property_id?: string | null
           status?: Database["public"]["Enums"]["property_status"]
           title?: string
           updated_at?: string
           videos?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "properties_previous_property_id_fkey"
+            columns: ["previous_property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       property_documents: {
         Row: {
@@ -693,6 +704,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_create_active_property: {
+        Args: { p_address: string }
+        Returns: boolean
+      }
+      can_end_tenancy: {
+        Args: { p_address: string; p_property_id: string }
+        Returns: boolean
+      }
       can_upload_photo: {
         Args: { _file_size_bytes: number; _ticket_id: string }
         Returns: boolean
@@ -731,7 +750,7 @@ export type Database = {
         | "declined"
         | "property_inactive"
         | "already_tenant"
-      property_status: "active" | "inactive"
+      property_status: "active" | "inactive" | "ending_tenancy"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "cancelled"
       ticket_type:
@@ -885,7 +904,7 @@ export const Constants = {
         "property_inactive",
         "already_tenant",
       ],
-      property_status: ["active", "inactive"],
+      property_status: ["active", "inactive", "ending_tenancy"],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "resolved", "cancelled"],
       ticket_type: [

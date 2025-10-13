@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { InviteTenantDialog } from "./InviteTenantDialog";
 import { EditPropertyDialog } from "./EditPropertyDialog";
-import { DeletePropertyDialog } from "./DeletePropertyDialog";
+import { ArchivePropertyDialog } from "./ArchivePropertyDialog";
 import { PropertyTenantsDialog } from "./PropertyTenantsDialog";
 import PropertyDocumentsDialog from "./PropertyDocumentsDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -85,9 +85,19 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
     }
   };
 
-  const statusColor = property.status === "active" ? "bg-success" : "bg-muted";
-  const statusText = property.status === "active" ? t('properties.active') : t('properties.inactive');
+  const getStatusBadge = () => {
+    if (property.status === "active") {
+      return { variant: "default" as const, className: "bg-green-500 hover:bg-green-600", text: t('properties.active') };
+    } else if (property.status === "ending_tenancy") {
+      return { variant: "default" as const, className: "bg-orange-500 hover:bg-orange-600", text: "Ending Tenancy" };
+    } else {
+      return { variant: "secondary" as const, className: "", text: t('properties.inactive') };
+    }
+  };
+
+  const statusBadge = getStatusBadge();
   const isArchived = property.status === "inactive";
+  const isEndingTenancy = property.status === "ending_tenancy";
 
   return (
     <>
@@ -103,8 +113,8 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 </CardDescription>
               )}
             </div>
-            <Badge variant={property.status === "active" ? "default" : "secondary"} className={statusColor}>
-              {statusText}
+            <Badge variant={statusBadge.variant} className={statusBadge.className}>
+              {statusBadge.text}
             </Badge>
           </div>
         </CardHeader>
@@ -140,7 +150,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           )}
         </CardContent>
 
-        {property.status === "active" && (
+        {(property.status === "active" || property.status === "ending_tenancy") && (
           <CardFooter className="border-t bg-muted/50 pt-4 flex-col gap-2">
             <div className="w-full flex gap-2">
               <Button
@@ -238,7 +248,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
         }}
       />
 
-      <DeletePropertyDialog
+      <ArchivePropertyDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         property={property}
