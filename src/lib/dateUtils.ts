@@ -1,9 +1,15 @@
 import { format as dateFnsFormat } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 let userDateFormat = 'PPP'; // Default
+let userLocale = 'en'; // Default
 
 export const setUserDateFormat = (format: string) => {
   userDateFormat = format;
+};
+
+export const setUserLocale = (locale: string) => {
+  userLocale = locale;
 };
 
 export const formatDate = (date: Date | string, formatOverride?: string) => {
@@ -18,7 +24,13 @@ export const formatDate = (date: Date | string, formatOverride?: string) => {
     'yyyy-MM-dd': 'yyyy-MM-dd', // 2023-04-29
   };
   
-  return dateFnsFormat(dateObj, formatMap[formatToUse] || formatToUse);
+  const localeMap: Record<string, any> = {
+    'es': es,
+  };
+  
+  return dateFnsFormat(dateObj, formatMap[formatToUse] || formatToUse, {
+    locale: localeMap[userLocale],
+  });
 };
 
 export const formatDateTime = (date: Date | string, formatOverride?: string) => {
@@ -32,5 +44,11 @@ export const formatDateTime = (date: Date | string, formatOverride?: string) => 
     'yyyy-MM-dd': 'yyyy-MM-dd HH:mm', // 2023-04-29 09:30
   };
   
-  return dateFnsFormat(dateObj, formatMap[formatToUse] || formatToUse);
+  const localeMap: Record<string, any> = {
+    'es': es,
+  };
+  
+  return dateFnsFormat(dateObj, formatMap[formatToUse] || formatToUse, {
+    locale: localeMap[userLocale],
+  });
 };

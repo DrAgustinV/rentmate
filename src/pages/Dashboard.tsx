@@ -9,6 +9,7 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -19,6 +20,7 @@ export default function Dashboard() {
   const [propertyView, setPropertyView] = useState<"active" | "archived">("active");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const activeProperties = properties.filter(p => p.status === "active");
   const archivedProperties = properties.filter(p => p.status === "inactive");

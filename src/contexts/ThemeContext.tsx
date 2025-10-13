@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { setUserDateFormat } from '@/lib/dateUtils';
+import { setUserDateFormat, setUserLocale } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
 
 interface UserPreferences {
@@ -9,6 +9,7 @@ interface UserPreferences {
   accent_color: string;
   font_size: 'sm' | 'md' | 'lg';
   date_format: string;
+  language?: string;
 }
 
 interface ThemeContextType {
@@ -26,6 +27,7 @@ const defaultPreferences: UserPreferences = {
   accent_color: '199 89% 48%',
   font_size: 'md',
   date_format: 'PPP',
+  language: 'en',
 };
 
 const fontSizeMap = {

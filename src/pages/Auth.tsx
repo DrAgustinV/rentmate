@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }),
@@ -24,6 +25,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -107,14 +109,14 @@ export default function Auth() {
 
   return (
     <AuthLayout
-      title={isSignUp ? "Create Account" : "Welcome Back"}
-      description={isSignUp ? "Start managing your properties" : "Sign in to your account"}
+      title={isSignUp ? t('auth.createAccount') : t('auth.welcomeBack')}
+      description={isSignUp ? t('auth.getStarted') : t('auth.signInToContinue')}
     >
       <form onSubmit={handleAuth} className="space-y-4">
         {isSignUp && (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">{t('auth.firstName')}</Label>
               <Input
                 id="firstName"
                 value={firstName}
@@ -123,7 +125,7 @@ export default function Auth() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">{t('auth.lastName')}</Label>
               <Input
                 id="lastName"
                 value={lastName}
@@ -135,7 +137,7 @@ export default function Auth() {
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t('auth.email')}</Label>
           <Input
             id="email"
             type="email"
@@ -147,7 +149,7 @@ export default function Auth() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t('auth.password')}</Label>
           <Input
             id="password"
             type="password"
@@ -159,7 +161,7 @@ export default function Auth() {
         </div>
 
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
+          {loading ? t('common.loading') : isSignUp ? t('auth.signUp') : t('auth.signIn')}
         </Button>
 
         <div className="text-center text-sm">
@@ -168,7 +170,7 @@ export default function Auth() {
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-primary hover:underline"
           >
-            {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+            {isSignUp ? t('auth.alreadyHaveAccount') + ' ' + t('auth.signInHere') : t('auth.dontHaveAccount') + ' ' + t('auth.signUpHere')}
           </button>
         </div>
       </form>

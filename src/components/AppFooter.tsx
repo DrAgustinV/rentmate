@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AppFooter() {
   const currentYear = new Date().getFullYear();
+  const { t } = useLanguage();
 
   return (
     <footer className="border-t border-border bg-muted/30 mt-auto">
@@ -16,7 +18,7 @@ export function AppFooter() {
               Modern Property Management Made Simple
             </p>
             <p className="text-xs text-muted-foreground">
-              © {currentYear} FlatMate. All rights reserved.
+              © {currentYear} FlatMate. {t('footer.rights')}
             </p>
           </div>
 
@@ -25,16 +27,16 @@ export function AppFooter() {
             <h3 className="text-sm font-semibold">Resources</h3>
             <nav className="flex flex-col gap-2">
               <Link to="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                About
+                {t('footer.about')}
               </Link>
               <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Privacy Policy
+                {t('footer.privacy')}
               </Link>
               <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Terms of Service
+                {t('footer.terms')}
               </Link>
               <Link to="/help" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Help & Support
+                {t('footer.help')}
               </Link>
             </nav>
           </div>

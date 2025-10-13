@@ -635,6 +635,7 @@ export type Database = {
           date_format: string | null
           font_size: string | null
           id: string
+          language: string | null
           primary_color: string | null
           theme_mode: string | null
           updated_at: string | null
@@ -646,6 +647,7 @@ export type Database = {
           date_format?: string | null
           font_size?: string | null
           id?: string
+          language?: string | null
           primary_color?: string | null
           theme_mode?: string | null
           updated_at?: string | null
@@ -657,6 +659,7 @@ export type Database = {
           date_format?: string | null
           font_size?: string | null
           id?: string
+          language?: string | null
           primary_color?: string | null
           theme_mode?: string | null
           updated_at?: string | null

@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Sun, Moon, Monitor, Palette, Type, Calendar } from 'lucide-react';
+import { Sun, Moon, Monitor, Palette, Type, Calendar, Globe } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Language } from '@/lib/i18n/translations';
 
 const colorPresets = [
   { name: 'Ocean Blue', primary: '221 83% 53%', accent: '199 89% 48%' },
@@ -19,6 +21,7 @@ const colorPresets = [
 
 export const AppearanceSettings = () => {
   const { preferences, loading, updateTheme, resetToDefaults } = useTheme();
+  const { t, language, changeLanguage } = useLanguage();
   const [tempPrefs, setTempPrefs] = useState(preferences);
 
   if (loading || !preferences) {
@@ -54,7 +57,7 @@ export const AppearanceSettings = () => {
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Monitor className="h-5 w-5" />
-          <h3 className="text-lg font-semibold">Theme Mode</h3>
+          <h3 className="text-lg font-semibold">{t('settings.themeMode')}</h3>
         </div>
         <RadioGroup
           value={currentPrefs.theme_mode}
@@ -67,7 +70,7 @@ export const AppearanceSettings = () => {
           >
             <RadioGroupItem value="light" id="light" className="sr-only" />
             <Sun className="mb-3 h-6 w-6" />
-            <span className="text-sm font-medium">Light</span>
+            <span className="text-sm font-medium">{t('settings.light')}</span>
           </Label>
           <Label
             htmlFor="dark"
@@ -75,7 +78,7 @@ export const AppearanceSettings = () => {
           >
             <RadioGroupItem value="dark" id="dark" className="sr-only" />
             <Moon className="mb-3 h-6 w-6" />
-            <span className="text-sm font-medium">Dark</span>
+            <span className="text-sm font-medium">{t('settings.dark')}</span>
           </Label>
           <Label
             htmlFor="system"
@@ -83,7 +86,7 @@ export const AppearanceSettings = () => {
           >
             <RadioGroupItem value="system" id="system" className="sr-only" />
             <Monitor className="mb-3 h-6 w-6" />
-            <span className="text-sm font-medium">System</span>
+            <span className="text-sm font-medium">{t('settings.system')}</span>
           </Label>
         </RadioGroup>
       </div>
@@ -92,7 +95,7 @@ export const AppearanceSettings = () => {
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Palette className="h-5 w-5" />
-          <h3 className="text-lg font-semibold">Color Scheme</h3>
+          <h3 className="text-lg font-semibold">{t('settings.primaryColor')} & {t('settings.accentColor')}</h3>
         </div>
         
         <div className="space-y-4">
@@ -128,7 +131,7 @@ export const AppearanceSettings = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="primary-color">Primary Color (HSL)</Label>
+              <Label htmlFor="primary-color">{t('settings.primaryColor')} (HSL)</Label>
               <Input
                 id="primary-color"
                 value={currentPrefs.primary_color}
@@ -141,7 +144,7 @@ export const AppearanceSettings = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="accent-color">Accent Color (HSL)</Label>
+              <Label htmlFor="accent-color">{t('settings.accentColor')} (HSL)</Label>
               <Input
                 id="accent-color"
                 value={currentPrefs.accent_color}
@@ -161,7 +164,7 @@ export const AppearanceSettings = () => {
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Type className="h-5 w-5" />
-          <h3 className="text-lg font-semibold">Font Size</h3>
+          <h3 className="text-lg font-semibold">{t('settings.fontSize')}</h3>
         </div>
         <RadioGroup
           value={currentPrefs.font_size}
@@ -174,7 +177,7 @@ export const AppearanceSettings = () => {
           >
             <RadioGroupItem value="sm" id="sm" className="sr-only" />
             <span className="text-sm mb-2">Aa</span>
-            <span className="text-xs font-medium">Small</span>
+            <span className="text-xs font-medium">{t('settings.small')}</span>
           </Label>
           <Label
             htmlFor="md"
@@ -182,7 +185,7 @@ export const AppearanceSettings = () => {
           >
             <RadioGroupItem value="md" id="md" className="sr-only" />
             <span className="text-base mb-2">Aa</span>
-            <span className="text-xs font-medium">Medium</span>
+            <span className="text-xs font-medium">{t('settings.medium')}</span>
           </Label>
           <Label
             htmlFor="lg"
@@ -190,8 +193,30 @@ export const AppearanceSettings = () => {
           >
             <RadioGroupItem value="lg" id="lg" className="sr-only" />
             <span className="text-lg mb-2">Aa</span>
-            <span className="text-xs font-medium">Large</span>
+            <span className="text-xs font-medium">{t('settings.large')}</span>
           </Label>
+        </RadioGroup>
+      </div>
+
+      {/* Language */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Globe className="h-5 w-5" />
+          <h3 className="text-lg font-semibold">{t('settings.language')}</h3>
+        </div>
+        <RadioGroup
+          value={language}
+          onValueChange={(value) => changeLanguage(value as Language)}
+          className="space-y-2"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="en" id="en" />
+            <Label htmlFor="en" className="cursor-pointer">🇬🇧 English</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="es" id="es" />
+            <Label htmlFor="es" className="cursor-pointer">🇪🇸 Español</Label>
+          </div>
         </RadioGroup>
       </div>
 
@@ -199,7 +224,7 @@ export const AppearanceSettings = () => {
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          <h3 className="text-lg font-semibold">Date Format</h3>
+          <h3 className="text-lg font-semibold">{t('settings.dateFormat')}</h3>
         </div>
         <RadioGroup
           value={currentPrefs.date_format}
@@ -227,8 +252,8 @@ export const AppearanceSettings = () => {
 
       {/* Action Buttons */}
       <div className="flex gap-3 pt-4">
-        <Button onClick={handleSave}>Save Changes</Button>
-        <Button variant="outline" onClick={handleReset}>Reset to Defaults</Button>
+        <Button onClick={handleSave}>{t('settings.saveChanges')}</Button>
+        <Button variant="outline" onClick={handleReset}>{t('settings.resetDefaults')}</Button>
       </div>
     </div>
   );

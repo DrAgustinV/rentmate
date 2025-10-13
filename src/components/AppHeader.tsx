@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/sheet";
 import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck } from "lucide-react";
 import { User } from "@supabase/supabase-js";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AppHeader() {
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ export function AppHeader() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [pendingInvitations, setPendingInvitations] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -74,13 +77,13 @@ export function AppHeader() {
   if (!user) return null;
 
   const navLinks = [
-    { path: "/dashboard", label: "Dashboard", icon: Home },
-    { path: "/invitations", label: "Invitations", icon: Bell, badge: pendingInvitations },
-    { path: "/settings", label: "Settings", icon: Settings },
+    { path: "/dashboard", label: t('header.dashboard'), icon: Home },
+    { path: "/invitations", label: t('header.invitations'), icon: Bell, badge: pendingInvitations },
+    { path: "/settings", label: t('header.settings'), icon: Settings },
   ];
 
   if (isAdmin) {
-    navLinks.push({ path: "/admin", label: "Admin", icon: ShieldCheck });
+    navLinks.push({ path: "/admin", label: t('header.admin'), icon: ShieldCheck });
   }
 
   return (
@@ -115,7 +118,8 @@ export function AppHeader() {
         </nav>
 
         {/* User Menu (Desktop) */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-2">
+          <LanguageSwitcher />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-2">
@@ -128,12 +132,12 @@ export function AppHeader() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/settings")}>
                 <Settings className="mr-2 h-4 w-4" />
-                Settings
+                {t('header.settings')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
+                {t('header.signOut')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -154,6 +158,9 @@ export function AppHeader() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <UserCircle className="h-4 w-4" />
                 <span className="truncate">{user.email}</span>
+              </div>
+              <div className="mb-4">
+                <LanguageSwitcher />
               </div>
               <div className="flex flex-col gap-2">
                 {navLinks.map((link) => (
@@ -184,7 +191,7 @@ export function AppHeader() {
                   }}
                 >
                   <LogOut className="h-4 w-4" />
-                  Sign Out
+                  {t('header.signOut')}
                 </Button>
               </div>
             </div>

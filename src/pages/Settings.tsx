@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCircle, Bell, Lock, Palette } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function Settings() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [saving, setSaving] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const checkUser = async () => {
