@@ -85,7 +85,7 @@ export default function Dashboard() {
       setProperties(managed || []);
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -101,7 +101,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">{t('common.loading')}</p>
           </div>
         </div>
       </AppLayout>
@@ -116,19 +116,19 @@ export default function Dashboard() {
             {/* Card 1: Create Property */}
             <div className="text-center py-12 bg-card border border-border rounded-lg">
               <Home className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Manage Properties</h3>
-              <p className="text-muted-foreground mb-4">Create and manage your own properties</p>
+              <h3 className="text-lg font-semibold mb-2">{t('dashboard.manageProperties')}</h3>
+              <p className="text-muted-foreground mb-4">{t('dashboard.managePropertiesDesc')}</p>
               <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
-                Create Property
+                {t('dashboard.createProperty')}
               </Button>
             </div>
 
             {/* Card 2: Waiting for Access */}
             <div className="text-center py-12 bg-card border border-border rounded-lg">
               <Users className="h-12 w-12 text-accent mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Tenant Access</h3>
-              <p className="text-muted-foreground">You haven't been added to any properties yet. Contact your property manager to get access.</p>
+              <h3 className="text-lg font-semibold mb-2">{t('dashboard.tenantAccess')}</h3>
+              <p className="text-muted-foreground">{t('dashboard.tenantAccessDesc')}</p>
             </div>
           </div>
         )}
@@ -140,13 +140,13 @@ export default function Dashboard() {
               <div>
                 <h2 className="text-3xl font-bold flex items-center gap-2">
                   <Home className="h-8 w-8 text-primary" />
-                  My Properties
+                  {t('dashboard.myProperties')}
                 </h2>
-                <p className="text-muted-foreground mt-1">Properties you manage</p>
+                <p className="text-muted-foreground mt-1">{t('dashboard.myPropertiesDesc')}</p>
               </div>
               <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
-                Create Property
+                {t('dashboard.createProperty')}
               </Button>
             </div>
 
@@ -163,12 +163,12 @@ export default function Dashboard() {
               <div className="text-center py-12 bg-card border border-border rounded-lg">
                 <Archive className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">
-                  No {propertyView} properties
+                  {propertyView === "active" ? t('dashboard.noActiveProperties') : t('dashboard.noArchivedProperties')}
                 </h3>
                 <p className="text-muted-foreground">
                   {propertyView === "active" 
-                    ? "All properties are archived" 
-                    : "No archived properties yet"}
+                    ? t('dashboard.allPropertiesArchived')
+                    : t('dashboard.noArchivedProperties')}
                 </p>
               </div>
             ) : (
@@ -191,7 +191,7 @@ export default function Dashboard() {
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
               <Users className="h-7 w-7 text-accent" />
-              Tenant Properties
+              {t('dashboard.tenantProperties')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {tenantProperties.map((property) => (

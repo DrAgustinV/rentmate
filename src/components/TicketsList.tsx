@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate } from "@/lib/dateUtils";
 import { RotateCw } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Ticket {
   id: string;
@@ -42,6 +43,7 @@ const priorityColors = {
 
 export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: TicketsListProps) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   if (isLoading) {
     return (
@@ -54,7 +56,7 @@ export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: 
   }
 
   if (tickets.length === 0) {
-    return <div className="text-center py-12 text-muted-foreground">No tickets found</div>;
+    return <div className="text-center py-12 text-muted-foreground">{t('tickets.noTickets')}</div>;
   }
 
   return (
@@ -62,13 +64,13 @@ export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: 
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Ticket #</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead>Completed By</TableHead>
+            <TableHead>{t('tickets.ticketNumber')}</TableHead>
+            <TableHead>{t('tickets.ticketTitle')}</TableHead>
+            <TableHead>{t('tickets.type')}</TableHead>
+            <TableHead>{t('tickets.status')}</TableHead>
+            <TableHead>{t('tickets.priority')}</TableHead>
+            <TableHead>{t('tickets.created')}</TableHead>
+            <TableHead>{t('tickets.completedBy')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -90,7 +92,7 @@ export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: 
                   {showRecurringBadge && ticket.source_template_id && (
                     <Badge variant="outline" className="flex items-center gap-1">
                       <RotateCw className="h-3 w-3" />
-                      Recurring
+                      {t('tickets.recurring')}
                     </Badge>
                   )}
                 </div>

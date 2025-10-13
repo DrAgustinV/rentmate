@@ -65,7 +65,7 @@ export default function Settings() {
       }
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -92,12 +92,12 @@ export default function Settings() {
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Profile updated successfully",
+        title: t('common.success'),
+        description: t('settings.saved'),
       });
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -117,7 +117,7 @@ export default function Settings() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading settings...</p>
+            <p className="text-muted-foreground">{t('settings.loadingSettings')}</p>
           </div>
         </div>
       </AppLayout>
@@ -128,62 +128,62 @@ export default function Settings() {
     <AppLayout>
       <div className="max-w-4xl">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-muted-foreground mt-1">Manage your account preferences and settings</p>
+          <h1 className="text-3xl font-bold">{t('settings.title')}</h1>
+          <p className="text-muted-foreground mt-1">{t('settings.description')}</p>
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="gap-2">
               <UserCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Profile</span>
+              <span className="hidden sm:inline">{t('settings.profile')}</span>
             </TabsTrigger>
             <TabsTrigger value="appearance" className="gap-2">
               <Palette className="h-4 w-4" />
-              <span className="hidden sm:inline">Appearance</span>
+              <span className="hidden sm:inline">{t('settings.appearance')}</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2">
               <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">Notifications</span>
+              <span className="hidden sm:inline">{t('settings.notifications')}</span>
             </TabsTrigger>
             <TabsTrigger value="security" className="gap-2">
               <Lock className="h-4 w-4" />
-              <span className="hidden sm:inline">Security</span>
+              <span className="hidden sm:inline">{t('settings.security')}</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
+                <CardTitle>{t('settings.profileTitle')}</CardTitle>
                 <CardDescription>
-                  Update your personal information and contact details
+                  {t('settings.profileDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
+                    <Label htmlFor="firstName">{t('settings.firstName')}</Label>
                     <Input
                       id="firstName"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Enter your first name"
+                      placeholder={t('settings.firstNamePlaceholder')}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
+                    <Label htmlFor="lastName">{t('settings.lastName')}</Label>
                     <Input
                       id="lastName"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Enter your last name"
+                      placeholder={t('settings.lastNamePlaceholder')}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t('settings.email')}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -192,7 +192,7 @@ export default function Settings() {
                     className="bg-muted"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Email cannot be changed. Contact support if you need to update it.
+                    {t('settings.emailNote')}
                   </p>
                 </div>
 
@@ -200,7 +200,7 @@ export default function Settings() {
 
                 <div className="flex justify-end">
                   <Button onClick={handleSaveProfile} disabled={saving}>
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t('settings.saving') : t('settings.saveChanges')}
                   </Button>
                 </div>
               </CardContent>
@@ -210,9 +210,9 @@ export default function Settings() {
           <TabsContent value="appearance" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Appearance</CardTitle>
+                <CardTitle>{t('settings.appearanceTitle')}</CardTitle>
                 <CardDescription>
-                  Customize how the application looks and feels
+                  {t('settings.appearanceDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -224,14 +224,14 @@ export default function Settings() {
           <TabsContent value="notifications" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
+                <CardTitle>{t('settings.notificationsTitle')}</CardTitle>
                 <CardDescription>
-                  Control how and when you receive notifications
+                  {t('settings.notificationsDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Notification settings coming soon. Configure email and in-app notification preferences here.
+                  {t('settings.notificationsComingSoon')}
                 </p>
               </CardContent>
             </Card>
@@ -240,28 +240,28 @@ export default function Settings() {
           <TabsContent value="security" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Security & Privacy</CardTitle>
+                <CardTitle>{t('settings.securityTitle')}</CardTitle>
                 <CardDescription>
-                  Manage your password and security settings
+                  {t('settings.securityDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Change Password</h3>
+                  <h3 className="text-sm font-medium mb-2">{t('settings.changePassword')}</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Password management coming soon. You'll be able to update your password here.
+                    {t('settings.changePasswordDesc')}
                   </p>
                 </div>
 
                 <Separator />
 
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Sign Out</h3>
+                  <h3 className="text-sm font-medium mb-2">{t('settings.signOutTitle')}</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Sign out of your account on this device
+                    {t('settings.signOutDesc')}
                   </p>
                   <Button variant="destructive" onClick={handleSignOut}>
-                    Sign Out
+                    {t('settings.signOutButton')}
                   </Button>
                 </div>
               </CardContent>

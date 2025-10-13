@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Invitation {
   id: string;
@@ -25,6 +26,7 @@ export default function Invitations() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     checkAuth();
@@ -70,7 +72,7 @@ export default function Invitations() {
       setInvitations(data || []);
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -107,14 +109,14 @@ export default function Invitations() {
       if (updateError) throw updateError;
 
       toast({
-        title: "Invitation accepted",
-        description: "You've been added as a tenant",
+        title: t('invitations.accepted'),
+        description: t('invitations.acceptedDesc'),
       });
 
       setInvitations(invitations.filter((inv) => inv.id !== invitationId));
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -137,14 +139,14 @@ export default function Invitations() {
       if (error) throw error;
 
       toast({
-        title: "Invitation declined",
-        description: "You can still accept other invitations",
+        title: t('invitations.declined'),
+        description: t('invitations.declinedDesc'),
       });
 
       setInvitations(invitations.filter((inv) => inv.id !== invitationId));
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -166,21 +168,21 @@ export default function Invitations() {
   return (
     <AppLayout>
       <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Pending Invitations</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-2">{t('invitations.title')}</h1>
         <p className="text-muted-foreground mb-8">
-          Accept or decline property invitations
+          {t('invitations.description')}
         </p>
 
         {invitations.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center">
-              <p className="text-muted-foreground">No pending invitations</p>
+              <p className="text-muted-foreground">{t('invitations.noPending')}</p>
               <Button
                 variant="default"
                 className="mt-4"
                 onClick={() => navigate("/dashboard")}
               >
-                Go to Dashboard
+                {t('invitations.goToDashboard')}
               </Button>
             </CardContent>
           </Card>
@@ -189,9 +191,9 @@ export default function Invitations() {
             {invitations.map((invitation) => (
               <Card key={invitation.id}>
                 <CardHeader>
-                  <CardTitle>{invitation.properties?.title || "Property"}</CardTitle>
+                  <CardTitle>{invitation.properties?.title || t('invitations.property')}</CardTitle>
                   <CardDescription>
-                    {invitation.properties?.address || "No address provided"}
+                    {invitation.properties?.address || t('invitations.noAddress')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -201,7 +203,7 @@ export default function Invitations() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground mb-4">
-                    Expires: {new Date(invitation.expires_at).toLocaleDateString()}
+                    {t('invitations.expires')}: {new Date(invitation.expires_at).toLocaleDateString()}
                   </p>
                   <div className="flex gap-2">
                     <Button
@@ -213,7 +215,7 @@ export default function Invitations() {
                       ) : (
                         <CheckCircle className="mr-2 h-4 w-4" />
                       )}
-                      Accept
+                      {t('invitations.accept')}
                     </Button>
                     <Button
                       variant="outline"
@@ -225,7 +227,7 @@ export default function Invitations() {
                       ) : (
                         <XCircle className="mr-2 h-4 w-4" />
                       )}
-                      Decline
+                      {t('invitations.decline')}
                     </Button>
                   </div>
                 </CardContent>
