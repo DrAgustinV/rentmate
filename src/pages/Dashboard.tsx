@@ -119,10 +119,12 @@ export default function Dashboard() {
         {properties.length === 0 && tenantProperties.length === 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {/* Card 1: Create Property */}
-            <div className="text-center py-12 bg-card border border-border rounded-lg">
-              <Home className="h-12 w-12 text-primary mx-auto mb-4" />
+            <div className="text-center py-12 bg-gradient-to-br from-card to-secondary/20 border border-border rounded-lg hover-lift animate-fade-in">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <Home className="h-8 w-8 text-primary" />
+              </div>
               <h3 className="text-lg font-semibold mb-2">{t('dashboard.manageProperties')}</h3>
-              <p className="text-muted-foreground mb-4">{t('dashboard.managePropertiesDesc')}</p>
+              <p className="text-muted-foreground mb-4 px-4">{t('dashboard.managePropertiesDesc')}</p>
               <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 {t('dashboard.createProperty')}
@@ -130,10 +132,12 @@ export default function Dashboard() {
             </div>
 
             {/* Card 2: Waiting for Access */}
-            <div className="text-center py-12 bg-card border border-border rounded-lg">
-              <Users className="h-12 w-12 text-accent mx-auto mb-4" />
+            <div className="text-center py-12 bg-gradient-to-br from-card to-secondary/20 border border-border rounded-lg hover-lift animate-fade-in" style={{ animationDelay: '100ms' }}>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
+                <Users className="h-8 w-8 text-accent" />
+              </div>
               <h3 className="text-lg font-semibold mb-2">{t('dashboard.tenantAccess')}</h3>
-              <p className="text-muted-foreground">{t('dashboard.tenantAccessDesc')}</p>
+              <p className="text-muted-foreground px-4">{t('dashboard.tenantAccessDesc')}</p>
             </div>
           </div>
         )}
@@ -166,14 +170,16 @@ export default function Dashboard() {
             </div>
 
             {displayedProperties.length === 0 ? (
-              <div className="text-center py-12 bg-card border border-border rounded-lg">
-                <Archive className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <div className="text-center py-16 bg-gradient-to-br from-card to-secondary/20 border border-border rounded-lg animate-fade-in">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/20 flex items-center justify-center">
+                  <Archive className="h-8 w-8 text-muted-foreground" />
+                </div>
                 <h3 className="text-lg font-semibold mb-2">
                   {propertyView === "active" && t('dashboard.noActiveProperties')}
                   {propertyView === "ending_tenancy" && "No properties ending tenancy"}
                   {propertyView === "archived" && t('dashboard.noArchivedProperties')}
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground px-4">
                   {propertyView === "active" && "All properties are either ending tenancy or archived"}
                   {propertyView === "ending_tenancy" && "No properties are currently ending tenancy"}
                   {propertyView === "archived" && t('dashboard.noArchivedProperties')}

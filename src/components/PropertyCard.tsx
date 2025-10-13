@@ -128,19 +128,29 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
 
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
-        <CardHeader className="bg-gradient-to-br from-card to-secondary/20 pb-4">
+      <Card className="overflow-hidden hover-lift group animate-fade-in" style={{ 
+        borderTop: `3px solid ${
+          property.status === 'active' ? 'hsl(var(--success))' : 
+          property.status === 'ending_tenancy' ? 'hsl(var(--warning))' : 
+          'hsl(var(--muted))'
+        }`
+      }}>
+        <CardHeader className="bg-gradient-to-br from-card to-secondary/20 pb-4 relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <div className="flex items-start gap-4">
             {/* Property Photo */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 relative group/image">
               {property.images?.[0] ? (
-                <img 
-                  src={property.images[0]} 
-                  alt={property.title}
-                  className="w-24 h-24 rounded-lg object-cover shadow-md border-2 border-border"
-                />
+                <>
+                  <img 
+                    src={property.images[0]} 
+                    alt={property.title}
+                    className="w-24 h-24 rounded-lg object-cover shadow-md border-2 border-border transition-transform duration-300 group-hover/image:scale-105"
+                  />
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
+                </>
               ) : (
-                <div className="w-24 h-24 rounded-lg bg-muted/50 flex items-center justify-center border-2 border-dashed border-border">
+                <div className="w-24 h-24 rounded-lg bg-muted/50 flex items-center justify-center border-2 border-dashed border-border transition-colors duration-200 hover:border-primary/50">
                   <ImageIcon className="h-10 w-10 text-muted-foreground" />
                 </div>
               )}

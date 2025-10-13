@@ -47,11 +47,15 @@ All colors MUST be HSL.
 
     --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(199 89% 48%));
     --gradient-card: linear-gradient(to bottom, hsl(0 0% 100%), hsl(210 40% 98%));
+    --gradient-subtle: linear-gradient(180deg, hsl(210 40% 98%), hsl(0 0% 100%));
+    --gradient-overlay: linear-gradient(to bottom, transparent 0%, hsl(215 25% 15% / 0.6) 100%);
     
     --shadow-sm: 0 1px 2px 0 hsl(215 25% 15% / 0.05);
     --shadow-md: 0 4px 6px -1px hsl(215 25% 15% / 0.1);
     --shadow-lg: 0 10px 15px -3px hsl(215 25% 15% / 0.1);
     --shadow-card: 0 2px 8px hsl(215 25% 15% / 0.08);
+    --shadow-inner: inset 0 2px 4px 0 hsl(215 25% 15% / 0.06);
+    --shadow-glow: 0 0 20px hsl(221 83% 53% / 0.15);
     
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 215 25% 15%;
@@ -101,11 +105,15 @@ All colors MUST be HSL.
 
     --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(199 89% 48%));
     --gradient-card: linear-gradient(to bottom, hsl(215 25% 12%), hsl(215 25% 14%));
+    --gradient-subtle: linear-gradient(180deg, hsl(215 25% 14%), hsl(215 25% 12%));
+    --gradient-overlay: linear-gradient(to bottom, transparent 0%, hsl(0 0% 0% / 0.6) 100%);
     
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.2);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.3);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.4);
     --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.25);
+    --shadow-inner: inset 0 2px 4px 0 hsl(0 0% 0% / 0.1);
+    --shadow-glow: 0 0 20px hsl(221 83% 53% / 0.3);
     
     --sidebar-background: 215 25% 12%;
     --sidebar-foreground: 210 20% 98%;
@@ -140,10 +148,35 @@ All colors MUST be HSL.
   }
   
   * {
-    @apply border-border transition-colors duration-200;
+    @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground transition-colors duration-200;
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .hover-lift {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+  
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted) / 0.7) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
   }
 }

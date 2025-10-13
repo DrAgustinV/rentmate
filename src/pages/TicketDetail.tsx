@@ -177,9 +177,10 @@ const TicketDetail = () => {
 
   return (
     <AppLayout>
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
+      <div className="grid gap-6 animate-fade-in">
+        <Card className="hover-lift">
+          <CardHeader className="relative">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent rounded-t-lg" />
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
@@ -263,7 +264,7 @@ const TicketDetail = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover-lift">
           <CardHeader>
             <CardTitle>Attachments</CardTitle>
             <CardDescription>
@@ -285,7 +286,7 @@ const TicketDetail = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover-lift">
           <CardHeader>
             <CardTitle>Comments</CardTitle>
             <CardDescription>
@@ -300,7 +301,7 @@ const TicketDetail = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover-lift">
           <CardHeader>
             <CardTitle>Activity Timeline</CardTitle>
             <CardDescription>

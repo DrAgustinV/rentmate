@@ -87,8 +87,8 @@ const PropertyMaintenance = () => {
         </div>
       </div>
 
-      <Tabs defaultValue={userRole?.isManager ? "tasks" : "scheduled"} className="w-full">
-        <TabsList className={`grid w-full max-w-2xl ${userRole?.isManager ? 'grid-cols-3' : 'grid-cols-2'}`}>
+      <Tabs defaultValue={userRole?.isManager ? "tasks" : "scheduled"} className="w-full animate-fade-in">
+        <TabsList className={`grid w-full max-w-2xl ${userRole?.isManager ? 'grid-cols-3' : 'grid-cols-2'} transition-all duration-200`}>
           {userRole?.isManager && (
             <TabsTrigger value="tasks">{t('maintenance.tabs.tasks')}</TabsTrigger>
           )}

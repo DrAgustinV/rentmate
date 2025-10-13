@@ -2,15 +2,22 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Home, Users, Shield, ArrowRight } from "lucide-react";
+import heroProperty from "@/assets/hero-property.jpg";
 
 const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image with Overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-20"
+        style={{ backgroundImage: `url(${heroProperty})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/20" />
+      <div className="container mx-auto px-4 py-16 relative z-10">
+        <div className="text-center mb-16 animate-fade-in">
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 gradient-text">
             FlatMate
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
@@ -28,7 +35,7 @@ const Index = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-20">
-          <div className="bg-card border border-border rounded-lg p-6 shadow-card hover:shadow-lg transition-shadow">
+          <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-card hover-lift animate-slide-up">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <Home className="h-6 w-6 text-primary" />
             </div>
@@ -38,7 +45,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="bg-card border border-border rounded-lg p-6 shadow-card hover:shadow-lg transition-shadow">
+          <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-card hover-lift animate-slide-up" style={{ animationDelay: '100ms' }}>
             <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
               <Users className="h-6 w-6 text-accent" />
             </div>
@@ -48,7 +55,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="bg-card border border-border rounded-lg p-6 shadow-card hover:shadow-lg transition-shadow">
+          <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-card hover-lift animate-slide-up" style={{ animationDelay: '200ms' }}>
             <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-4">
               <Shield className="h-6 w-6 text-success" />
             </div>
