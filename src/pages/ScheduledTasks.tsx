@@ -132,7 +132,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
         title: "Task started",
         description: "You can now track progress and add updates",
         action: (
-          <Button variant="outline" size="sm" onClick={() => navigate(`/tickets/${ticketId}`)}>
+          <Button variant="outline" size="sm" onClick={() => navigate(`/properties/${propertyId}/tickets/${ticketId}`)}>
             View Ticket
           </Button>
         ),
