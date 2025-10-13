@@ -1,0 +1,196 @@
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck } from "lucide-react";
+import { User } from "@supabase/supabase-js";
+
+export function AppHeader() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [pendingInvitations, setPendingInvitations] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      checkAdminRole();
+      fetchPendingInvitations();
+    }
+  }, [user]);
+
+  const checkAdminRole = async () => {
+    if (!user) return;
+    const { data } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+    setIsAdmin(data || false);
+  };
+
+  const fetchPendingInvitations = async () => {
+    if (!user || !user.email) return;
+    const { count } = await supabase
+      .from("invitations")
+      .select("*", { count: "exact", head: true })
+      .eq("email", user.email)
+      .eq("status", "pending");
+    setPendingInvitations(count || 0);
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
+  const isActive = (path: string) => location.pathname === path;
+
+  if (!user) return null;
+
+  const navLinks = [
+    { path: "/dashboard", label: "Dashboard", icon: Home },
+    { path: "/invitations", label: "Invitations", icon: Bell, badge: pendingInvitations },
+    { path: "/settings", label: "Settings", icon: Settings },
+  ];
+
+  if (isAdmin) {
+    navLinks.push({ path: "/admin", label: "Admin", icon: ShieldCheck });
+  }
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
+        {/* Logo */}
+        <Link to="/dashboard" className="flex items-center gap-2">
+          <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            FlatMate
+          </div>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-6">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
+                isActive(link.path) ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <link.icon className="h-4 w-4" />
+              {link.label}
+              {link.badge ? (
+                <Badge variant="destructive" className="ml-1">
+                  {link.badge}
+                </Badge>
+              ) : null}
+            </Link>
+          ))}
+        </nav>
+
+        {/* User Menu (Desktop) */}
+        <div className="hidden md:flex items-center gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-2">
+                <UserCircle className="h-5 w-5" />
+                <span className="text-sm">{user.email}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate("/settings")}>
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Mobile Menu */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetTrigger asChild className="md:hidden">
+            <Button variant="ghost" size="sm">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right">
+            <SheetHeader>
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col gap-4 mt-6">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <UserCircle className="h-4 w-4" />
+                <span className="truncate">{user.email}</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                {navLinks.map((link) => (
+                  <Button
+                    key={link.path}
+                    variant={isActive(link.path) ? "default" : "ghost"}
+                    className="justify-start gap-2"
+                    onClick={() => {
+                      navigate(link.path);
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <link.icon className="h-4 w-4" />
+                    {link.label}
+                    {link.badge ? (
+                      <Badge variant="destructive" className="ml-auto">
+                        {link.badge}
+                      </Badge>
+                    ) : null}
+                  </Button>
+                ))}
+                <Button
+                  variant="ghost"
+                  className="justify-start gap-2 text-destructive hover:text-destructive"
+                  onClick={() => {
+                    handleSignOut();
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </header>
+  );
+}

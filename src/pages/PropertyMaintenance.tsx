@@ -1,19 +1,19 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Wrench } from "lucide-react";
+import { Plus, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreateMaintenanceTaskDialog } from "@/components/CreateMaintenanceTaskDialog";
 import MaintenanceCalendar from "./MaintenanceCalendar";
 import TemplatesManager from "./TemplatesManager";
 import ScheduledTasks from "./ScheduledTasks";
+import { AppLayout } from "@/components/layouts/AppLayout";
 
 const PropertyMaintenance = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
-  const navigate = useNavigate();
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
 
   const { data: property, isLoading: isLoadingProperty } = useQuery({
@@ -64,19 +64,15 @@ const PropertyMaintenance = () => {
 
   if (isLoadingProperty) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <AppLayout>
         <Skeleton className="h-12 w-64 mb-4" />
         <Skeleton className="h-8 w-96 mb-8" />
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Button variant="ghost" className="mb-4" onClick={() => navigate("/dashboard")}>
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Dashboard
-      </Button>
+    <AppLayout>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -126,7 +122,7 @@ const PropertyMaintenance = () => {
         onOpenChange={setCreateTaskOpen}
         propertyId={propertyId!}
       />
-    </div>
+    </AppLayout>
   );
 };
 

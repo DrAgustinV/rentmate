@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Home, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { AppLayout } from "@/components/layouts/AppLayout";
 
 interface Invitation {
   id: string;
@@ -154,27 +155,21 @@ export default function Invitations() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <AppLayout>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Pending Invitations</h1>
-            <p className="text-muted-foreground mt-2">
-              Accept or decline property invitations
-            </p>
-          </div>
-          <Button variant="outline" onClick={() => navigate("/dashboard")}>
-            <Home className="mr-2 h-4 w-4" />
-            Dashboard
-          </Button>
-        </div>
+    <AppLayout>
+      <div>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Pending Invitations</h1>
+        <p className="text-muted-foreground mb-8">
+          Accept or decline property invitations
+        </p>
 
         {invitations.length === 0 ? (
           <Card>
@@ -239,6 +234,6 @@ export default function Invitations() {
           </div>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 }

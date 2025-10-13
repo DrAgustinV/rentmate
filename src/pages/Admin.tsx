@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Ticket, Users, Settings, ArrowLeft } from "lucide-react";
+import { Building2, Ticket, Users, Settings } from "lucide-react";
 import { PropertiesTable } from "@/components/admin/PropertiesTable";
 import { TicketsTable } from "@/components/admin/TicketsTable";
 import { UsersTable } from "@/components/admin/UsersTable";
 import { SystemSettings } from "@/components/admin/SystemSettings";
+import { AppLayout } from "@/components/layouts/AppLayout";
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -40,9 +40,11 @@ export default function Admin() {
 
   if (isAdmin === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+      <AppLayout>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </AppLayout>
     );
   }
 
@@ -51,17 +53,11 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Manage users, properties, tickets, and system settings</p>
-          </div>
-          <Button variant="outline" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
+    <AppLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+          <p className="text-muted-foreground">Manage users, properties, tickets, and system settings</p>
         </div>
 
         <Tabs defaultValue="users" className="space-y-4">
@@ -133,6 +129,6 @@ export default function Admin() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AppLayout>
   );
 }

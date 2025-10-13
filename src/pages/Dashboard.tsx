@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { LogOut, Plus, Home, Users, Mail, Archive, Shield } from "lucide-react";
+import { Plus, Home, Users, Archive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
 import { PropertyCard } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
+import { AppLayout } from "@/components/layouts/AppLayout";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -16,9 +16,7 @@ export default function Dashboard() {
   const [tenantProperties, setTenantProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [pendingInvitations, setPendingInvitations] = useState(0);
   const [propertyView, setPropertyView] = useState<"active" | "archived">("active");
-  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -35,8 +33,6 @@ export default function Dashboard() {
       }
       setUser(session.user);
       await fetchProperties(session.user.id);
-      await fetchPendingInvitations();
-      await checkAdminRole(session.user.id);
     };
 
     checkUser();
@@ -96,91 +92,22 @@ export default function Dashboard() {
     }
   };
 
-  const fetchPendingInvitations = async () => {
-    try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("id", (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (!profile) return;
-
-      const { count } = await supabase
-        .from("invitations")
-        .select("*", { count: "exact", head: true })
-        .eq("email", profile.email)
-        .eq("status", "pending")
-        .gt("expires_at", new Date().toISOString());
-
-      setPendingInvitations(count || 0);
-    } catch (error) {
-      console.error("Error fetching invitations:", error);
-    }
-  };
-
-  const checkAdminRole = async (userId: string) => {
-    try {
-      const { data, error } = await supabase.rpc("has_role", {
-        _user_id: userId,
-        _role: "admin",
-      });
-
-      if (error) throw error;
-      setIsAdmin(data || false);
-    } catch (error) {
-      console.error("Error checking admin role:", error);
-    }
-  };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+      <AppLayout showBreadcrumbs={false}>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            FlatMate
-          </h1>
-          <div className="flex gap-2">
-            {isAdmin && (
-              <Button variant="destructive" size="sm" onClick={() => navigate("/admin")}>
-                <Shield className="mr-2 h-4 w-4" />
-                Admin Dashboard
-              </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={() => navigate("/invitations")} className="relative">
-              <Mail className="mr-2 h-4 w-4" />
-              Invitations
-              {pendingInvitations > 0 && (
-                <Badge variant="destructive" className="ml-2 px-1.5 py-0 text-xs">
-                  {pendingInvitations}
-                </Badge>
-              )}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
+    <AppLayout showBreadcrumbs={false}>
         {/* Empty State: No managed properties AND no tenant properties */}
         {properties.length === 0 && tenantProperties.length === 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -276,7 +203,6 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-      </main>
 
       <CreatePropertyDialog
         open={isCreateOpen}
@@ -286,6 +212,6 @@ export default function Dashboard() {
           if (user) fetchProperties(user.id);
         }}
       />
-    </div>
+    </AppLayout>
   );
 }

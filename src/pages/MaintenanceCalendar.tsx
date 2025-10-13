@@ -2,14 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowLeft } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Calendar } from "lucide-react";
+import { useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { useState } from "react";
+import { AppLayout } from "@/components/layouts/AppLayout";
 
 export default function MaintenanceCalendar() {
-  const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -65,11 +65,8 @@ export default function MaintenanceCalendar() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+    <AppLayout>
+      <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Maintenance Calendar</h1>
           {property && (
@@ -78,7 +75,6 @@ export default function MaintenanceCalendar() {
             </p>
           )}
         </div>
-      </div>
 
       <Card>
         <CardHeader>
@@ -196,6 +192,7 @@ export default function MaintenanceCalendar() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

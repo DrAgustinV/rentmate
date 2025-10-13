@@ -1,8 +1,6 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,7 +13,8 @@ import { AttachmentUpload } from "@/components/ticket/AttachmentUpload";
 import { ActivityTimeline } from "@/components/ticket/ActivityTimeline";
 import { StatusManager } from "@/components/ticket/StatusManager";
 import { useEffect } from "react";
-import { RotateCw, Calendar } from "lucide-react";
+import { RotateCw } from "lucide-react";
+import { AppLayout } from "@/components/layouts/AppLayout";
 
 const statusColors = {
   open: "bg-blue-500",
@@ -32,8 +31,7 @@ const priorityColors = {
 };
 
 const TicketDetail = () => {
-  const { propertyId, ticketId } = useParams<{ propertyId: string; ticketId: string }>();
-  const navigate = useNavigate();
+  const { ticketId } = useParams<{ propertyId: string; ticketId: string }>();
 
   const { data: ticket, isLoading } = useQuery({
     queryKey: ["ticket", ticketId],
@@ -162,32 +160,23 @@ const TicketDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <AppLayout>
         <Skeleton className="h-12 w-64 mb-8" />
         <Skeleton className="h-96 w-full" />
-      </div>
+      </AppLayout>
     );
   }
 
   if (!ticket) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <AppLayout>
         <p className="text-muted-foreground">Ticket not found</p>
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Button
-        variant="ghost"
-        className="mb-4"
-        onClick={() => navigate(`/properties/${propertyId}/tickets`)}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Tickets
-      </Button>
-
+    <AppLayout>
       <div className="grid gap-6">
         <Card>
           <CardHeader>
@@ -323,7 +312,7 @@ const TicketDetail = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AppLayout>
   );
 };
 

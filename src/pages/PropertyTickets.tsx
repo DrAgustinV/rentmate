@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, FileText } from "lucide-react";
+import { Plus } from "lucide-react";
 import { CreateTicketDialog } from "@/components/CreateTicketDialog";
 import { TicketsList } from "@/components/TicketsList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AppLayout } from "@/components/layouts/AppLayout";
 
 const PropertyTickets = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
@@ -59,24 +59,15 @@ const PropertyTickets = () => {
 
   if (isLoadingProperty) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <AppLayout>
         <Skeleton className="h-12 w-64 mb-4" />
         <Skeleton className="h-8 w-96 mb-8" />
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Button
-        variant="ghost"
-        className="mb-4"
-        onClick={() => navigate("/dashboard")}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Dashboard
-      </Button>
-
+    <AppLayout>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">{property?.title}</h1>
@@ -133,7 +124,7 @@ const PropertyTickets = () => {
         propertyId={propertyId}
         onSuccess={() => {}}
       />
-    </div>
+    </AppLayout>
   );
 };
 
