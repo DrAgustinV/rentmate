@@ -10,11 +10,21 @@ import { useToast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserCircle, Bell, Lock, Palette } from "lucide-react";
+import { UserCircle, Bell, Lock, Palette, Globe } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Language } from "@/lib/i18n/translations";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const languages: { code: Language; label: string; flag: string }[] = [
+  { code: 'en', label: 'English', flag: '🇬🇧' },
+  { code: 'es', label: 'Español', flag: '🇪🇸' },
+];
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -25,6 +35,7 @@ export default function Settings() {
   const [lastName, setLastName] = useState("");
   const [saving, setSaving] = useState(false);
   const { t, language, changeLanguage } = useLanguage();
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -65,6 +76,7 @@ export default function Settings() {
         setFirstName(data.first_name || "");
         setLastName(data.last_name || "");
       }
+      setSelectedLanguage(language);
     } catch (error: any) {
       toast({
         title: t('common.error'),
@@ -92,6 +104,11 @@ export default function Settings() {
         });
 
       if (error) throw error;
+
+      // Save language preference if changed
+      if (selectedLanguage !== language) {
+        await changeLanguage(selectedLanguage);
+      }
 
       toast({
         title: t('common.success'),
@@ -205,24 +222,26 @@ export default function Settings() {
                   <p className="text-xs text-muted-foreground mb-2">
                     {t('settings.languageDesc')}
                   </p>
-                  <RadioGroup
-                    value={language}
-                    onValueChange={(value) => changeLanguage(value as Language)}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="en" id="lang-en" />
-                      <Label htmlFor="lang-en" className="cursor-pointer font-normal">
-                        🇬🇧 English
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="es" id="lang-es" />
-                      <Label htmlFor="lang-es" className="cursor-pointer font-normal">
-                        🇪🇸 Español
-                      </Label>
-                    </div>
-                  </RadioGroup>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start">
+                        <Globe className="mr-2 h-4 w-4" />
+                        {languages.find(l => l.code === selectedLanguage)?.flag} {languages.find(l => l.code === selectedLanguage)?.label}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-full">
+                      {languages.map((lang) => (
+                        <DropdownMenuItem
+                          key={lang.code}
+                          onClick={() => setSelectedLanguage(lang.code)}
+                          className={selectedLanguage === lang.code ? 'bg-accent' : ''}
+                        >
+                          <span className="mr-2">{lang.flag}</span>
+                          {lang.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <Separator />
