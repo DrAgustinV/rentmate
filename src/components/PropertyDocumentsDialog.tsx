@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { formatDateTime } from "@/lib/dateUtils";
 import PropertyDocumentUpload from "./PropertyDocumentUpload";
 import PropertyDocumentVersionHistory from "./PropertyDocumentVersionHistory";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PropertyDocumentsDialogProps {
   open: boolean;
@@ -53,6 +54,7 @@ export default function PropertyDocumentsDialog({
   propertyId,
   isManager,
 }: PropertyDocumentsDialogProps) {
+  const { t } = useLanguage();
   const [expandedDocs, setExpandedDocs] = useState<Set<string>>(new Set());
   const [showUpload, setShowUpload] = useState(false);
   const [uploadingVersionFor, setUploadingVersionFor] = useState<{
@@ -111,11 +113,11 @@ export default function PropertyDocumentsDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["property-documents", propertyId] });
-      toast.success("Document deleted successfully");
+      toast.success(t('dialogs.propertyDocuments.deleteSuccess'));
     },
     onError: (error) => {
       console.error("Delete error:", error);
-      toast.error("Failed to delete document");
+      toast.error(t('dialogs.propertyDocuments.deleteFailed'));
     },
   });
 
@@ -137,7 +139,7 @@ export default function PropertyDocumentsDialog({
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("Failed to download document");
+      toast.error(t('dialogs.propertyDocuments.downloadFailed'));
     }
   };
 
@@ -177,16 +179,16 @@ export default function PropertyDocumentsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>Property Documents</DialogTitle>
+          <DialogTitle>{t('dialogs.propertyDocuments.title')}</DialogTitle>
           <DialogDescription>
-            View, upload, and manage documents for this property. Both managers and tenants can upload documents.
+            {t('dialogs.propertyDocuments.description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <Button onClick={() => setShowUpload(!showUpload)} className="w-full">
             <Upload className="h-4 w-4 mr-2" />
-            {showUpload ? "Hide Upload" : "Upload New Document"}
+            {showUpload ? t('dialogs.propertyDocuments.hideUpload') : t('dialogs.propertyDocuments.uploadNew')}
           </Button>
 
         {showUpload && (
@@ -206,9 +208,9 @@ export default function PropertyDocumentsDialog({
 
           <ScrollArea className="h-[400px] pr-4">
             {isLoading ? (
-              <p className="text-muted-foreground text-center py-8">Loading documents...</p>
+              <p className="text-muted-foreground text-center py-8">{t('dialogs.propertyDocuments.loading')}</p>
             ) : Object.keys(groupedDocs).length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No documents uploaded yet</p>
+              <p className="text-muted-foreground text-center py-8">{t('dialogs.propertyDocuments.noDocuments')}</p>
             ) : (
               <div className="space-y-4">
                 {Object.entries(groupedDocs).map(([title, docs]) => {
@@ -247,7 +249,7 @@ export default function PropertyDocumentsDialog({
                           <div className="text-sm text-muted-foreground space-y-1 ml-8">
                             <p>
                               {formatFileSize(latestDoc.file_size_bytes)} ·
-                              Uploaded by {getUploaderName(latestDoc)} ·{" "}
+                              {t('dialogs.propertyDocuments.uploadedBy')} {getUploaderName(latestDoc)} ·{" "}
                               {formatDateTime(latestDoc.created_at)}
                             </p>
                             {latestDoc.description && (
@@ -266,7 +268,7 @@ export default function PropertyDocumentsDialog({
                               });
                               setShowUpload(true);
                             }}
-                            title="Upload a new version of this document"
+                            title={t('dialogs.propertyDocuments.uploadNewVersion')}
                           >
                             <Upload className="h-4 w-4" />
                           </Button>

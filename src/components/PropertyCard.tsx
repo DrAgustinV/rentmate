@@ -86,7 +86,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
   };
 
   const statusColor = property.status === "active" ? "bg-success" : "bg-muted";
-  const statusText = property.status === "active" ? "Active" : "Inactive";
+  const statusText = property.status === "active" ? t('properties.active') : t('properties.inactive');
   const isArchived = property.status === "inactive";
 
   return (
@@ -125,15 +125,15 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                 <Archive className="h-4 w-4" />
-                <span className="font-medium">Archived Details</span>
+                <span className="font-medium">{t('properties.archivedDetails')}</span>
               </div>
               <div className="space-y-1 text-xs text-muted-foreground">
-                <p>Archived: {new Date(property.deleted_at).toLocaleDateString()}</p>
+                <p>{t('properties.archivedOn')}: {new Date(property.deleted_at).toLocaleDateString()}</p>
                 {property.delete_reason && (
-                  <p>Reason: {property.delete_reason.replace(/_/g, ' ')}</p>
+                  <p>{t('properties.reason')}: {property.delete_reason.replace(/_/g, ' ')}</p>
                 )}
                 {property.modification_reason && (
-                  <p className="italic">Notes: {property.modification_reason}</p>
+                  <p className="italic">{t('properties.notes')}: {property.modification_reason}</p>
                 )}
               </div>
             </div>
@@ -150,7 +150,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 className="flex-1 gap-2"
               >
                 <Ticket className="h-4 w-4" />
-                Tickets {ticketCount > 0 && `(${ticketCount})`}
+                {t('properties.tickets')} {ticketCount > 0 && `(${ticketCount})`}
               </Button>
               <Button
                 size="sm"
@@ -158,7 +158,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 className="flex-1 gap-2"
               >
                 <Wrench className="h-4 w-4" />
-                Maintenance
+                {t('properties.maintenance')}
               </Button>
             </div>
             <div className="w-full">
@@ -169,7 +169,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 className="w-full gap-2"
               >
                 <FileText className="h-4 w-4" />
-                Documents {documentCount > 0 && `(${documentCount})`}
+                {t('properties.documents')} {documentCount > 0 && `(${documentCount})`}
               </Button>
             </div>
             {isManager && (
@@ -182,7 +182,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                     className="flex-1 gap-2"
                   >
                     <Edit className="h-4 w-4" />
-                    Edit
+                    {t('properties.edit')}
                   </Button>
                   <Button
                     variant="outline"
@@ -191,7 +191,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                     className="flex-1 gap-2"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Archive
+                    {t('properties.archive')}
                   </Button>
                 </div>
                 <div className="w-full flex gap-2">
@@ -202,7 +202,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                     className="flex-1 gap-2"
                   >
                     <Users className="h-4 w-4" />
-                    Manage Tenants {tenantCount > 0 && `(${tenantCount})`}
+                    {t('properties.manageTenants')} {tenantCount > 0 && `(${tenantCount})`}
                   </Button>
                   <Button
                     variant="outline"
@@ -211,7 +211,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                     className="flex-1 gap-2"
                   >
                     <Mail className="h-4 w-4" />
-                    Invite Tenant
+                    {t('properties.inviteTenant')}
                   </Button>
                 </div>
               </>

@@ -23,7 +23,7 @@ export function ArchiveToggle({ activeCount, archivedCount, currentView, onViewC
           )}
         </TabsTrigger>
         <TabsTrigger value="archived" className="gap-2">
-          Archived Properties
+          {t('properties.archivedProperties')}
           {archivedCount > 0 && (
             <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
               {archivedCount}

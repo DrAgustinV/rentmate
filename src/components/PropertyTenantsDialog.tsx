@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserMinus, Users } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Tenant {
   id: string;
@@ -32,6 +33,7 @@ interface PropertyTenantsDialogProps {
 }
 
 export function PropertyTenantsDialog({ open, onOpenChange, propertyId, propertyTitle }: PropertyTenantsDialogProps) {
+  const { t } = useLanguage();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [removingTenant, setRemovingTenant] = useState<Tenant | null>(null);
@@ -81,7 +83,7 @@ export function PropertyTenantsDialog({ open, onOpenChange, propertyId, property
       setTenants(formattedTenants);
     } catch (error: any) {
       toast({
-        title: "Error loading tenants",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -99,15 +101,15 @@ export function PropertyTenantsDialog({ open, onOpenChange, propertyId, property
       if (error) throw error;
 
       toast({
-        title: "Tenant removed",
-        description: `${getTenantName(removingTenant)} has been removed from ${propertyTitle}`,
+        title: t('dialogs.manageTenants.removed'),
+        description: `${getTenantName(removingTenant)} ${t('dialogs.manageTenants.removedDesc')} ${propertyTitle}`,
       });
 
       setTenants(tenants.filter((t) => t.id !== removingTenant.id));
       setRemovingTenant(null);
     } catch (error: any) {
       toast({
-        title: "Error removing tenant",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -129,18 +131,18 @@ export function PropertyTenantsDialog({ open, onOpenChange, propertyId, property
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Manage Tenants
+              {t('dialogs.manageTenants.title')}
             </DialogTitle>
-            <DialogDescription>Tenants assigned to {propertyTitle}</DialogDescription>
+            <DialogDescription>{t('dialogs.manageTenants.description')} {propertyTitle}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading tenants...</div>
+              <div className="text-center py-8 text-muted-foreground">{t('dialogs.manageTenants.loading')}</div>
             ) : tenants.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p>No tenants yet - invite someone to get started</p>
+                <p>{t('dialogs.manageTenants.noTenants')}</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -150,12 +152,12 @@ export function PropertyTenantsDialog({ open, onOpenChange, propertyId, property
                       <p className="font-medium">{getTenantName(tenant)}</p>
                       <p className="text-sm text-muted-foreground">{tenant.email}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Added {new Date(tenant.created_at).toLocaleDateString()}
+                        {t('dialogs.manageTenants.added')} {new Date(tenant.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)}>
                       <UserMinus className="h-4 w-4 mr-2" />
-                      Remove
+                      {t('dialogs.manageTenants.remove')}
                     </Button>
                   </div>
                 ))}
@@ -168,15 +170,14 @@ export function PropertyTenantsDialog({ open, onOpenChange, propertyId, property
       <AlertDialog open={!!removingTenant} onOpenChange={(open) => !open && setRemovingTenant(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Tenant?</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.manageTenants.removeTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Remove {removingTenant && getTenantName(removingTenant)} from {propertyTitle}? They will lose access to
-              this property.
+              {t('dialogs.manageTenants.removeDescription')} {removingTenant && getTenantName(removingTenant)} {t('dialogs.manageTenants.removeDescription')} {propertyTitle}? {t('dialogs.manageTenants.removeMessage')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRemoveTenant}>Remove</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemoveTenant}>{t('dialogs.manageTenants.remove')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

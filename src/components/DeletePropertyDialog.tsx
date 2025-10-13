@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type DeleteReason = Database["public"]["Enums"]["delete_reason"];
 
@@ -19,6 +20,7 @@ interface DeletePropertyDialogProps {
 }
 
 export function DeletePropertyDialog({ open, onOpenChange, property, onSuccess }: DeletePropertyDialogProps) {
+  const { t } = useLanguage();
   const [reason, setReason] = useState<DeleteReason | "">("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,8 +29,8 @@ export function DeletePropertyDialog({ open, onOpenChange, property, onSuccess }
   const handleDelete = async () => {
     if (!reason) {
       toast({
-        title: "Validation Error",
-        description: "Please select a reason for deletion",
+        title: t('common.validationError'),
+        description: t('dialogs.deleteProperty.reasonPlaceholder'),
         variant: "destructive",
       });
       return;
@@ -54,8 +56,8 @@ export function DeletePropertyDialog({ open, onOpenChange, property, onSuccess }
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Property archived successfully",
+        title: t('common.success'),
+        description: t('dialogs.deleteProperty.success'),
       });
 
       setReason("");
@@ -63,7 +65,7 @@ export function DeletePropertyDialog({ open, onOpenChange, property, onSuccess }
       onSuccess();
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -76,45 +78,45 @@ export function DeletePropertyDialog({ open, onOpenChange, property, onSuccess }
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Archive Property</DialogTitle>
+          <DialogTitle>{t('dialogs.deleteProperty.title')}</DialogTitle>
           <DialogDescription>
-            This will mark the property as inactive. You can view it in the archived properties section.
+            {t('dialogs.deleteProperty.description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="bg-warning/10 border border-warning rounded-lg p-4 flex gap-3">
           <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
           <div className="text-sm">
-            <p className="font-medium text-warning mb-1">Warning</p>
+            <p className="font-medium text-warning mb-1">{t('dialogs.deleteProperty.warningTitle')}</p>
             <p className="text-muted-foreground">
-              Archiving this property will affect pending invitations and tenant access.
+              {t('dialogs.deleteProperty.warningMessage')}
             </p>
           </div>
         </div>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="delete-reason">Reason for Archiving *</Label>
+            <Label htmlFor="delete-reason">{t('dialogs.deleteProperty.reasonLabel')}</Label>
             <Select value={reason} onValueChange={(value) => setReason(value as DeleteReason)}>
               <SelectTrigger id="delete-reason">
-                <SelectValue placeholder="Select a reason" />
+                <SelectValue placeholder={t('dialogs.deleteProperty.reasonPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="sold">Sold</SelectItem>
-                <SelectItem value="no_longer_managing">No Longer Managing</SelectItem>
-                <SelectItem value="merged_with_other_property">Merged with Other Property</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="sold">{t('dialogs.deleteProperty.reasonSold')}</SelectItem>
+                <SelectItem value="no_longer_managing">{t('dialogs.deleteProperty.reasonNoLonger')}</SelectItem>
+                <SelectItem value="merged_with_other_property">{t('dialogs.deleteProperty.reasonMerged')}</SelectItem>
+                <SelectItem value="other">{t('dialogs.deleteProperty.reasonOther')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="delete-notes">Additional Notes (Optional)</Label>
+            <Label htmlFor="delete-notes">{t('dialogs.deleteProperty.notesLabel')}</Label>
             <Textarea
               id="delete-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add any additional information..."
+              placeholder={t('dialogs.deleteProperty.notesPlaceholder')}
               rows={3}
             />
           </div>
@@ -122,10 +124,10 @@ export function DeletePropertyDialog({ open, onOpenChange, property, onSuccess }
 
         <div className="flex gap-2 justify-end">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button variant="destructive" onClick={handleDelete} disabled={loading}>
-            {loading ? "Archiving..." : "Archive Property"}
+            {loading ? t('dialogs.deleteProperty.archiving') : t('dialogs.deleteProperty.archive')}
           </Button>
         </div>
       </DialogContent>

@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const inviteSchema = z.object({
-  email: z.string().trim().email({ message: "Invalid email address" }),
+const createInviteSchema = (t: (key: string) => string) => z.object({
+  email: z.string().trim().email({ message: t('dialogs.inviteTenant.emailPlaceholder') }),
 });
 
 interface InviteTenantDialogProps {
@@ -26,6 +27,7 @@ export function InviteTenantDialog({
   propertyTitle,
   onSuccess,
 }: InviteTenantDialogProps) {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -35,6 +37,7 @@ export function InviteTenantDialog({
     setLoading(true);
 
     try {
+      const inviteSchema = createInviteSchema(t);
       const data = inviteSchema.parse({ email });
 
       // Check if user exists with this email
@@ -54,7 +57,7 @@ export function InviteTenantDialog({
           .maybeSingle();
 
         if (existing) {
-          throw new Error("This user is already a tenant of this property");
+          throw new Error(t('dialogs.inviteTenant.alreadyTenant'));
         }
       }
 
@@ -68,7 +71,7 @@ export function InviteTenantDialog({
         .maybeSingle();
 
       if (existingInvite) {
-        throw new Error("An invitation has already been sent to this email");
+        throw new Error(t('dialogs.inviteTenant.alreadyInvited'));
       }
 
       // Generate token
@@ -87,8 +90,8 @@ export function InviteTenantDialog({
       if (error) throw error;
 
       toast({
-        title: "Invitation Sent",
-        description: `An invitation has been sent to ${data.email}`,
+        title: t('dialogs.inviteTenant.sent'),
+        description: `${t('dialogs.inviteTenant.sentDesc')} ${data.email}`,
       });
 
       setEmail("");
@@ -97,13 +100,13 @@ export function InviteTenantDialog({
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast({
-          title: "Validation Error",
+          title: t('common.validationError'),
           description: error.errors[0].message,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
+          title: t('common.error'),
           description: error.message,
           variant: "destructive",
         });
@@ -117,30 +120,30 @@ export function InviteTenantDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite Tenant to {propertyTitle}</DialogTitle>
+          <DialogTitle>{t('dialogs.inviteTenant.title')} {propertyTitle}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
+            <Label htmlFor="email">{t('dialogs.inviteTenant.emailLabel')}</Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="tenant@example.com"
+              placeholder={t('dialogs.inviteTenant.emailPlaceholder')}
               required
             />
             <p className="text-sm text-muted-foreground">
-              If the user exists, they'll be added immediately. Otherwise, they'll receive an invitation.
+              {t('dialogs.inviteTenant.helpText')}
             </p>
           </div>
 
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Sending..." : "Send Invitation"}
+              {loading ? t('dialogs.inviteTenant.sending') : t('dialogs.inviteTenant.send')}
             </Button>
           </div>
         </form>
