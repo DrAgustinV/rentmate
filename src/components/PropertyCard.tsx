@@ -5,7 +5,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   MapPin,
   Calendar,
+  Trash2,
   Edit,
+  Mail,
   Archive,
   Users,
   Ticket,
@@ -13,11 +15,12 @@ import {
   FileText,
   Home,
   Image as ImageIcon,
-  Mail,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { InviteTenantDialog } from "./InviteTenantDialog";
 import { EditPropertyDialog } from "./EditPropertyDialog";
+import { ArchivePropertyDialog } from "./ArchivePropertyDialog";
 import { PropertyTenantsDialog } from "./PropertyTenantsDialog";
 import PropertyDocumentsDialog from "./PropertyDocumentsDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +35,9 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProps) {
   const { t } = useLanguage();
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [tenantsOpen, setTenantsOpen] = useState(false);
   const [documentsOpen, setDocumentsOpen] = useState(false);
   const [tenantCount, setTenantCount] = useState(0);
@@ -230,10 +235,15 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
         </CardHeader>
 
         <CardContent className="pt-4">
-          <div className="min-h-[80px]">
-            {property.description && (
-              <p className="text-sm text-muted-foreground line-clamp-3">{property.description}</p>
-            )}
+          {property.description && (
+            <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{property.description}</p>
+          )}
+
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              <span>{formatDate(property.created_at)}</span>
+            </div>
           </div>
 
           {isArchived && property.deleted_at && (
@@ -263,6 +273,21 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
 
         {(property.status === "active" || property.status === "ending_tenancy") && (
           <CardFooter className="border-t bg-muted/50 pt-4 flex-col gap-2">
+            {/* Upper row: Edit and Tenant Management */}
+            {isManager && (
+              <div className="w-full flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="flex-1 gap-2">
+                  <Edit className="h-4 w-4" />
+                  {t("properties.edit")}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setTenantsOpen(true)} className="flex-1 gap-2">
+                  <Users className="h-4 w-4" />
+                  {t("properties.manageTenants")} {tenantCount > 0 && `(${tenantCount})`}
+                </Button>
+              </div>
+            )}
+
+            {/* Lower row: Tickets/Maintenance and Documents */}
             <div className="w-full flex gap-2">
               <Button
                 variant="outline"
@@ -274,7 +299,6 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 {t("properties.tickets")} {ticketCount > 0 && `(${ticketCount})`}
               </Button>
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => navigate(`/properties/${property.id}/maintenance`)}
                 className="flex-1 gap-2"
@@ -282,29 +306,39 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 <Wrench className="h-4 w-4" />
                 {t("properties.maintenance")}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setDocumentsOpen(true)} className="flex-1 gap-2">
+            </div>
+
+            <div className="w-full">
+              <Button variant="outline" size="sm" onClick={() => setDocumentsOpen(true)} className="w-full gap-2">
                 <FileText className="h-4 w-4" />
                 {t("properties.documents")} {documentCount > 0 && `(${documentCount})`}
               </Button>
             </div>
+
+            {/* Additional manager buttons */}
             {isManager && (
               <div className="w-full flex gap-2">
-                <Button size="sm" onClick={() => setEditOpen(true)} className="flex-1 gap-2">
-                  <Edit className="h-4 w-4" />
-                  {t("properties.edit")}
+                <Button variant="outline" size="sm" onClick={() => setInviteOpen(true)} className="flex-1 gap-2">
+                  <Mail className="h-4 w-4" />
+                  {t("properties.inviteTenant")}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setTenantsOpen(true)} className="flex-1 gap-2">
-                  <Users className="h-4 w-4" />
-                  {tenantStatus?.status === "free" && t("properties.inviteTenant")}
-                  {tenantStatus?.status === "occupied" && `${t("properties.tenantManagement")} (${tenantCount})`}
-                  {tenantStatus?.status === "invited" && `${t("properties.tenantManagement")} (${t("properties.pending")}: ${tenantStatus.pending_invites})`}
-                  {!tenantStatus && t("properties.tenantManagement")}
+                <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)} className="flex-1 gap-2">
+                  <Trash2 className="h-4 w-4" />
+                  {t("properties.archive")}
                 </Button>
               </div>
             )}
           </CardFooter>
         )}
       </Card>
+
+      <InviteTenantDialog
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        propertyId={property.id}
+        propertyTitle={property.title}
+        onSuccess={onUpdate}
+      />
 
       <EditPropertyDialog
         open={editOpen}
@@ -316,16 +350,21 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
         }}
       />
 
+      <ArchivePropertyDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        property={property}
+        onSuccess={() => {
+          setDeleteOpen(false);
+          onUpdate();
+        }}
+      />
+
       <PropertyTenantsDialog
         open={tenantsOpen}
         onOpenChange={setTenantsOpen}
         propertyId={property.id}
         propertyTitle={property.title}
-        propertyStatus={property.status}
-        propertyAddress={property.address}
-        property={property}
-        isManager={isManager}
-        onUpdate={onUpdate}
       />
 
       <PropertyDocumentsDialog
