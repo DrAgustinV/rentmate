@@ -112,6 +112,7 @@ export function InviteTenantDialog({
             token,
             expiresAt: expiresAt.toISOString(),
             language: localStorage.getItem('language') || 'en',
+            projectId: import.meta.env.VITE_SUPABASE_PROJECT_ID,
           },
         });
 

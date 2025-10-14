@@ -15,12 +15,19 @@ interface InvitationEmailRequest {
   token: string;
   expiresAt: string;
   language: string;
+  projectId: string;
 }
 
 const getEmailContent = (data: InvitationEmailRequest) => {
-  const projectId = Deno.env.get("VITE_SUPABASE_PROJECT_ID") || "";
-  const appUrl = `https://${projectId}.lovableproject.com`;
+  const appUrl = `https://${data.projectId}.lovableproject.com`;
   const invitationLink = `${appUrl}/invitations?token=${data.token}`;
+  
+  console.log('Invitation email data:', {
+    email: data.email,
+    token: data.token,
+    projectId: data.projectId,
+    invitationLink
+  });
   const expirationDate = new Date(data.expiresAt).toLocaleDateString(data.language === 'es' ? 'es-ES' : 'en-US', {
     year: 'numeric',
     month: 'long',
