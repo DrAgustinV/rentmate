@@ -180,6 +180,9 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const data: InvitationEmailRequest = await req.json();
     
+    console.log('Raw request body received:', data);
+    console.log('Token:', data.token);
+    console.log('ProjectId:', data.projectId);
     console.log('Sending invitation email to:', data.email);
 
     const emailContent = getEmailContent(data);
