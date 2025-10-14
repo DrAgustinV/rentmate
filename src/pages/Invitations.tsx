@@ -13,6 +13,7 @@ interface Invitation {
   id: string;
   property_id: string;
   email: string;
+  token: string;
   expires_at: string;
   properties: {
     title: string;
@@ -66,6 +67,7 @@ export default function Invitations() {
           id,
           property_id,
           email,
+          token,
           expires_at,
           properties (
             title,
@@ -178,10 +180,7 @@ export default function Invitations() {
       }
 
       // Find invitation by token
-      const invitation = invitations.find(inv => {
-        // We don't have direct access to token in the query, so we'll try to accept the first pending invitation
-        return true;
-      });
+      const invitation = invitations.find(inv => inv.token === token);
 
       if (!invitation) {
         toast({

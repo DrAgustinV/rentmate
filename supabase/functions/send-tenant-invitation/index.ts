@@ -18,7 +18,8 @@ interface InvitationEmailRequest {
 }
 
 const getEmailContent = (data: InvitationEmailRequest) => {
-  const appUrl = Deno.env.get("VITE_SUPABASE_URL")?.replace(".supabase.co", ".lovable.app") || "";
+  const projectId = Deno.env.get("VITE_SUPABASE_PROJECT_ID") || "";
+  const appUrl = `https://${projectId}.lovableproject.com`;
   const invitationLink = `${appUrl}/invitations?token=${data.token}`;
   const expirationDate = new Date(data.expiresAt).toLocaleDateString(data.language === 'es' ? 'es-ES' : 'en-US', {
     year: 'numeric',
