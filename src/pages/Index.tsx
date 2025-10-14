@@ -11,7 +11,7 @@ const Index = () => {
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Image with Overlay */}
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-40"
+        className="absolute inset-0 bg-cover bg-center opacity-50"
         style={{ backgroundImage: `url(${heroProperty})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/20" />
