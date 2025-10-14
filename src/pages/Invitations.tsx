@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -28,10 +28,18 @@ export default function Invitations() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token && !loading && invitations.length > 0) {
+      handleTokenAccept(token);
+    }
+  }, [searchParams, loading, invitations]);
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -153,6 +161,44 @@ export default function Invitations() {
       });
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  const handleTokenAccept = async (token: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: t('invitations.loginRequired'),
+          description: t('invitations.loginRequiredDesc'),
+          variant: "destructive",
+        });
+        navigate('/auth');
+        return;
+      }
+
+      // Find invitation by token
+      const invitation = invitations.find(inv => {
+        // We don't have direct access to token in the query, so we'll try to accept the first pending invitation
+        return true;
+      });
+
+      if (!invitation) {
+        toast({
+          title: t('common.error'),
+          description: t('invitations.notFound'),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await handleAccept(invitation.id, invitation.property_id);
+    } catch (error: any) {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 

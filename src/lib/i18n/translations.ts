@@ -337,6 +337,9 @@ export const translations = {
       acceptedDesc: "You've been added as a tenant",
       declined: 'Invitation declined',
       declinedDesc: 'You can still accept other invitations',
+      loginRequired: 'Login Required',
+      loginRequiredDesc: 'Please login to accept this invitation',
+      notFound: 'Invitation not found or expired',
     },
     dialogs: {
       createProperty: {
@@ -420,6 +423,7 @@ export const translations = {
         sending: 'Sending...',
         sent: 'Invitation Sent',
         sentDesc: 'An invitation has been sent to',
+        emailWarning: 'Invitation created but email delivery failed. The invitation was saved and can be resent later.',
         alreadyTenant: 'This user is already a tenant of this property',
         alreadyInvited: 'An invitation has already been sent to this email',
       },
@@ -953,6 +957,9 @@ export const translations = {
       acceptedDesc: 'Has sido añadido como inquilino',
       declined: 'Invitación rechazada',
       declinedDesc: 'Aún puedes aceptar otras invitaciones',
+      loginRequired: 'Inicio de Sesión Requerido',
+      loginRequiredDesc: 'Por favor inicia sesión para aceptar esta invitación',
+      notFound: 'Invitación no encontrada o expirada',
     },
     dialogs: {
       createProperty: {
@@ -1023,6 +1030,7 @@ export const translations = {
         sending: 'Enviando...',
         sent: 'Invitación Enviada',
         sentDesc: 'Se ha enviado una invitación a',
+        emailWarning: 'Invitación creada pero el envío de correo falló. La invitación se guardó y puede reenviarse más tarde.',
         alreadyTenant: 'Este usuario ya es inquilino de esta propiedad',
         alreadyInvited: 'Ya se ha enviado una invitación a este correo electrónico',
       },

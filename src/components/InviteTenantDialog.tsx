@@ -89,10 +89,53 @@ export function InviteTenantDialog({
 
       if (error) throw error;
 
-      toast({
-        title: t('dialogs.inviteTenant.sent'),
-        description: `${t('dialogs.inviteTenant.sentDesc')} ${data.email}`,
-      });
+      // Get current user's profile for manager name
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: managerProfile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", user?.id)
+        .single();
+
+      const managerName = managerProfile
+        ? `${managerProfile.first_name || ''} ${managerProfile.last_name || ''}`.trim() || 'Property Manager'
+        : 'Property Manager';
+
+      // Send invitation email
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-tenant-invitation', {
+          body: {
+            email: data.email,
+            propertyTitle: propertyTitle,
+            propertyAddress: null, // Could be enhanced to include address
+            managerName,
+            token,
+            expiresAt: expiresAt.toISOString(),
+            language: localStorage.getItem('language') || 'en',
+          },
+        });
+
+        if (emailError) {
+          console.error('Email send error:', emailError);
+          toast({
+            title: t('dialogs.inviteTenant.sent'),
+            description: t('dialogs.inviteTenant.emailWarning'),
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: t('dialogs.inviteTenant.sent'),
+            description: `${t('dialogs.inviteTenant.sentDesc')} ${data.email}`,
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send email:', emailError);
+        toast({
+          title: t('dialogs.inviteTenant.sent'),
+          description: t('dialogs.inviteTenant.emailWarning'),
+          variant: "default",
+        });
+      }
 
       setEmail("");
       onSuccess();
