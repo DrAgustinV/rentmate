@@ -18,23 +18,27 @@ interface InvitationEmailRequest {
   projectId: string;
 }
 
+if (!data.projectId || !data.token) {
+  throw new Error("Missing required fields: projectId or token");
+}
+
 const getEmailContent = (data: InvitationEmailRequest) => {
   const appUrl = `https://${data.projectId}.lovableproject.com`;
   const invitationLink = `${appUrl}/invitations?token=${data.token}`;
-  
-  console.log('Invitation email data:', {
+
+  console.log("Invitation email data:", {
     email: data.email,
     token: data.token,
     projectId: data.projectId,
-    invitationLink
+    invitationLink,
   });
-  const expirationDate = new Date(data.expiresAt).toLocaleDateString(data.language === 'es' ? 'es-ES' : 'en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+  const expirationDate = new Date(data.expiresAt).toLocaleDateString(data.language === "es" ? "es-ES" : "en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
-  if (data.language === 'es') {
+  if (data.language === "es") {
     return {
       subject: `Invitación para unirse a ${data.propertyTitle}`,
       html: `
@@ -70,7 +74,7 @@ const getEmailContent = (data: InvitationEmailRequest) => {
                 <div class="property-info">
                   <strong>📍 Propiedad:</strong>
                   ${data.propertyTitle}
-                  ${data.propertyAddress ? `<br><strong>Dirección:</strong> ${data.propertyAddress}` : ''}
+                  ${data.propertyAddress ? `<br><strong>Dirección:</strong> ${data.propertyAddress}` : ""}
                 </div>
 
                 <p>Podrás:</p>
@@ -99,7 +103,7 @@ const getEmailContent = (data: InvitationEmailRequest) => {
             </div>
           </body>
         </html>
-      `
+      `,
     };
   }
 
@@ -139,7 +143,7 @@ const getEmailContent = (data: InvitationEmailRequest) => {
               <div class="property-info">
                 <strong>📍 Property:</strong>
                 ${data.propertyTitle}
-                ${data.propertyAddress ? `<br><strong>Address:</strong> ${data.propertyAddress}` : ''}
+                ${data.propertyAddress ? `<br><strong>Address:</strong> ${data.propertyAddress}` : ""}
               </div>
 
               <p>As a tenant, you'll be able to:</p>
@@ -168,30 +172,30 @@ const getEmailContent = (data: InvitationEmailRequest) => {
           </div>
         </body>
       </html>
-    `
+    `,
   };
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const data: InvitationEmailRequest = await req.json();
-    
-    console.log('Raw request body received:', data);
-    console.log('Token:', data.token);
-    console.log('ProjectId:', data.projectId);
-    console.log('Sending invitation email to:', data.email);
+
+    console.log("Raw request body received:", data);
+    console.log("Token:", data.token);
+    console.log("ProjectId:", data.projectId);
+    console.log("Sending invitation email to:", data.email);
 
     const emailContent = getEmailContent(data);
 
-    const emailResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         from: "Property Manager <onboarding@resend.dev>",
@@ -207,28 +211,25 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResult = await emailResponse.json();
-    console.log('Email sent successfully:', emailResult);
+    console.log("Email sent successfully:", emailResult);
+
+    return new Response(JSON.stringify({ success: true, messageId: emailResult.id }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    console.error("Error sending invitation email:", error);
 
     return new Response(
-      JSON.stringify({ success: true, messageId: emailResult.id }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
-  } catch (error: any) {
-    console.error('Error sending invitation email:', error);
-    
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message || 'Failed to send email',
-        details: error.toString()
+      JSON.stringify({
+        success: false,
+        error: error.message || "Failed to send email",
+        details: error.toString(),
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 };
