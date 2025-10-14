@@ -18,9 +18,29 @@ interface InvitationEmailRequest {
   projectId: string;
 }
 
-if (!data.projectId || !data.token) {
-  throw new Error("Missing required fields: projectId or token");
-}
+const getEmailContent = (data: InvitationEmailRequest) => {
+  // Add validation with console log
+  if (!data.projectId || !data.token) {
+    console.error("Missing required fields for invitation email:", {
+      projectId: data.projectId,
+      token: data.token,
+      email: data.email,
+      propertyTitle: data.propertyTitle,
+    });
+    throw new Error("Missing required fields: projectId or token");
+  }
+
+  const appUrl = `https://${data.projectId}.lovableproject.com`;
+  const invitationLink = `${appUrl}/invitations?token=${data.token}`;
+
+  console.log("Invitation email data:", {
+    email: data.email,
+    token: data.token,
+    projectId: data.projectId,
+    invitationLink,
+  });
+  // ... rest of function
+};
 
 const getEmailContent = (data: InvitationEmailRequest) => {
   const appUrl = `https://${data.projectId}.lovableproject.com`;
