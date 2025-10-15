@@ -6,6 +6,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Sun, Moon, Monitor, Palette, Type, Calendar, Globe } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Language } from '@/lib/i18n/translations';
@@ -226,28 +233,20 @@ export const AppearanceSettings = () => {
           <Calendar className="h-5 w-5" />
           <h3 className="text-lg font-semibold">{t('settings.dateFormat')}</h3>
         </div>
-        <RadioGroup
+        <Select
           value={currentPrefs.date_format}
           onValueChange={(value) => updateTempPrefs({ date_format: value })}
-          className="space-y-2"
         >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="PPP" id="PPP" />
-            <Label htmlFor="PPP" className="cursor-pointer">Apr 29, 2023</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="MM/dd/yyyy" id="MM/dd/yyyy" />
-            <Label htmlFor="MM/dd/yyyy" className="cursor-pointer">04/29/2023</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="dd/MM/yyyy" id="dd/MM/yyyy" />
-            <Label htmlFor="dd/MM/yyyy" className="cursor-pointer">29/04/2023</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="yyyy-MM-dd" id="yyyy-MM-dd" />
-            <Label htmlFor="yyyy-MM-dd" className="cursor-pointer">2023-04-29</Label>
-          </div>
-        </RadioGroup>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select date format" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="PPP">Apr 29, 2023</SelectItem>
+            <SelectItem value="MM/dd/yyyy">04/29/2023</SelectItem>
+            <SelectItem value="dd/MM/yyyy">29/04/2023</SelectItem>
+            <SelectItem value="yyyy-MM-dd">2023-04-29</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Week Starts On */}
@@ -256,20 +255,18 @@ export const AppearanceSettings = () => {
           <Calendar className="h-5 w-5" />
           <h3 className="text-lg font-semibold">{t('settings.weekStartDay')}</h3>
         </div>
-        <RadioGroup
+        <Select
           value={currentPrefs.week_start_day || 'monday'}
           onValueChange={(value) => updateTempPrefs({ week_start_day: value as 'sunday' | 'monday' })}
-          className="space-y-2"
         >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="monday" id="monday" />
-            <Label htmlFor="monday" className="cursor-pointer">{t('settings.monday')}</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="sunday" id="sunday" />
-            <Label htmlFor="sunday" className="cursor-pointer">{t('settings.sunday')}</Label>
-          </div>
-        </RadioGroup>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select week start day" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="monday">{t('settings.monday')}</SelectItem>
+            <SelectItem value="sunday">{t('settings.sunday')}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Action Buttons */}
