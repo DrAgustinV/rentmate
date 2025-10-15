@@ -238,7 +238,6 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           {property.description && (
             <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{property.description}</p>
           )}
-
           {isArchived && property.deleted_at && (
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
