@@ -17,9 +17,6 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { EditPropertyDialog } from "./EditPropertyDialog";
-import { PropertyTenantsDialog } from "./PropertyTenantsDialog";
-import PropertyDocumentsDialog from "./PropertyDocumentsDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
@@ -32,9 +29,6 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProps) {
   const { t } = useLanguage();
-  const [editOpen, setEditOpen] = useState(false);
-  const [tenantsOpen, setTenantsOpen] = useState(false);
-  const [documentsOpen, setDocumentsOpen] = useState(false);
   const [tenantCount, setTenantCount] = useState(0);
   const [ticketCount, setTicketCount] = useState(0);
   const [documentCount, setDocumentCount] = useState(0);
@@ -285,20 +279,6 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 <Wrench className="h-4 w-4" />
                 {t("properties.maintenance")}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDocumentsOpen(true)}
-                className="flex-1 gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                {t("properties.documents")}
-                {documentCount > 0 && (
-                  <Badge variant="secondary" className="ml-1">
-                    {documentCount}
-                  </Badge>
-                )}
-              </Button>
             </div>
 
             {/* Row 2: Manager actions only */}
@@ -307,16 +287,16 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setEditOpen(true)}
+                  onClick={() => navigate(`/properties/${property.id}/details`)}
                   className="flex-1 gap-2"
                 >
                   <Edit className="h-4 w-4" />
-                  {t("properties.edit")}
+                  {t("properties.editProperty")}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setTenantsOpen(true)}
+                  onClick={() => navigate(`/properties/${property.id}/tenants`)}
                   className="flex-1 gap-2"
                 >
                   <Users className="h-4 w-4" />
@@ -324,49 +304,11 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                   {tenantStatus?.status === "occupied" && `${t("properties.tenants")} (${tenantStatus.tenant_name ? 1 : tenantCount})`}
                   {tenantStatus?.status === "invited" && `${t("properties.tenants")} (${t("properties.pending")}: ${tenantStatus.pending_invites})`}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setTenantsOpen(true)}
-                  className="flex-1 gap-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {property.status === "active" ? t("properties.endTenancy") : t("properties.archive")}
-                </Button>
               </div>
             )}
           </CardFooter>
         )}
       </Card>
-
-      <EditPropertyDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        property={property}
-        onSuccess={() => {
-          setEditOpen(false);
-          onUpdate();
-        }}
-      />
-
-      <PropertyTenantsDialog
-        open={tenantsOpen}
-        onOpenChange={setTenantsOpen}
-        propertyId={property.id}
-        propertyTitle={property.title}
-        propertyStatus={property.status}
-        propertyAddress={property.address}
-        property={property}
-        isManager={isManager}
-        onUpdate={onUpdate}
-      />
-
-      <PropertyDocumentsDialog
-        open={documentsOpen}
-        onOpenChange={setDocumentsOpen}
-        propertyId={property.id}
-        isManager={isManager}
-      />
     </>
   );
 }

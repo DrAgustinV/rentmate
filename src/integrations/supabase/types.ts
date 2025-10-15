@@ -162,6 +162,7 @@ export type Database = {
           mime_type: string
           parent_document_id: string | null
           property_id: string
+          tenancy_id: string | null
           updated_at: string | null
           uploaded_by: string
           version: number
@@ -180,6 +181,7 @@ export type Database = {
           mime_type: string
           parent_document_id?: string | null
           property_id: string
+          tenancy_id?: string | null
           updated_at?: string | null
           uploaded_by: string
           version?: number
@@ -198,6 +200,7 @@ export type Database = {
           mime_type?: string
           parent_document_id?: string | null
           property_id?: string
+          tenancy_id?: string | null
           updated_at?: string | null
           uploaded_by?: string
           version?: number
@@ -217,25 +220,47 @@ export type Database = {
             referencedRelation: "properties"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "property_documents_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: false
+            referencedRelation: "property_tenants"
+            referencedColumns: ["id"]
+          },
         ]
       }
       property_tenants: {
         Row: {
           created_at: string
+          end_reason: string | null
+          ended_at: string | null
           id: string
+          notes: string | null
           property_id: string
+          started_at: string
+          tenancy_status: string | null
           tenant_id: string
         }
         Insert: {
           created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
           id?: string
+          notes?: string | null
           property_id: string
+          started_at?: string
+          tenancy_status?: string | null
           tenant_id: string
         }
         Update: {
           created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
           id?: string
+          notes?: string | null
           property_id?: string
+          started_at?: string
+          tenancy_status?: string | null
           tenant_id?: string
         }
         Relationships: [

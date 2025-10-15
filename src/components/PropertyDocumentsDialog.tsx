@@ -194,6 +194,7 @@ export default function PropertyDocumentsDialog({
         {showUpload && (
           <PropertyDocumentUpload
             propertyId={propertyId}
+            category="tenancy"
             parentDocumentId={uploadingVersionFor?.id}
             parentDocumentTitle={uploadingVersionFor?.title}
             onUploadComplete={() => {

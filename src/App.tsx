@@ -18,6 +18,8 @@ import About from "./pages/About";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Help from "./pages/Help";
+import PropertyDetails from "./pages/PropertyDetails";
+import PropertyTenants from "./pages/PropertyTenants";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,8 @@ const App = () => (
           <Route path="/invitations" element={<Invitations />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/properties/:propertyId/details" element={<PropertyDetails />} />
+          <Route path="/properties/:propertyId/tenants" element={<PropertyTenants />} />
           <Route path="/properties/:propertyId/tickets" element={<PropertyTickets />} />
           <Route path="/properties/:propertyId/maintenance" element={<PropertyMaintenance />} />
           <Route path="/properties/:propertyId/tickets/:ticketId" element={<TicketDetail />} />

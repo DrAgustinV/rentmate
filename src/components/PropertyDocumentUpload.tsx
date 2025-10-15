@@ -14,6 +14,8 @@ interface PropertyDocumentUploadProps {
   onUploadComplete: () => void;
   parentDocumentId?: string;
   parentDocumentTitle?: string;
+  category: 'property' | 'tenancy';
+  tenancyId?: string;
 }
 
 const ALLOWED_TYPES = [
@@ -50,6 +52,8 @@ export default function PropertyDocumentUpload({
   onUploadComplete,
   parentDocumentId,
   parentDocumentTitle,
+  category,
+  tenancyId,
 }: PropertyDocumentUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
@@ -170,6 +174,8 @@ export default function PropertyDocumentUpload({
         parent_document_id: parentDocId,
         description: description || null,
         is_latest_version: true,
+        document_category: category,
+        tenancy_id: tenancyId || null,
       });
 
       if (dbError) throw dbError;
