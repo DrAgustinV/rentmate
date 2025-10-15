@@ -319,6 +319,45 @@ export type Database = {
           },
         ]
       }
+      standard_maintenance_templates: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          suggested_frequency: string
+          title: string
+          type: Database["public"]["Enums"]["ticket_type"]
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          suggested_frequency: string
+          title: string
+          type: Database["public"]["Enums"]["ticket_type"]
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          suggested_frequency?: string
+          title?: string
+          type?: Database["public"]["Enums"]["ticket_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           created_at: string | null
@@ -503,6 +542,7 @@ export type Database = {
           id: string
           priority: Database["public"]["Enums"]["ticket_priority"]
           property_id: string
+          source_standard_template_id: string | null
           title: string
           type: Database["public"]["Enums"]["ticket_type"]
           updated_at: string
@@ -514,6 +554,7 @@ export type Database = {
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
           property_id: string
+          source_standard_template_id?: string | null
           title: string
           type: Database["public"]["Enums"]["ticket_type"]
           updated_at?: string
@@ -525,6 +566,7 @@ export type Database = {
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
           property_id?: string
+          source_standard_template_id?: string | null
           title?: string
           type?: Database["public"]["Enums"]["ticket_type"]
           updated_at?: string
@@ -542,6 +584,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_templates_source_standard_template_id_fkey"
+            columns: ["source_standard_template_id"]
+            isOneToOne: false
+            referencedRelation: "standard_maintenance_templates"
             referencedColumns: ["id"]
           },
         ]

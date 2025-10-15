@@ -18,6 +18,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
+import { StandardTasksSection } from "@/components/StandardTasksSection";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Task {
   id: string;
@@ -40,6 +43,7 @@ interface TemplatesManagerContentProps {
   isLoading: boolean;
   onToggleSchedule: (scheduleId: string, isActive: boolean) => void;
   onDeleteTask: (templateId: string) => void;
+  propertyId: string;
 }
 
 export const TemplatesManagerContent = ({
@@ -47,7 +51,9 @@ export const TemplatesManagerContent = ({
   isLoading,
   onToggleSchedule,
   onDeleteTask,
+  propertyId,
 }: TemplatesManagerContentProps) => {
+  const { t } = useLanguage();
   const [editingTask, setEditingTask] = useState<{
     templateId: string;
     scheduleId: string;
@@ -79,19 +85,27 @@ export const TemplatesManagerContent = ({
     );
   }
 
-  if (!tasksWithSchedules || tasksWithSchedules.length === 0) {
-    return (
-      <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          <p>No maintenance tasks yet. Create your first task above.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <>
-      <Accordion type="multiple" className="space-y-4">
+    <div className="space-y-8">
+      {/* My Maintenance Tasks Section */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold mb-1 flex items-center gap-2">
+            ✏️ {t("maintenance.sections.myTasks") || "My Maintenance Tasks"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {t("maintenance.sections.myTasksDescription") || "Tasks you've created for this property"}
+          </p>
+        </div>
+
+        {!tasksWithSchedules || tasksWithSchedules.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              <p>{t("maintenance.sections.noCustomTasks") || "No custom tasks yet. Browse standard tasks below or create a new one."}</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <Accordion type="multiple" className="space-y-4">
         {tasksWithSchedules.map((task) => {
           const schedules = task.recurring_schedules || [];
           const activeSchedulesCount = schedules.filter((s) => s.is_active).length;
@@ -208,7 +222,14 @@ export const TemplatesManagerContent = ({
             </AccordionItem>
           );
         })}
-      </Accordion>
+          </Accordion>
+        )}
+      </div>
+
+      <Separator className="my-8" />
+
+      {/* Standard Maintenance Tasks Section */}
+      <StandardTasksSection propertyId={propertyId} />
 
       {editingTask && (
         <EditMaintenanceTaskDialog
@@ -237,6 +258,6 @@ export const TemplatesManagerContent = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 };

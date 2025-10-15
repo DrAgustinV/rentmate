@@ -87,22 +87,22 @@ const PropertyMaintenance = () => {
         </div>
       </div>
 
-      <Tabs defaultValue={userRole?.isManager ? "tasks" : "scheduled"} className="w-full animate-fade-in">
+      <Tabs defaultValue={userRole?.isManager ? "library" : "scheduled"} className="w-full animate-fade-in">
         <TabsList className={`grid w-full max-w-2xl ${userRole?.isManager ? 'grid-cols-3' : 'grid-cols-2'} transition-all duration-200`}>
           {userRole?.isManager && (
-            <TabsTrigger value="tasks">{t('maintenance.tabs.tasks')}</TabsTrigger>
+            <TabsTrigger value="library">{t('maintenance.tabs.library') || 'Maintenance Library'}</TabsTrigger>
           )}
           <TabsTrigger value="scheduled">{t('maintenance.tabs.scheduled')}</TabsTrigger>
           <TabsTrigger value="calendar">{t('maintenance.tabs.calendar')}</TabsTrigger>
         </TabsList>
 
         {userRole?.isManager && (
-          <TabsContent value="tasks" className="mt-6">
+          <TabsContent value="library" className="mt-6">
             <div className="space-y-4">
               <div className="flex justify-end">
                 <Button onClick={() => setCreateTaskOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
-                  {t('maintenance.buttons.newTask')}
+                  {t('maintenance.buttons.createCustomTask') || 'Create Custom Task'}
                 </Button>
               </div>
               <TemplatesManager propertyId={propertyId!} />

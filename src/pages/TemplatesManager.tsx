@@ -72,6 +72,7 @@ export default function TemplatesManager({ propertyId }: TemplatesManagerProps) 
         toggleScheduleMutation.mutate({ scheduleId, isActive })
       }
       onDeleteTask={(templateId) => deleteTemplateMutation.mutate(templateId)}
+      propertyId={propertyId}
     />
   );
 }
