@@ -320,9 +320,9 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                   className="flex-1 gap-2"
                 >
                   <Users className="h-4 w-4" />
-                  {tenantStatus.status === "free" && t("properties.inviteTenant")}
-                  {tenantStatus.status === "occupied" && `${t("properties.tenants")} (${tenantStatus.tenant_name ? 1 : tenantCount})`}
-                  {tenantStatus.status === "invited" && `${t("properties.tenants")} (${t("properties.pending")}: ${tenantStatus.pending_invites})`}
+                  {!tenantStatus || tenantStatus.status === "free" ? t("properties.inviteTenant") : ""}
+                  {tenantStatus?.status === "occupied" && `${t("properties.tenants")} (${tenantStatus.tenant_name ? 1 : tenantCount})`}
+                  {tenantStatus?.status === "invited" && `${t("properties.tenants")} (${t("properties.pending")}: ${tenantStatus.pending_invites})`}
                 </Button>
                 <Button
                   variant="outline"
