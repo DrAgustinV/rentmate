@@ -4,14 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   MapPin,
-  Trash2,
   Edit,
   Mail,
   Archive,
   Users,
-  Ticket,
-  Wrench,
-  FileText,
   Home,
   Image as ImageIcon,
 } from "lucide-react";
@@ -29,9 +25,6 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProps) {
   const { t } = useLanguage();
-  const [tenantCount, setTenantCount] = useState(0);
-  const [ticketCount, setTicketCount] = useState(0);
-  const [documentCount, setDocumentCount] = useState(0);
   const [tenantStatus, setTenantStatus] = useState<{
     status: "occupied" | "invited" | "free";
     tenant_name?: string;
@@ -58,60 +51,8 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
   };
 
   useEffect(() => {
-    if (isManager) {
-      fetchTenantCount();
-    }
-    fetchTicketCount();
-    fetchDocumentCount();
     fetchTenantStatus();
-  }, [property.id, isManager]);
-
-  const fetchTenantCount = async () => {
-    try {
-      const { count, error } = await supabase
-        .from("property_tenants")
-        .select("*", { count: "exact", head: true })
-        .eq("property_id", property.id);
-
-      if (error) throw error;
-      setTenantCount(count || 0);
-    } catch (error) {
-      console.error("Error fetching tenant count:", error);
-    }
-  };
-
-  const fetchTicketCount = async () => {
-    try {
-      const { count, error } = await supabase
-        .from("tickets")
-        .select("*", { count: "exact", head: true })
-        .eq("property_id", property.id)
-        .in("status", ["open", "in_progress"]);
-
-      if (error) throw error;
-      setTicketCount(count || 0);
-    } catch (error) {
-      console.error("Error fetching ticket count:", error);
-    }
-  };
-
-  const fetchDocumentCount = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("property_documents")
-        .select("document_title", { count: "exact", head: false })
-        .eq("property_id", property.id)
-        .eq("is_latest_version", true);
-
-      if (error) throw error;
-      if (data) {
-        const uniqueTitles = new Set(data.map((d) => d.document_title));
-        setDocumentCount(uniqueTitles.size);
-      }
-    } catch (error) {
-      console.error("Error fetching document count:", error);
-    }
-  };
+  }, [property.id]);
 
   const getStatusBadge = () => {
     if (property.status === "active") {
@@ -252,60 +193,28 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           )}
         </CardContent>
 
-        {(property.status === "active" || property.status === "ending_tenancy") && (
+        {(property.status === "active" || property.status === "ending_tenancy") && isManager && (
           <CardFooter className="border-t bg-muted/50 pt-4 flex-col gap-2">
-            {/* Row 1: Primary actions - always visible */}
-            <div className="w-full flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate(`/properties/${property.id}/tickets`)}
-                className="flex-1 gap-2"
-              >
-                <Ticket className="h-4 w-4" />
-                {t("properties.tickets")}
-                {ticketCount > 0 && (
-                  <Badge variant="secondary" className="ml-1">
-                    {ticketCount}
-                  </Badge>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate(`/properties/${property.id}/maintenance`)}
-                className="flex-1 gap-2"
-              >
-                <Wrench className="h-4 w-4" />
-                {t("properties.maintenance")}
-              </Button>
-            </div>
-
-            {/* Row 2: Manager actions only */}
-            {isManager && (
-              <div className="w-full flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/properties/${property.id}/details`)}
-                  className="flex-1 gap-2"
-                >
-                  <Edit className="h-4 w-4" />
-                  {t("properties.editProperty")}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/properties/${property.id}/tenants`)}
-                  className="flex-1 gap-2"
-                >
-                  <Users className="h-4 w-4" />
-                  {!tenantStatus || tenantStatus.status === "free" ? t("properties.inviteTenant") : ""}
-                  {tenantStatus?.status === "occupied" && `${t("properties.tenants")} (${tenantStatus.tenant_name ? 1 : tenantCount})`}
-                  {tenantStatus?.status === "invited" && `${t("properties.tenants")} (${t("properties.pending")}: ${tenantStatus.pending_invites})`}
-                </Button>
-              </div>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/properties/${property.id}/details`)}
+              className="w-full gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              {t("properties.editProperty")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/properties/${property.id}/tenants`)}
+              className="w-full gap-2"
+            >
+              <Users className="h-4 w-4" />
+              {!tenantStatus || tenantStatus.status === "free" ? t("properties.inviteTenant") : ""}
+              {tenantStatus?.status === "occupied" && `${t("properties.tenants")} (${tenantStatus.tenant_name})`}
+              {tenantStatus?.status === "invited" && `${t("properties.pending")} (${tenantStatus.pending_invites})`}
+            </Button>
           </CardFooter>
         )}
       </Card>
