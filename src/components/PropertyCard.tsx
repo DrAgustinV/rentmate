@@ -16,12 +16,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 interface PropertyCardProps {
   property: any;
@@ -38,9 +32,6 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
     pending_invites?: number;
   } | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
-  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
-  const [archiveReason, setArchiveReason] = useState<"sold" | "no_longer_managing" | "merged_with_other_property" | "other">("sold");
-  const [archiveNotes, setArchiveNotes] = useState<string>('');
   const navigate = useNavigate();
 
   const fetchTenantStatus = async () => {
@@ -62,33 +53,6 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
   useEffect(() => {
     fetchTenantStatus();
   }, [property.id]);
-
-  const archivePropertyMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from('properties')
-        .update({
-          status: 'inactive',
-          deleted_at: new Date().toISOString(),
-          delete_reason: archiveReason as "sold" | "no_longer_managing" | "merged_with_other_property" | "other",
-          modification_reason: archiveNotes || null,
-        })
-        .eq('id', property.id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success(t("properties.propertyArchived"));
-      setShowArchiveDialog(false);
-      setArchiveReason('sold');
-      setArchiveNotes('');
-      onUpdate();
-    },
-    onError: (error) => {
-      toast.error(t("properties.archiveFailed"));
-      console.error('Archive error:', error);
-    },
-  });
 
   const getStatusBadge = () => {
     if (property.status === "active") {
@@ -271,69 +235,9 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
               {tenantStatus?.status === "occupied" && `${t("properties.tenants")} (${tenantStatus.tenant_name})`}
               {tenantStatus?.status === "invited" && `${t("properties.pending")} (${tenantStatus.pending_invites})`}
             </Button>
-            
-            {tenantStatus?.status === 'free' && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setShowArchiveDialog(true)}
-                className="w-full gap-2 text-destructive hover:text-destructive"
-              >
-                <Archive className="h-4 w-4" />
-                {t("properties.archiveProperty")}
-              </Button>
-            )}
           </CardFooter>
         )}
       </Card>
-
-      <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("properties.archivePropertyTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("properties.archivePropertyDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>{t("properties.archiveReason")}</Label>
-              <Select value={archiveReason} onValueChange={(value) => setArchiveReason(value as "sold" | "no_longer_managing" | "merged_with_other_property" | "other")}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("properties.selectReason")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sold">{t("properties.archiveReasonSold")}</SelectItem>
-                  <SelectItem value="no_longer_managing">{t("properties.archiveReasonNoLongerManaging")}</SelectItem>
-                  <SelectItem value="merged_with_other_property">{t("properties.archiveReasonMerged")}</SelectItem>
-                  <SelectItem value="other">{t("properties.archiveReasonOther")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>{t("properties.archiveNotes")}</Label>
-              <Textarea 
-                value={archiveNotes}
-                onChange={(e) => setArchiveNotes(e.target.value)}
-                placeholder={t("properties.archiveNotesPlaceholder")}
-              />
-            </div>
-          </div>
-          
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => archivePropertyMutation.mutate()}
-              disabled={!archiveReason}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              {t("properties.confirmArchive")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

@@ -176,6 +176,7 @@ export const translations = {
       noDescription: "No description provided",
       archiveProperty: "Archive Property",
       archivePropertyTitle: "Archive Property",
+      archivePropertyWarning: "This property has no active tenants. You can archive it if it's no longer in use.",
       archivePropertyDescription: "This property has no active tenants. Are you sure you want to archive it? You can restore it later from archived properties.",
       archiveReason: "Reason for archiving",
       selectReason: "Select a reason",

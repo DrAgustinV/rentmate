@@ -13,11 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon } from "lucide-react";
+import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Archive } from "lucide-react";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
-
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function PropertyDetails() {
   const { propertyId } = useParams();
@@ -30,6 +31,9 @@ export default function PropertyDetails() {
   const [description, setDescription] = useState("");
   const [showUpload, setShowUpload] = useState(false);
   const [expandedDoc, setExpandedDoc] = useState<string | null>(null);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+  const [archiveReason, setArchiveReason] = useState<"sold" | "no_longer_managing" | "merged_with_other_property" | "other">("sold");
+  const [archiveNotes, setArchiveNotes] = useState<string>('');
 
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
@@ -144,6 +148,33 @@ export default function PropertyDetails() {
     onError: (error) => {
       console.error("Delete error:", error);
       toast.error(t("properties.documentDeleteError"));
+    },
+  });
+
+  const archivePropertyMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('properties')
+        .update({
+          status: 'inactive',
+          deleted_at: new Date().toISOString(),
+          delete_reason: archiveReason as "sold" | "no_longer_managing" | "merged_with_other_property" | "other",
+          modification_reason: archiveNotes || null,
+        })
+        .eq('id', propertyId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("properties.propertyArchived"));
+      setShowArchiveDialog(false);
+      setArchiveReason('sold');
+      setArchiveNotes('');
+      navigate('/dashboard');
+    },
+    onError: (error) => {
+      toast.error(t("properties.archiveFailed"));
+      console.error('Archive error:', error);
     },
   });
 
@@ -432,7 +463,76 @@ export default function PropertyDetails() {
             </div>
           </CardContent>
         </Card>
+
+        {!activeTenant && property.status === 'active' && (
+          <Card className="border-destructive/50">
+            <CardHeader>
+              <CardTitle className="text-destructive">{t("properties.archivePropertyTitle")}</CardTitle>
+              <CardDescription>
+                {t("properties.archivePropertyWarning")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                variant="destructive" 
+                onClick={() => setShowArchiveDialog(true)}
+                className="gap-2"
+              >
+                <Archive className="h-4 w-4" />
+                {t("properties.archiveProperty")}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
+
+      <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("properties.archivePropertyTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("properties.archivePropertyDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{t("properties.archiveReason")}</Label>
+              <Select value={archiveReason} onValueChange={(value) => setArchiveReason(value as "sold" | "no_longer_managing" | "merged_with_other_property" | "other")}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("properties.selectReason")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sold">{t("properties.archiveReasonSold")}</SelectItem>
+                  <SelectItem value="no_longer_managing">{t("properties.archiveReasonNoLongerManaging")}</SelectItem>
+                  <SelectItem value="merged_with_other_property">{t("properties.archiveReasonMerged")}</SelectItem>
+                  <SelectItem value="other">{t("properties.archiveReasonOther")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>{t("properties.archiveNotes")}</Label>
+              <Textarea 
+                value={archiveNotes}
+                onChange={(e) => setArchiveNotes(e.target.value)}
+                placeholder={t("properties.archiveNotesPlaceholder")}
+              />
+            </div>
+          </div>
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => archivePropertyMutation.mutate()}
+              disabled={!archiveReason}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {t("properties.confirmArchive")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
