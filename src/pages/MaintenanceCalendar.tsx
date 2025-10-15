@@ -50,6 +50,16 @@ export default function MaintenanceCalendar() {
   const monthEnd = endOfMonth(currentMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
+  // Get the day of week for the first day (0 = Sunday, 6 = Saturday)
+  const firstDayOfWeek = monthStart.getDay();
+  
+  // Create empty cells for days before the 1st
+  const emptyDaysStart = Array(firstDayOfWeek).fill(null);
+  
+  // Create empty cells to complete the last week
+  const totalCells = emptyDaysStart.length + daysInMonth.length;
+  const emptyDaysEnd = Array((7 - (totalCells % 7)) % 7).fill(null);
+
   const getSchedulesForDate = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     return schedules?.filter((s) => s.next_run_date === dateStr) || [];
@@ -99,6 +109,12 @@ export default function MaintenanceCalendar() {
               </div>
             ))}
 
+            {/* Empty cells before the first day */}
+            {emptyDaysStart.map((_, index) => (
+              <div key={`empty-start-${index}`} className="min-h-[100px] border rounded-lg p-2 bg-muted/30" />
+            ))}
+            
+            {/* Actual days of the month */}
             {daysInMonth.map((day) => {
               const daySchedules = getSchedulesForDate(day);
               const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
@@ -132,6 +148,11 @@ export default function MaintenanceCalendar() {
                 </div>
               );
             })}
+            
+            {/* Empty cells after the last day to complete the grid */}
+            {emptyDaysEnd.map((_, index) => (
+              <div key={`empty-end-${index}`} className="min-h-[100px] border rounded-lg p-2 bg-muted/30" />
+            ))}
           </div>
 
           <div className="mt-6 flex gap-4 flex-wrap">
