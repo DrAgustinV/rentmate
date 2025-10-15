@@ -17,9 +17,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { InviteTenantDialog } from "./InviteTenantDialog";
 import { EditPropertyDialog } from "./EditPropertyDialog";
-import { ArchivePropertyDialog } from "./ArchivePropertyDialog";
 import { PropertyTenantsDialog } from "./PropertyTenantsDialog";
 import PropertyDocumentsDialog from "./PropertyDocumentsDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,9 +32,7 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProps) {
   const { t } = useLanguage();
-  const [inviteOpen, setInviteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
   const [tenantsOpen, setTenantsOpen] = useState(false);
   const [documentsOpen, setDocumentsOpen] = useState(false);
   const [tenantCount, setTenantCount] = useState(0);
@@ -306,14 +302,6 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
         )}
       </Card>
 
-      <InviteTenantDialog
-        open={inviteOpen}
-        onOpenChange={setInviteOpen}
-        propertyId={property.id}
-        propertyTitle={property.title}
-        onSuccess={onUpdate}
-      />
-
       <EditPropertyDialog
         open={editOpen}
         onOpenChange={setEditOpen}
@@ -324,21 +312,16 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
         }}
       />
 
-      <ArchivePropertyDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        property={property}
-        onSuccess={() => {
-          setDeleteOpen(false);
-          onUpdate();
-        }}
-      />
-
       <PropertyTenantsDialog
         open={tenantsOpen}
         onOpenChange={setTenantsOpen}
         propertyId={property.id}
         propertyTitle={property.title}
+        propertyStatus={property.status}
+        propertyAddress={property.address}
+        property={property}
+        isManager={isManager}
+        onUpdate={onUpdate}
       />
 
       <PropertyDocumentsDialog
