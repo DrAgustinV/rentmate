@@ -13,7 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, UserMinus, Mail, X, Clock, ChevronDown, Upload, Copy } from "lucide-react";
+import { ArrowLeft, UserMinus, Mail, X, Clock, ChevronDown, Upload, Copy, Download, AlertTriangle } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
@@ -65,6 +65,7 @@ export default function PropertyTenants() {
   const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
   const [copyTemplatesOpen, setCopyTemplatesOpen] = useState(false);
   const [expandedTenancyId, setExpandedTenancyId] = useState<string | null>(null);
+  const [tenancyDocsMap, setTenancyDocsMap] = useState<Record<string, TenancyDocument[]>>({});
 
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
@@ -197,6 +198,35 @@ export default function PropertyTenants() {
     enabled: !!propertyId && userRole?.isManager,
   });
 
+  const { data: propertyCount } = useQuery({
+    queryKey: ["property-count"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+      const { count, error } = await supabase
+        .from("properties")
+        .select("*", { count: 'exact', head: true })
+        .eq("manager_id", user.id);
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const loadTenancyDocuments = async (tenancyId: string) => {
+    if (tenancyDocsMap[tenancyId]) return;
+    
+    const { data, error } = await supabase
+      .from("property_documents")
+      .select("*")
+      .eq("tenancy_id", tenancyId)
+      .eq("is_latest_version", true)
+      .order("created_at", { ascending: false });
+    
+    if (!error && data) {
+      setTenancyDocsMap(prev => ({ ...prev, [tenancyId]: data as TenancyDocument[] }));
+    }
+  };
+
   const inviteMutation = useMutation({
     mutationFn: async (email: string) => {
       const inviteSchema = createInviteSchema(t);
@@ -281,12 +311,19 @@ export default function PropertyTenants() {
 
   const removeTenantMutation = useMutation({
     mutationFn: async (tenantId: string) => {
-      const { error } = await supabase.from("property_tenants").delete().eq("id", tenantId);
+      const { error } = await supabase
+        .from("property_tenants")
+        .update({
+          tenancy_status: 'ending_tenancy',
+          ended_at: new Date().toISOString()
+        })
+        .eq("id", tenantId);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: t('dialogs.manageTenants.removed') });
+      toast({ title: t('dialogs.manageTenants.tenancyEnding') });
       queryClient.invalidateQueries({ queryKey: ["current-tenant"] });
+      queryClient.invalidateQueries({ queryKey: ["tenancy-history"] });
       setRemovingTenant(null);
     },
     onError: (error: any) => {
@@ -338,7 +375,28 @@ export default function PropertyTenants() {
     );
   }
 
-  const isReadOnly = property.status === "ending_tenancy";
+  const isReadOnly = currentTenant?.tenancy_status === "ending_tenancy";
+
+  const downloadDocument = async (doc: TenancyDocument) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("property-documents")
+        .download(doc.file_path);
+      
+      if (error) throw error;
+      
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = doc.file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
+    }
+  };
 
   return (
     <AppLayout>
@@ -353,6 +411,21 @@ export default function PropertyTenants() {
             <p className="text-muted-foreground">{t("properties.tenantManagement")}</p>
           </div>
         </div>
+
+        {/* Free Plan Limit Warning */}
+        {userRole?.isManager && propertyCount !== undefined && propertyCount >= 4 && (
+          <div className="p-4 border border-yellow-500/50 bg-yellow-500/10 rounded-lg flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-medium text-yellow-700 dark:text-yellow-400">{t("properties.freePlanLimitTitle")}</p>
+              <p className="text-sm text-yellow-600 dark:text-yellow-500 mt-1">
+                {propertyCount >= 5 
+                  ? t("properties.freePlanLimitReached") 
+                  : t("properties.freePlanLimitWarning")}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Current Tenant Section */}
         <Card>
@@ -429,12 +502,22 @@ export default function PropertyTenants() {
                 <div className="space-y-2">
                   {tenancyDocuments.map((doc) => (
                     <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium">{doc.document_title}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatDate(doc.created_at)} · {(doc.file_size_bytes / 1024).toFixed(2)} KB
                         </p>
+                        {doc.description && (
+                          <p className="text-xs text-muted-foreground mt-1">{doc.description}</p>
+                        )}
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => downloadDocument(doc)}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -509,7 +592,18 @@ export default function PropertyTenants() {
             </CardHeader>
             <CardContent className="space-y-2">
               {tenancyHistory.map((tenancy) => (
-                <Collapsible key={tenancy.id}>
+                <Collapsible 
+                  key={tenancy.id}
+                  open={expandedTenancyId === tenancy.id}
+                  onOpenChange={(open) => {
+                    if (open) {
+                      setExpandedTenancyId(tenancy.id);
+                      loadTenancyDocuments(tenancy.id);
+                    } else {
+                      setExpandedTenancyId(null);
+                    }
+                  }}
+                >
                   <div className="border rounded-lg p-3">
                     <CollapsibleTrigger className="w-full flex items-center justify-between">
                       <div className="text-left">
@@ -518,12 +612,39 @@ export default function PropertyTenants() {
                           {formatDate(tenancy.started_at)} - {tenancy.ended_at ? formatDate(tenancy.ended_at) : t("properties.active")}
                         </p>
                       </div>
-                      <ChevronDown className="h-4 w-4" />
+                      <ChevronDown className={`h-4 w-4 transition-transform ${expandedTenancyId === tenancy.id ? 'rotate-180' : ''}`} />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-2 pt-2 border-t">
-                      <p className="text-sm text-muted-foreground">
-                        {t("properties.viewDocuments")} feature coming soon...
-                      </p>
+                      {tenancyDocsMap[tenancy.id] ? (
+                        tenancyDocsMap[tenancy.id].length > 0 ? (
+                          <div className="space-y-2">
+                            {tenancyDocsMap[tenancy.id].map((doc) => (
+                              <div key={doc.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{doc.document_title}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {formatDate(doc.created_at)} · {(doc.file_size_bytes / 1024).toFixed(2)} KB
+                                  </p>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => downloadDocument(doc)}
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">{t("properties.noDocuments")}</p>
+                        )
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="h-4 w-4 border-2 border-muted-foreground/30 border-t-transparent rounded-full animate-spin" />
+                          {t("common.loading")}
+                        </div>
+                      )}
                     </CollapsibleContent>
                   </div>
                 </Collapsible>
