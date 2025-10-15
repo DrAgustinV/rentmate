@@ -160,6 +160,7 @@ export const translations = {
       manageTenants: 'Manage Tenants',
       inviteTenant: 'Invite Tenant',
       tenantManagement: 'Tenant Management',
+      tenants: 'Tenants',
       edit: 'Edit',
       tenant: 'Tenant',
       invited: 'Invited',

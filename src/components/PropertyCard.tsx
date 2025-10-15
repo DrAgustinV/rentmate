@@ -260,18 +260,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
 
         {(property.status === "active" || property.status === "ending_tenancy") && (
           <CardFooter className="border-t bg-muted/50 pt-4 flex-col gap-2">
-            {isManager && (
-              <div className="w-full flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="flex-1 gap-2">
-                  <Edit className="h-4 w-4" />
-                  {t("properties.edit")}
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setTenantsOpen(true)} className="flex-1 gap-2">
-                  <Users className="h-4 w-4" />
-                  {t("properties.manageTenants")}
-                </Button>
-              </div>
-            )}
+            {/* Row 1: Primary actions - always visible */}
             <div className="w-full flex gap-2">
               <Button
                 variant="outline"
@@ -281,6 +270,11 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
               >
                 <Ticket className="h-4 w-4" />
                 {t("properties.tickets")}
+                {ticketCount > 0 && (
+                  <Badge variant="secondary" className="ml-1">
+                    {ticketCount}
+                  </Badge>
+                )}
               </Button>
               <Button
                 variant="outline"
@@ -291,13 +285,56 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 <Wrench className="h-4 w-4" />
                 {t("properties.maintenance")}
               </Button>
-            </div>
-            <div className="w-full">
-              <Button variant="outline" size="sm" onClick={() => setDocumentsOpen(true)} className="w-full gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDocumentsOpen(true)}
+                className="flex-1 gap-2"
+              >
                 <FileText className="h-4 w-4" />
                 {t("properties.documents")}
+                {documentCount > 0 && (
+                  <Badge variant="secondary" className="ml-1">
+                    {documentCount}
+                  </Badge>
+                )}
               </Button>
             </div>
+
+            {/* Row 2: Manager actions only */}
+            {isManager && (
+              <div className="w-full flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditOpen(true)}
+                  className="flex-1 gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  {t("properties.edit")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setTenantsOpen(true)}
+                  className="flex-1 gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  {tenantStatus.status === "free" && t("properties.inviteTenant")}
+                  {tenantStatus.status === "occupied" && `${t("properties.tenants")} (${tenantStatus.tenant_name ? 1 : tenantCount})`}
+                  {tenantStatus.status === "invited" && `${t("properties.tenants")} (${t("properties.pending")}: ${tenantStatus.pending_invites})`}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setTenantsOpen(true)}
+                  className="flex-1 gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {property.status === "active" ? t("properties.endTenancy") : t("properties.archive")}
+                </Button>
+              </div>
+            )}
           </CardFooter>
         )}
       </Card>
