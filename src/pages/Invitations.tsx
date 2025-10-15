@@ -98,12 +98,14 @@ export default function Invitations() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Add user as tenant
+      // Add user as tenant with active status
       const { error: tenantError } = await supabase
         .from("property_tenants")
         .insert({
           property_id: propertyId,
           tenant_id: user.id,
+          tenancy_status: 'active',
+          started_at: new Date().toISOString(),
         });
 
       if (tenantError) throw tenantError;
@@ -118,6 +120,11 @@ export default function Invitations() {
         .eq("id", invitationId);
 
       if (updateError) throw updateError;
+
+      // Enforce FIFO tenancy limit (delete oldest inactive if > 5 tenancies)
+      await supabase.functions.invoke("manage-tenancy-limit", {
+        body: { property_id: propertyId },
+      });
 
       toast({
         title: t('invitations.accepted'),

@@ -1,21 +1,70 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ArrowLeft } from "lucide-react";
-import { PropertyTenantsDialog } from "@/components/PropertyTenantsDialog";
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, UserMinus, Mail, X, Clock, ChevronDown, Upload, Copy } from "lucide-react";
+import { formatDate } from "@/lib/dateUtils";
+import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
+import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
+import { z } from "zod";
+
+interface Tenant {
+  id: string;
+  tenant_id: string;
+  tenancy_status: string;
+  started_at: string;
+  ended_at: string | null;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+}
+
+interface Invitation {
+  id: string;
+  email: string;
+  expires_at: string;
+  created_at: string;
+}
+
+interface TenancyDocument {
+  id: string;
+  document_title: string;
+  file_name: string;
+  file_path: string;
+  file_size_bytes: number;
+  created_at: string;
+  uploaded_by: string;
+  description: string | null;
+}
+
+const createInviteSchema = (t: (key: string) => string) => z.object({
+  email: z.string().trim().email({ message: t('dialogs.inviteTenant.emailPlaceholder') }),
+});
 
 export default function PropertyTenants() {
   const { propertyId } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [tenantsDialogOpen, setTenantsDialogOpen] = useState(true);
+
+  const [email, setEmail] = useState("");
+  const [removingTenant, setRemovingTenant] = useState<Tenant | null>(null);
+  const [cancellingInvitation, setCancellingInvitation] = useState<Invitation | null>(null);
+  const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
+  const [copyTemplatesOpen, setCopyTemplatesOpen] = useState(false);
+  const [expandedTenancyId, setExpandedTenancyId] = useState<string | null>(null);
 
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
@@ -25,7 +74,6 @@ export default function PropertyTenants() {
         .select("*")
         .eq("id", propertyId)
         .single();
-
       if (error) throw error;
       return data;
     },
@@ -37,19 +85,237 @@ export default function PropertyTenants() {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
-
       const { data: propertyData } = await supabase
         .from("properties")
         .select("manager_id")
         .eq("id", propertyId)
         .single();
-
-      return {
-        isManager: propertyData?.manager_id === user.id,
-      };
+      return { isManager: propertyData?.manager_id === user.id };
     },
     enabled: !!propertyId,
   });
+
+  const { data: currentTenant } = useQuery({
+    queryKey: ["current-tenant", propertyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("property_tenants")
+        .select(`
+          id,
+          tenant_id,
+          tenancy_status,
+          started_at,
+          ended_at,
+          profiles!fk_property_tenants_profiles (
+            email,
+            first_name,
+            last_name
+          )
+        `)
+        .eq("property_id", propertyId)
+        .in("tenancy_status", ["active", "ending_tenancy"])
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) return null;
+
+      const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
+      return {
+        ...data,
+        email: profile?.email || "Unknown",
+        first_name: profile?.first_name || null,
+        last_name: profile?.last_name || null,
+      } as Tenant;
+    },
+    enabled: !!propertyId,
+  });
+
+  const { data: tenancyDocuments, refetch: refetchDocuments } = useQuery({
+    queryKey: ["tenancy-documents", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant) return [];
+      const { data, error } = await supabase
+        .from("property_documents")
+        .select("*")
+        .eq("tenancy_id", currentTenant.id)
+        .eq("is_latest_version", true)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as TenancyDocument[];
+    },
+    enabled: !!currentTenant,
+  });
+
+  const { data: invitations, refetch: refetchInvitations } = useQuery({
+    queryKey: ["invitations", propertyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invitations")
+        .select("*")
+        .eq("property_id", propertyId)
+        .eq("status", "pending")
+        .gt("expires_at", new Date().toISOString());
+      if (error) throw error;
+      return data as Invitation[];
+    },
+    enabled: !!propertyId && userRole?.isManager,
+  });
+
+  const { data: tenancyHistory } = useQuery({
+    queryKey: ["tenancy-history", propertyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("property_tenants")
+        .select(`
+          id,
+          tenant_id,
+          tenancy_status,
+          started_at,
+          ended_at,
+          profiles!fk_property_tenants_profiles (
+            email,
+            first_name,
+            last_name
+          )
+        `)
+        .eq("property_id", propertyId)
+        .in("tenancy_status", ["ending_tenancy", "inactive"])
+        .order("started_at", { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      return data.map((item: any) => {
+        const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+        return {
+          ...item,
+          email: profile?.email || "Unknown",
+          first_name: profile?.first_name || null,
+          last_name: profile?.last_name || null,
+        } as Tenant;
+      });
+    },
+    enabled: !!propertyId && userRole?.isManager,
+  });
+
+  const inviteMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const inviteSchema = createInviteSchema(t);
+      const data = inviteSchema.parse({ email });
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", data.email)
+        .maybeSingle();
+
+      if (profiles) {
+        const { data: existing } = await supabase
+          .from("property_tenants")
+          .select("id")
+          .eq("property_id", propertyId!)
+          .eq("tenant_id", profiles.id)
+          .maybeSingle();
+        if (existing) throw new Error(t('dialogs.inviteTenant.alreadyTenant'));
+      }
+
+      const { data: existingInvite } = await supabase
+        .from("invitations")
+        .select("id")
+        .eq("email", data.email)
+        .eq("property_id", propertyId!)
+        .eq("status", "pending")
+        .maybeSingle();
+      if (existingInvite) throw new Error(t('dialogs.inviteTenant.alreadyInvited'));
+
+      const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      const { error } = await supabase.from("invitations").insert({
+        token,
+        email: data.email,
+        property_id: propertyId,
+        expires_at: expiresAt.toISOString(),
+        invited_user_id: profiles?.id || null,
+      });
+
+      if (error) throw error;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: managerProfile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", user?.id)
+        .single();
+
+      const managerName = managerProfile
+        ? `${managerProfile.first_name || ''} ${managerProfile.last_name || ''}`.trim() || 'Property Manager'
+        : 'Property Manager';
+
+      await supabase.functions.invoke('send-tenant-invitation', {
+        body: {
+          email: data.email,
+          propertyTitle: property?.title,
+          propertyAddress: null,
+          managerName,
+          token,
+          expiresAt: expiresAt.toISOString(),
+          language: localStorage.getItem('language') || 'en',
+          projectId: import.meta.env.VITE_SUPABASE_PROJECT_ID,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast({ title: t('dialogs.inviteTenant.sent'), description: `${t('dialogs.inviteTenant.sentDesc')} ${email}` });
+      setEmail("");
+      refetchInvitations();
+    },
+    onError: (error: any) => {
+      if (error instanceof z.ZodError) {
+        toast({ title: t('common.validationError'), description: error.errors[0].message, variant: "destructive" });
+      } else {
+        toast({ title: t('common.error'), description: error.message, variant: "destructive" });
+      }
+    },
+  });
+
+  const removeTenantMutation = useMutation({
+    mutationFn: async (tenantId: string) => {
+      const { error } = await supabase.from("property_tenants").delete().eq("id", tenantId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: t('dialogs.manageTenants.removed') });
+      queryClient.invalidateQueries({ queryKey: ["current-tenant"] });
+      setRemovingTenant(null);
+    },
+    onError: (error: any) => {
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
+    },
+  });
+
+  const cancelInvitationMutation = useMutation({
+    mutationFn: async (invitationId: string) => {
+      const { error } = await supabase.from("invitations").delete().eq("id", invitationId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: t('dialogs.manageTenants.invitationCancelled') });
+      refetchInvitations();
+      setCancellingInvitation(null);
+    },
+    onError: (error: any) => {
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
+    },
+  });
+
+  const getTenantName = (tenant: Tenant) => {
+    if (tenant.first_name && tenant.last_name) {
+      return `${tenant.first_name} ${tenant.last_name}`;
+    }
+    if (tenant.first_name) return tenant.first_name;
+    return tenant.email;
+  };
 
   if (propertyLoading) {
     return (
@@ -72,16 +338,13 @@ export default function PropertyTenants() {
     );
   }
 
-  const handleDialogClose = () => {
-    setTenantsDialogOpen(false);
-    navigate("/dashboard");
-  };
+  const isReadOnly = property.status === "ending_tenancy";
 
   return (
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/properties/${propertyId}/details`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             {t("common.back")}
           </Button>
@@ -91,32 +354,228 @@ export default function PropertyTenants() {
           </div>
         </div>
 
+        {/* Current Tenant Section */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("properties.tenantManagement")}</CardTitle>
-            <CardDescription>{t("properties.manageTenantDescription")}</CardDescription>
+            <CardTitle>{t("properties.currentTenancy")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => setTenantsDialogOpen(true)}>
-              {t("properties.openTenantManagement")}
-            </Button>
+            {currentTenant ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{getTenantName(currentTenant)}</p>
+                    <p className="text-sm text-muted-foreground">{currentTenant.email}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("properties.tenancyStarted")}: {formatDate(currentTenant.started_at)}
+                    </p>
+                  </div>
+                  {userRole?.isManager && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setRemovingTenant(currentTenant)}
+                    >
+                      <UserMinus className="h-4 w-4 mr-2" />
+                      {t("properties.endTenancy")}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
+            )}
           </CardContent>
         </Card>
+
+        {/* Tenancy Documents Section */}
+        {currentTenant && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("properties.tenancyDocuments")}</CardTitle>
+              <CardDescription>
+                {isReadOnly && t("properties.readOnlyAccess")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!isReadOnly && (
+                <div className="flex gap-2">
+                  <Button onClick={() => setUploadDocumentOpen(!uploadDocumentOpen)} variant="outline">
+                    <Upload className="h-4 w-4 mr-2" />
+                    {t("properties.uploadTenancyDocument")}
+                  </Button>
+                  {userRole?.isManager && (
+                    <Button onClick={() => setCopyTemplatesOpen(true)} variant="outline">
+                      <Copy className="h-4 w-4 mr-2" />
+                      {t("properties.copyTemplates")}
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {uploadDocumentOpen && !isReadOnly && (
+                <PropertyDocumentUpload
+                  propertyId={propertyId!}
+                  category="tenancy"
+                  tenancyId={currentTenant.id}
+                  onUploadComplete={() => {
+                    refetchDocuments();
+                    setUploadDocumentOpen(false);
+                  }}
+                />
+              )}
+
+              {tenancyDocuments && tenancyDocuments.length > 0 ? (
+                <div className="space-y-2">
+                  {tenancyDocuments.map((doc) => (
+                    <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{doc.document_title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(doc.created_at)} · {(doc.file_size_bytes / 1024).toFixed(2)} KB
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">{t("properties.noTenancyDocuments")}</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Invite New Tenant Section (Manager Only) */}
+        {userRole?.isManager && !currentTenant && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("properties.inviteNewTenant")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">{t("dialogs.inviteTenant.emailLabel")}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder={t("dialogs.inviteTenant.emailPlaceholder")}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <Button
+                    onClick={() => inviteMutation.mutate(email)}
+                    disabled={inviteMutation.isPending || !email}
+                  >
+                    <Mail className="h-4 w-4 mr-2" />
+                    {t("dialogs.inviteTenant.send")}
+                  </Button>
+                </div>
+              </div>
+
+              {invitations && invitations.length > 0 && (
+                <div className="space-y-2">
+                  <Separator />
+                  <h3 className="font-medium">{t("dialogs.manageTenants.pendingInvitations")}</h3>
+                  {invitations.map((inv) => (
+                    <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{inv.email}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {t("dialogs.manageTenants.expires")}: {formatDate(inv.expires_at)}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCancellingInvitation(inv)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tenancy History Section (Manager Only) */}
+        {userRole?.isManager && tenancyHistory && tenancyHistory.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("properties.tenancyHistory")}</CardTitle>
+              <CardDescription>{t("properties.pastTenancies")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {tenancyHistory.map((tenancy) => (
+                <Collapsible key={tenancy.id}>
+                  <div className="border rounded-lg p-3">
+                    <CollapsibleTrigger className="w-full flex items-center justify-between">
+                      <div className="text-left">
+                        <p className="font-medium">{getTenantName(tenancy)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(tenancy.started_at)} - {tenancy.ended_at ? formatDate(tenancy.ended_at) : t("properties.active")}
+                        </p>
+                      </div>
+                      <ChevronDown className="h-4 w-4" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2 pt-2 border-t">
+                      <p className="text-sm text-muted-foreground">
+                        {t("properties.viewDocuments")} feature coming soon...
+                      </p>
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
+              ))}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {property && userRole && (
-        <PropertyTenantsDialog
-          open={tenantsDialogOpen}
-          onOpenChange={handleDialogClose}
-          propertyId={property.id}
-          propertyTitle={property.title}
-          propertyStatus={property.status}
-          propertyAddress={property.address || ""}
-          property={property}
-          isManager={userRole.isManager}
-          onUpdate={() => {
-            queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
-          }}
+      {/* Remove Tenant Dialog */}
+      <AlertDialog open={!!removingTenant} onOpenChange={() => setRemovingTenant(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("dialogs.manageTenants.removeTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {removingTenant && getTenantName(removingTenant)} {t("dialogs.manageTenants.removeMessage")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => removingTenant && removeTenantMutation.mutate(removingTenant.id)}>
+              {t("dialogs.manageTenants.remove")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Invitation Dialog */}
+      <AlertDialog open={!!cancellingInvitation} onOpenChange={() => setCancellingInvitation(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("dialogs.manageTenants.cancelInvitationTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {cancellingInvitation && `${t("dialogs.manageTenants.cancelInvitationDesc")} ${cancellingInvitation.email}?`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => cancellingInvitation && cancelInvitationMutation.mutate(cancellingInvitation.id)}>
+              {t("dialogs.manageTenants.cancelInvitation")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Copy Templates Dialog */}
+      {currentTenant && (
+        <CopyTemplatesDialog
+          open={copyTemplatesOpen}
+          onOpenChange={setCopyTemplatesOpen}
+          propertyId={propertyId!}
+          tenancyId={currentTenant.id}
         />
       )}
     </AppLayout>
