@@ -250,6 +250,28 @@ export const AppearanceSettings = () => {
         </RadioGroup>
       </div>
 
+      {/* Week Starts On */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          <h3 className="text-lg font-semibold">{t('settings.weekStartDay')}</h3>
+        </div>
+        <RadioGroup
+          value={currentPrefs.week_start_day || 'monday'}
+          onValueChange={(value) => updateTempPrefs({ week_start_day: value as 'sunday' | 'monday' })}
+          className="space-y-2"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="monday" id="monday" />
+            <Label htmlFor="monday" className="cursor-pointer">{t('settings.monday')}</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="sunday" id="sunday" />
+            <Label htmlFor="sunday" className="cursor-pointer">{t('settings.sunday')}</Label>
+          </div>
+        </RadioGroup>
+      </div>
+
       {/* Action Buttons */}
       <div className="flex gap-3 pt-4">
         <Button onClick={handleSave}>{t('settings.saveChanges')}</Button>

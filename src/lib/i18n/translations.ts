@@ -122,6 +122,9 @@ export const translations = {
       large: 'Large',
       dateFormat: 'Date Format',
       language: 'Language',
+      weekStartDay: 'Week Starts On',
+      monday: 'Monday',
+      sunday: 'Sunday',
       resetDefaults: 'Reset to Defaults',
     },
     notFound: {
@@ -809,6 +812,9 @@ export const translations = {
       large: 'Grande',
       dateFormat: 'Formato de Fecha',
       language: 'Idioma',
+      weekStartDay: 'La semana comienza en',
+      monday: 'Lunes',
+      sunday: 'Domingo',
       resetDefaults: 'Restablecer Valores',
     },
     notFound: {

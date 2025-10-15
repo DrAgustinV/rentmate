@@ -10,6 +10,7 @@ interface UserPreferences {
   font_size: 'sm' | 'md' | 'lg';
   date_format: string;
   language?: string;
+  week_start_day?: 'sunday' | 'monday';
 }
 
 interface ThemeContextType {
@@ -28,6 +29,7 @@ const defaultPreferences: UserPreferences = {
   font_size: 'md',
   date_format: 'PPP',
   language: 'en',
+  week_start_day: 'monday',
 };
 
 const fontSizeMap = {
@@ -100,6 +102,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
           font_size: data.font_size as 'sm' | 'md' | 'lg',
           date_format: data.date_format,
           language: data.language || 'en',
+          week_start_day: (data.week_start_day as 'sunday' | 'monday') || 'monday',
         };
         applyTheme(prefs);
         setPreferences(prefs);
@@ -135,6 +138,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
           font_size: updatedPrefs.font_size,
           date_format: updatedPrefs.date_format,
           language: updatedPrefs.language,
+          week_start_day: updatedPrefs.week_start_day,
         }, {
           onConflict: 'user_id'
         });

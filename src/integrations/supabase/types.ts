@@ -700,6 +700,7 @@ export type Database = {
           theme_mode: string | null
           updated_at: string | null
           user_id: string
+          week_start_day: string | null
         }
         Insert: {
           accent_color?: string | null
@@ -712,6 +713,7 @@ export type Database = {
           theme_mode?: string | null
           updated_at?: string | null
           user_id: string
+          week_start_day?: string | null
         }
         Update: {
           accent_color?: string | null
@@ -724,6 +726,7 @@ export type Database = {
           theme_mode?: string | null
           updated_at?: string | null
           user_id?: string
+          week_start_day?: string | null
         }
         Relationships: []
       }

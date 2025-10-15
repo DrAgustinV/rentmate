@@ -9,10 +9,13 @@ import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from "d
 import { formatDate } from "@/lib/dateUtils";
 import { useState } from "react";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function MaintenanceCalendar() {
   const { propertyId } = useParams<{ propertyId: string }>();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const { preferences } = useTheme();
+  const weekStartDay = preferences?.week_start_day || 'monday';
 
   const { data: property } = useQuery({
     queryKey: ["property", propertyId],
@@ -51,7 +54,11 @@ export default function MaintenanceCalendar() {
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   // Get the day of week for the first day (0 = Sunday, 6 = Saturday)
-  const firstDayOfWeek = monthStart.getDay();
+  const rawFirstDay = monthStart.getDay();
+  // Adjust based on week start preference
+  const firstDayOfWeek = weekStartDay === 'monday' 
+    ? (rawFirstDay === 0 ? 6 : rawFirstDay - 1)  // Monday = 0, Sunday = 6
+    : rawFirstDay;  // Sunday = 0, Saturday = 6
   
   // Create empty cells for days before the 1st
   const emptyDaysStart = Array(firstDayOfWeek).fill(null);
@@ -103,7 +110,11 @@ export default function MaintenanceCalendar() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-7 gap-2">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+            {/* Day headers - adjust based on week_start_day */}
+            {(weekStartDay === 'monday' 
+              ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+              : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            ).map((day) => (
               <div key={day} className="text-center font-semibold p-2">
                 {day}
               </div>
