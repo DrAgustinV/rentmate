@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [propertyView, setPropertyView] = useState<"active" | "ending_tenancy" | "archived">("active");
+  const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -54,6 +55,21 @@ export default function Dashboard() {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchPropertyLimit = async () => {
+      const { data } = await supabase
+        .from('system_settings')
+        .select('setting_value')
+        .eq('setting_key', 'max_active_properties_per_user')
+        .maybeSingle();
+      
+      if (data) {
+        setMaxPropertiesLimit(parseInt((data.setting_value as any).value));
+      }
+    };
+    fetchPropertyLimit();
+  }, []);
 
   const fetchProperties = async (userId: string) => {
     setLoading(true);
@@ -153,10 +169,21 @@ export default function Dashboard() {
                 </h2>
                 <p className="text-muted-foreground mt-1">{t('dashboard.myPropertiesDesc')}</p>
               </div>
-              <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                <Plus className="h-4 w-4" />
-                {t('dashboard.createProperty')}
-              </Button>
+              <div className="flex flex-col items-end gap-2">
+                <Button 
+                  onClick={() => setIsCreateOpen(true)} 
+                  disabled={activeProperties.length >= maxPropertiesLimit}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t('dashboard.createProperty')}
+                </Button>
+                {activeProperties.length >= maxPropertiesLimit && (
+                  <p className="text-sm text-muted-foreground">
+                    Property limit reached ({maxPropertiesLimit} properties)
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="mb-6">

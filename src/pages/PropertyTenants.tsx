@@ -66,6 +66,7 @@ export default function PropertyTenants() {
   const [copyTemplatesOpen, setCopyTemplatesOpen] = useState(false);
   const [expandedTenancyId, setExpandedTenancyId] = useState<string | null>(null);
   const [tenancyDocsMap, setTenancyDocsMap] = useState<Record<string, TenancyDocument[]>>({});
+  const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
 
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
@@ -206,9 +207,29 @@ export default function PropertyTenants() {
       const { count, error } = await supabase
         .from("properties")
         .select("*", { count: 'exact', head: true })
-        .eq("manager_id", user.id);
+        .eq("manager_id", user.id)
+        .eq("status", "active");
       if (error) throw error;
       return count || 0;
+    },
+  });
+
+  // Fetch property limit setting
+  useQuery({
+    queryKey: ["max-properties-limit"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('setting_value')
+        .eq('setting_key', 'max_active_properties_per_user')
+        .maybeSingle();
+      
+      if (!error && data) {
+        const limit = parseInt((data.setting_value as any).value);
+        setMaxPropertiesLimit(limit);
+        return limit;
+      }
+      return 5;
     },
   });
 
@@ -412,16 +433,16 @@ export default function PropertyTenants() {
           </div>
         </div>
 
-        {/* Free Plan Limit Warning */}
-        {userRole?.isManager && propertyCount !== undefined && propertyCount >= 4 && (
+        {/* Property Limit Warning */}
+        {userRole?.isManager && propertyCount !== undefined && propertyCount >= maxPropertiesLimit - 1 && (
           <div className="p-4 border border-yellow-500/50 bg-yellow-500/10 rounded-lg flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
             <div className="flex-1">
               <p className="font-medium text-yellow-700 dark:text-yellow-400">{t("properties.freePlanLimitTitle")}</p>
               <p className="text-sm text-yellow-600 dark:text-yellow-500 mt-1">
-                {propertyCount >= 5 
-                  ? t("properties.freePlanLimitReached") 
-                  : t("properties.freePlanLimitWarning")}
+                {propertyCount >= maxPropertiesLimit 
+                  ? `You have reached the limit of ${maxPropertiesLimit} active properties. Please contact support to increase your limit.`
+                  : `You have created ${propertyCount} active properties. You can create ${maxPropertiesLimit - propertyCount} more.`}
               </p>
             </div>
           </div>

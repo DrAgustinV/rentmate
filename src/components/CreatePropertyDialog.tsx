@@ -39,6 +39,25 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Check property limit
+      const { data: settingData } = await supabase
+        .from('system_settings')
+        .select('setting_value')
+        .eq('setting_key', 'max_active_properties_per_user')
+        .maybeSingle();
+      
+      const maxLimit = settingData ? parseInt((settingData.setting_value as any).value) : 5;
+      
+      const { count } = await supabase
+        .from('properties')
+        .select('*', { count: 'exact', head: true })
+        .eq('manager_id', user.id)
+        .eq('status', 'active');
+      
+      if (count && count >= maxLimit) {
+        throw new Error(`You have reached the maximum limit of ${maxLimit} active properties. Please contact support to increase your limit.`);
+      }
+
       const { error } = await supabase.from("properties").insert({
         title: data.title,
         address: data.address || null,
