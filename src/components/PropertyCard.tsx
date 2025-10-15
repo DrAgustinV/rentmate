@@ -238,6 +238,14 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           {property.description && (
             <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{property.description}</p>
           )}
+
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              <span>{formatDate(property.created_at)}</span>
+            </div>
+          </div>
+
           {isArchived && property.deleted_at && (
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
