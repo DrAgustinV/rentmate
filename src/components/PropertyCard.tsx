@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   MapPin,
-  Calendar,
   Trash2,
   Edit,
   Mail,
@@ -145,7 +144,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
   return (
     <>
       <Card
-        className="overflow-hidden hover-lift group animate-fade-in"
+        className="overflow-hidden hover-lift group animate-fade-in min-h-[420px]"
         style={{
           borderTop: `3px solid ${
             property.status === "active"
@@ -238,12 +237,6 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           {property.description && (
             <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{property.description}</p>
           )}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              <span>{formatDate(property.created_at)}</span>
-            </div>
-          </div>
           {isArchived && property.deleted_at && (
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
@@ -271,6 +264,18 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
 
         {(property.status === "active" || property.status === "ending_tenancy") && (
           <CardFooter className="border-t bg-muted/50 pt-4 flex-col gap-2">
+            {isManager && (
+              <div className="w-full flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="flex-1 gap-2">
+                  <Edit className="h-4 w-4" />
+                  {t("properties.edit")}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setTenantsOpen(true)} className="flex-1 gap-2">
+                  <Users className="h-4 w-4" />
+                  {t("properties.manageTenants")}
+                </Button>
+              </div>
+            )}
             <div className="w-full flex gap-2">
               <Button
                 variant="outline"
@@ -279,9 +284,10 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                 className="flex-1 gap-2"
               >
                 <Ticket className="h-4 w-4" />
-                {t("properties.tickets")} {ticketCount > 0 && `(${ticketCount})`}
+                {t("properties.tickets")}
               </Button>
               <Button
+                variant="outline"
                 size="sm"
                 onClick={() => navigate(`/properties/${property.id}/maintenance`)}
                 className="flex-1 gap-2"
@@ -293,33 +299,9 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
             <div className="w-full">
               <Button variant="outline" size="sm" onClick={() => setDocumentsOpen(true)} className="w-full gap-2">
                 <FileText className="h-4 w-4" />
-                {t("properties.documents")} {documentCount > 0 && `(${documentCount})`}
+                {t("properties.documents")}
               </Button>
             </div>
-            {isManager && (
-              <>
-                <div className="w-full flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="flex-1 gap-2">
-                    <Edit className="h-4 w-4" />
-                    {t("properties.edit")}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)} className="flex-1 gap-2">
-                    <Trash2 className="h-4 w-4" />
-                    {t("properties.archive")}
-                  </Button>
-                </div>
-                <div className="w-full flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setTenantsOpen(true)} className="flex-1 gap-2">
-                    <Users className="h-4 w-4" />
-                    {t("properties.manageTenants")} {tenantCount > 0 && `(${tenantCount})`}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setInviteOpen(true)} className="flex-1 gap-2">
-                    <Mail className="h-4 w-4" />
-                    {t("properties.inviteTenant")}
-                  </Button>
-                </div>
-              </>
-            )}
           </CardFooter>
         )}
       </Card>
