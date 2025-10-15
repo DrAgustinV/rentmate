@@ -65,15 +65,6 @@ export default function MaintenanceCalendar() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Maintenance Calendar</h1>
-        {property && (
-          <p className="text-muted-foreground">
-            {property.title} - {property.address}
-          </p>
-        )}
-      </div>
-
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -151,32 +142,6 @@ export default function MaintenanceCalendar() {
                 <span className="text-sm capitalize">{freq}</span>
               </div>
             ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Scheduled Maintenance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {schedules?.slice(0, 10).map((schedule) => (
-              <div key={schedule.id} className="flex items-center justify-between p-3 rounded-lg border">
-                <div className="flex-1">
-                  <h4 className="font-medium">{schedule.ticket_templates?.title}</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Next run: {format(parseISO(schedule.next_run_date), "PPP")}
-                  </p>
-                </div>
-                <Badge variant="secondary" className="capitalize">
-                  {schedule.frequency}
-                </Badge>
-              </div>
-            ))}
-            {!schedules?.length && (
-              <p className="text-center text-muted-foreground py-8">No scheduled maintenance tasks yet</p>
-            )}
           </div>
         </CardContent>
       </Card>
