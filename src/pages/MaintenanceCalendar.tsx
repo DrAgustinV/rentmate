@@ -64,98 +64,122 @@ export default function MaintenanceCalendar() {
   };
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Maintenance Calendar</h1>
-          {property && (
-            <p className="text-muted-foreground">
-              {property.title} - {property.address}
-            </p>
-          )}
-        </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                {format(currentMonth, "MMMM yyyy")}
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)))}
-                >
-                  Previous
-                </Button>
-                <Button variant="outline" onClick={() => setCurrentMonth(new Date())}>
-                  Today
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-7 gap-2">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="text-center font-semibold p-2">
-                  {day}
-                </div>
-              ))}
-
-              {daysInMonth.map((day) => {
-                const daySchedules = getSchedulesForDate(day);
-                const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
-
-                return (
-                  <div
-                    key={day.toISOString()}
-                    className={`min-h-[100px] border rounded-lg p-2 ${
-                      isToday ? "bg-primary/10 border-primary" : "bg-card"
-                    }`}
-                  >
-                    <div className="text-sm font-medium mb-1">{format(day, "d")}</div>
-                    <div className="space-y-1">
-                      {daySchedules.map((schedule) => (
-                        <div
-                          key={schedule.id}
-                          className="text-xs p-1 rounded bg-muted truncate"
-                          title={schedule.ticket_templates?.title}
-                        >
-                          <div className="flex items-center gap-1">
-                            <div
-                              className={`w-2 h-2 rounded-full ${
-                                frequencyColors[schedule.frequency as keyof typeof frequencyColors]
-                              }`}
-                            />
-                            <span className="truncate">{schedule.ticket_templates?.title}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-6 flex gap-4 flex-wrap">
-              <div className="text-sm font-medium">Legend:</div>
-              {Object.entries(frequencyColors).map(([freq, color]) => (
-                <div key={freq} className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${color}`} />
-                  <span className="text-sm capitalize">{freq}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Maintenance Calendar</h1>
+        {property && (
+          <p className="text-muted-foreground">
+            {property.title} - {property.address}
+          </p>
+        )}
       </div>
-    </AppLayout>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              {format(currentMonth, "MMMM yyyy")}
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)))}
+              >
+                Previous
+              </Button>
+              <Button variant="outline" onClick={() => setCurrentMonth(new Date())}>
+                Today
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-7 gap-2">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              <div key={day} className="text-center font-semibold p-2">
+                {day}
+              </div>
+            ))}
+
+            {daysInMonth.map((day) => {
+              const daySchedules = getSchedulesForDate(day);
+              const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+
+              return (
+                <div
+                  key={day.toISOString()}
+                  className={`min-h-[100px] border rounded-lg p-2 ${
+                    isToday ? "bg-primary/10 border-primary" : "bg-card"
+                  }`}
+                >
+                  <div className="text-sm font-medium mb-1">{format(day, "d")}</div>
+                  <div className="space-y-1">
+                    {daySchedules.map((schedule) => (
+                      <div
+                        key={schedule.id}
+                        className="text-xs p-1 rounded bg-muted truncate"
+                        title={schedule.ticket_templates?.title}
+                      >
+                        <div className="flex items-center gap-1">
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              frequencyColors[schedule.frequency as keyof typeof frequencyColors]
+                            }`}
+                          />
+                          <span className="truncate">{schedule.ticket_templates?.title}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 flex gap-4 flex-wrap">
+            <div className="text-sm font-medium">Legend:</div>
+            {Object.entries(frequencyColors).map(([freq, color]) => (
+              <div key={freq} className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${color}`} />
+                <span className="text-sm capitalize">{freq}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Upcoming Scheduled Maintenance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {schedules?.slice(0, 10).map((schedule) => (
+              <div key={schedule.id} className="flex items-center justify-between p-3 rounded-lg border">
+                <div className="flex-1">
+                  <h4 className="font-medium">{schedule.ticket_templates?.title}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Next run: {format(parseISO(schedule.next_run_date), "PPP")}
+                  </p>
+                </div>
+                <Badge variant="secondary" className="capitalize">
+                  {schedule.frequency}
+                </Badge>
+              </div>
+            ))}
+            {!schedules?.length && (
+              <p className="text-center text-muted-foreground py-8">No scheduled maintenance tasks yet</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
