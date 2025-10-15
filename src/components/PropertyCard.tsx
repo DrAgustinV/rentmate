@@ -56,13 +56,23 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
 
   const getStatusBadge = () => {
     if (property.status === "active") {
-      return {
-        variant: "default" as const,
-        className: "bg-green-500 hover:bg-green-600",
-        text: t("properties.active"),
-      };
+      // For active properties, show tenant status
+      if (tenantStatus?.status === "occupied") {
+        return {
+          variant: "default" as const,
+          className: "bg-green-500 hover:bg-green-600",
+          text: t("properties.active"),
+        };
+      } else {
+        // Free or invited
+        return {
+          variant: "default" as const,
+          className: "bg-blue-500 hover:bg-blue-600",
+          text: t("properties.free"),
+        };
+      }
     } else if (property.status === "ending_tenancy") {
-      return { variant: "default" as const, className: "bg-orange-500 hover:bg-orange-600", text: "Ending Tenancy" };
+      return { variant: "default" as const, className: "bg-orange-500 hover:bg-orange-600", text: t("properties.endingTenancy") };
     } else {
       return { variant: "secondary" as const, className: "", text: t("properties.inactive") };
     }
@@ -79,7 +89,9 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
         style={{
           borderTop: `3px solid ${
             property.status === "active"
-              ? "hsl(var(--success))"
+              ? tenantStatus?.status === "occupied"
+                ? "hsl(142 71% 45%)"  // Green for occupied
+                : "hsl(217 91% 60%)"  // Blue for free
               : property.status === "ending_tenancy"
                 ? "hsl(var(--warning))"
                 : "hsl(var(--muted))"
@@ -118,9 +130,13 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                     </CardDescription>
                   )}
                 </div>
-                <Badge variant={statusBadge.variant} className={statusBadge.className}>
-                  {statusBadge.text}
-                </Badge>
+                {loadingStatus ? (
+                  <Skeleton className="h-6 w-16" />
+                ) : (
+                  <Badge variant={statusBadge.variant} className={statusBadge.className}>
+                    {statusBadge.text}
+                  </Badge>
+                )}
               </div>
 
               {/* Tenant Status */}
@@ -165,9 +181,13 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
         </CardHeader>
 
         <CardContent className="pt-4">
-          {property.description && (
-            <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{property.description}</p>
-          )}
+          <div className="min-h-[2.5rem] mb-4">
+            {property.description ? (
+              <p className="text-sm text-muted-foreground line-clamp-2">{property.description}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">{t("properties.noDescription")}</p>
+            )}
+          </div>
           {isArchived && property.deleted_at && (
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">

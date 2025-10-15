@@ -172,6 +172,8 @@ export const translations = {
       invited: "Invited",
       pending: "pending",
       freeToRent: "Free to Rent",
+      free: "Free",
+      noDescription: "No description provided",
       uploadPhoto: "Upload Photo",
       uploading: "Uploading...",
       photoUploaded: "Property photo uploaded successfully",
