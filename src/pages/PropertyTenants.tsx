@@ -568,10 +568,20 @@ export default function PropertyTenants() {
                     placeholder={t("dialogs.inviteTenant.emailPlaceholder")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && email.trim()) {
+                        inviteMutation.mutate(email.trim());
+                      }
+                    }}
                   />
                   <Button
-                    onClick={() => inviteMutation.mutate(email)}
-                    disabled={inviteMutation.isPending || !email}
+                    onClick={() => {
+                      const trimmedEmail = email.trim();
+                      if (trimmedEmail) {
+                        inviteMutation.mutate(trimmedEmail);
+                      }
+                    }}
+                    disabled={inviteMutation.isPending || !email.trim()}
                   >
                     <Mail className="h-4 w-4 mr-2" />
                     {t("dialogs.inviteTenant.send")}
