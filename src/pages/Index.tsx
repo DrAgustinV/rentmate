@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Home, Users, Shield, ArrowRight } from "lucide-react";
 import heroProperty from "@/assets/hero-property.jpg";
-import { BRAND_NAME, BRAND_LOGO, BRAND_TAGLINE } from "@/config/brand.config";
+import { useBrand } from "@/contexts/BrandContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { brandName, logoUrl, logoAlt, tagline } = useBrand();
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -19,10 +20,10 @@ const Index = () => {
       <div className="container mx-auto px-4 py-16 relative z-10">
         <div className="text-center mb-16 animate-fade-in">
           <div className="flex justify-center mb-6">
-            <img src={BRAND_LOGO.src} alt={BRAND_LOGO.alt} className="h-20 w-20 md:h-24 md:w-24" />
+            <img src={logoUrl} alt={logoAlt} className="h-20 w-20 md:h-24 md:w-24" />
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 gradient-text">{BRAND_NAME}</h1>
-          <p className="text-xl text-muted-foreground mb-8">{BRAND_TAGLINE}</p>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 gradient-text">{brandName}</h1>
+          <p className="text-xl text-muted-foreground mb-8">{tagline}</p>
           <div className="flex gap-4 justify-center">
             <Button size="lg" onClick={() => navigate("/auth")} className="gap-2">
               Get Started

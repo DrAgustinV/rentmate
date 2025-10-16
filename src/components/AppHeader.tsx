@@ -22,7 +22,7 @@ import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck } from "luc
 import { User } from "@supabase/supabase-js";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { BRAND_NAME, BRAND_LOGO } from "@/config/brand.config";
+import { useBrand } from "@/contexts/BrandContext";
 
 export function AppHeader() {
   const navigate = useNavigate();
@@ -32,6 +32,7 @@ export function AppHeader() {
   const [pendingInvitations, setPendingInvitations] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
+  const { brandName, logoUrl, logoAlt } = useBrand();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -92,9 +93,9 @@ export function AppHeader() {
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
         <Link to="/dashboard" className="flex items-center gap-2">
-          <img src={BRAND_LOGO.src} alt={BRAND_LOGO.alt} className="h-8 w-8" />
+          <img src={logoUrl} alt={logoAlt} className="h-8 w-8" />
           <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            {BRAND_NAME}
+            {brandName}
           </div>
         </Link>
 

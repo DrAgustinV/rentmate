@@ -153,13 +153,11 @@ export function BrandSettings() {
 
       toast({
         title: "Brand settings updated",
-        description: "Refresh the page to see the changes applied",
+        description: "Changes applied successfully! The brand name, logo, and colors are now updated system-wide.",
       });
 
-      // Trigger a page reload after a short delay to apply new colors
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      // Refresh settings locally - realtime subscription will handle propagation
+      fetchBrandSettings();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -272,7 +270,7 @@ export function BrandSettings() {
 
       <div className="bg-muted/50 border rounded-lg p-4">
         <p className="text-sm text-muted-foreground">
-          <strong>Note:</strong> After saving, the page will refresh automatically to apply the new brand colors and logo system-wide.
+          <strong>Note:</strong> Changes will be applied instantly across the application for all users via real-time updates.
         </p>
       </div>
     </div>

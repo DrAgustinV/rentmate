@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { BRAND_NAME, BRAND_TAGLINE, BRAND_EMAIL, BRAND_CONFIG } from "@/config/brand.config";
+import { useBrand } from "@/contexts/BrandContext";
+import { BRAND_CONFIG } from "@/config/brand.config";
 
 export function AppFooter() {
   const currentYear = new Date().getFullYear();
   const { t } = useLanguage();
+  const { brandName, tagline, email } = useBrand();
 
   return (
     <footer className="border-t border-border bg-muted/30 mt-auto">
@@ -13,13 +15,13 @@ export function AppFooter() {
           {/* Brand Section */}
           <div className="space-y-3">
             <div className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {BRAND_NAME}
+              {brandName}
             </div>
             <p className="text-sm text-muted-foreground">
-              {BRAND_TAGLINE}
+              {tagline}
             </p>
             <p className="text-xs text-muted-foreground">
-              © {currentYear} {BRAND_NAME}. {t('footer.rights')}
+              © {currentYear} {brandName}. {t('footer.rights')}
             </p>
           </div>
 
@@ -47,10 +49,10 @@ export function AppFooter() {
             <h3 className="text-sm font-semibold">Support</h3>
             <div className="flex flex-col gap-2">
               <a
-                href={`mailto:${BRAND_EMAIL}`}
+                href={`mailto:${email}`}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                {BRAND_EMAIL}
+                {email}
               </a>
               <p className="text-xs text-muted-foreground">
                 Version {BRAND_CONFIG.version}

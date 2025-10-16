@@ -1,5 +1,6 @@
 import { ReactNode, useEffect } from "react";
 import { useBrandSettings } from "@/hooks/useBrandSettings";
+import { BrandContextProvider } from "@/contexts/BrandContext";
 
 interface BrandProviderProps {
   children: ReactNode;
@@ -23,6 +24,9 @@ export function BrandProvider({ children }: BrandProviderProps) {
       root.style.setProperty("--ring", settings.primary_color);
       root.style.setProperty("--sidebar-primary", settings.primary_color);
       root.style.setProperty("--sidebar-ring", settings.primary_color);
+
+      // Update document title with brand name
+      document.title = `${settings.brand_name} - Property Management Made Simple`;
     }
   }, [settings]);
 
@@ -35,5 +39,9 @@ export function BrandProvider({ children }: BrandProviderProps) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <BrandContextProvider>
+      {children}
+    </BrandContextProvider>
+  );
 }
