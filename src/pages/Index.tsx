@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Home, Users, Shield, ArrowRight } from "lucide-react";
 import heroProperty from "@/assets/hero-property.jpg";
+import { BRAND_NAME, BRAND_LOGO, BRAND_TAGLINE } from "@/config/brand.config";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -17,8 +18,11 @@ const Index = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/20" />
       <div className="container mx-auto px-4 py-16 relative z-10">
         <div className="text-center mb-16 animate-fade-in">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 gradient-text">FlatMate</h1>
-          <p className="text-xl text-muted-foreground mb-8">Modern Property Management Made Simple</p>
+          <div className="flex justify-center mb-6">
+            <img src={BRAND_LOGO.src} alt={BRAND_LOGO.alt} className="h-20 w-20 md:h-24 md:w-24" />
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 gradient-text">{BRAND_NAME}</h1>
+          <p className="text-xl text-muted-foreground mb-8">{BRAND_TAGLINE}</p>
           <div className="flex gap-4 justify-center">
             <Button size="lg" onClick={() => navigate("/auth")} className="gap-2">
               Get Started

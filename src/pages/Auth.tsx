@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { BRAND_NAME } from "@/config/brand.config";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }),
@@ -73,7 +74,7 @@ export default function Auth() {
 
         toast({
           title: "Account created!",
-          description: "Welcome to FlatMate. You can now start managing properties.",
+          description: `Welcome to ${BRAND_NAME}. You can now start managing properties.`,
         });
       } else {
         const { error } = await supabase.auth.signInWithPassword({

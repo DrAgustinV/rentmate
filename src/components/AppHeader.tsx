@@ -22,6 +22,7 @@ import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck } from "luc
 import { User } from "@supabase/supabase-js";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { BRAND_NAME, BRAND_LOGO } from "@/config/brand.config";
 
 export function AppHeader() {
   const navigate = useNavigate();
@@ -91,8 +92,9 @@ export function AppHeader() {
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
         <Link to="/dashboard" className="flex items-center gap-2">
+          <img src={BRAND_LOGO.src} alt={BRAND_LOGO.alt} className="h-8 w-8" />
           <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            FlatMate
+            {BRAND_NAME}
           </div>
         </Link>
 

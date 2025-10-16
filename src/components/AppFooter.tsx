@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { BRAND_NAME, BRAND_TAGLINE, BRAND_EMAIL, BRAND_CONFIG } from "@/config/brand.config";
 
 export function AppFooter() {
   const currentYear = new Date().getFullYear();
@@ -12,13 +13,13 @@ export function AppFooter() {
           {/* Brand Section */}
           <div className="space-y-3">
             <div className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              FlatMate
+              {BRAND_NAME}
             </div>
             <p className="text-sm text-muted-foreground">
-              Modern Property Management Made Simple
+              {BRAND_TAGLINE}
             </p>
             <p className="text-xs text-muted-foreground">
-              © {currentYear} FlatMate. {t('footer.rights')}
+              © {currentYear} {BRAND_NAME}. {t('footer.rights')}
             </p>
           </div>
 
@@ -46,13 +47,13 @@ export function AppFooter() {
             <h3 className="text-sm font-semibold">Support</h3>
             <div className="flex flex-col gap-2">
               <a
-                href="mailto:support@flatmate.app"
+                href={`mailto:${BRAND_EMAIL}`}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                support@flatmate.app
+                {BRAND_EMAIL}
               </a>
               <p className="text-xs text-muted-foreground">
-                Version 1.0.0
+                Version {BRAND_CONFIG.version}
               </p>
             </div>
           </div>
