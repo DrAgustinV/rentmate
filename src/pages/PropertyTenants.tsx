@@ -269,28 +269,49 @@ export default function PropertyTenants() {
         if (existing) throw new Error(t('dialogs.inviteTenant.alreadyTenant'));
       }
 
+      // Check for ANY existing invitation (pending or cancelled)
       const { data: existingInvite } = await supabase
         .from("invitations")
-        .select("id")
+        .select("id, status")
         .eq("email", data.email)
         .eq("property_id", propertyId!)
-        .eq("status", "pending")
         .maybeSingle();
-      if (existingInvite) throw new Error(t('dialogs.inviteTenant.alreadyInvited'));
 
       const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
 
-      const { error } = await supabase.from("invitations").insert({
-        token,
-        email: data.email,
-        property_id: propertyId,
-        expires_at: expiresAt.toISOString(),
-        invited_user_id: profiles?.id || null,
-      });
+      if (existingInvite) {
+        if (existingInvite.status === "pending") {
+          throw new Error(t('dialogs.inviteTenant.alreadyInvited'));
+        }
+        
+        // If cancelled, reactivate it with new token and expiration
+        if (existingInvite.status === "cancelled") {
+          const { error } = await supabase
+            .from("invitations")
+            .update({
+              token,
+              expires_at: expiresAt.toISOString(),
+              status: "pending",
+              invited_user_id: profiles?.id || null,
+            })
+            .eq("id", existingInvite.id);
+          
+          if (error) throw error;
+        }
+      } else {
+        // If no existing invitation, create new one
+        const { error } = await supabase.from("invitations").insert({
+          token,
+          email: data.email,
+          property_id: propertyId,
+          expires_at: expiresAt.toISOString(),
+          invited_user_id: profiles?.id || null,
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+      }
 
       const { data: { user } } = await supabase.auth.getUser();
       const { data: managerProfile } = await supabase
