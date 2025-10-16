@@ -85,6 +85,33 @@ export type Database = {
           },
         ]
       }
+      language_settings: {
+        Row: {
+          display_order: number | null
+          id: string
+          is_enabled: boolean | null
+          language_code: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          display_order?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          language_code: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          display_order?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          language_code?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

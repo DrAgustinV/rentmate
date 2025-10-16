@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Ticket, Users, Settings, Paintbrush } from "lucide-react";
+import { Building2, Ticket, Users, Settings, Paintbrush, Languages } from "lucide-react";
 import { PropertiesTable } from "@/components/admin/PropertiesTable";
 import { TicketsTable } from "@/components/admin/TicketsTable";
 import { UsersTable } from "@/components/admin/UsersTable";
 import { SystemSettings } from "@/components/admin/SystemSettings";
 import { BrandSettings } from "@/components/admin/BrandSettings";
+import { LanguageSettings } from "@/components/admin/LanguageSettings";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -64,7 +65,7 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="users" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="users">
               <Users className="mr-2 h-4 w-4" />
               {t('admin.users')}
@@ -84,6 +85,10 @@ export default function Admin() {
             <TabsTrigger value="brand">
               <Paintbrush className="mr-2 h-4 w-4" />
               Brand
+            </TabsTrigger>
+            <TabsTrigger value="languages">
+              <Languages className="mr-2 h-4 w-4" />
+              Languages
             </TabsTrigger>
           </TabsList>
 
@@ -145,6 +150,20 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <BrandSettings />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="languages">
+            <Card>
+              <CardHeader>
+                <CardTitle>Language Settings</CardTitle>
+                <CardDescription>
+                  Manage which languages are available to users in the language switcher
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <LanguageSettings />
               </CardContent>
             </Card>
           </TabsContent>

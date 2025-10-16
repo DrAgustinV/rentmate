@@ -9,10 +9,20 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Language } from "@/lib/i18n/translations";
 import { AVAILABLE_LANGUAGES } from "@/lib/i18n/languages.config";
+import { useLanguageSettings } from "@/hooks/useLanguageSettings";
 
 export const LanguageSwitcher = () => {
   const { language, changeLanguage } = useLanguage();
-  const currentLang = AVAILABLE_LANGUAGES.find(l => l.code === language) || AVAILABLE_LANGUAGES[0];
+  const { enabledLanguages, loading } = useLanguageSettings();
+  
+  // Filter to only show enabled languages
+  const availableLanguages = AVAILABLE_LANGUAGES.filter(
+    lang => enabledLanguages.includes(lang.code)
+  );
+  
+  const currentLang = availableLanguages.find(l => l.code === language) || availableLanguages[0];
+
+  if (loading || availableLanguages.length === 0) return null;
 
   return (
     <DropdownMenu>
@@ -24,7 +34,7 @@ export const LanguageSwitcher = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="max-h-96 overflow-y-auto">
-        {AVAILABLE_LANGUAGES.map((lang) => (
+        {availableLanguages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
             onClick={() => changeLanguage(lang.code as Language)}
