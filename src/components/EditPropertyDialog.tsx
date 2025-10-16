@@ -4,17 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
+import { propertyBaseSchema } from "@/lib/validations";
 import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-const createPropertySchema = (t: (key: string) => string) => z.object({
-  title: z.string().trim().min(1, t('dialogs.createProperty.titleRequired')).max(100, t('dialogs.createProperty.titleTooLong')),
-  address: z.string().trim().optional(),
-  description: z.string().trim().optional(),
-});
 
 interface EditPropertyDialogProps {
   open: boolean;
@@ -30,7 +25,6 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
   const [description, setDescription] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (property) {
@@ -46,8 +40,7 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
     setLoading(true);
 
     try {
-      const propertySchema = createPropertySchema(t);
-      const data = propertySchema.parse({ title, address, description });
+      const data = propertyBaseSchema.parse({ title, address, description });
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -65,24 +58,19 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
 
       if (error) throw error;
 
-      toast({
-        title: t('common.success'),
+      toast.success(t('common.success'), {
         description: t('dialogs.editProperty.success'),
       });
 
       onSuccess();
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        toast({
-          title: t('common.validationError'),
+        toast.error(t('common.validationError'), {
           description: error.errors[0].message,
-          variant: "destructive",
         });
       } else {
-        toast({
-          title: t('common.error'),
+        toast.error(t('common.error'), {
           description: error.message,
-          variant: "destructive",
         });
       }
     } finally {

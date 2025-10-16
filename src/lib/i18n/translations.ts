@@ -25,6 +25,13 @@ export const translations = {
       validationError: "Validation Error",
       optional: "Optional",
     },
+    search: {
+      placeholder: "Search properties...",
+      sortBy: "Sort by",
+      newest: "Newest first",
+      oldest: "Oldest first",
+      alphabetical: "A-Z",
+    },
     header: {
       dashboard: "Dashboard",
       invitations: "Invitations",

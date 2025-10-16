@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { setupOptimisticUpdate, rollbackOptimisticUpdate } from '@/lib/optimisticHelpers';
 
 export const PROPERTIES_QUERY_KEY = 'properties';
 
@@ -81,11 +82,29 @@ export function usePropertyMutations() {
       if (error) throw error;
       return data;
     },
+    onMutate: async (newProperty) => {
+      return await setupOptimisticUpdate(
+        queryClient,
+        [PROPERTIES_QUERY_KEY],
+        (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            properties: [
+              { ...newProperty, id: 'temp-' + Date.now(), created_at: new Date().toISOString() },
+              ...old.properties
+            ],
+            totalCount: old.totalCount + 1
+          };
+        }
+      );
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
       toast.success('Property created successfully');
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      rollbackOptimisticUpdate(queryClient, [PROPERTIES_QUERY_KEY], context);
       toast.error(error.message || 'Failed to create property');
     },
   });
@@ -102,11 +121,27 @@ export function usePropertyMutations() {
       if (error) throw error;
       return data;
     },
+    onMutate: async ({ id, updates }) => {
+      return await setupOptimisticUpdate(
+        queryClient,
+        [PROPERTIES_QUERY_KEY],
+        (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            properties: old.properties.map((p: any) =>
+              p.id === id ? { ...p, ...updates } : p
+            )
+          };
+        }
+      );
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
       toast.success('Property updated successfully');
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      rollbackOptimisticUpdate(queryClient, [PROPERTIES_QUERY_KEY], context);
       toast.error(error.message || 'Failed to update property');
     },
   });

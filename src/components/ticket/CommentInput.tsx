@@ -6,7 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Send } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { commentSchema } from "@/lib/validations";
+import { z } from "zod";
 
 interface CommentInputProps {
   ticketId: string;
@@ -39,11 +41,9 @@ export const CommentInput = ({ ticketId, isManager }: CommentInputProps) => {
       setComment("");
       setIsInternal(false);
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
+    onError: (error: any) => {
+      toast.error("Error", {
         description: "Failed to add comment. Please try again.",
-        variant: "destructive",
       });
       console.error("Error adding comment:", error);
     },
@@ -51,8 +51,17 @@ export const CommentInput = ({ ticketId, isManager }: CommentInputProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!comment.trim()) return;
-    addCommentMutation.mutate();
+    
+    try {
+      commentSchema.parse({ comment, isInternal });
+      addCommentMutation.mutate();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error("Validation Error", {
+          description: error.errors[0].message,
+        });
+      }
+    }
   };
 
   return (

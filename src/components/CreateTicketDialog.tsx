@@ -19,8 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { ticketBaseSchema } from "@/lib/validations";
+import { z } from "zod";
 
 interface CreateTicketDialogProps {
   open: boolean;
@@ -38,7 +40,6 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
     propertyId: propertyId || "",
   });
 
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: properties } = useQuery({
@@ -99,8 +100,7 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
       queryClient.invalidateQueries({ queryKey: ["property-tickets"] });
-      toast({
-        title: "Ticket created",
+      toast.success("Ticket created", {
         description: "Your ticket has been created successfully.",
       });
       onOpenChange(false);
@@ -113,26 +113,32 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
       });
       onSuccess?.();
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
+    onError: (error: any) => {
+      toast.error("Error", {
         description: error.message,
-        variant: "destructive",
       });
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.propertyId || !formData.title || !formData.description) {
-      toast({
-        title: "Missing fields",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
+    
+    try {
+      ticketBaseSchema.parse({
+        title: formData.title,
+        description: formData.description,
+        type: formData.type,
+        priority: formData.priority,
+        propertyId: formData.propertyId,
       });
-      return;
+      createMutation.mutate();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error("Validation Error", {
+          description: error.errors[0].message,
+        });
+      }
     }
-    createMutation.mutate();
   };
 
   return (

@@ -1,15 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Plus, Home, Users, Archive } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { PropertyCard } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
+import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -19,18 +21,49 @@ export default function Dashboard() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [propertyView, setPropertyView] = useState<"active" | "ending_tenancy" | "archived">("active");
   const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'alphabetical'>('newest');
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { t } = useLanguage();
+  
+  const debouncedSearch = useDebounce(searchTerm, 300);
 
+  const filteredAndSortedProperties = useMemo(() => {
+    let filtered = properties.filter(p => {
+      const matchesStatus = 
+        propertyView === "active" ? p.status === "active" :
+        propertyView === "ending_tenancy" ? p.status === "ending_tenancy" :
+        p.status === "inactive";
+      
+      if (!matchesStatus) return false;
+      
+      if (!debouncedSearch) return true;
+      
+      const searchLower = debouncedSearch.toLowerCase();
+      return (
+        p.title?.toLowerCase().includes(searchLower) ||
+        p.address?.toLowerCase().includes(searchLower) ||
+        p.description?.toLowerCase().includes(searchLower)
+      );
+    });
+    
+    // Sort
+    filtered.sort((a, b) => {
+      if (sortBy === 'newest') {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      } else if (sortBy === 'oldest') {
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      } else {
+        return (a.title || '').localeCompare(b.title || '');
+      }
+    });
+    
+    return filtered;
+  }, [properties, propertyView, debouncedSearch, sortBy]);
+  
   const activeProperties = properties.filter(p => p.status === "active");
   const endingTenancyProperties = properties.filter(p => p.status === "ending_tenancy");
   const archivedProperties = properties.filter(p => p.status === "inactive");
-  
-  const displayedProperties = 
-    propertyView === "active" ? activeProperties : 
-    propertyView === "ending_tenancy" ? endingTenancyProperties : 
-    archivedProperties;
 
   useEffect(() => {
     const checkUser = async () => {
@@ -105,10 +138,8 @@ export default function Dashboard() {
 
       setProperties(managed || []);
     } catch (error: any) {
-      toast({
-        title: t('common.error'),
+      toast.error(t('common.error'), {
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -186,7 +217,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-6 space-y-4">
               <ArchiveToggle
                 activeCount={activeProperties.length}
                 endingTenancyCount={endingTenancyProperties.length}
@@ -194,27 +225,38 @@ export default function Dashboard() {
                 currentView={propertyView}
                 onViewChange={setPropertyView}
               />
+              
+              <SearchFilterBar
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+              />
             </div>
 
-            {displayedProperties.length === 0 ? (
+            {filteredAndSortedProperties.length === 0 ? (
               <div className="text-center py-16 bg-gradient-to-br from-card to-secondary/20 border border-border rounded-lg animate-fade-in">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/20 flex items-center justify-center">
                   <Archive className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">
-                  {propertyView === "active" && t('dashboard.noActiveProperties')}
-                  {propertyView === "ending_tenancy" && "No properties ending tenancy"}
-                  {propertyView === "archived" && t('dashboard.noArchivedProperties')}
+                  {debouncedSearch ? "No properties match your search" :
+                    propertyView === "active" ? t('dashboard.noActiveProperties') :
+                    propertyView === "ending_tenancy" ? "No properties ending tenancy" :
+                    t('dashboard.noArchivedProperties')
+                  }
                 </h3>
                 <p className="text-muted-foreground px-4">
-                  {propertyView === "active" && "All properties are either ending tenancy or archived"}
-                  {propertyView === "ending_tenancy" && "No properties are currently ending tenancy"}
-                  {propertyView === "archived" && t('dashboard.noArchivedProperties')}
+                  {debouncedSearch ? "Try adjusting your search terms" :
+                    propertyView === "active" ? "All properties are either ending tenancy or archived" :
+                    propertyView === "ending_tenancy" ? "No properties are currently ending tenancy" :
+                    t('dashboard.noArchivedProperties')
+                  }
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedProperties.map((property) => (
+                {filteredAndSortedProperties.map((property) => (
                   <PropertyCard
                     key={property.id}
                     property={property}

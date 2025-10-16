@@ -4,16 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
+import { propertyBaseSchema } from "@/lib/validations";
 import { z } from "zod";
-
-const propertySchema = z.object({
-  title: z.string().trim().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
-  address: z.string().trim().optional(),
-  description: z.string().trim().optional(),
-});
 
 interface CreatePropertyDialogProps {
   open: boolean;
@@ -27,14 +22,13 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
   const [description, setDescription] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const data = propertySchema.parse({ title, address, description });
+      const data = propertyBaseSchema.parse({ title, address, description });
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -68,10 +62,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Property created successfully",
-      });
+      toast.success("Property created successfully");
 
       setTitle("");
       setAddress("");
@@ -80,16 +71,12 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
       onSuccess();
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        toast({
-          title: "Validation Error",
+        toast.error("Validation Error", {
           description: error.errors[0].message,
-          variant: "destructive",
         });
       } else {
-        toast({
-          title: "Error",
+        toast.error("Error", {
           description: error.message,
-          variant: "destructive",
         });
       }
     } finally {

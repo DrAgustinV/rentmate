@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { translations, Language } from '@/lib/i18n/translations';
-import { useTheme } from './ThemeContext';
+import { useUserPreferences } from './UserPreferencesContext';
 
 interface LanguageContextType {
   language: Language;
@@ -11,7 +11,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const { preferences, updateTheme } = useTheme();
+  const { preferences, updatePreferences } = useUserPreferences();
   const language = (preferences?.language || 'en') as Language;
 
   const t = (key: string): string => {
@@ -37,7 +37,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const changeLanguage = async (lang: Language) => {
-    await updateTheme({ language: lang });
+    await updatePreferences({ language: lang });
   };
 
   return (
