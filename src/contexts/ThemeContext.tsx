@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { setUserDateFormat, setUserLocale } from '@/lib/dateUtils';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface UserPreferences {
   theme_mode: 'light' | 'dark' | 'system';
@@ -149,16 +149,13 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       applyTheme(updatedPrefs);
       setPreferences(updatedPrefs);
 
-      toast({
-        title: 'Preferences saved',
+      toast.success('Preferences saved', {
         description: 'Your appearance settings have been updated.',
       });
     } catch (error) {
       console.error('Error updating preferences:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save preferences.',
-        variant: 'destructive',
+      toast.error('Failed to save preferences', {
+        description: 'Error updating your preferences.',
       });
     }
   };

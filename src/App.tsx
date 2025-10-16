@@ -1,32 +1,32 @@
-import { Toaster } from "@/components/ui/toaster";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import Invitations from "./pages/Invitations";
-import Settings from "./pages/Settings";
-import PropertyTickets from "./pages/PropertyTickets";
-import PropertyMaintenance from "./pages/PropertyMaintenance";
-import TicketDetail from "./pages/TicketDetail";
-import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
-import MaintenanceCalendar from "./pages/MaintenanceCalendar";
-import About from "./pages/About";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import Help from "./pages/Help";
 import PropertyDetails from "./pages/PropertyDetails";
 import PropertyTenants from "./pages/PropertyTenants";
-
-const queryClient = new QueryClient();
+import PropertyTickets from "./pages/PropertyTickets";
+import PropertyMaintenance from "./pages/PropertyMaintenance";
+import MaintenanceCalendar from "./pages/MaintenanceCalendar";
+import ScheduledTasks from "./pages/ScheduledTasks";
+import TicketDetail from "./pages/TicketDetail";
+import Tickets from "./pages/Tickets";
+import Settings from "./pages/Settings";
+import Admin from "./pages/Admin";
+import TemplatesManager from "./pages/TemplatesManager";
+import Invitations from "./pages/Invitations";
+import About from "./pages/About";
+import Help from "./pages/Help";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import NotFound from "./pages/NotFound";
+import { queryClient } from "./lib/queryClient";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
       <Sonner />
       <BrowserRouter>
         <Routes>
