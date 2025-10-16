@@ -18,24 +18,124 @@ interface InvitationEmailRequest {
   projectId: string;
 }
 
-// Helper function to read template files
-async function readTemplate(language: string): Promise<string> {
-  const templatePath = new URL(
-    `./_templates/invitation-${language}.html`,
-    import.meta.url
-  ).pathname;
-  
-  try {
-    const template = await Deno.readTextFile(templatePath);
-    return template;
-  } catch (error) {
-    console.error(`Failed to read template for language ${language}:`, error);
-    // Fallback to English if template not found
-    if (language !== 'en') {
-      return readTemplate('en');
-    }
-    throw new Error('Email template not found');
-  }
+// Email template constants
+const TEMPLATE_EN = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+      .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+      .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; color: white; }
+      .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+      .content { padding: 40px 30px; color: #333333; line-height: 1.6; }
+      .property-info { background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 4px; }
+      .property-info strong { display: block; margin-bottom: 8px; color: #667eea; }
+      .cta-button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 30px 0; transition: transform 0.2s; }
+      .cta-button:hover { transform: translateY(-2px); }
+      .expiration { font-size: 14px; color: #e74c3c; font-weight: 500; margin: 20px 0; }
+      .footer { padding: 30px; background-color: #f8f9fa; text-align: center; font-size: 14px; color: #666666; border-top: 1px solid #e0e0e0; }
+      .footer a { color: #667eea; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🏠 Property Invitation</h1>
+      </div>
+      <div class="content">
+        <p>Hi there!</p>
+        <p><strong>{{managerName}}</strong> has invited you to become a tenant of:</p>
+        <div class="property-info">
+          <strong>📍 Property:</strong>
+          {{propertyTitle}}
+          {{propertyAddressBlock}}
+        </div>
+        <p>As a tenant, you'll be able to:</p>
+        <ul>
+          <li>Report and track maintenance tickets</li>
+          <li>View property documents</li>
+          <li>Communicate with your property manager</li>
+          <li>Access important property information</li>
+        </ul>
+        <div style="text-align: center;">
+          <a href="{{invitationLink}}" class="cta-button">Accept Invitation →</a>
+        </div>
+        <p class="expiration">⏰ This invitation expires on: {{expirationDate}}</p>
+        <p style="font-size: 14px; color: #666;">
+          Don't want to join? Simply ignore this email.
+        </p>
+      </div>
+      <div class="footer">
+        <p>Property Management System</p>
+        <p>If you're having trouble with the button, copy and paste this link into your browser:<br>
+        <a href="{{invitationLink}}">{{invitationLink}}</a></p>
+      </div>
+    </div>
+  </body>
+</html>`;
+
+const TEMPLATE_ES = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+      .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+      .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; color: white; }
+      .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+      .content { padding: 40px 30px; color: #333333; line-height: 1.6; }
+      .property-info { background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 4px; }
+      .property-info strong { display: block; margin-bottom: 8px; color: #667eea; }
+      .cta-button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 30px 0; transition: transform 0.2s; }
+      .cta-button:hover { transform: translateY(-2px); }
+      .expiration { font-size: 14px; color: #e74c3c; font-weight: 500; margin: 20px 0; }
+      .footer { padding: 30px; background-color: #f8f9fa; text-align: center; font-size: 14px; color: #666666; border-top: 1px solid #e0e0e0; }
+      .footer a { color: #667eea; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🏠 Invitación a Propiedad</h1>
+      </div>
+      <div class="content">
+        <p>¡Hola!</p>
+        <p><strong>{{managerName}}</strong> te ha invitado a ser inquilino de:</p>
+        <div class="property-info">
+          <strong>📍 Propiedad:</strong>
+          {{propertyTitle}}
+          {{propertyAddressBlock}}
+        </div>
+        <p>Como inquilino, podrás:</p>
+        <ul>
+          <li>Reportar y seguir tickets de mantenimiento</li>
+          <li>Ver documentos de la propiedad</li>
+          <li>Comunicarte con tu administrador de propiedad</li>
+          <li>Acceder a información importante de la propiedad</li>
+        </ul>
+        <div style="text-align: center;">
+          <a href="{{invitationLink}}" class="cta-button">Aceptar Invitación →</a>
+        </div>
+        <p class="expiration">⏰ Esta invitación expira el: {{expirationDate}}</p>
+        <p style="font-size: 14px; color: #666;">
+          ¿No quieres unirte? Simplemente ignora este correo.
+        </p>
+      </div>
+      <div class="footer">
+        <p>Sistema de Gestión de Propiedades</p>
+        <p>Si tienes problemas con el botón, copia y pega este enlace en tu navegador:<br>
+        <a href="{{invitationLink}}">{{invitationLink}}</a></p>
+      </div>
+    </div>
+  </body>
+</html>`;
+
+// Helper function to get template by language
+function getTemplate(language: string): string {
+  return language === 'es' ? TEMPLATE_ES : TEMPLATE_EN;
 }
 
 // Helper function to substitute variables in template
@@ -78,8 +178,8 @@ const getEmailContent = async (data: InvitationEmailRequest) => {
     expirationDate: expirationDate,
   };
 
-  // Read template file based on language
-  const template = await readTemplate(data.language || 'en');
+  // Get template based on language
+  const template = getTemplate(data.language || 'en');
   
   // Substitute variables
   const html = substituteVariables(template, variables);
