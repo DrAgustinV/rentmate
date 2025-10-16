@@ -16,6 +16,7 @@ import {
 import { Sun, Moon, Monitor, Palette, Type, Calendar, Globe } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Language } from '@/lib/i18n/translations';
+import { AVAILABLE_LANGUAGES } from '@/lib/i18n/languages.config';
 
 const colorPresets = [
   { name: 'Ocean Blue', primary: '221 83% 53%', accent: '199 89% 48%' },
@@ -211,20 +212,21 @@ export const AppearanceSettings = () => {
           <Globe className="h-5 w-5" />
           <h3 className="text-lg font-semibold">{t('settings.language')}</h3>
         </div>
-        <RadioGroup
+        <Select
           value={language}
           onValueChange={(value) => changeLanguage(value as Language)}
-          className="space-y-2"
         >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="en" id="en" />
-            <Label htmlFor="en" className="cursor-pointer">🇬🇧 English</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="es" id="es" />
-            <Label htmlFor="es" className="cursor-pointer">🇪🇸 Español</Label>
-          </div>
-        </RadioGroup>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={t('settings.language')} />
+          </SelectTrigger>
+          <SelectContent className="max-h-96">
+            {AVAILABLE_LANGUAGES.map((lang) => (
+              <SelectItem key={lang.code} value={lang.code}>
+                {lang.flag} {lang.nativeLabel}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Date Format */}
