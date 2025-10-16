@@ -897,6 +897,7 @@ export type Database = {
         | "declined"
         | "property_inactive"
         | "already_tenant"
+        | "cancelled"
       property_status: "active" | "inactive" | "ending_tenancy"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "cancelled"
@@ -1050,6 +1051,7 @@ export const Constants = {
         "declined",
         "property_inactive",
         "already_tenant",
+        "cancelled",
       ],
       property_status: ["active", "inactive", "ending_tenancy"],
       ticket_priority: ["low", "medium", "high", "urgent"],

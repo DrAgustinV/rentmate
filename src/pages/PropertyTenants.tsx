@@ -354,7 +354,10 @@ export default function PropertyTenants() {
 
   const cancelInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
-      const { error } = await supabase.from("invitations").delete().eq("id", invitationId);
+      const { error } = await supabase
+        .from("invitations")
+        .update({ status: 'cancelled' })
+        .eq("id", invitationId);
       if (error) throw error;
     },
     onSuccess: () => {
