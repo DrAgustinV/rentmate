@@ -1,17 +1,19 @@
 /**
  * Brand Configuration
  * Single source of truth for all brand-related settings
+ * This now serves as the default/fallback configuration
+ * Actual values are loaded from the database via useBrandSettings hook
  */
 
 import logoImage from "@/assets/logo-rentmate.png";
 
 export const BRAND_CONFIG = {
-  // Brand identity
+  // Brand identity (defaults - will be overridden by database settings)
   name: "RentMate",
   tagline: "Property Management Made Simple",
   description: "Modern property management platform for landlords and tenants",
   
-  // Visual assets
+  // Visual assets (defaults)
   logo: {
     src: logoImage,
     alt: "RentMate Logo",
@@ -39,7 +41,7 @@ export const BRAND_CONFIG = {
   version: "1.0.0",
 } as const;
 
-// Export individual constants for convenience
+// Export individual constants for convenience (these are defaults)
 export const BRAND_NAME = BRAND_CONFIG.name;
 export const BRAND_TAGLINE = BRAND_CONFIG.tagline;
 export const BRAND_LOGO = BRAND_CONFIG.logo;

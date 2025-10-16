@@ -23,12 +23,18 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 import { queryClient } from "./lib/queryClient";
+import { UserPreferencesProvider } from "@/contexts/UserPreferencesContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { BrandProvider } from "@/components/BrandProvider";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Sonner />
-      <BrowserRouter>
+    <UserPreferencesProvider>
+      <LanguageProvider>
+        <BrandProvider>
+          <TooltipProvider>
+            <Sonner />
+            <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
@@ -52,6 +58,9 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </BrandProvider>
+    </LanguageProvider>
+    </UserPreferencesProvider>
   </QueryClientProvider>
 );
 

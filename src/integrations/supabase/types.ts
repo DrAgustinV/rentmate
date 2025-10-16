@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      brand_settings: {
+        Row: {
+          accent_color: string
+          brand_name: string
+          id: string
+          logo_url: string | null
+          primary_color: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          accent_color?: string
+          brand_name?: string
+          id?: string
+          logo_url?: string | null
+          primary_color?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          accent_color?: string
+          brand_name?: string
+          id?: string
+          logo_url?: string | null
+          primary_color?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           created_at: string
