@@ -24,8 +24,25 @@ export function Breadcrumbs() {
 
     let currentPath = "";
     pathSegments.forEach((segment, index) => {
-      currentPath += `/${segment}`;
       const isLast = index === pathSegments.length - 1;
+
+      // Handle special cases
+      if (segment === "properties") {
+        // Map "properties" to dashboard since that's where the property list is shown
+        breadcrumbs.push({
+          label: "Properties",
+          path: "/dashboard",
+          isLast,
+        });
+        currentPath += `/${segment}`;
+        return;
+      } else if (segment.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        // Skip UUID segments completely
+        currentPath += `/${segment}`;
+        return;
+      }
+
+      currentPath += `/${segment}`;
 
       // Generate human-readable labels
       let label = segment
@@ -33,13 +50,7 @@ export function Breadcrumbs() {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
 
-      // Handle special cases
-      if (segment === "properties" && pathSegments[index + 1]) {
-        label = "Properties";
-      } else if (segment.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-        // Skip UUID segments but keep the path building
-        return;
-      } else if (segment === "tickets" && index > 0) {
+      if (segment === "tickets" && index > 0) {
         label = "Tickets";
       } else if (segment === "maintenance") {
         label = "Maintenance";
