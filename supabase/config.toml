@@ -6,3 +6,6 @@ verify_jwt = true  # Requires user authentication to prevent spam
 
 [functions.create-recurring-tickets]
 verify_jwt = false  # Cron job - no user context available
+
+[functions.delete-user]
+verify_jwt = true  # Requires admin authentication

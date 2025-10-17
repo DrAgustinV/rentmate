@@ -4,20 +4,39 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Shield, User } from "lucide-react";
+import { Shield, User, Trash2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
+import { useState } from "react";
 
 type UserRole = "admin" | "user";
 
 export function UsersTable() {
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
@@ -51,6 +70,24 @@ export function UsersTable() {
     },
     onError: (error) => {
       toast.error(t('admin.roleAddedError') + ": " + error.message);
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.functions.invoke('delete-user', {
+        body: { userId }
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success(t('admin.userDeletedSuccess'));
+      setDeletingUserId(null);
+    },
+    onError: (error: any) => {
+      toast.error(t('admin.userDeletedError') + ": " + error.message);
+      setDeletingUserId(null);
     },
   });
 
@@ -99,24 +136,60 @@ export function UsersTable() {
                 {formatDate(user.created_at)}
               </TableCell>
               <TableCell>
-                <Select
-                  onValueChange={(role: UserRole) =>
-                    addRoleMutation.mutate({ userId: user.id, role })
-                  }
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder={t('admin.addRole')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">{t('admin.adminRole')}</SelectItem>
-                    <SelectItem value="user">{t('admin.userRole')}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select
+                    onValueChange={(role: UserRole) =>
+                      addRoleMutation.mutate({ userId: user.id, role })
+                    }
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder={t('admin.addRole')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">{t('admin.adminRole')}</SelectItem>
+                      <SelectItem value="user">{t('admin.userRole')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => setDeletingUserId(user.id)}
+                    disabled={user.id === currentUserId}
+                    title={user.id === currentUserId ? t('admin.cannotDeleteSelf') : t('admin.deleteUser')}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      <AlertDialog open={!!deletingUserId} onOpenChange={() => setDeletingUserId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('admin.deleteUser')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('admin.deleteUserWarning')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('admin.cancelDelete')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deletingUserId) {
+                  deleteUserMutation.mutate(deletingUserId);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('admin.confirmDelete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
