@@ -14,6 +14,162 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          event_category: string | null
+          event_metadata: Json | null
+          event_name: string
+          id: string
+          page_path: string | null
+          session_id: string
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          event_category?: string | null
+          event_metadata?: Json | null
+          event_name: string
+          id?: string
+          page_path?: string | null
+          session_id: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          event_category?: string | null
+          event_metadata?: Json | null
+          event_name?: string
+          id?: string
+          page_path?: string | null
+          session_id?: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_navigation_paths: {
+        Row: {
+          breadcrumb_trail: Json | null
+          from_path: string | null
+          id: string
+          session_id: string
+          timestamp: string
+          to_path: string
+          user_id: string | null
+        }
+        Insert: {
+          breadcrumb_trail?: Json | null
+          from_path?: string | null
+          id?: string
+          session_id: string
+          timestamp?: string
+          to_path: string
+          user_id?: string | null
+        }
+        Update: {
+          breadcrumb_trail?: Json | null
+          from_path?: string | null
+          id?: string
+          session_id?: string
+          timestamp?: string
+          to_path?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_page_views: {
+        Row: {
+          city: string | null
+          country: string | null
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          page_path: string
+          page_title: string | null
+          referrer: string | null
+          region: string | null
+          session_id: string
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          page_path: string
+          page_title?: string | null
+          referrer?: string | null
+          region?: string | null
+          session_id: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          page_path?: string
+          page_title?: string | null
+          referrer?: string | null
+          region?: string | null
+          session_id?: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_sessions: {
+        Row: {
+          created_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          events_count: number | null
+          id: string
+          is_authenticated: boolean | null
+          page_views_count: number | null
+          session_id: string
+          started_at: string
+          subscription_tier: string | null
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          events_count?: number | null
+          id?: string
+          is_authenticated?: boolean | null
+          page_views_count?: number | null
+          session_id: string
+          started_at?: string
+          subscription_tier?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          events_count?: number | null
+          id?: string
+          is_authenticated?: boolean | null
+          page_views_count?: number | null
+          session_id?: string
+          started_at?: string
+          subscription_tier?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       brand_settings: {
         Row: {
           accent_color: string
