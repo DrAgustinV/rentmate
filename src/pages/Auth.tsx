@@ -30,11 +30,30 @@ export default function Auth() {
   const { t } = useLanguage();
   const { brandName } = useBrand();
 
-  // Default to sign-up mode for invitations
+  // Smart mode detection: check if user exists for invitations
   useEffect(() => {
-    if (invitationContext) {
-      setIsSignUp(true);
-    }
+    const checkIfUserExists = async () => {
+      if (!invitationContext) return;
+      
+      // Check if a user with this email already exists
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', invitationContext.email)
+        .maybeSingle();
+      
+      if (profile) {
+        // User exists → default to SIGN-IN mode
+        console.log('✅ Existing user detected, defaulting to sign-in mode');
+        setIsSignUp(false);
+      } else {
+        // New user → default to SIGN-UP mode
+        console.log('✅ New user detected, defaulting to sign-up mode');
+        setIsSignUp(true);
+      }
+    };
+    
+    checkIfUserExists();
   }, [invitationContext]);
 
   useEffect(() => {
@@ -168,7 +187,12 @@ export default function Auth() {
           <p className="text-sm text-foreground">
             {isSignUp 
               ? "Create a new account to accept your property invitation" 
-              : "Already have an account? Sign in to accept your invitation"}
+              : "Sign in with your existing account to accept the invitation"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {isSignUp 
+              ? "Already have an account? Click 'Sign in here' below" 
+              : "Don't have an account? Click 'Create one' below"}
           </p>
         </div>
       )}
