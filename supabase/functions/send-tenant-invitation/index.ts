@@ -138,13 +138,25 @@ function getTemplate(language: string): string {
   return language === 'es' ? TEMPLATE_ES : TEMPLATE_EN;
 }
 
-// Helper function to substitute variables in template
+// Helper function to escape HTML to prevent XSS injection
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Helper function to substitute variables in template with HTML escaping
 function substituteVariables(template: string, variables: Record<string, string>): string {
   let result = template;
   
   for (const [key, value] of Object.entries(variables)) {
     const regex = new RegExp(`{{${key}}}`, 'g');
-    result = result.replace(regex, value || '');
+    // Escape HTML for security, except for URL fields which need to remain valid links
+    const sanitizedValue = key === 'invitationLink' ? (value || '') : escapeHtml(value || '');
+    result = result.replace(regex, sanitizedValue);
   }
   
   return result;

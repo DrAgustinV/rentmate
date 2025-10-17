@@ -10,6 +10,20 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Security: Validate cron job authorization since verify_jwt is disabled
+  // This function is intended to be called by scheduled cron jobs only
+  const authHeader = req.headers.get('authorization');
+  const CRON_SECRET = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  
+  // Allow service role key for cron execution
+  if (!authHeader || !authHeader.includes(CRON_SECRET || '')) {
+    console.error('Unauthorized: Invalid or missing authorization for cron job');
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized - This endpoint is for scheduled cron jobs only' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
