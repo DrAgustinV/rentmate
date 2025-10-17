@@ -45,6 +45,9 @@ export default function Invitations() {
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
 
+  const [invitationPreview, setInvitationPreview] = useState<Invitation | null>(null);
+  const [showDecisionPage, setShowDecisionPage] = useState(false);
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -68,10 +71,42 @@ export default function Invitations() {
     const token = searchParams.get('token');
     
     if (!session) {
-      // If not logged in, preserve token and redirect to auth
+      // If not logged in and has token, show decision page
       if (token) {
-        sessionStorage.setItem('invitation_token', token);
-        navigate(`/auth?token=${token}`);
+        // Fetch invitation details to show on decision page
+        const { data: invitation } = await supabase
+          .from("invitations")
+          .select(`
+            id,
+            property_id,
+            email,
+            token,
+            expires_at,
+            properties (
+              title,
+              address,
+              description,
+              images
+            )
+          `)
+          .eq("token", token)
+          .eq("status", "pending")
+          .gt("expires_at", new Date().toISOString())
+          .single();
+        
+        if (invitation) {
+          setInvitationPreview(invitation);
+          setShowDecisionPage(true);
+          setLoading(false);
+        } else {
+          toast({
+            title: "Invitation Not Found",
+            description: "This invitation may have expired or been used already.",
+            variant: "destructive",
+          });
+          navigate("/auth");
+        }
+        return;
       } else {
         navigate("/auth");
       }
@@ -257,6 +292,82 @@ export default function Invitations() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </AppLayout>
+    );
+  }
+
+  // Decision page for unauthenticated users with invitation token
+  if (showDecisionPage && invitationPreview) {
+    const propertyImage = invitationPreview.properties?.images?.[0];
+    const token = searchParams.get('token');
+    
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-2xl overflow-hidden">
+          {propertyImage && (
+            <AspectRatio ratio={16 / 9}>
+              <img
+                src={propertyImage}
+                alt={invitationPreview.properties?.title || "Property"}
+                className="object-cover w-full h-full"
+              />
+            </AspectRatio>
+          )}
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <Badge variant="secondary" className="text-lg px-4 py-2">
+                <Home className="h-5 w-5 mr-2" />
+                You're Invited!
+              </Badge>
+            </div>
+            <CardTitle className="text-3xl">{invitationPreview.properties?.title}</CardTitle>
+            {invitationPreview.properties?.address && (
+              <CardDescription className="flex items-center justify-center gap-2 text-base mt-2">
+                <MapPin className="h-4 w-4" />
+                {invitationPreview.properties.address}
+              </CardDescription>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {invitationPreview.properties?.description && (
+              <p className="text-center text-muted-foreground">
+                {invitationPreview.properties.description}
+              </p>
+            )}
+            
+            <div className="bg-muted/50 rounded-lg p-6 text-center space-y-4">
+              <h3 className="text-xl font-semibold text-foreground">Do you already have an account?</h3>
+              <p className="text-sm text-muted-foreground">
+                Choose how you'd like to proceed with this invitation
+              </p>
+              
+              <div className="grid sm:grid-cols-2 gap-4 pt-4">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-auto py-6 flex-col gap-2"
+                  onClick={() => navigate(`/auth?mode=signin&token=${token}`)}
+                >
+                  <div className="text-base font-semibold">Yes, I have an account</div>
+                  <div className="text-xs text-muted-foreground font-normal">Sign in to accept</div>
+                </Button>
+                
+                <Button
+                  size="lg"
+                  className="h-auto py-6 flex-col gap-2"
+                  onClick={() => navigate(`/auth?mode=signup&token=${token}`)}
+                >
+                  <div className="text-base font-semibold">No, I'm new here</div>
+                  <div className="text-xs text-muted-foreground font-normal">Create account to accept</div>
+                </Button>
+              </div>
+            </div>
+            
+            <div className="text-center text-xs text-muted-foreground">
+              Invitation expires: {formatDate(invitationPreview.expires_at)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 

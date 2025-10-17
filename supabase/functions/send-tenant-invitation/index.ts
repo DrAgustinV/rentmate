@@ -493,6 +493,7 @@ const getEmailContent = async (data: InvitationEmailRequest) => {
   const appUrl = customDomain 
     ? `https://${customDomain}` 
     : `https://${data.projectId}.lovableproject.com`;
+  // Link to invitations page (decision page for unauthenticated users)
   const invitationLink = `${appUrl}/invitations?token=${data.token}`;
 
   console.log("Invitation email data:", {

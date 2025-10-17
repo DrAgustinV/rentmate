@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBrand } from "@/contexts/BrandContext";
-import { Loader2 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }),
@@ -19,35 +19,38 @@ const authSchema = z.object({
 });
 
 export default function Auth() {
-  const [isSignUp, setIsSignUp] = useState<boolean | null>(null);
+  const [isSignUp, setIsSignUp] = useState<boolean>(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [smartDetectionLoading, setSmartDetectionLoading] = useState(false);
   const [invitationContext, setInvitationContext] = useState<{ token: string; email: string } | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { brandName } = useBrand();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     const checkAuthAndToken = async () => {
-      // Check if user is already logged in
       const { data: { session } } = await supabase.auth.getSession();
       
-      // Check for invitation token in URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
+      // Check for mode parameter (from decision page)
+      const mode = searchParams.get('mode');
+      const token = searchParams.get('token');
+      
+      if (mode) {
+        // Respect explicit mode parameter from decision page
+        setIsSignUp(mode === 'signup');
+      }
       
       if (token) {
-        setSmartDetectionLoading(true);
         // Store token for later use
         sessionStorage.setItem('invitation_token', token);
         
-        // Try to fetch invitation email
         try {
+          // Fetch invitation details
           const { data: invitation } = await supabase
             .from('invitations')
             .select('email, properties(title)')
@@ -56,74 +59,51 @@ export default function Auth() {
             .single();
           
           if (invitation) {
-            setInvitationContext({ token, email: invitation.email });
+            setInvitationContext({
+              token,
+              email: invitation.email,
+            });
             setEmail(invitation.email);
-            
-            // Smart mode detection: Check if user exists immediately
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('email', invitation.email)
-              .maybeSingle();
-            
-            if (profile) {
-              console.log('✅ Existing user detected, defaulting to sign-in mode');
-              setIsSignUp(false);
-            } else {
-              console.log('✅ New user detected, defaulting to sign-up mode');
-              setIsSignUp(true);
-            }
           }
         } catch (error) {
           console.log('Could not fetch invitation details:', error);
-          setIsSignUp(false);
-        } finally {
-          setSmartDetectionLoading(false);
         }
-      } else {
-        // No invitation token, default to sign-up mode
-        setIsSignUp(false);
       }
       
       if (session) {
-        // If logged in and has token, redirect to invitations
-        const storedToken = sessionStorage.getItem('invitation_token');
-        if (storedToken) {
-          navigate(`/invitations?token=${storedToken}`);
-        } else {
-          navigate("/dashboard");
-        }
+        console.log('Already authenticated, redirecting to dashboard');
+        navigate("/dashboard");
       }
     };
-
+    
     checkAuthAndToken();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
+      if (event === 'SIGNED_IN' && session) {
+        // Handle invitation token if present
         const storedToken = sessionStorage.getItem('invitation_token');
         if (storedToken) {
+          console.log('Signed in with invitation token, redirecting to invitations');
           navigate(`/invitations?token=${storedToken}`);
         } else {
+          console.log('Signed in, redirecting to dashboard');
           navigate("/dashboard");
         }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   const getTitle = () => {
     if (invitationContext) {
-      if (isSignUp === null) return "Loading...";
       return isSignUp ? "Create Account to Accept Invitation" : "Sign In to Accept Invitation";
     }
-    if (isSignUp === null) return "Loading...";
     return isSignUp ? t('auth.createAccount') : t('auth.welcomeBack');
   };
 
   const getDescription = () => {
     if (invitationContext) return "Join your property and start managing your tenancy";
-    if (isSignUp === null) return "";
     return isSignUp ? t('auth.getStarted') : t('auth.signInToContinue');
   };
 
@@ -189,26 +169,6 @@ export default function Auth() {
       setLoading(false);
     }
   };
-
-  if (smartDetectionLoading) {
-    return (
-      <AuthLayout title="Loading..." description="Checking invitation...">
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </AuthLayout>
-    );
-  }
-
-  if (isSignUp === null) {
-    return (
-      <AuthLayout title="Loading..." description="">
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </AuthLayout>
-    );
-  }
 
   return (
     <AuthLayout
