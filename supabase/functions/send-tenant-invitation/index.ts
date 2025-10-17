@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,6 +12,7 @@ const corsHeaders = {
 
 interface InvitationEmailRequest {
   email: string;
+  propertyId: string;
   propertyTitle: string;
   propertyAddress: string | null;
   managerName: string;
@@ -18,124 +22,407 @@ interface InvitationEmailRequest {
   projectId: string;
 }
 
-// Email template constants
+// Email template constants - using external HTML files content
 const TEMPLATE_EN = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
-      .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-      .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; color: white; }
-      .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
-      .content { padding: 40px 30px; color: #333333; line-height: 1.6; }
-      .property-info { background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 4px; }
-      .property-info strong { display: block; margin-bottom: 8px; color: #667eea; }
-      .cta-button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 30px 0; transition: transform 0.2s; }
-      .cta-button:hover { transform: translateY(-2px); }
-      .expiration { font-size: 14px; color: #e74c3c; font-weight: 500; margin: 20px 0; }
-      .footer { padding: 30px; background-color: #f8f9fa; text-align: center; font-size: 14px; color: #666666; border-top: 1px solid #e0e0e0; }
-      .footer a { color: #667eea; text-decoration: none; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>🏠 Property Invitation</h1>
-      </div>
-      <div class="content">
-        <p>Hi there!</p>
-        <p><strong>{{managerName}}</strong> has invited you to become a tenant of:</p>
-        <div class="property-info">
-          <strong>📍 Property:</strong>
-          {{propertyTitle}}
-          {{propertyAddressBlock}}
-        </div>
-        <p>As a tenant, you'll be able to:</p>
-        <ul>
-          <li>Report and track maintenance tickets</li>
-          <li>View property documents</li>
-          <li>Communicate with your property manager</li>
-          <li>Access important property information</li>
-        </ul>
-        <div style="text-align: center;">
-          <a href="{{invitationLink}}" class="cta-button">Accept Invitation →</a>
-        </div>
-        <p class="expiration">⏰ This invitation expires on: {{expirationDate}}</p>
-        <p style="font-size: 14px; color: #666;">
-          Don't want to join? Simply ignore this email.
-        </p>
-      </div>
-      <div class="footer">
-        <p>Property Management System</p>
-        <p>If you're having trouble with the button, copy and paste this link into your browser:<br>
-        <a href="{{invitationLink}}">{{invitationLink}}</a></p>
-      </div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Property Invitation</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, {{primaryColor}} 0%, {{accentColor}} 100%);
+      padding: 40px 30px;
+      text-align: center;
+      color: white;
+    }
+    .logo {
+      max-width: 150px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    .property-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      display: block;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .property-card {
+      background: #f8f9fa;
+      border-left: 4px solid {{primaryColor}};
+      padding: 20px;
+      margin: 30px 0;
+      border-radius: 8px;
+    }
+    .property-card h2 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 20px;
+    }
+    .benefits {
+      margin: 30px 0;
+    }
+    .benefits h3 {
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    .benefits ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .benefits li {
+      padding: 10px 0;
+      color: #555;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .benefits li:before {
+      content: "✓";
+      color: {{primaryColor}};
+      font-weight: bold;
+      margin-right: 10px;
+      font-size: 18px;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, {{primaryColor}} 0%, {{accentColor}} 100%);
+      color: white;
+      padding: 16px 40px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 20px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s;
+    }
+    .expiration {
+      color: #666;
+      font-size: 14px;
+      margin: 30px 0 20px 0;
+      padding: 15px;
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      border-radius: 4px;
+    }
+    .footer {
+      background: #f8f9fa;
+      padding: 30px;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      border-top: 1px solid #e0e0e0;
+    }
+    .footer-brand {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .fallback-link {
+      color: #666;
+      font-size: 13px;
+      margin-top: 20px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="{{logoUrl}}" alt="{{brandName}}" class="logo" />
+      <h1>🏠 Property Invitation</h1>
     </div>
-  </body>
+    
+    <img src="{{propertyImageUrl}}" alt="{{propertyTitle}}" class="property-image" />
+    
+    <div class="content">
+      <p class="greeting">
+        Hello! <strong>{{managerName}}</strong> has invited you to join as a tenant.
+      </p>
+      
+      <div class="property-card">
+        <h2>{{propertyTitle}}</h2>
+        {{propertyAddressBlock}}
+      </div>
+      
+      <div class="benefits">
+        <h3>What you'll get:</h3>
+        <ul>
+          <li>Access to your property dashboard</li>
+          <li>Submit and track maintenance requests</li>
+          <li>View important property documents</li>
+          <li>Communicate directly with your property manager</li>
+          <li>Stay updated on property notifications</li>
+        </ul>
+      </div>
+      
+      <center>
+        <a href="{{invitationLink}}" class="cta-button">Accept Invitation</a>
+      </center>
+      
+      <div class="expiration">
+        ⏰ <strong>Important:</strong> This invitation expires on <strong>{{expirationDate}}</strong>. Please accept it before then.
+      </div>
+      
+      <p class="fallback-link">
+        If the button doesn't work, copy and paste this link into your browser:<br>
+        <span style="color: {{primaryColor}};">{{invitationLink}}</span>
+      </p>
+    </div>
+    
+    <div class="footer">
+      <p class="footer-brand">{{brandName}}</p>
+      <p style="color: #999; font-size: 12px; margin: 5px 0;">Modern Property Management</p>
+    </div>
+  </div>
+</body>
 </html>`;
 
 const TEMPLATE_ES = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
-      .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-      .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; color: white; }
-      .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
-      .content { padding: 40px 30px; color: #333333; line-height: 1.6; }
-      .property-info { background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 4px; }
-      .property-info strong { display: block; margin-bottom: 8px; color: #667eea; }
-      .cta-button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 30px 0; transition: transform 0.2s; }
-      .cta-button:hover { transform: translateY(-2px); }
-      .expiration { font-size: 14px; color: #e74c3c; font-weight: 500; margin: 20px 0; }
-      .footer { padding: 30px; background-color: #f8f9fa; text-align: center; font-size: 14px; color: #666666; border-top: 1px solid #e0e0e0; }
-      .footer a { color: #667eea; text-decoration: none; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>🏠 Invitación a Propiedad</h1>
-      </div>
-      <div class="content">
-        <p>¡Hola!</p>
-        <p><strong>{{managerName}}</strong> te ha invitado a ser inquilino de:</p>
-        <div class="property-info">
-          <strong>📍 Propiedad:</strong>
-          {{propertyTitle}}
-          {{propertyAddressBlock}}
-        </div>
-        <p>Como inquilino, podrás:</p>
-        <ul>
-          <li>Reportar y seguir tickets de mantenimiento</li>
-          <li>Ver documentos de la propiedad</li>
-          <li>Comunicarte con tu administrador de propiedad</li>
-          <li>Acceder a información importante de la propiedad</li>
-        </ul>
-        <div style="text-align: center;">
-          <a href="{{invitationLink}}" class="cta-button">Aceptar Invitación →</a>
-        </div>
-        <p class="expiration">⏰ Esta invitación expira el: {{expirationDate}}</p>
-        <p style="font-size: 14px; color: #666;">
-          ¿No quieres unirte? Simplemente ignora este correo.
-        </p>
-      </div>
-      <div class="footer">
-        <p>Sistema de Gestión de Propiedades</p>
-        <p>Si tienes problemas con el botón, copia y pega este enlace en tu navegador:<br>
-        <a href="{{invitationLink}}">{{invitationLink}}</a></p>
-      </div>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invitación a Propiedad</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, {{primaryColor}} 0%, {{accentColor}} 100%);
+      padding: 40px 30px;
+      text-align: center;
+      color: white;
+    }
+    .logo {
+      max-width: 150px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    .property-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      display: block;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .property-card {
+      background: #f8f9fa;
+      border-left: 4px solid {{primaryColor}};
+      padding: 20px;
+      margin: 30px 0;
+      border-radius: 8px;
+    }
+    .property-card h2 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 20px;
+    }
+    .benefits {
+      margin: 30px 0;
+    }
+    .benefits h3 {
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    .benefits ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .benefits li {
+      padding: 10px 0;
+      color: #555;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .benefits li:before {
+      content: "✓";
+      color: {{primaryColor}};
+      font-weight: bold;
+      margin-right: 10px;
+      font-size: 18px;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, {{primaryColor}} 0%, {{accentColor}} 100%);
+      color: white;
+      padding: 16px 40px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 20px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s;
+    }
+    .expiration {
+      color: #666;
+      font-size: 14px;
+      margin: 30px 0 20px 0;
+      padding: 15px;
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      border-radius: 4px;
+    }
+    .footer {
+      background: #f8f9fa;
+      padding: 30px;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      border-top: 1px solid #e0e0e0;
+    }
+    .footer-brand {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .fallback-link {
+      color: #666;
+      font-size: 13px;
+      margin-top: 20px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="{{logoUrl}}" alt="{{brandName}}" class="logo" />
+      <h1>🏠 Invitación a Propiedad</h1>
     </div>
-  </body>
+    
+    <img src="{{propertyImageUrl}}" alt="{{propertyTitle}}" class="property-image" />
+    
+    <div class="content">
+      <p class="greeting">
+        ¡Hola! <strong>{{managerName}}</strong> te ha invitado a unirte como inquilino.
+      </p>
+      
+      <div class="property-card">
+        <h2>{{propertyTitle}}</h2>
+        {{propertyAddressBlock}}
+      </div>
+      
+      <div class="benefits">
+        <h3>Lo que obtendrás:</h3>
+        <ul>
+          <li>Acceso a tu panel de control de propiedad</li>
+          <li>Enviar y rastrear solicitudes de mantenimiento</li>
+          <li>Ver documentos importantes de la propiedad</li>
+          <li>Comunicarte directamente con tu administrador</li>
+          <li>Mantenerte actualizado sobre notificaciones de la propiedad</li>
+        </ul>
+      </div>
+      
+      <center>
+        <a href="{{invitationLink}}" class="cta-button">Aceptar Invitación</a>
+      </center>
+      
+      <div class="expiration">
+        ⏰ <strong>Importante:</strong> Esta invitación expira el <strong>{{expirationDate}}</strong>. Por favor, acéptala antes de esa fecha.
+      </div>
+      
+      <p class="fallback-link">
+        Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+        <span style="color: {{primaryColor}};">{{invitationLink}}</span>
+      </p>
+    </div>
+    
+    <div class="footer">
+      <p class="footer-brand">{{brandName}}</p>
+      <p style="color: #999; font-size: 12px; margin: 5px 0;">Gestión Moderna de Propiedades</p>
+    </div>
+  </div>
+</body>
 </html>`;
 
 // Helper function to get template by language
 function getTemplate(language: string): string {
   return language === 'es' ? TEMPLATE_ES : TEMPLATE_EN;
+}
+
+// Helper function to convert HSL to Hex for email compatibility
+function hslToHex(hsl: string): string {
+  const parts = hsl.split(' ');
+  const h = parseInt(parts[0]);
+  const s = parseInt(parts[1].replace('%', '')) / 100;
+  const l = parseInt(parts[2].replace('%', '')) / 100;
+
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+
+  if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+  else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+  else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+  else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+  else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+  else if (300 <= h && h < 360) { r = c; g = 0; b = c; }
+
+  const toHex = (n: number) => {
+    const hex = Math.round((n + m) * 255).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  };
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
 // Helper function to escape HTML to prevent XSS injection
@@ -163,6 +450,42 @@ function substituteVariables(template: string, variables: Record<string, string>
 }
 
 const getEmailContent = async (data: InvitationEmailRequest) => {
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  // Fetch brand settings
+  const { data: brandSettings } = await supabase
+    .from('brand_settings')
+    .select('brand_name, logo_url, primary_color, accent_color')
+    .single();
+
+  const brandName = brandSettings?.brand_name || 'RentMate';
+  const logoUrl = brandSettings?.logo_url || '';
+  const primaryColor = brandSettings?.primary_color ? hslToHex(brandSettings.primary_color) : '#8e4ec6';
+  const accentColor = brandSettings?.accent_color ? hslToHex(brandSettings.accent_color) : '#e11d48';
+
+  // Try to fetch property photo
+  let propertyImageUrl = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop';
+  
+  try {
+    const { data: photos } = await supabase
+      .storage
+      .from('property-photos')
+      .list(data.propertyId, { limit: 1 });
+
+    if (photos && photos.length > 0) {
+      const { data: urlData } = supabase
+        .storage
+        .from('property-photos')
+        .getPublicUrl(`${data.propertyId}/${photos[0].name}`);
+      
+      if (urlData?.publicUrl) {
+        propertyImageUrl = urlData.publicUrl;
+      }
+    }
+  } catch (error) {
+    console.log('Using fallback property image:', error);
+  }
+
   const appUrl = `https://${data.projectId}.lovableproject.com`;
   const invitationLink = `${appUrl}/invitations?token=${data.token}`;
 
@@ -180,10 +503,15 @@ const getEmailContent = async (data: InvitationEmailRequest) => {
 
   // Prepare variables for substitution
   const variables = {
+    brandName,
+    logoUrl,
+    primaryColor,
+    accentColor,
+    propertyImageUrl,
     propertyTitle: data.propertyTitle,
     propertyAddress: data.propertyAddress || '',
     propertyAddressBlock: data.propertyAddress 
-      ? `<br><strong>${data.language === 'es' ? 'Dirección' : 'Address'}:</strong> ${data.propertyAddress}` 
+      ? `<p style="color: #666; margin: 8px 0; font-size: 14px;">${escapeHtml(data.propertyAddress)}</p>`
       : '',
     managerName: data.managerName,
     invitationLink: invitationLink,

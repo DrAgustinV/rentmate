@@ -2,6 +2,11 @@
 
 Available variables for email templates:
 
+- `{{brandName}}` - Brand name from database settings
+- `{{logoUrl}}` - Brand logo URL from database settings
+- `{{primaryColor}}` - Primary brand color (hex format)
+- `{{accentColor}}` - Accent brand color (hex format)
+- `{{propertyImageUrl}}` - Property photo or fallback image
 - `{{propertyTitle}}` - Name of the property
 - `{{propertyAddress}}` - Full address of the property (optional)
 - `{{propertyAddressBlock}}` - Formatted address block (auto-populated if address exists)
