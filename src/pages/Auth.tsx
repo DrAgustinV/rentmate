@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBrand } from "@/contexts/BrandContext";
+import { Loader2 } from "lucide-react";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }),
@@ -18,12 +19,13 @@ const authSchema = z.object({
 });
 
 export default function Auth() {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState<boolean | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [smartDetectionLoading, setSmartDetectionLoading] = useState(false);
   const [invitationContext, setInvitationContext] = useState<{ token: string; email: string } | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -40,6 +42,7 @@ export default function Auth() {
       const token = urlParams.get('token');
       
       if (token) {
+        setSmartDetectionLoading(true);
         // Store token for later use
         sessionStorage.setItem('invitation_token', token);
         
@@ -73,7 +76,13 @@ export default function Auth() {
           }
         } catch (error) {
           console.log('Could not fetch invitation details:', error);
+          setIsSignUp(false);
+        } finally {
+          setSmartDetectionLoading(false);
         }
+      } else {
+        // No invitation token, default to sign-up mode
+        setIsSignUp(false);
       }
       
       if (session) {
@@ -102,6 +111,21 @@ export default function Auth() {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const getTitle = () => {
+    if (invitationContext) {
+      if (isSignUp === null) return "Loading...";
+      return isSignUp ? "Create Account to Accept Invitation" : "Sign In to Accept Invitation";
+    }
+    if (isSignUp === null) return "Loading...";
+    return isSignUp ? t('auth.createAccount') : t('auth.welcomeBack');
+  };
+
+  const getDescription = () => {
+    if (invitationContext) return "Join your property and start managing your tenancy";
+    if (isSignUp === null) return "";
+    return isSignUp ? t('auth.getStarted') : t('auth.signInToContinue');
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,10 +190,30 @@ export default function Auth() {
     }
   };
 
+  if (smartDetectionLoading) {
+    return (
+      <AuthLayout title="Loading..." description="Checking invitation...">
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  if (isSignUp === null) {
+    return (
+      <AuthLayout title="Loading..." description="">
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout
-      title={invitationContext ? (isSignUp ? "Create Account to Accept Invitation" : "Sign In to Accept Invitation") : (isSignUp ? t('auth.createAccount') : t('auth.welcomeBack'))}
-      description={invitationContext ? "Join your property and start managing your tenancy" : (isSignUp ? t('auth.getStarted') : t('auth.signInToContinue'))}
+      title={getTitle()}
+      description={getDescription()}
     >
       {invitationContext && (
         <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-md">
