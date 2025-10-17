@@ -1,61 +1,184 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
-      .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-      .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; color: white; }
-      .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
-      .content { padding: 40px 30px; color: #333333; line-height: 1.6; }
-      .property-info { background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 4px; }
-      .property-info strong { display: block; margin-bottom: 8px; color: #667eea; }
-      .cta-button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 30px 0; transition: transform 0.2s; }
-      .cta-button:hover { transform: translateY(-2px); }
-      .expiration { font-size: 14px; color: #e74c3c; font-weight: 500; margin: 20px 0; }
-      .footer { padding: 30px; background-color: #f8f9fa; text-align: center; font-size: 14px; color: #666666; border-top: 1px solid #e0e0e0; }
-      .footer a { color: #667eea; text-decoration: none; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>🏠 Property Invitation</h1>
-      </div>
-      <div class="content">
-        <p>Hi there!</p>
-        <p><strong>{{managerName}}</strong> has invited you to become a tenant of:</p>
-        
-        <div class="property-info">
-          <strong>📍 Property:</strong>
-          {{propertyTitle}}
-          {{propertyAddressBlock}}
-        </div>
-
-        <p>As a tenant, you'll be able to:</p>
-        <ul>
-          <li>Report and track maintenance tickets</li>
-          <li>View property documents</li>
-          <li>Communicate with your property manager</li>
-          <li>Access important property information</li>
-        </ul>
-
-        <div style="text-align: center;">
-          <a href="{{invitationLink}}" class="cta-button">Accept Invitation →</a>
-        </div>
-
-        <p class="expiration">⏰ This invitation expires on: {{expirationDate}}</p>
-
-        <p style="font-size: 14px; color: #666;">
-          Don't want to join? Simply ignore this email.
-        </p>
-      </div>
-      <div class="footer">
-        <p>Property Management System</p>
-        <p>If you're having trouble with the button, copy and paste this link into your browser:<br>
-        <a href="{{invitationLink}}">{{invitationLink}}</a></p>
-      </div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Property Invitation</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, {{primaryColor}} 0%, {{accentColor}} 100%);
+      padding: 40px 30px;
+      text-align: center;
+      color: white;
+    }
+    .logo {
+      max-width: 150px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    .property-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      display: block;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .property-card {
+      background: #f8f9fa;
+      border-left: 4px solid {{primaryColor}};
+      padding: 20px;
+      margin: 30px 0;
+      border-radius: 8px;
+    }
+    .property-card h2 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 20px;
+    }
+    .benefits {
+      margin: 30px 0;
+    }
+    .benefits h3 {
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    .benefits ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .benefits li {
+      padding: 10px 0;
+      color: #555;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .benefits li:before {
+      content: "✓";
+      color: {{primaryColor}};
+      font-weight: bold;
+      margin-right: 10px;
+      font-size: 18px;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, {{primaryColor}} 0%, {{accentColor}} 100%);
+      color: white;
+      padding: 16px 40px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 20px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s;
+    }
+    .expiration {
+      color: #666;
+      font-size: 14px;
+      margin: 30px 0 20px 0;
+      padding: 15px;
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      border-radius: 4px;
+    }
+    .footer {
+      background: #f8f9fa;
+      padding: 30px;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      border-top: 1px solid #e0e0e0;
+    }
+    .footer-brand {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .fallback-link {
+      color: #666;
+      font-size: 13px;
+      margin-top: 20px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="{{logoUrl}}" alt="{{brandName}}" class="logo" />
+      <h1>🏠 Property Invitation</h1>
     </div>
-  </body>
+    
+    <img src="{{propertyImageUrl}}" alt="{{propertyTitle}}" class="property-image" />
+    
+    <div class="content">
+      <p class="greeting">
+        Hello! <strong>{{managerName}}</strong> has invited you to join as a tenant.
+      </p>
+      
+      <div class="property-card">
+        <h2>{{propertyTitle}}</h2>
+        {{propertyAddressBlock}}
+      </div>
+      
+      <div class="benefits">
+        <h3>What you'll get:</h3>
+        <ul>
+          <li>Access to your property dashboard</li>
+          <li>Submit and track maintenance requests</li>
+          <li>View important property documents</li>
+          <li>Communicate directly with your property manager</li>
+          <li>Stay updated on property notifications</li>
+        </ul>
+      </div>
+      
+      <center>
+        <a href="{{invitationLink}}" class="cta-button">Accept Invitation</a>
+      </center>
+      
+      <div class="expiration">
+        ⏰ <strong>Important:</strong> This invitation expires on <strong>{{expirationDate}}</strong>. Please accept it before then.
+      </div>
+      
+      <p class="fallback-link">
+        If the button doesn't work, copy and paste this link into your browser:<br>
+        <span style="color: {{primaryColor}};">{{invitationLink}}</span>
+      </p>
+    </div>
+    
+    <div class="footer">
+      <p class="footer-brand">{{brandName}}</p>
+      <p style="color: #999; font-size: 12px; margin: 5px 0;">Modern Property Management</p>
+    </div>
+  </div>
+</body>
 </html>
