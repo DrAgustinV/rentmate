@@ -4,6 +4,7 @@ import "./index.css";
 import { UserPreferencesProvider } from "./contexts/UserPreferencesContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { BrandProvider } from "./components/BrandProvider";
 
 // In development, validate translations
 if (import.meta.env.DEV) {
@@ -16,7 +17,9 @@ createRoot(document.getElementById("root")!).render(
   <UserPreferencesProvider>
     <ThemeProvider>
       <LanguageProvider>
-        <App />
+        <BrandProvider>
+          <App />
+        </BrandProvider>
       </LanguageProvider>
     </ThemeProvider>
   </UserPreferencesProvider>

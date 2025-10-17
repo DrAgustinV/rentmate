@@ -23,21 +23,15 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 import { queryClient } from "./lib/queryClient";
-import { UserPreferencesProvider } from "@/contexts/UserPreferencesContext";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import { BrandProvider } from "@/components/BrandProvider";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <UserPreferencesProvider>
-      <LanguageProvider>
-        <BrandProvider>
-          <TooltipProvider>
-            <Sonner />
-            <BrowserRouter>
-              <AnalyticsProvider>
-                <Routes>
+    <TooltipProvider>
+      <Sonner />
+      <BrowserRouter>
+        <AnalyticsProvider>
+          <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -57,13 +51,10 @@ const App = () => (
           <Route path="/help" element={<Help />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
-                </Routes>
-              </AnalyticsProvider>
-            </BrowserRouter>
-          </TooltipProvider>
-    </BrandProvider>
-    </LanguageProvider>
-    </UserPreferencesProvider>
+          </Routes>
+        </AnalyticsProvider>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 
