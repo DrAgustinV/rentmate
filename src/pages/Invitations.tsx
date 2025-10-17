@@ -63,10 +63,22 @@ export default function Invitations() {
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
+    
+    // Get token from URL search params
+    const token = searchParams.get('token');
+    
     if (!session) {
-      navigate("/auth");
+      // If not logged in, preserve token and redirect to auth
+      if (token) {
+        sessionStorage.setItem('invitation_token', token);
+        navigate(`/auth?token=${token}`);
+      } else {
+        navigate("/auth");
+      }
       return;
     }
+    
+    // If logged in, proceed to fetch invitations
     fetchInvitations();
   };
 
@@ -113,10 +125,13 @@ export default function Invitations() {
   };
 
   const handleAccept = async (invitationId: string, propertyId: string) => {
+    console.log('🎯 Accepting invitation:', { invitationId, propertyId });
     setProcessingId(invitationId);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
+
+      console.log('✅ User authenticated:', user.id, user.email);
 
       // Add user as tenant with active status
       const { error: tenantError } = await supabase
@@ -151,18 +166,22 @@ export default function Invitations() {
         description: t('invitations.acceptedDesc'),
       });
 
+      console.log('✅ Invitation accepted successfully, redirecting to property details');
       setInvitations(invitations.filter((inv) => inv.id !== invitationId));
       
       // Redirect to property details
       navigate(`/properties/${propertyId}/details`);
     } catch (error: any) {
+      console.error('❌ Invitation acceptance error:', error);
+      
       toast({
         title: t('common.error'),
-        description: error.message,
+        description: error.message || 'Failed to accept invitation. Please try again.',
         variant: "destructive",
       });
     } finally {
       setProcessingId(null);
+      setAutoAcceptInvitation(null);
     }
   };
 

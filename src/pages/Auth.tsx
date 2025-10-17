@@ -30,6 +30,13 @@ export default function Auth() {
   const { t } = useLanguage();
   const { brandName } = useBrand();
 
+  // Default to sign-up mode for invitations
+  useEffect(() => {
+    if (invitationContext) {
+      setIsSignUp(true);
+    }
+  }, [invitationContext]);
+
   useEffect(() => {
     const checkAuthAndToken = async () => {
       // Check if user is already logged in
@@ -156,6 +163,15 @@ export default function Auth() {
       title={invitationContext ? (isSignUp ? "Create Account to Accept Invitation" : "Sign In to Accept Invitation") : (isSignUp ? t('auth.createAccount') : t('auth.welcomeBack'))}
       description={invitationContext ? "Join your property and start managing your tenancy" : (isSignUp ? t('auth.getStarted') : t('auth.signInToContinue'))}
     >
+      {invitationContext && (
+        <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-md">
+          <p className="text-sm text-foreground">
+            {isSignUp 
+              ? "Create a new account to accept your property invitation" 
+              : "Already have an account? Sign in to accept your invitation"}
+          </p>
+        </div>
+      )}
       <form onSubmit={handleAuth} className="space-y-4">
         {isSignUp && (
           <div className="grid grid-cols-2 gap-4">
@@ -189,6 +205,8 @@ export default function Auth() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
+            disabled={!!invitationContext}
+            className={invitationContext ? "bg-muted" : ""}
           />
         </div>
 
