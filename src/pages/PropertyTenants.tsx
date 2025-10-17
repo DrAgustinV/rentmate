@@ -334,6 +334,7 @@ export default function PropertyTenants() {
           expiresAt: expiresAt.toISOString(),
           language: localStorage.getItem('language') || 'en',
           projectId: import.meta.env.VITE_SUPABASE_PROJECT_ID,
+          propertyId: propertyId,
         },
       });
     },
