@@ -117,6 +117,9 @@ export function BrandSettings() {
   };
 
   const handleSave = async () => {
+    console.log("=== BRAND SETTINGS SAVE STARTED ===");
+    console.log("Current settings state:", settings);
+    
     // Check if settings are loaded
     if (!settings?.id) {
       console.error("Brand settings not loaded yet. Settings:", settings);
@@ -128,6 +131,7 @@ export function BrandSettings() {
       return;
     }
 
+    console.log("Brand name:", brandName);
     if (!brandName.trim()) {
       toast({
         title: "Validation error",
@@ -139,6 +143,9 @@ export function BrandSettings() {
 
     // Validate HSL format
     const hslRegex = /^\d{1,3}\s+\d{1,3}%\s+\d{1,3}%$/;
+    console.log("Primary color:", primaryColor, "Valid:", hslRegex.test(primaryColor));
+    console.log("Accent color:", accentColor, "Valid:", hslRegex.test(accentColor));
+    
     if (!hslRegex.test(primaryColor) || !hslRegex.test(accentColor)) {
       toast({
         title: "Invalid color format",
@@ -150,14 +157,20 @@ export function BrandSettings() {
 
     setLoading(true);
     try {
+      console.log("Starting logo upload...");
       const logoUrl = await uploadLogo();
+      console.log("Logo upload result:", logoUrl);
+      
       if (logoUrl === null && logoFile) {
         // Upload failed
+        console.error("Logo upload failed");
         setLoading(false);
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log("Getting current user...");
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log("Current user:", user?.id, "Error:", userError);
       
       const updates = {
         brand_name: brandName.trim(),
@@ -168,7 +181,8 @@ export function BrandSettings() {
         updated_at: new Date().toISOString(),
       };
 
-      console.log("Updating brand settings:", { id: settings.id, updates });
+      console.log("Updating brand settings with ID:", settings.id);
+      console.log("Update payload:", updates);
 
       const { error, data } = await supabase
         .from("brand_settings")
@@ -176,12 +190,15 @@ export function BrandSettings() {
         .eq("id", settings.id)
         .select();
 
+      console.log("Update response - Error:", error);
+      console.log("Update response - Data:", data);
+
       if (error) {
-        console.error("Update error:", error);
+        console.error("Update error details:", JSON.stringify(error, null, 2));
         throw error;
       }
 
-      console.log("Update successful:", data);
+      console.log("Update successful!");
 
       toast({
         title: "Brand settings updated",
@@ -189,9 +206,12 @@ export function BrandSettings() {
       });
 
       // Refresh settings locally - realtime subscription will handle propagation
+      console.log("Refreshing brand settings...");
       await fetchBrandSettings();
+      console.log("=== BRAND SETTINGS SAVE COMPLETED ===");
     } catch (error: any) {
       console.error("Save error:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
       toast({
         title: "Error saving settings",
         description: error.message || "An unexpected error occurred",
