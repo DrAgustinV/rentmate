@@ -63,8 +63,8 @@ const Index = () => {
             className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-card hover-lift animate-slide-up"
             style={{ animationDelay: "200ms" }}
           >
-            <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-4">
-              <Shield className="h-6 w-6 text-success" />
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Shield className="h-6 w-6 text-primary" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Secure & Reliable</h3>
             <p className="text-muted-foreground">
