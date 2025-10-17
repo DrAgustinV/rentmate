@@ -31,10 +31,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     // Apply dark mode class
     document.documentElement.classList.toggle('dark', effectiveTheme === 'dark');
     
-    // Apply custom colors
-    document.documentElement.style.setProperty('--primary', prefs.primary_color);
-    document.documentElement.style.setProperty('--accent', prefs.accent_color);
-    
     // Apply font size
     const fontSizeMap = { sm: 'text-sm', md: 'text-base', lg: 'text-lg' };
     document.documentElement.classList.remove('text-sm', 'text-base', 'text-lg');
@@ -66,8 +62,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const resetToDefaults = async () => {
     const defaults = {
       theme_mode: 'system' as const,
-      primary_color: '221 83% 53%',
-      accent_color: '199 89% 48%',
       font_size: 'md' as const,
       date_format: 'PPP',
       language: 'en',

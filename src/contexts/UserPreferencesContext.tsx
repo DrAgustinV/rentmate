@@ -3,8 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface UserPreferences {
   theme_mode: 'light' | 'dark' | 'system';
-  primary_color: string;
-  accent_color: string;
   font_size: 'sm' | 'md' | 'lg';
   date_format: string;
   language: string;
@@ -21,8 +19,6 @@ const UserPreferencesContext = createContext<UserPreferencesContextType | undefi
 
 export const defaultPreferences: UserPreferences = {
   theme_mode: 'system',
-  primary_color: '221 83% 53%',
-  accent_color: '199 89% 48%',
   font_size: 'md',
   date_format: 'PPP',
   language: 'en',
@@ -61,8 +57,6 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       if (data) {
         const prefs: UserPreferences = {
           theme_mode: data.theme_mode as 'light' | 'dark' | 'system',
-          primary_color: data.primary_color,
-          accent_color: data.accent_color,
           font_size: data.font_size as 'sm' | 'md' | 'lg',
           date_format: data.date_format,
           language: data.language || 'en',
@@ -94,8 +88,6 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       .upsert({
         user_id: user.id,
         theme_mode: updatedPrefs.theme_mode,
-        primary_color: updatedPrefs.primary_color,
-        accent_color: updatedPrefs.accent_color,
         font_size: updatedPrefs.font_size,
         date_format: updatedPrefs.date_format,
         language: updatedPrefs.language,

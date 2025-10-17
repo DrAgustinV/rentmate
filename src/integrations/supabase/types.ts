@@ -772,39 +772,33 @@ export type Database = {
       }
       user_preferences: {
         Row: {
-          accent_color: string | null
           created_at: string | null
           date_format: string | null
           font_size: string | null
           id: string
           language: string | null
-          primary_color: string | null
           theme_mode: string | null
           updated_at: string | null
           user_id: string
           week_start_day: string | null
         }
         Insert: {
-          accent_color?: string | null
           created_at?: string | null
           date_format?: string | null
           font_size?: string | null
           id?: string
           language?: string | null
-          primary_color?: string | null
           theme_mode?: string | null
           updated_at?: string | null
           user_id: string
           week_start_day?: string | null
         }
         Update: {
-          accent_color?: string | null
           created_at?: string | null
           date_format?: string | null
           font_size?: string | null
           id?: string
           language?: string | null
-          primary_color?: string | null
           theme_mode?: string | null
           updated_at?: string | null
           user_id?: string

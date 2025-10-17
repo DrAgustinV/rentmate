@@ -13,19 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Sun, Moon, Monitor, Palette, Type, Calendar, Globe } from 'lucide-react';
+import { Sun, Moon, Monitor, Type, Calendar, Globe } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Language } from '@/lib/i18n/translations';
 import { AVAILABLE_LANGUAGES } from '@/lib/i18n/languages.config';
-
-const colorPresets = [
-  { name: 'Ocean Blue', primary: '221 83% 53%', accent: '199 89% 48%' },
-  { name: 'Forest Green', primary: '142 76% 36%', accent: '120 60% 50%' },
-  { name: 'Sunset Orange', primary: '25 95% 53%', accent: '38 92% 50%' },
-  { name: 'Royal Purple', primary: '271 76% 53%', accent: '280 87% 65%' },
-  { name: 'Rose Pink', primary: '340 82% 52%', accent: '350 89% 60%' },
-  { name: 'Slate Gray', primary: '215 16% 47%', accent: '210 20% 40%' },
-];
 
 export const AppearanceSettings = () => {
   const { preferences, loading, updateTheme, resetToDefaults } = useTheme();
@@ -97,75 +88,6 @@ export const AppearanceSettings = () => {
             <span className="text-sm font-medium">{t('settings.system')}</span>
           </Label>
         </RadioGroup>
-      </div>
-
-      {/* Color Scheme */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Palette className="h-5 w-5" />
-          <h3 className="text-lg font-semibold">{t('settings.primaryColor')} & {t('settings.accentColor')}</h3>
-        </div>
-        
-        <div className="space-y-4">
-          <div>
-            <Label className="text-sm font-medium mb-3 block">Presets</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {colorPresets.map((preset) => (
-                <Card
-                  key={preset.name}
-                  className={`p-4 cursor-pointer hover:border-primary transition-colors ${
-                    currentPrefs.primary_color === preset.primary &&
-                    currentPrefs.accent_color === preset.accent
-                      ? 'border-primary border-2'
-                      : 'border'
-                  }`}
-                  onClick={() => updateTempPrefs({ primary_color: preset.primary, accent_color: preset.accent })}
-                >
-                  <div className="flex gap-2 mb-2">
-                    <div
-                      className="w-8 h-8 rounded"
-                      style={{ backgroundColor: `hsl(${preset.primary})` }}
-                    />
-                    <div
-                      className="w-8 h-8 rounded"
-                      style={{ backgroundColor: `hsl(${preset.accent})` }}
-                    />
-                  </div>
-                  <p className="text-sm font-medium">{preset.name}</p>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="primary-color">{t('settings.primaryColor')} (HSL)</Label>
-              <Input
-                id="primary-color"
-                value={currentPrefs.primary_color}
-                onChange={(e) => updateTempPrefs({ primary_color: e.target.value })}
-                placeholder="221 83% 53%"
-              />
-              <div
-                className="w-full h-10 rounded border"
-                style={{ backgroundColor: `hsl(${currentPrefs.primary_color})` }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="accent-color">{t('settings.accentColor')} (HSL)</Label>
-              <Input
-                id="accent-color"
-                value={currentPrefs.accent_color}
-                onChange={(e) => updateTempPrefs({ accent_color: e.target.value })}
-                placeholder="199 89% 48%"
-              />
-              <div
-                className="w-full h-10 rounded border"
-                style={{ backgroundColor: `hsl(${currentPrefs.accent_color})` }}
-              />
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Font Size */}
