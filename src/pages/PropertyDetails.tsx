@@ -55,6 +55,26 @@ export default function PropertyDetails() {
     enabled: !!propertyId,
   });
 
+  const { data: userRole } = useQuery({
+    queryKey: ["user-role", propertyId],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data: propertyData } = await supabase
+        .from("properties")
+        .select("manager_id")
+        .eq("id", propertyId)
+        .single();
+      
+      return { 
+        isManager: propertyData?.manager_id === user.id,
+        userId: user.id 
+      };
+    },
+    enabled: !!propertyId,
+  });
+
   const { data: activeTenant } = useQuery({
     queryKey: ["active-tenant", propertyId],
     queryFn: async () => {
@@ -247,7 +267,9 @@ export default function PropertyDetails() {
             </Button>
             <div>
               <h1 className="text-3xl font-bold">{property.title}</h1>
-              <p className="text-muted-foreground">{t("properties.editProperty")}</p>
+              <p className="text-muted-foreground">
+                {userRole?.isManager ? t("properties.editProperty") : t("properties.viewProperty")}
+              </p>
             </div>
           </div>
         </div>
@@ -260,36 +282,57 @@ export default function PropertyDetails() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <PropertyPhotoUpload 
-                  propertyId={propertyId!} 
-                  currentPhoto={property.images?.[0]}
-                  onPhotoChange={(url) => {
-                    queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
-                  }}
-                />
+                {userRole?.isManager ? (
+                  <PropertyPhotoUpload 
+                    propertyId={propertyId!} 
+                    currentPhoto={property.images?.[0]}
+                    onPhotoChange={(url) => {
+                      queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
+                    }}
+                  />
+                ) : (
+                  property.images?.[0] && (
+                    <div className="space-y-2">
+                      <Label>{t("properties.photo")}</Label>
+                      <img 
+                        src={property.images[0]} 
+                        alt={property.title}
+                        className="w-full h-64 object-cover rounded-lg"
+                      />
+                    </div>
+                  )
+                )}
               </div>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">{t("properties.title")}</Label>
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => {
-                      setTitle(e.target.value);
-                      setIsEditing(true);
-                    }}
-                  />
+                  {userRole?.isManager ? (
+                    <Input
+                      id="title"
+                      value={title}
+                      onChange={(e) => {
+                        setTitle(e.target.value);
+                        setIsEditing(true);
+                      }}
+                    />
+                  ) : (
+                    <p className="text-sm py-2">{title}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="address">{t("properties.address")}</Label>
-                  <Input
-                    id="address"
-                    value={address}
-                    onChange={(e) => {
-                      setAddress(e.target.value);
-                      setIsEditing(true);
-                    }}
-                  />
+                  {userRole?.isManager ? (
+                    <Input
+                      id="address"
+                      value={address}
+                      onChange={(e) => {
+                        setAddress(e.target.value);
+                        setIsEditing(true);
+                      }}
+                    />
+                  ) : (
+                    <p className="text-sm py-2">{address}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>{t("properties.status")}</Label>
@@ -310,19 +353,23 @@ export default function PropertyDetails() {
 
             <div className="space-y-2">
               <Label htmlFor="description">{t("properties.description")}</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => {
-                  setDescription(e.target.value);
-                  setIsEditing(true);
-                }}
-                rows={4}
-                placeholder={t("properties.descriptionPlaceholder")}
-              />
+              {userRole?.isManager ? (
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    setIsEditing(true);
+                  }}
+                  rows={4}
+                  placeholder={t("properties.descriptionPlaceholder")}
+                />
+              ) : (
+                <p className="text-sm py-2 whitespace-pre-wrap">{description || t("properties.noDescription")}</p>
+              )}
             </div>
 
-            {isEditing && (
+            {isEditing && userRole?.isManager && (
               <div className="flex justify-end gap-2">
                 <Button
                   variant="outline"
@@ -351,10 +398,12 @@ export default function PropertyDetails() {
                 <CardTitle>{t("properties.propertyTemplates")}</CardTitle>
                 <CardDescription>{t("properties.propertyTemplatesDescription")}</CardDescription>
               </div>
-              <Button onClick={() => setShowUpload(!showUpload)} variant="outline" size="sm">
-                <UploadIcon className="h-4 w-4 mr-2" />
-                {showUpload ? t("common.cancel") : t("properties.uploadTemplate")}
-              </Button>
+              {userRole?.isManager && (
+                <Button onClick={() => setShowUpload(!showUpload)} variant="outline" size="sm">
+                  <UploadIcon className="h-4 w-4 mr-2" />
+                  {showUpload ? t("common.cancel") : t("properties.uploadTemplate")}
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -413,16 +462,18 @@ export default function PropertyDetails() {
                             >
                               <Download className="h-4 w-4" />
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteDocumentMutation.mutate(docs[0].id);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {userRole?.isManager && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteDocumentMutation.mutate(docs[0].id);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </CollapsibleTrigger>
@@ -464,7 +515,7 @@ export default function PropertyDetails() {
           </CardContent>
         </Card>
 
-        {!activeTenant && property.status === 'active' && (
+        {userRole?.isManager && !activeTenant && property.status === 'active' && (
           <Card className="border-destructive/50">
             <CardHeader>
               <CardTitle className="text-destructive">{t("properties.archivePropertyTitle")}</CardTitle>
