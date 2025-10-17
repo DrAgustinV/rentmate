@@ -30,32 +30,6 @@ export default function Auth() {
   const { t } = useLanguage();
   const { brandName } = useBrand();
 
-  // Smart mode detection: check if user exists for invitations
-  useEffect(() => {
-    const checkIfUserExists = async () => {
-      if (!invitationContext) return;
-      
-      // Check if a user with this email already exists
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', invitationContext.email)
-        .maybeSingle();
-      
-      if (profile) {
-        // User exists → default to SIGN-IN mode
-        console.log('✅ Existing user detected, defaulting to sign-in mode');
-        setIsSignUp(false);
-      } else {
-        // New user → default to SIGN-UP mode
-        console.log('✅ New user detected, defaulting to sign-up mode');
-        setIsSignUp(true);
-      }
-    };
-    
-    checkIfUserExists();
-  }, [invitationContext]);
-
   useEffect(() => {
     const checkAuthAndToken = async () => {
       // Check if user is already logged in
@@ -81,6 +55,21 @@ export default function Auth() {
           if (invitation) {
             setInvitationContext({ token, email: invitation.email });
             setEmail(invitation.email);
+            
+            // Smart mode detection: Check if user exists immediately
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('email', invitation.email)
+              .maybeSingle();
+            
+            if (profile) {
+              console.log('✅ Existing user detected, defaulting to sign-in mode');
+              setIsSignUp(false);
+            } else {
+              console.log('✅ New user detected, defaulting to sign-up mode');
+              setIsSignUp(true);
+            }
           }
         } catch (error) {
           console.log('Could not fetch invitation details:', error);
