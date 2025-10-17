@@ -147,6 +147,8 @@ export const translations = {
       createProperty: "Create Property",
       editProperty: "Property",
       viewProperty: "View Property Details",
+      viewDetails: "View Details",
+      myTickets: "My Tickets",
       deleteProperty: "Delete Property",
       address: "Address",
       description: "Description",

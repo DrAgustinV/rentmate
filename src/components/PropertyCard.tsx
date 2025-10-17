@@ -10,6 +10,9 @@ import {
   Users,
   Home,
   Image as ImageIcon,
+  Eye,
+  Ticket,
+  Wrench,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -213,28 +216,62 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           )}
         </CardContent>
 
-        {(property.status === "active" || property.status === "ending_tenancy") && isManager && (
+        {(property.status === "active" || property.status === "ending_tenancy") && (
           <CardFooter className="border-t bg-muted/50 pt-4 flex-col gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(`/properties/${property.id}/details`)}
-              className="w-full gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              {t("properties.editProperty")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(`/properties/${property.id}/tenants`)}
-              className="w-full gap-2"
-            >
-              <Users className="h-4 w-4" />
-              {!tenantStatus || tenantStatus.status === "free" ? t("properties.inviteTenant") : ""}
-              {tenantStatus?.status === "occupied" && `${t("properties.tenants")} (${tenantStatus.tenant_name})`}
-              {tenantStatus?.status === "invited" && `${t("properties.pending")} (${tenantStatus.pending_invites})`}
-            </Button>
+            {isManager ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/properties/${property.id}/details`)}
+                  className="w-full gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  {t("properties.editProperty")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/properties/${property.id}/tenants`)}
+                  className="w-full gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  {!tenantStatus || tenantStatus.status === "free" ? t("properties.inviteTenant") : ""}
+                  {tenantStatus?.status === "occupied" && `${t("properties.tenants")} (${tenantStatus.tenant_name})`}
+                  {tenantStatus?.status === "invited" && `${t("properties.pending")} (${tenantStatus.pending_invites})`}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/properties/${property.id}/details`)}
+                  className="w-full gap-2"
+                >
+                  <Eye className="h-4 w-4" />
+                  {t("properties.viewDetails")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/properties/${property.id}/tickets`)}
+                  className="w-full gap-2"
+                >
+                  <Ticket className="h-4 w-4" />
+                  {t("properties.myTickets")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/properties/${property.id}/maintenance`)}
+                  className="w-full gap-2"
+                >
+                  <Wrench className="h-4 w-4" />
+                  {t("properties.maintenance")}
+                </Button>
+              </>
+            )}
           </CardFooter>
         )}
       </Card>
