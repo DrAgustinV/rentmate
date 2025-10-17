@@ -3,6 +3,10 @@ project_id = "jrjwkpjfgsyrqztuokoo"
 # Edge function security configuration
 [functions.send-tenant-invitation]
 verify_jwt = true  # Requires user authentication to prevent spam
+static_files = [
+  "./functions/send-tenant-invitation/_templates/invitation-en.html",
+  "./functions/send-tenant-invitation/_templates/invitation-es.html"
+]
 
 [functions.create-recurring-tickets]
 verify_jwt = false  # Cron job - no user context available

@@ -24,10 +24,7 @@ interface InvitationEmailRequest {
 
 // Helper function to load template from external HTML files
 async function loadTemplate(language: string): Promise<string> {
-  const templatePath = new URL(
-    `./_templates/invitation-${language}.html`,
-    import.meta.url
-  ).pathname;
+  const templatePath = `./_templates/invitation-${language}.html`;
   
   try {
     const template = await Deno.readTextFile(templatePath);
