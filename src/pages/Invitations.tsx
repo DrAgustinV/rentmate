@@ -4,10 +4,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Home, MapPin } from "lucide-react";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Invitation {
   id: string;
@@ -19,6 +31,7 @@ interface Invitation {
     title: string;
     address: string | null;
     description: string | null;
+    images: string[] | null;
   } | null;
 }
 
@@ -26,6 +39,7 @@ export default function Invitations() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [autoAcceptInvitation, setAutoAcceptInvitation] = useState<Invitation | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -37,8 +51,13 @@ export default function Invitations() {
 
   useEffect(() => {
     const token = searchParams.get('token');
-    if (token && !loading && invitations.length > 0) {
-      handleTokenAccept(token);
+    if (token && !loading && invitations.length > 0 && !autoAcceptInvitation) {
+      const invitation = invitations.find(inv => inv.token === token);
+      if (invitation) {
+        setAutoAcceptInvitation(invitation);
+        // Clear token from sessionStorage after using it
+        sessionStorage.removeItem('invitation_token');
+      }
     }
   }, [searchParams, loading, invitations]);
 
@@ -72,7 +91,8 @@ export default function Invitations() {
           properties (
             title,
             address,
-            description
+            description,
+            images
           )
         `)
         .eq("email", profile.email)
@@ -132,6 +152,9 @@ export default function Invitations() {
       });
 
       setInvitations(invitations.filter((inv) => inv.id !== invitationId));
+      
+      // Redirect to property details
+      navigate(`/properties/${propertyId}/details`);
     } catch (error: any) {
       toast({
         title: t('common.error'),
@@ -240,54 +263,129 @@ export default function Invitations() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {invitations.map((invitation) => (
-              <Card key={invitation.id}>
-                <CardHeader>
-                  <CardTitle>{invitation.properties?.title || t('invitations.property')}</CardTitle>
-                  <CardDescription>
-                    {invitation.properties?.address || t('invitations.noAddress')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {invitation.properties?.description && (
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {invitation.properties.description}
-                    </p>
+          <div className="space-y-6">
+            {invitations.map((invitation) => {
+              const propertyImage = invitation.properties?.images?.[0];
+              const daysUntilExpiry = Math.ceil((new Date(invitation.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+              
+              return (
+                <Card key={invitation.id} className="overflow-hidden">
+                  {propertyImage && (
+                    <AspectRatio ratio={16 / 9}>
+                      <img
+                        src={propertyImage}
+                        alt={invitation.properties?.title || "Property"}
+                        className="object-cover w-full h-full"
+                      />
+                    </AspectRatio>
                   )}
-                  <p className="text-xs text-muted-foreground mb-4">
-                    {t('invitations.expires')}: {formatDate(invitation.expires_at)}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleAccept(invitation.id, invitation.property_id)}
-                      disabled={processingId === invitation.id}
-                    >
-                      {processingId === invitation.id ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                      )}
-                      {t('invitations.accept')}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleDecline(invitation.id)}
-                      disabled={processingId === invitation.id}
-                    >
-                      {processingId === invitation.id ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <XCircle className="mr-2 h-4 w-4" />
-                      )}
-                      {t('invitations.decline')}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Home className="h-5 w-5 text-primary" />
+                          <Badge variant="secondary">You're Invited!</Badge>
+                        </div>
+                        <CardTitle className="text-2xl">{invitation.properties?.title || t('invitations.property')}</CardTitle>
+                        {invitation.properties?.address && (
+                          <CardDescription className="flex items-center gap-1 mt-2">
+                            <MapPin className="h-4 w-4" />
+                            {invitation.properties.address}
+                          </CardDescription>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {invitation.properties?.description && (
+                      <p className="text-sm text-muted-foreground">
+                        {invitation.properties.description}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{t('invitations.expires')}: {formatDate(invitation.expires_at)}</span>
+                      <Badge variant={daysUntilExpiry <= 3 ? "destructive" : "outline"}>
+                        Expires in {daysUntilExpiry} {daysUntilExpiry === 1 ? 'day' : 'days'}
+                      </Badge>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        size="lg"
+                        className="flex-1"
+                        onClick={() => handleAccept(invitation.id, invitation.property_id)}
+                        disabled={processingId === invitation.id}
+                      >
+                        {processingId === invitation.id ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                        )}
+                        {t('invitations.accept')}
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="ghost"
+                        onClick={() => handleDecline(invitation.id)}
+                        disabled={processingId === invitation.id}
+                      >
+                        {processingId === invitation.id ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <XCircle className="mr-2 h-4 w-4" />
+                        )}
+                        {t('invitations.decline')}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
+
+        {/* Auto-Accept Dialog */}
+        <AlertDialog open={!!autoAcceptInvitation} onOpenChange={(open) => !open && setAutoAcceptInvitation(null)}>
+          <AlertDialogContent className="max-w-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-2xl">Welcome to {autoAcceptInvitation?.properties?.title}!</AlertDialogTitle>
+              <AlertDialogDescription className="space-y-4">
+                {autoAcceptInvitation?.properties?.images?.[0] && (
+                  <AspectRatio ratio={16 / 9} className="mt-4">
+                    <img
+                      src={autoAcceptInvitation.properties.images[0]}
+                      alt={autoAcceptInvitation.properties.title}
+                      className="object-cover w-full h-full rounded-md"
+                    />
+                  </AspectRatio>
+                )}
+                <div className="space-y-2 text-left pt-4">
+                  {autoAcceptInvitation?.properties?.address && (
+                    <p className="flex items-center gap-2 text-foreground">
+                      <MapPin className="h-4 w-4" />
+                      {autoAcceptInvitation.properties.address}
+                    </p>
+                  )}
+                  <p className="text-muted-foreground">
+                    Accept this invitation to access your property dashboard, submit maintenance requests, and manage your tenancy.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Maybe Later</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (autoAcceptInvitation) {
+                    handleAccept(autoAcceptInvitation.id, autoAcceptInvitation.property_id);
+                    setAutoAcceptInvitation(null);
+                  }
+                }}
+              >
+                Accept & Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );

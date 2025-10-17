@@ -24,22 +24,64 @@ export default function Auth() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [invitationContext, setInvitationContext] = useState<{ token: string; email: string } | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { brandName } = useBrand();
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/dashboard");
+    const checkAuthAndToken = async () => {
+      // Check if user is already logged in
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Check for invitation token in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      
+      if (token) {
+        // Store token for later use
+        sessionStorage.setItem('invitation_token', token);
+        
+        // Try to fetch invitation email
+        try {
+          const { data: invitation } = await supabase
+            .from('invitations')
+            .select('email, properties(title)')
+            .eq('token', token)
+            .eq('status', 'pending')
+            .single();
+          
+          if (invitation) {
+            setInvitationContext({ token, email: invitation.email });
+            setEmail(invitation.email);
+          }
+        } catch (error) {
+          console.log('Could not fetch invitation details:', error);
+        }
       }
-    });
+      
+      if (session) {
+        // If logged in and has token, redirect to invitations
+        const storedToken = sessionStorage.getItem('invitation_token');
+        if (storedToken) {
+          navigate(`/invitations?token=${storedToken}`);
+        } else {
+          navigate("/dashboard");
+        }
+      }
+    };
+
+    checkAuthAndToken();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/dashboard");
+        const storedToken = sessionStorage.getItem('invitation_token');
+        if (storedToken) {
+          navigate(`/invitations?token=${storedToken}`);
+        } else {
+          navigate("/dashboard");
+        }
       }
     });
 
@@ -111,8 +153,8 @@ export default function Auth() {
 
   return (
     <AuthLayout
-      title={isSignUp ? t('auth.createAccount') : t('auth.welcomeBack')}
-      description={isSignUp ? t('auth.getStarted') : t('auth.signInToContinue')}
+      title={invitationContext ? (isSignUp ? "Create Account to Accept Invitation" : "Sign In to Accept Invitation") : (isSignUp ? t('auth.createAccount') : t('auth.welcomeBack'))}
+      description={invitationContext ? "Join your property and start managing your tenancy" : (isSignUp ? t('auth.getStarted') : t('auth.signInToContinue'))}
     >
       <form onSubmit={handleAuth} className="space-y-4">
         {isSignUp && (
