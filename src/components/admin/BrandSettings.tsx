@@ -32,13 +32,20 @@ export function BrandSettings() {
   }, []);
 
   const fetchBrandSettings = async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from("brand_settings")
       .select("*")
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching brand settings:", error);
+      toast({
+        title: "Error loading settings",
+        description: error.message,
+        variant: "destructive",
+      });
+      setLoading(false);
       return;
     }
 
@@ -51,6 +58,7 @@ export function BrandSettings() {
         setLogoPreview(data.logo_url);
       }
     }
+    setLoading(false);
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,6 +117,17 @@ export function BrandSettings() {
   };
 
   const handleSave = async () => {
+    // Check if settings are loaded
+    if (!settings?.id) {
+      console.error("Brand settings not loaded yet. Settings:", settings);
+      toast({
+        title: "Error",
+        description: "Brand settings not loaded. Please refresh the page.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!brandName.trim()) {
       toast({
         title: "Validation error",
@@ -132,6 +151,11 @@ export function BrandSettings() {
     setLoading(true);
     try {
       const logoUrl = await uploadLogo();
+      if (logoUrl === null && logoFile) {
+        // Upload failed
+        setLoading(false);
+        return;
+      }
 
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -144,12 +168,20 @@ export function BrandSettings() {
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
+      console.log("Updating brand settings:", { id: settings.id, updates });
+
+      const { error, data } = await supabase
         .from("brand_settings")
         .update(updates)
-        .eq("id", settings?.id);
+        .eq("id", settings.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Update error:", error);
+        throw error;
+      }
+
+      console.log("Update successful:", data);
 
       toast({
         title: "Brand settings updated",
@@ -157,11 +189,12 @@ export function BrandSettings() {
       });
 
       // Refresh settings locally - realtime subscription will handle propagation
-      fetchBrandSettings();
+      await fetchBrandSettings();
     } catch (error: any) {
+      console.error("Save error:", error);
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error saving settings",
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
@@ -252,7 +285,7 @@ export function BrandSettings() {
 
       <Button
         onClick={handleSave}
-        disabled={loading || uploading}
+        disabled={loading || uploading || !settings}
         className="w-full"
       >
         {loading || uploading ? (
