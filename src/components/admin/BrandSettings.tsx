@@ -13,6 +13,7 @@ interface BrandSettings {
   logo_url: string | null;
   primary_color: string;
   accent_color: string;
+  custom_domain: string | null;
 }
 
 export function BrandSettings() {
@@ -20,6 +21,7 @@ export function BrandSettings() {
   const { t } = useLanguage();
   const [settings, setSettings] = useState<BrandSettings | null>(null);
   const [brandName, setBrandName] = useState("");
+  const [customDomain, setCustomDomain] = useState("");
   const [primaryColor, setPrimaryColor] = useState("");
   const [accentColor, setAccentColor] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -52,6 +54,7 @@ export function BrandSettings() {
     if (data) {
       setSettings(data);
       setBrandName(data.brand_name);
+      setCustomDomain(data.custom_domain || "");
       setPrimaryColor(data.primary_color);
       setAccentColor(data.accent_color);
       if (data.logo_url) {
@@ -174,6 +177,7 @@ export function BrandSettings() {
       
       const updates = {
         brand_name: brandName.trim(),
+        custom_domain: customDomain.trim() || null,
         logo_url: logoUrl,
         primary_color: primaryColor,
         accent_color: accentColor,
@@ -232,6 +236,19 @@ export function BrandSettings() {
           onChange={(e) => setBrandName(e.target.value)}
           placeholder="RentMate"
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="customDomain">Custom Domain</Label>
+        <Input
+          id="customDomain"
+          value={customDomain}
+          onChange={(e) => setCustomDomain(e.target.value)}
+          placeholder="rentmate.me"
+        />
+        <p className="text-xs text-muted-foreground">
+          Enter your custom domain without https:// (e.g., rentmate.me). Used for invitation emails and public links.
+        </p>
       </div>
 
       <div className="space-y-2">

@@ -457,13 +457,14 @@ const getEmailContent = async (data: InvitationEmailRequest) => {
   // Fetch brand settings
   const { data: brandSettings } = await supabase
     .from('brand_settings')
-    .select('brand_name, logo_url, primary_color, accent_color')
+    .select('brand_name, logo_url, primary_color, accent_color, custom_domain')
     .single();
 
   const brandName = brandSettings?.brand_name || 'RentMate';
   const logoUrl = brandSettings?.logo_url || '';
   const primaryColor = brandSettings?.primary_color ? hslToHex(brandSettings.primary_color) : '#8e4ec6';
   const accentColor = brandSettings?.accent_color ? hslToHex(brandSettings.accent_color) : '#e11d48';
+  const customDomain = brandSettings?.custom_domain;
 
   // Try to fetch property photo
   let propertyImageUrl = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop';
@@ -488,13 +489,17 @@ const getEmailContent = async (data: InvitationEmailRequest) => {
     console.log('Using fallback property image:', error);
   }
 
-  const appUrl = `https://${data.projectId}.lovableproject.com`;
+  // Use custom domain if set, otherwise fallback to lovableproject domain
+  const appUrl = customDomain 
+    ? `https://${customDomain}` 
+    : `https://${data.projectId}.lovableproject.com`;
   const invitationLink = `${appUrl}/invitations?token=${data.token}`;
 
   console.log("Invitation email data:", {
     email: data.email,
     token: data.token,
     projectId: data.projectId,
+    customDomain,
     invitationLink,
   });
 

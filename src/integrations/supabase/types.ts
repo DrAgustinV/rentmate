@@ -174,6 +174,7 @@ export type Database = {
         Row: {
           accent_color: string
           brand_name: string
+          custom_domain: string | null
           id: string
           logo_url: string | null
           primary_color: string
@@ -183,6 +184,7 @@ export type Database = {
         Insert: {
           accent_color?: string
           brand_name?: string
+          custom_domain?: string | null
           id?: string
           logo_url?: string | null
           primary_color?: string
@@ -192,6 +194,7 @@ export type Database = {
         Update: {
           accent_color?: string
           brand_name?: string
+          custom_domain?: string | null
           id?: string
           logo_url?: string | null
           primary_color?: string
