@@ -36,8 +36,10 @@ import {
   Ticket,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
+import { cn } from "@/lib/utils";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
+import { EditTenantDialog } from "@/components/EditTenantDialog";
 import { z } from "zod";
 
 interface Tenant {
@@ -49,6 +51,7 @@ interface Tenant {
   email: string;
   first_name: string | null;
   last_name: string | null;
+  notes: string | null;
 }
 
 interface Invitation {
@@ -86,6 +89,7 @@ export default function PropertyTenants() {
 
   const [email, setEmail] = useState("");
   const [removingTenant, setRemovingTenant] = useState<Tenant | null>(null);
+  const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [cancellingInvitation, setCancellingInvitation] = useState<Invitation | null>(null);
   const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
   const [copyTemplatesOpen, setCopyTemplatesOpen] = useState(false);
@@ -120,8 +124,8 @@ export default function PropertyTenants() {
     enabled: !!propertyId,
   });
 
-  const { data: currentTenant } = useQuery({
-    queryKey: ["current-tenant", propertyId],
+  const { data: activeTenants } = useQuery({
+    queryKey: ["active-tenants", propertyId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("property_tenants")
@@ -132,6 +136,7 @@ export default function PropertyTenants() {
           tenancy_status,
           started_at,
           ended_at,
+          notes,
           profiles!fk_property_tenants_profiles (
             email,
             first_name,
@@ -141,21 +146,26 @@ export default function PropertyTenants() {
         )
         .eq("property_id", propertyId)
         .in("tenancy_status", ["active", "ending_tenancy"])
-        .maybeSingle();
+        .order("started_at", { ascending: false });
 
       if (error) throw error;
-      if (!data) return null;
+      if (!data) return [];
 
-      const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
-      return {
-        ...data,
-        email: profile?.email || "Unknown",
-        first_name: profile?.first_name || null,
-        last_name: profile?.last_name || null,
-      } as Tenant;
+      return data.map((item: any) => {
+        const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+        return {
+          ...item,
+          email: profile?.email || "Unknown",
+          first_name: profile?.first_name || null,
+          last_name: profile?.last_name || null,
+        } as Tenant;
+      });
     },
     enabled: !!propertyId,
   });
+
+  // For backward compatibility, get the first active tenant
+  const currentTenant = activeTenants && activeTenants.length > 0 ? activeTenants[0] : null;
 
   const { data: tenancyDocuments, refetch: refetchDocuments } = useQuery({
     queryKey: ["tenancy-documents", currentTenant?.id],
@@ -513,29 +523,50 @@ export default function PropertyTenants() {
           </div>
         )}
 
-        {/* Current Tenant Section */}
+        {/* Active Tenants Section */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("properties.currentTenancy")}</CardTitle>
+            <CardTitle>
+              {t("tenants.activeTenants")} {activeTenants && activeTenants.length > 0 && `(${activeTenants.length})`}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {currentTenant ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{getTenantName(currentTenant)}</p>
-                    <p className="text-sm text-muted-foreground">{currentTenant.email}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {t("properties.tenancyStarted")}: {formatDate(currentTenant.started_at)}
-                    </p>
+            {activeTenants && activeTenants.length > 0 ? (
+              <div className="space-y-3">
+                {activeTenants.map((tenant) => (
+                  <div key={tenant.id} className="p-4 border rounded-lg space-y-2">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={cn(
+                              "h-2 w-2 rounded-full",
+                              tenant.tenancy_status === "active" ? "bg-green-500" : "bg-yellow-500"
+                            )}
+                          />
+                          <p className="font-medium">{getTenantName(tenant)}</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{tenant.email}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t("properties.tenancyStarted")}: {formatDate(tenant.started_at)}
+                        </p>
+                        {tenant.notes && (
+                          <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>
+                        )}
+                      </div>
+                      {userRole?.isManager && (
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => setEditingTenant(tenant)}>
+                            {t("common.edit")}
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)}>
+                            <UserMinus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {userRole?.isManager && (
-                    <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(currentTenant)}>
-                      <UserMinus className="h-4 w-4 mr-2" />
-                      {t("properties.endTenancy")}
-                    </Button>
-                  )}
-                </div>
+                ))}
               </div>
             ) : (
               <p className="text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
@@ -781,6 +812,14 @@ export default function PropertyTenants() {
           tenancyId={currentTenant.id}
         />
       )}
+
+      {/* Edit Tenant Dialog */}
+      <EditTenantDialog
+        tenant={editingTenant}
+        open={!!editingTenant}
+        onOpenChange={(open) => !open && setEditingTenant(null)}
+        propertyId={propertyId!}
+      />
     </AppLayout>
   );
 }
