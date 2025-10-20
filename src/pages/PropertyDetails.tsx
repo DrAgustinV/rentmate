@@ -13,10 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Archive } from "lucide-react";
+import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Archive, ChevronDown, Upload } from "lucide-react";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
+import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +47,7 @@ export default function PropertyDetails() {
     "sold" | "no_longer_managing" | "merged_with_other_property" | "other"
   >("sold");
   const [archiveNotes, setArchiveNotes] = useState<string>("");
+  const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
 
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
@@ -127,8 +130,8 @@ export default function PropertyDetails() {
         .eq("property_id", propertyId)
         .eq("document_category", "property")
         .is("tenancy_id", null)
-        .eq("is_latest_version", true)
-        .order("created_at", { ascending: false });
+        .order("document_title", { ascending: true })
+        .order("version", { ascending: false });
 
       if (error) throw error;
       return data;
@@ -250,6 +253,20 @@ export default function PropertyDetails() {
     ? `${activeTenant.profiles.first_name || ""} ${activeTenant.profiles.last_name || ""}`.trim() ||
       activeTenant.profiles.email
     : t("properties.noTenant");
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getUploaderName = (doc: any): string => {
+    const profile = doc.profiles;
+    if (profile?.first_name || profile?.last_name) {
+      return `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
+    }
+    return profile?.email || "Unknown";
+  };
 
   const groupedDocs = propertyTemplates?.reduce(
     (acc, doc) => {
@@ -411,7 +428,7 @@ export default function PropertyDetails() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {showUpload && (
+            {showUpload && !selectedParentDoc && (
               <>
                 <PropertyDocumentUpload
                   propertyId={propertyId!}
@@ -421,6 +438,30 @@ export default function PropertyDetails() {
                     queryClient.invalidateQueries({ queryKey: ["property-templates", propertyId] });
                   }}
                 />
+                <Separator />
+              </>
+            )}
+
+            {selectedParentDoc && (
+              <>
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm font-medium">
+                    {t("properties.propertyDocuments.uploadNewVersion")}: {selectedParentDoc.title}
+                  </p>
+                </div>
+                <PropertyDocumentUpload
+                  propertyId={propertyId!}
+                  category="property"
+                  parentDocumentId={selectedParentDoc.id}
+                  parentDocumentTitle={selectedParentDoc.title}
+                  onUploadComplete={() => {
+                    setSelectedParentDoc(null);
+                    queryClient.invalidateQueries({ queryKey: ["property-templates", propertyId] });
+                  }}
+                />
+                <Button variant="outline" onClick={() => setSelectedParentDoc(null)}>
+                  {t("common.cancel")}
+                </Button>
                 <Separator />
               </>
             )}
@@ -437,62 +478,94 @@ export default function PropertyDetails() {
               </div>
             ) : (
               <div className="space-y-2">
-                {Object.entries(groupedDocs || {}).map(([docTitle, docs]) => (
-                  <Collapsible
-                    key={docTitle}
-                    open={expandedDoc === docTitle}
-                    onOpenChange={(open) => setExpandedDoc(open ? docTitle : null)}
-                  >
-                    <div className="border rounded-lg">
-                      <CollapsibleTrigger asChild>
-                        <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors">
-                          <div className="flex items-center gap-3 flex-1">
-                            <FileText className="h-5 w-5 text-muted-foreground" />
-                            <div className="flex-1">
-                              <p className="font-medium">{docTitle}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {docs.length} {docs.length === 1 ? "version" : "versions"}
+                {Object.entries(groupedDocs || {}).map(([docTitle, docs]) => {
+                  const latestDoc = docs[0];
+                  const olderVersions = docs.slice(1);
+
+                  return (
+                    <div key={docTitle} className="border rounded-lg">
+                      <div className="p-4 space-y-3">
+                        {/* Header with title and version badge */}
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                              <h4 className="font-medium truncate">{docTitle}</h4>
+                              {docs.length > 1 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {docs.length} {t("properties.propertyDocuments.versions")}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground space-y-0.5">
+                              <p>
+                                v{latestDoc.version} · {formatFileSize(latestDoc.file_size_bytes)} ·{" "}
+                                {new Date(latestDoc.created_at).toLocaleDateString()}
                               </p>
+                              {latestDoc.description && <p className="italic">{latestDoc.description}</p>}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDownloadDocument(docs[0]);
-                              }}
-                            >
+
+                          {/* Action buttons */}
+                          <div className="flex gap-2 flex-shrink-0">
+                            <Button variant="outline" size="sm" onClick={() => handleDownloadDocument(latestDoc)}>
                               <Download className="h-4 w-4" />
                             </Button>
                             {userRole?.isManager && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteDocumentMutation.mutate(docs[0].id);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSelectedParentDoc({ id: latestDoc.id, title: docTitle })}
+                                >
+                                  <Upload className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteDocumentMutation.mutate(latestDoc.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
                             )}
                           </div>
                         </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <Separator />
-                        <div className="p-4">
-                          <p className="text-sm text-muted-foreground">
-                            Version {docs[0].version} · Uploaded {new Date(docs[0].created_at).toLocaleDateString()}
-                          </p>
-                          {docs[0].description && <p className="text-sm mt-2">{docs[0].description}</p>}
-                        </div>
-                      </CollapsibleContent>
+
+                        {/* Version history */}
+                        {olderVersions.length > 0 && (
+                          <div>
+                            <Collapsible
+                              open={expandedDoc === docTitle}
+                              onOpenChange={(open) => setExpandedDoc(open ? docTitle : null)}
+                            >
+                              <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm" className="w-full justify-start text-xs">
+                                  <ChevronDown
+                                    className={cn(
+                                      "h-3 w-3 mr-2 transition-transform",
+                                      expandedDoc === docTitle && "transform rotate-180",
+                                    )}
+                                  />
+                                  {t("properties.propertyDocuments.previousVersions")} ({olderVersions.length})
+                                </Button>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                <PropertyDocumentVersionHistory
+                                  versions={olderVersions}
+                                  onDownload={handleDownloadDocument}
+                                  onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
+                                  formatFileSize={formatFileSize}
+                                  getUploaderName={getUploaderName}
+                                />
+                              </CollapsibleContent>
+                            </Collapsible>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </Collapsible>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
