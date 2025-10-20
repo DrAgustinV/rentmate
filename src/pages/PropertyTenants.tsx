@@ -10,10 +10,31 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, UserMinus, Mail, X, Clock, ChevronDown, Upload, Copy, Download, AlertTriangle, Ticket } from "lucide-react";
+import {
+  ArrowLeft,
+  UserMinus,
+  Mail,
+  X,
+  Clock,
+  ChevronDown,
+  Upload,
+  Copy,
+  Download,
+  AlertTriangle,
+  Ticket,
+} from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
@@ -48,9 +69,13 @@ interface TenancyDocument {
   description: string | null;
 }
 
-const createInviteSchema = (t: (key: string) => string) => z.object({
-  email: z.string().trim().email({ message: t('dialogs.inviteTenant.emailPlaceholder') }),
-});
+const createInviteSchema = (t: (key: string) => string) =>
+  z.object({
+    email: z
+      .string()
+      .trim()
+      .email({ message: t("dialogs.inviteTenant.emailPlaceholder") }),
+  });
 
 export default function PropertyTenants() {
   const { propertyId } = useParams();
@@ -71,11 +96,7 @@ export default function PropertyTenants() {
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("id", propertyId)
-        .single();
+      const { data, error } = await supabase.from("properties").select("*").eq("id", propertyId).single();
       if (error) throw error;
       return data;
     },
@@ -85,7 +106,9 @@ export default function PropertyTenants() {
   const { data: userRole } = useQuery({
     queryKey: ["user-role", propertyId],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
       const { data: propertyData } = await supabase
         .from("properties")
@@ -102,7 +125,8 @@ export default function PropertyTenants() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("property_tenants")
-        .select(`
+        .select(
+          `
           id,
           tenant_id,
           tenancy_status,
@@ -113,7 +137,8 @@ export default function PropertyTenants() {
             first_name,
             last_name
           )
-        `)
+        `,
+        )
         .eq("property_id", propertyId)
         .in("tenancy_status", ["active", "ending_tenancy"])
         .maybeSingle();
@@ -168,7 +193,8 @@ export default function PropertyTenants() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("property_tenants")
-        .select(`
+        .select(
+          `
           id,
           tenant_id,
           tenancy_status,
@@ -179,7 +205,8 @@ export default function PropertyTenants() {
             first_name,
             last_name
           )
-        `)
+        `,
+        )
         .eq("property_id", propertyId)
         .in("tenancy_status", ["ending_tenancy", "inactive"])
         .order("started_at", { ascending: false })
@@ -202,11 +229,13 @@ export default function PropertyTenants() {
   const { data: propertyCount } = useQuery({
     queryKey: ["property-count"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return 0;
       const { count, error } = await supabase
         .from("properties")
-        .select("*", { count: 'exact', head: true })
+        .select("*", { count: "exact", head: true })
         .eq("manager_id", user.id)
         .eq("status", "active");
       if (error) throw error;
@@ -219,11 +248,11 @@ export default function PropertyTenants() {
     queryKey: ["max-properties-limit"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('system_settings')
-        .select('setting_value')
-        .eq('setting_key', 'max_active_properties_per_user')
+        .from("system_settings")
+        .select("setting_value")
+        .eq("setting_key", "max_active_properties_per_user")
         .maybeSingle();
-      
+
       if (!error && data) {
         const limit = parseInt((data.setting_value as any).value);
         setMaxPropertiesLimit(limit);
@@ -235,16 +264,16 @@ export default function PropertyTenants() {
 
   const loadTenancyDocuments = async (tenancyId: string) => {
     if (tenancyDocsMap[tenancyId]) return;
-    
+
     const { data, error } = await supabase
       .from("property_documents")
       .select("*")
       .eq("tenancy_id", tenancyId)
       .eq("is_latest_version", true)
       .order("created_at", { ascending: false });
-    
+
     if (!error && data) {
-      setTenancyDocsMap(prev => ({ ...prev, [tenancyId]: data as TenancyDocument[] }));
+      setTenancyDocsMap((prev) => ({ ...prev, [tenancyId]: data as TenancyDocument[] }));
     }
   };
 
@@ -253,11 +282,7 @@ export default function PropertyTenants() {
       const inviteSchema = createInviteSchema(t);
       const data = inviteSchema.parse({ email });
 
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", data.email)
-        .maybeSingle();
+      const { data: profiles } = await supabase.from("profiles").select("id").eq("email", data.email).maybeSingle();
 
       if (profiles) {
         const { data: existing } = await supabase
@@ -266,7 +291,7 @@ export default function PropertyTenants() {
           .eq("property_id", propertyId!)
           .eq("tenant_id", profiles.id)
           .maybeSingle();
-        if (existing) throw new Error(t('dialogs.inviteTenant.alreadyTenant'));
+        if (existing) throw new Error(t("dialogs.inviteTenant.alreadyTenant"));
       }
 
       // Check for ANY existing invitation (pending or cancelled)
@@ -283,9 +308,9 @@ export default function PropertyTenants() {
 
       if (existingInvite) {
         if (existingInvite.status === "pending") {
-          throw new Error(t('dialogs.inviteTenant.alreadyInvited'));
+          throw new Error(t("dialogs.inviteTenant.alreadyInvited"));
         }
-        
+
         // If cancelled, reactivate it with new token and expiration
         if (existingInvite.status === "cancelled") {
           const { error } = await supabase
@@ -297,7 +322,7 @@ export default function PropertyTenants() {
               invited_user_id: profiles?.id || null,
             })
             .eq("id", existingInvite.id);
-          
+
           if (error) throw error;
         }
       } else {
@@ -313,7 +338,9 @@ export default function PropertyTenants() {
         if (error) throw error;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       const { data: managerProfile } = await supabase
         .from("profiles")
         .select("first_name, last_name")
@@ -321,10 +348,10 @@ export default function PropertyTenants() {
         .single();
 
       const managerName = managerProfile
-        ? `${managerProfile.first_name || ''} ${managerProfile.last_name || ''}`.trim() || 'Property Manager'
-        : 'Property Manager';
+        ? `${managerProfile.first_name || ""} ${managerProfile.last_name || ""}`.trim() || "Property Manager"
+        : "Property Manager";
 
-      await supabase.functions.invoke('send-tenant-invitation', {
+      await supabase.functions.invoke("send-tenant-invitation", {
         body: {
           email: data.email,
           propertyTitle: property?.title,
@@ -332,22 +359,22 @@ export default function PropertyTenants() {
           managerName,
           token,
           expiresAt: expiresAt.toISOString(),
-          language: localStorage.getItem('language') || 'en',
+          language: localStorage.getItem("language") || "en",
           projectId: import.meta.env.VITE_SUPABASE_PROJECT_ID,
           propertyId: propertyId,
         },
       });
     },
     onSuccess: () => {
-      toast({ title: t('dialogs.inviteTenant.sent'), description: `${t('dialogs.inviteTenant.sentDesc')} ${email}` });
+      toast({ title: t("dialogs.inviteTenant.sent"), description: `${t("dialogs.inviteTenant.sentDesc")} ${email}` });
       setEmail("");
       refetchInvitations();
     },
     onError: (error: any) => {
       if (error instanceof z.ZodError) {
-        toast({ title: t('common.validationError'), description: error.errors[0].message, variant: "destructive" });
+        toast({ title: t("common.validationError"), description: error.errors[0].message, variant: "destructive" });
       } else {
-        toast({ title: t('common.error'), description: error.message, variant: "destructive" });
+        toast({ title: t("common.error"), description: error.message, variant: "destructive" });
       }
     },
   });
@@ -357,38 +384,35 @@ export default function PropertyTenants() {
       const { error } = await supabase
         .from("property_tenants")
         .update({
-          tenancy_status: 'ending_tenancy',
-          ended_at: new Date().toISOString()
+          tenancy_status: "ending_tenancy",
+          ended_at: new Date().toISOString(),
         })
         .eq("id", tenantId);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: t('dialogs.manageTenants.tenancyEnding') });
+      toast({ title: t("dialogs.manageTenants.tenancyEnding") });
       queryClient.invalidateQueries({ queryKey: ["current-tenant"] });
       queryClient.invalidateQueries({ queryKey: ["tenancy-history"] });
       setRemovingTenant(null);
     },
     onError: (error: any) => {
-      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
     },
   });
 
   const cancelInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
-      const { error } = await supabase
-        .from("invitations")
-        .update({ status: 'cancelled' })
-        .eq("id", invitationId);
+      const { error } = await supabase.from("invitations").update({ status: "cancelled" }).eq("id", invitationId);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: t('dialogs.manageTenants.invitationCancelled') });
+      toast({ title: t("dialogs.manageTenants.invitationCancelled") });
       refetchInvitations();
       setCancellingInvitation(null);
     },
     onError: (error: any) => {
-      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
     },
   });
 
@@ -425,12 +449,10 @@ export default function PropertyTenants() {
 
   const downloadDocument = async (doc: TenancyDocument) => {
     try {
-      const { data, error } = await supabase.storage
-        .from("property-documents")
-        .download(doc.file_path);
-      
+      const { data, error } = await supabase.storage.from("property-documents").download(doc.file_path);
+
       if (error) throw error;
-      
+
       const url = URL.createObjectURL(data);
       const a = document.createElement("a");
       a.href = url;
@@ -440,7 +462,7 @@ export default function PropertyTenants() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
     }
   };
 
@@ -483,7 +505,7 @@ export default function PropertyTenants() {
             <div className="flex-1">
               <p className="font-medium text-yellow-700 dark:text-yellow-400">{t("properties.freePlanLimitTitle")}</p>
               <p className="text-sm text-yellow-600 dark:text-yellow-500 mt-1">
-                {propertyCount >= maxPropertiesLimit 
+                {propertyCount >= maxPropertiesLimit
                   ? `You have reached the limit of ${maxPropertiesLimit} active properties. Please contact support to increase your limit.`
                   : `You have created ${propertyCount} active properties. You can create ${maxPropertiesLimit - propertyCount} more.`}
               </p>
@@ -508,11 +530,7 @@ export default function PropertyTenants() {
                     </p>
                   </div>
                   {userRole?.isManager && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setRemovingTenant(currentTenant)}
-                    >
+                    <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(currentTenant)}>
                       <UserMinus className="h-4 w-4 mr-2" />
                       {t("properties.endTenancy")}
                     </Button>
@@ -530,9 +548,7 @@ export default function PropertyTenants() {
           <Card>
             <CardHeader>
               <CardTitle>{t("properties.tenancyDocuments")}</CardTitle>
-              <CardDescription>
-                {isReadOnly && t("properties.readOnlyAccess")}
-              </CardDescription>
+              <CardDescription>{isReadOnly && t("properties.readOnlyAccess")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {!isReadOnly && (
@@ -571,15 +587,9 @@ export default function PropertyTenants() {
                         <p className="text-xs text-muted-foreground">
                           {formatDate(doc.created_at)} · {(doc.file_size_bytes / 1024).toFixed(2)} KB
                         </p>
-                        {doc.description && (
-                          <p className="text-xs text-muted-foreground mt-1">{doc.description}</p>
-                        )}
+                        {doc.description && <p className="text-xs text-muted-foreground mt-1">{doc.description}</p>}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => downloadDocument(doc)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => downloadDocument(doc)}>
                         <Download className="h-4 w-4" />
                       </Button>
                     </div>
@@ -593,7 +603,7 @@ export default function PropertyTenants() {
         )}
 
         {/* Invite New Tenant Section (Manager Only) */}
-        {userRole?.isManager && !currentTenant && (
+        {userRole?.isManager && (
           <Card>
             <CardHeader>
               <CardTitle>{t("properties.inviteNewTenant")}</CardTitle>
@@ -609,7 +619,7 @@ export default function PropertyTenants() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && email.trim()) {
+                      if (e.key === "Enter" && email.trim()) {
                         inviteMutation.mutate(email.trim());
                       }
                     }}
@@ -642,11 +652,7 @@ export default function PropertyTenants() {
                           {t("dialogs.manageTenants.expires")}: {formatDate(inv.expires_at)}
                         </p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setCancellingInvitation(inv)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => setCancellingInvitation(inv)}>
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
@@ -666,7 +672,7 @@ export default function PropertyTenants() {
             </CardHeader>
             <CardContent className="space-y-2">
               {tenancyHistory.map((tenancy) => (
-                <Collapsible 
+                <Collapsible
                   key={tenancy.id}
                   open={expandedTenancyId === tenancy.id}
                   onOpenChange={(open) => {
@@ -683,10 +689,13 @@ export default function PropertyTenants() {
                       <div className="text-left">
                         <p className="font-medium">{getTenantName(tenancy)}</p>
                         <p className="text-xs text-muted-foreground">
-                          {formatDate(tenancy.started_at)} - {tenancy.ended_at ? formatDate(tenancy.ended_at) : t("properties.active")}
+                          {formatDate(tenancy.started_at)} -{" "}
+                          {tenancy.ended_at ? formatDate(tenancy.ended_at) : t("properties.active")}
                         </p>
                       </div>
-                      <ChevronDown className={`h-4 w-4 transition-transform ${expandedTenancyId === tenancy.id ? 'rotate-180' : ''}`} />
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform ${expandedTenancyId === tenancy.id ? "rotate-180" : ""}`}
+                      />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-2 pt-2 border-t">
                       {tenancyDocsMap[tenancy.id] ? (
@@ -700,11 +709,7 @@ export default function PropertyTenants() {
                                     {formatDate(doc.created_at)} · {(doc.file_size_bytes / 1024).toFixed(2)} KB
                                   </p>
                                 </div>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => downloadDocument(doc)}
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => downloadDocument(doc)}>
                                   <Download className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -752,12 +757,15 @@ export default function PropertyTenants() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("dialogs.manageTenants.cancelInvitationTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {cancellingInvitation && `${t("dialogs.manageTenants.cancelInvitationDesc")} ${cancellingInvitation.email}?`}
+              {cancellingInvitation &&
+                `${t("dialogs.manageTenants.cancelInvitationDesc")} ${cancellingInvitation.email}?`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => cancellingInvitation && cancelInvitationMutation.mutate(cancellingInvitation.id)}>
+            <AlertDialogAction
+              onClick={() => cancellingInvitation && cancelInvitationMutation.mutate(cancellingInvitation.id)}
+            >
               {t("dialogs.manageTenants.cancelInvitation")}
             </AlertDialogAction>
           </AlertDialogFooter>
