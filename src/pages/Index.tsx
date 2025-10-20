@@ -20,7 +20,7 @@ const Index = () => {
       <div className="container mx-auto px-4 py-16 relative z-10">
         <div className="text-center mb-16 animate-fade-in">
           <div className="flex justify-center mb-6">
-            <img src={logoUrl} alt={logoAlt} className="h-15 w-15 md:h-20 md:w-20" />
+            <img src={logoUrl} alt={logoAlt} className="h-10 w-10 md:h-15 md:w-15" />
           </div>
           <h1 className="text-5xl md:text-6xl font-bold mb-4 gradient-text">{brandName}</h1>
           <p className="text-xl text-muted-foreground mb-8">{tagline}</p>
