@@ -34,12 +34,15 @@ import {
   Download,
   AlertTriangle,
   Ticket,
+  Trash2,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
+import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
 import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
 import { EditTenantDialog } from "@/components/EditTenantDialog";
+import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 
 interface Tenant {
@@ -70,6 +73,9 @@ interface TenancyDocument {
   created_at: string;
   uploaded_by: string;
   description: string | null;
+  version: number;
+  is_latest_version: boolean;
+  parent_document_id: string | null;
 }
 
 const createInviteSchema = (t: (key: string) => string) =>
@@ -96,6 +102,8 @@ export default function PropertyTenants() {
   const [expandedTenancyId, setExpandedTenancyId] = useState<string | null>(null);
   const [tenancyDocsMap, setTenancyDocsMap] = useState<Record<string, TenancyDocument[]>>({});
   const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
+  const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
+  const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
 
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
@@ -175,7 +183,6 @@ export default function PropertyTenants() {
         .from("property_documents")
         .select("*")
         .eq("tenancy_id", currentTenant.id)
-        .eq("is_latest_version", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as TenancyDocument[];
@@ -279,7 +286,6 @@ export default function PropertyTenants() {
       .from("property_documents")
       .select("*")
       .eq("tenancy_id", tenancyId)
-      .eq("is_latest_version", true)
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -433,6 +439,52 @@ export default function PropertyTenants() {
     if (tenant.first_name) return tenant.first_name;
     return tenant.email;
   };
+
+  const formatFileSize = (bytes: number) => {
+    return `${(bytes / 1024).toFixed(2)} KB`;
+  };
+
+  const getUploaderName = (doc: TenancyDocument) => {
+    return doc.uploaded_by ? "User" : "Unknown";
+  };
+
+  const toggleDocumentExpansion = (docTitle: string) => {
+    setExpandedDocuments((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(docTitle)) {
+        newSet.delete(docTitle);
+      } else {
+        newSet.add(docTitle);
+      }
+      return newSet;
+    });
+  };
+
+  const groupedDocuments = tenancyDocuments?.reduce((acc, doc) => {
+    if (!acc[doc.document_title]) {
+      acc[doc.document_title] = [];
+    }
+    acc[doc.document_title].push(doc);
+    return acc;
+  }, {} as Record<string, TenancyDocument[]>);
+
+  Object.keys(groupedDocuments || {}).forEach((title) => {
+    groupedDocuments![title].sort((a, b) => b.version - a.version);
+  });
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async (docId: string) => {
+      const { error } = await supabase.from("property_documents").delete().eq("id", docId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: t("properties.propertyDocuments.deleteSuccess") });
+      refetchDocuments();
+    },
+    onError: (error: any) => {
+      toast({ title: t("properties.propertyDocuments.deleteFailed"), description: error.message, variant: "destructive" });
+    },
+  });
 
   if (propertyLoading) {
     return (
@@ -597,7 +649,7 @@ export default function PropertyTenants() {
                 </div>
               )}
 
-              {uploadDocumentOpen && !isReadOnly && (
+              {uploadDocumentOpen && !isReadOnly && !selectedParentDoc && (
                 <PropertyDocumentUpload
                   propertyId={propertyId!}
                   category="tenancy"
@@ -609,22 +661,114 @@ export default function PropertyTenants() {
                 />
               )}
 
-              {tenancyDocuments && tenancyDocuments.length > 0 ? (
-                <div className="space-y-2">
-                  {tenancyDocuments.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <p className="font-medium">{doc.document_title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDate(doc.created_at)} · {(doc.file_size_bytes / 1024).toFixed(2)} KB
-                        </p>
-                        {doc.description && <p className="text-xs text-muted-foreground mt-1">{doc.description}</p>}
+              {selectedParentDoc && !isReadOnly && (
+                <div className="space-y-3">
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm font-medium">
+                      {t("properties.propertyDocuments.uploadNewVersion")}: {selectedParentDoc.title}
+                    </p>
+                  </div>
+                  <PropertyDocumentUpload
+                    propertyId={propertyId!}
+                    category="tenancy"
+                    tenancyId={currentTenant.id}
+                    parentDocumentId={selectedParentDoc.id}
+                    parentDocumentTitle={selectedParentDoc.title}
+                    onUploadComplete={() => {
+                      refetchDocuments();
+                      setSelectedParentDoc(null);
+                    }}
+                  />
+                  <Button variant="outline" onClick={() => setSelectedParentDoc(null)}>
+                    {t("common.cancel")}
+                  </Button>
+                </div>
+              )}
+
+              {groupedDocuments && Object.keys(groupedDocuments).length > 0 ? (
+                <div className="space-y-4">
+                  {Object.entries(groupedDocuments).map(([title, docs]) => {
+                    const latestDoc = docs[0];
+                    const olderVersions = docs.slice(1);
+                    const isExpanded = expandedDocuments.has(title);
+
+                    return (
+                      <div key={title} className="border rounded-lg">
+                        <div className="p-4 space-y-3">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-medium truncate">{title}</h4>
+                                {docs.length > 1 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {docs.length} {t("properties.propertyDocuments.versions")}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-xs text-muted-foreground space-y-0.5">
+                                <p>
+                                  v{latestDoc.version} · {formatFileSize(latestDoc.file_size_bytes)} ·{" "}
+                                  {formatDate(latestDoc.created_at)}
+                                </p>
+                                {latestDoc.description && <p className="italic">{latestDoc.description}</p>}
+                              </div>
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0">
+                              <Button variant="outline" size="sm" onClick={() => downloadDocument(latestDoc)}>
+                                <Download className="h-3 w-3" />
+                              </Button>
+                              {!isReadOnly && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSelectedParentDoc({ id: latestDoc.id, title })}
+                                  >
+                                    <Upload className="h-3 w-3" />
+                                  </Button>
+                                  {userRole?.isManager && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => deleteDocumentMutation.mutate(latestDoc.id)}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          {olderVersions.length > 0 && (
+                            <div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleDocumentExpansion(title)}
+                                className="w-full justify-between"
+                              >
+                                <span className="text-xs">
+                                  {isExpanded ? t("properties.propertyDocuments.previousVersions") : t("properties.propertyDocuments.seeVersions")}
+                                </span>
+                                <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
+                              </Button>
+
+                              {isExpanded && (
+                                <PropertyDocumentVersionHistory
+                                  versions={olderVersions}
+                                  onDownload={downloadDocument}
+                                  onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
+                                  formatFileSize={formatFileSize}
+                                  getUploaderName={getUploaderName}
+                                />
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => downloadDocument(doc)}>
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">{t("properties.noTenancyDocuments")}</p>

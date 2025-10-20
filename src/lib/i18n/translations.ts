@@ -599,6 +599,10 @@ export const translations = {
         deleteFailed: "Failed to delete document",
         downloadFailed: "Failed to download document",
         uploadedBy: "Uploaded by",
+        versions: "versions",
+        previousVersions: "Previous Versions",
+        uploadVersion: "Upload New Version",
+        seeVersions: "See all versions",
       },
     },
     admin: {
@@ -1398,6 +1402,10 @@ export const translations = {
         deleteFailed: "Error al eliminar documento",
         downloadFailed: "Error al descargar documento",
         uploadedBy: "Subido por",
+        versions: "versiones",
+        previousVersions: "Versiones Anteriores",
+        uploadVersion: "Subir Nueva Versión",
+        seeVersions: "Ver todas las versiones",
       },
     },
     about: {
