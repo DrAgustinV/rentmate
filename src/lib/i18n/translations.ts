@@ -827,6 +827,10 @@ export const translations = {
       reportBug: "Report a Bug",
       reportBugDesc: "Found an issue? Let us know so we can fix it",
     },
+    tenants: {
+      viewAllTickets: "View All Tickets",
+      tenantManagementDescription: "Manage tenants, documents, and tenant-related tickets",
+    },
   },
   es: {
     common: {
@@ -1602,6 +1606,10 @@ export const translations = {
       emailSupportDesc: "Envíanos un correo electrónico y te responderemos en 24 horas",
       reportBug: "Reportar un Error",
       reportBugDesc: "¿Encontraste un problema? Háznoslo saber para que podamos solucionarlo",
+    },
+    tenants: {
+      viewAllTickets: "Ver Todos los Tickets",
+      tenantManagementDescription: "Gestionar inquilinos, documentos y tickets relacionados con inquilinos",
     },
   },
 };

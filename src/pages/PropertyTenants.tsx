@@ -13,7 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, UserMinus, Mail, X, Clock, ChevronDown, Upload, Copy, Download, AlertTriangle } from "lucide-react";
+import { ArrowLeft, UserMinus, Mail, X, Clock, ChevronDown, Upload, Copy, Download, AlertTriangle, Ticket } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
@@ -457,6 +457,24 @@ export default function PropertyTenants() {
             <p className="text-muted-foreground">{t("properties.tenantManagement")}</p>
           </div>
         </div>
+
+        {/* Quick Actions Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("properties.quickActions")}</CardTitle>
+            <CardDescription>{t("tenants.tenantManagementDescription")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+              className="w-full sm:w-auto"
+            >
+              <Ticket className="h-4 w-4 mr-2" />
+              {t("tenants.viewAllTickets")}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Property Limit Warning */}
         {userRole?.isManager && propertyCount !== undefined && propertyCount >= maxPropertiesLimit - 1 && (

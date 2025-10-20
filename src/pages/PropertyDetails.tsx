@@ -501,17 +501,13 @@ export default function PropertyDetails() {
             <CardTitle>{t("properties.quickActions")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => navigate(`/properties/${propertyId}/tickets`)}>
-                {t("properties.viewTickets")}
-              </Button>
-              <Button variant="outline" onClick={() => navigate(`/properties/${propertyId}/maintenance`)}>
-                {t("properties.viewMaintenance")}
-              </Button>
-              <Button variant="outline" onClick={() => navigate(`/properties/${propertyId}/tenants`)}>
-                {t("properties.manageTenants")}
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/properties/${propertyId}/maintenance`)}
+              className="w-full sm:w-auto"
+            >
+              {t("properties.viewMaintenance")}
+            </Button>
           </CardContent>
         </Card>
 
