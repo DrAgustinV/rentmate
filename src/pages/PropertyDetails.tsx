@@ -17,7 +17,16 @@ import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Arch
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function PropertyDetails() {
@@ -32,24 +41,22 @@ export default function PropertyDetails() {
   const [showUpload, setShowUpload] = useState(false);
   const [expandedDoc, setExpandedDoc] = useState<string | null>(null);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
-  const [archiveReason, setArchiveReason] = useState<"sold" | "no_longer_managing" | "merged_with_other_property" | "other">("sold");
-  const [archiveNotes, setArchiveNotes] = useState<string>('');
+  const [archiveReason, setArchiveReason] = useState<
+    "sold" | "no_longer_managing" | "merged_with_other_property" | "other"
+  >("sold");
+  const [archiveNotes, setArchiveNotes] = useState<string>("");
 
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("id", propertyId)
-        .single();
+      const { data, error } = await supabase.from("properties").select("*").eq("id", propertyId).single();
 
       if (error) throw error;
-      
+
       setTitle(data.title);
       setAddress(data.address || "");
       setDescription(data.description || "");
-      
+
       return data;
     },
     enabled: !!propertyId,
@@ -58,18 +65,20 @@ export default function PropertyDetails() {
   const { data: userRole } = useQuery({
     queryKey: ["user-role", propertyId],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
-      
+
       const { data: propertyData } = await supabase
         .from("properties")
         .select("manager_id")
         .eq("id", propertyId)
         .single();
-      
-      return { 
+
+      return {
         isManager: propertyData?.manager_id === user.id,
-        userId: user.id 
+        userId: user.id,
       };
     },
     enabled: !!propertyId,
@@ -80,14 +89,16 @@ export default function PropertyDetails() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("property_tenants")
-        .select(`
+        .select(
+          `
           *,
           profiles:tenant_id (
             first_name,
             last_name,
             email
           )
-        `)
+        `,
+        )
         .eq("property_id", propertyId)
         .eq("tenancy_status", "active")
         .maybeSingle();
@@ -103,14 +114,16 @@ export default function PropertyDetails() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("property_documents")
-        .select(`
+        .select(
+          `
           *,
           profiles:uploaded_by (
             first_name,
             last_name,
             email
           )
-        `)
+        `,
+        )
         .eq("property_id", propertyId)
         .eq("document_category", "property")
         .is("tenancy_id", null)
@@ -125,10 +138,7 @@ export default function PropertyDetails() {
 
   const updatePropertyMutation = useMutation({
     mutationFn: async (updates: { title: string; address: string; description: string }) => {
-      const { error } = await supabase
-        .from("properties")
-        .update(updates)
-        .eq("id", propertyId);
+      const { error } = await supabase.from("properties").update(updates).eq("id", propertyId);
 
       if (error) throw error;
     },
@@ -148,16 +158,11 @@ export default function PropertyDetails() {
       const doc = propertyTemplates?.find((d) => d.id === documentId);
       if (!doc) throw new Error("Document not found");
 
-      const { error: storageError } = await supabase.storage
-        .from("property-documents")
-        .remove([doc.file_path]);
+      const { error: storageError } = await supabase.storage.from("property-documents").remove([doc.file_path]);
 
       if (storageError) throw storageError;
 
-      const { error: dbError } = await supabase
-        .from("property_documents")
-        .delete()
-        .eq("id", documentId);
+      const { error: dbError } = await supabase.from("property_documents").delete().eq("id", documentId);
 
       if (dbError) throw dbError;
     },
@@ -174,27 +179,27 @@ export default function PropertyDetails() {
   const archivePropertyMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase
-        .from('properties')
+        .from("properties")
         .update({
-          status: 'inactive',
+          status: "inactive",
           deleted_at: new Date().toISOString(),
           delete_reason: archiveReason as "sold" | "no_longer_managing" | "merged_with_other_property" | "other",
           modification_reason: archiveNotes || null,
         })
-        .eq('id', propertyId);
-      
+        .eq("id", propertyId);
+
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success(t("properties.propertyArchived"));
       setShowArchiveDialog(false);
-      setArchiveReason('sold');
-      setArchiveNotes('');
-      navigate('/dashboard');
+      setArchiveReason("sold");
+      setArchiveNotes("");
+      navigate("/dashboard");
     },
     onError: (error) => {
       toast.error(t("properties.archiveFailed"));
-      console.error('Archive error:', error);
+      console.error("Archive error:", error);
     },
   });
 
@@ -203,9 +208,7 @@ export default function PropertyDetails() {
   };
 
   const handleDownloadDocument = async (doc: any) => {
-    const { data, error } = await supabase.storage
-      .from("property-documents")
-      .download(doc.file_path);
+    const { data, error } = await supabase.storage.from("property-documents").download(doc.file_path);
 
     if (error) {
       toast.error(t("properties.downloadError"));
@@ -248,13 +251,16 @@ export default function PropertyDetails() {
       activeTenant.profiles.email
     : t("properties.noTenant");
 
-  const groupedDocs = propertyTemplates?.reduce((acc, doc) => {
-    if (!acc[doc.document_title]) {
-      acc[doc.document_title] = [];
-    }
-    acc[doc.document_title].push(doc);
-    return acc;
-  }, {} as Record<string, typeof propertyTemplates>);
+  const groupedDocs = propertyTemplates?.reduce(
+    (acc, doc) => {
+      if (!acc[doc.document_title]) {
+        acc[doc.document_title] = [];
+      }
+      acc[doc.document_title].push(doc);
+      return acc;
+    },
+    {} as Record<string, typeof propertyTemplates>,
+  );
 
   return (
     <AppLayout>
@@ -283,8 +289,8 @@ export default function PropertyDetails() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 {userRole?.isManager ? (
-                  <PropertyPhotoUpload 
-                    propertyId={propertyId!} 
+                  <PropertyPhotoUpload
+                    propertyId={propertyId!}
                     currentPhoto={property.images?.[0]}
                     onPhotoChange={(url) => {
                       queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
@@ -294,8 +300,8 @@ export default function PropertyDetails() {
                   property.images?.[0] && (
                     <div className="space-y-2">
                       <Label>{t("properties.photo")}</Label>
-                      <img 
-                        src={property.images[0]} 
+                      <img
+                        src={property.images[0]}
                         alt={property.title}
                         className="w-full h-64 object-cover rounded-lg"
                       />
@@ -337,9 +343,7 @@ export default function PropertyDetails() {
                 <div className="space-y-2">
                   <Label>{t("properties.status")}</Label>
                   <div className="flex items-center gap-2">
-                    <Badge variant={property.status === "active" ? "default" : "secondary"}>
-                      {property.status}
-                    </Badge>
+                    <Badge variant={property.status === "active" ? "default" : "secondary"}>{property.status}</Badge>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -483,9 +487,7 @@ export default function PropertyDetails() {
                           <p className="text-sm text-muted-foreground">
                             Version {docs[0].version} · Uploaded {new Date(docs[0].created_at).toLocaleDateString()}
                           </p>
-                          {docs[0].description && (
-                            <p className="text-sm mt-2">{docs[0].description}</p>
-                          )}
+                          {docs[0].description && <p className="text-sm mt-2">{docs[0].description}</p>}
                         </div>
                       </CollapsibleContent>
                     </div>
@@ -496,35 +498,31 @@ export default function PropertyDetails() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("properties.quickActions")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/properties/${propertyId}/maintenance`)}
-              className="w-full sm:w-auto"
-            >
-              {t("properties.viewMaintenance")}
-            </Button>
-          </CardContent>
-        </Card>
+        {userRole?.isManager && property.status === "active" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("properties.quickActions")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/properties/${propertyId}/maintenance`)}
+                className="w-full sm:w-auto"
+              >
+                {t("properties.viewMaintenance")}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
-        {userRole?.isManager && !activeTenant && property.status === 'active' && (
+        {userRole?.isManager && !activeTenant && property.status === "active" && (
           <Card className="border-destructive/50">
             <CardHeader>
               <CardTitle className="text-destructive">{t("properties.archivePropertyTitle")}</CardTitle>
-              <CardDescription>
-                {t("properties.archivePropertyWarning")}
-              </CardDescription>
+              <CardDescription>{t("properties.archivePropertyWarning")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                variant="destructive" 
-                onClick={() => setShowArchiveDialog(true)}
-                className="gap-2"
-              >
+              <Button variant="destructive" onClick={() => setShowArchiveDialog(true)} className="gap-2">
                 <Archive className="h-4 w-4" />
                 {t("properties.archiveProperty")}
               </Button>
@@ -537,15 +535,18 @@ export default function PropertyDetails() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("properties.archivePropertyTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("properties.archivePropertyDescription")}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t("properties.archivePropertyDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>{t("properties.archiveReason")}</Label>
-              <Select value={archiveReason} onValueChange={(value) => setArchiveReason(value as "sold" | "no_longer_managing" | "merged_with_other_property" | "other")}>
+              <Select
+                value={archiveReason}
+                onValueChange={(value) =>
+                  setArchiveReason(value as "sold" | "no_longer_managing" | "merged_with_other_property" | "other")
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder={t("properties.selectReason")} />
                 </SelectTrigger>
@@ -557,20 +558,20 @@ export default function PropertyDetails() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label>{t("properties.archiveNotes")}</Label>
-              <Textarea 
+              <Textarea
                 value={archiveNotes}
                 onChange={(e) => setArchiveNotes(e.target.value)}
                 placeholder={t("properties.archiveNotesPlaceholder")}
               />
             </div>
           </div>
-          
+
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => archivePropertyMutation.mutate()}
               disabled={!archiveReason}
               className="bg-destructive hover:bg-destructive/90"
