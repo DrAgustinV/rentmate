@@ -19,7 +19,7 @@ const Index = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/20" />
       <div className="container mx-auto px-4 py-16 relative z-10">
         <div className="text-center mb-16 animate-fade-in">
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-left mb-6">
             <img src={logoUrl} alt={logoAlt} className="h-10 w-10 md:h-15 md:w-15" />
           </div>
           <h1 className="text-5xl md:text-6xl font-bold mb-4 gradient-text">{brandName}</h1>
