@@ -443,6 +443,13 @@ export type Database = {
             referencedRelation: "property_tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "property_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       property_tenants: {
