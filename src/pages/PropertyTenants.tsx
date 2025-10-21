@@ -676,7 +676,149 @@ export default function PropertyTenants() {
               </>
             )}
 
-            {/* Section 4: Action Buttons */}
+            {/* Section 4: Tenancy Documents */}
+            {currentTenant && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-sm">{t("properties.tenancyDocuments")}</h3>
+                    {isReadOnly && (
+                      <Badge variant="secondary" className="text-xs">
+                        {t("properties.readOnlyAccess")}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {uploadDocumentOpen && !isReadOnly && !selectedParentDoc && (
+                    <PropertyDocumentUpload
+                      propertyId={propertyId!}
+                      category="tenancy"
+                      tenancyId={currentTenant.id}
+                      onUploadComplete={() => {
+                        refetchDocuments();
+                        setUploadDocumentOpen(false);
+                      }}
+                    />
+                  )}
+
+                  {selectedParentDoc && !isReadOnly && (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-muted/50 rounded-lg">
+                        <p className="text-sm font-medium">
+                          {t("properties.propertyDocuments.uploadNewVersion")}: {selectedParentDoc.title}
+                        </p>
+                      </div>
+                      <PropertyDocumentUpload
+                        propertyId={propertyId!}
+                        category="tenancy"
+                        tenancyId={currentTenant.id}
+                        parentDocumentId={selectedParentDoc.id}
+                        parentDocumentTitle={selectedParentDoc.title}
+                        onUploadComplete={() => {
+                          refetchDocuments();
+                          setSelectedParentDoc(null);
+                        }}
+                      />
+                      <Button variant="outline" onClick={() => setSelectedParentDoc(null)}>
+                        {t("common.cancel")}
+                      </Button>
+                    </div>
+                  )}
+
+                  {groupedDocuments && Object.keys(groupedDocuments).length > 0 ? (
+                    <div className="space-y-4">
+                      {Object.entries(groupedDocuments).map(([title, docs]) => {
+                        const latestDoc = docs[0];
+                        const olderVersions = docs.slice(1);
+                        const isExpanded = expandedDocuments.has(title);
+
+                        return (
+                          <div key={title} className="border rounded-lg">
+                            <div className="p-4 space-y-3">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h4 className="font-medium truncate">{title}</h4>
+                                    {docs.length > 1 && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        {docs.length} {t("properties.propertyDocuments.versions")}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground space-y-0.5">
+                                    <p>
+                                      v{latestDoc.version} · {formatFileSize(latestDoc.file_size_bytes)} ·{" "}
+                                      {formatDate(latestDoc.created_at)}
+                                    </p>
+                                    {latestDoc.description && <p className="italic">{latestDoc.description}</p>}
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 flex-shrink-0">
+                                  <Button variant="outline" size="sm" onClick={() => downloadDocument(latestDoc)}>
+                                    <Download className="h-3 w-3" />
+                                  </Button>
+                                  {!isReadOnly && (
+                                    <>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setSelectedParentDoc({ id: latestDoc.id, title })}
+                                      >
+                                        <Upload className="h-3 w-3" />
+                                      </Button>
+                                      {userRole?.isManager && (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => deleteDocumentMutation.mutate(latestDoc.id)}
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+
+                              {olderVersions.length > 0 && (
+                                <div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleDocumentExpansion(title)}
+                                    className="w-full justify-between"
+                                  >
+                                    <span className="text-xs">
+                                      {isExpanded ? t("properties.propertyDocuments.previousVersions") : t("properties.propertyDocuments.seeVersions")}
+                                    </span>
+                                    <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
+                                  </Button>
+
+                                  {isExpanded && (
+                                    <PropertyDocumentVersionHistory
+                                      versions={olderVersions}
+                                      onDownload={downloadDocument}
+                                      onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
+                                      formatFileSize={formatFileSize}
+                                      getUploaderName={getUploaderName}
+                                    />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">{t("properties.noTenancyDocuments")}</p>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Section 5: Action Buttons */}
             <Separator />
             <div className="flex flex-wrap gap-2">
               {userRole?.isManager && (
@@ -708,156 +850,6 @@ export default function PropertyTenants() {
           </CardContent>
         </Card>
 
-        {/* Tenancy Documents Section */}
-        {currentTenant && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("properties.tenancyDocuments")}</CardTitle>
-              <CardDescription>{isReadOnly && t("properties.readOnlyAccess")}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {!isReadOnly && (
-                <div className="flex gap-2">
-                  <Button onClick={() => setUploadDocumentOpen(!uploadDocumentOpen)} variant="outline">
-                    <Upload className="h-4 w-4 mr-2" />
-                    {t("properties.uploadTenancyDocument")}
-                  </Button>
-                  {userRole?.isManager && (
-                    <Button onClick={() => setCopyTemplatesOpen(true)} variant="outline">
-                      <Copy className="h-4 w-4 mr-2" />
-                      {t("properties.copyTemplates")}
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {uploadDocumentOpen && !isReadOnly && !selectedParentDoc && (
-                <PropertyDocumentUpload
-                  propertyId={propertyId!}
-                  category="tenancy"
-                  tenancyId={currentTenant.id}
-                  onUploadComplete={() => {
-                    refetchDocuments();
-                    setUploadDocumentOpen(false);
-                  }}
-                />
-              )}
-
-              {selectedParentDoc && !isReadOnly && (
-                <div className="space-y-3">
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium">
-                      {t("properties.propertyDocuments.uploadNewVersion")}: {selectedParentDoc.title}
-                    </p>
-                  </div>
-                  <PropertyDocumentUpload
-                    propertyId={propertyId!}
-                    category="tenancy"
-                    tenancyId={currentTenant.id}
-                    parentDocumentId={selectedParentDoc.id}
-                    parentDocumentTitle={selectedParentDoc.title}
-                    onUploadComplete={() => {
-                      refetchDocuments();
-                      setSelectedParentDoc(null);
-                    }}
-                  />
-                  <Button variant="outline" onClick={() => setSelectedParentDoc(null)}>
-                    {t("common.cancel")}
-                  </Button>
-                </div>
-              )}
-
-              {groupedDocuments && Object.keys(groupedDocuments).length > 0 ? (
-                <div className="space-y-4">
-                  {Object.entries(groupedDocuments).map(([title, docs]) => {
-                    const latestDoc = docs[0];
-                    const olderVersions = docs.slice(1);
-                    const isExpanded = expandedDocuments.has(title);
-
-                    return (
-                      <div key={title} className="border rounded-lg">
-                        <div className="p-4 space-y-3">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-medium truncate">{title}</h4>
-                                {docs.length > 1 && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    {docs.length} {t("properties.propertyDocuments.versions")}
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="text-xs text-muted-foreground space-y-0.5">
-                                <p>
-                                  v{latestDoc.version} · {formatFileSize(latestDoc.file_size_bytes)} ·{" "}
-                                  {formatDate(latestDoc.created_at)}
-                                </p>
-                                {latestDoc.description && <p className="italic">{latestDoc.description}</p>}
-                              </div>
-                            </div>
-                            <div className="flex gap-2 flex-shrink-0">
-                              <Button variant="outline" size="sm" onClick={() => downloadDocument(latestDoc)}>
-                                <Download className="h-3 w-3" />
-                              </Button>
-                              {!isReadOnly && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSelectedParentDoc({ id: latestDoc.id, title })}
-                                  >
-                                    <Upload className="h-3 w-3" />
-                                  </Button>
-                                  {userRole?.isManager && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => deleteDocumentMutation.mutate(latestDoc.id)}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          {olderVersions.length > 0 && (
-                            <div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleDocumentExpansion(title)}
-                                className="w-full justify-between"
-                              >
-                                <span className="text-xs">
-                                  {isExpanded ? t("properties.propertyDocuments.previousVersions") : t("properties.propertyDocuments.seeVersions")}
-                                </span>
-                                <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
-                              </Button>
-
-                              {isExpanded && (
-                                <PropertyDocumentVersionHistory
-                                  versions={olderVersions}
-                                  onDownload={downloadDocument}
-                                  onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
-                                  formatFileSize={formatFileSize}
-                                  getUploaderName={getUploaderName}
-                                />
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">{t("properties.noTenancyDocuments")}</p>
-              )}
-            </CardContent>
-          </Card>
-        )}
 
 
         {/* Tenancy History Section (Manager Only) */}
