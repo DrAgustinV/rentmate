@@ -634,18 +634,6 @@ export default function PropertyTenants() {
                 {t("tenants.viewAllTickets")}
               </Button>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={() => setUploadDocumentOpen(!uploadDocumentOpen)} variant="outline">
-                <Upload className="h-4 w-4 mr-2" />
-                {t("properties.uploadTenancyDocument")}
-              </Button>
-              {userRole?.isManager && (
-                <Button onClick={() => setCopyTemplatesOpen(true)} variant="outline">
-                  <Copy className="h-4 w-4 mr-2" />
-                  {t("properties.copyTemplates")}
-                </Button>
-              )}
-            </div>
           </CardContent>
         </Card>
 
