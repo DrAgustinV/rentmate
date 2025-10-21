@@ -460,16 +460,13 @@ export default function PropertyTenants() {
     });
   };
 
-  const groupedDocuments = tenancyDocuments?.reduce(
-    (acc, doc) => {
-      if (!acc[doc.document_title]) {
-        acc[doc.document_title] = [];
-      }
-      acc[doc.document_title].push(doc);
-      return acc;
-    },
-    {} as Record<string, TenancyDocument[]>,
-  );
+  const groupedDocuments = tenancyDocuments?.reduce((acc, doc) => {
+    if (!acc[doc.document_title]) {
+      acc[doc.document_title] = [];
+    }
+    acc[doc.document_title].push(doc);
+    return acc;
+  }, {} as Record<string, TenancyDocument[]>);
 
   Object.keys(groupedDocuments || {}).forEach((title) => {
     groupedDocuments![title].sort((a, b) => b.version - a.version);
@@ -485,11 +482,7 @@ export default function PropertyTenants() {
       refetchDocuments();
     },
     onError: (error: any) => {
-      toast({
-        title: t("properties.propertyDocuments.deleteFailed"),
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: t("properties.propertyDocuments.deleteFailed"), description: error.message, variant: "destructive" });
     },
   });
 
@@ -549,6 +542,24 @@ export default function PropertyTenants() {
           </div>
         </div>
 
+        {/* Quick Actions Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("properties.quickActions")}</CardTitle>
+            <CardDescription>{t("tenants.tenantManagementDescription")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+              className="w-full sm:w-auto"
+            >
+              <Ticket className="h-4 w-4 mr-2" />
+              {t("tenants.viewAllTickets")}
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Property Limit Warning */}
         {userRole?.isManager && propertyCount !== undefined && propertyCount >= maxPropertiesLimit - 1 && (
           <div className="p-4 border border-yellow-500/50 bg-yellow-500/10 rounded-lg flex items-start gap-3">
@@ -567,23 +578,11 @@ export default function PropertyTenants() {
         {/* Active Tenants Section */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>
-                {t("tenants.activeTenants")} {activeTenants && activeTenants.length > 0 && `(${activeTenants.length})`}
-              </span>
-              <Button
-                variant="outline"
-                onClick={() => navigate(`/properties/${propertyId}/tickets`)}
-                className="hidden sm:flex"
-              >
-                <Ticket className="h-4 w-4 mr-2" />
-                {t("tenants.viewAllTickets")}
-              </Button>
+            <CardTitle>
+              {t("tenants.activeTenants")} {activeTenants && activeTenants.length > 0 && `(${activeTenants.length})`}
             </CardTitle>
-            <CardDescription>{t("tenants.tenantManagementDescription")}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Active Tenants Section */}
+          <CardContent>
             {activeTenants && activeTenants.length > 0 ? (
               <div className="space-y-3">
                 {activeTenants.map((tenant) => (
@@ -594,7 +593,7 @@ export default function PropertyTenants() {
                           <div
                             className={cn(
                               "h-2 w-2 rounded-full",
-                              tenant.tenancy_status === "active" ? "bg-green-500" : "bg-yellow-500",
+                              tenant.tenancy_status === "active" ? "bg-green-500" : "bg-yellow-500"
                             )}
                           />
                           <p className="font-medium">{getTenantName(tenant)}</p>
@@ -603,7 +602,9 @@ export default function PropertyTenants() {
                         <p className="text-xs text-muted-foreground mt-1">
                           {t("properties.tenancyStarted")}: {formatDate(tenant.started_at)}
                         </p>
-                        {tenant.notes && <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>}
+                        {tenant.notes && (
+                          <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>
+                        )}
                       </div>
                       {userRole?.isManager && (
                         <div className="flex gap-2">
@@ -622,18 +623,6 @@ export default function PropertyTenants() {
             ) : (
               <p className="text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
             )}
-
-            {/* Mobile Quick Action Button */}
-            <div className="sm:hidden pt-2">
-              <Button
-                variant="outline"
-                onClick={() => navigate(`/properties/${propertyId}/tickets`)}
-                className="w-full"
-              >
-                <Ticket className="h-4 w-4 mr-2" />
-                {t("tenants.viewAllTickets")}
-              </Button>
-            </div>
           </CardContent>
         </Card>
 
@@ -760,22 +749,16 @@ export default function PropertyTenants() {
                                 className="w-full justify-between"
                               >
                                 <span className="text-xs">
-                                  {isExpanded
-                                    ? t("properties.propertyDocuments.previousVersions")
-                                    : t("properties.propertyDocuments.seeVersions")}
+                                  {isExpanded ? t("properties.propertyDocuments.previousVersions") : t("properties.propertyDocuments.seeVersions")}
                                 </span>
-                                <ChevronDown
-                                  className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")}
-                                />
+                                <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
                               </Button>
 
                               {isExpanded && (
                                 <PropertyDocumentVersionHistory
                                   versions={olderVersions}
                                   onDownload={downloadDocument}
-                                  onDelete={
-                                    userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined
-                                  }
+                                  onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
                                   formatFileSize={formatFileSize}
                                   getUploaderName={getUploaderName}
                                 />
