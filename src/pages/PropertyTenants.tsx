@@ -565,79 +565,37 @@ export default function PropertyTenants() {
         )}
 
         {/* Active Tenants Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>
-                {t("tenants.activeTenants")} {activeTenants && activeTenants.length > 0 && `(${activeTenants.length})`}
-              </span>
-              <Button
-                variant="outline"
-                onClick={() => navigate(`/properties/${propertyId}/tickets`)}
-                className="hidden sm:flex"
-              >
-                <Ticket className="h-4 w-4 mr-2" />
-                {t("tenants.viewAllTickets")}
-              </Button>
-            </CardTitle>
-            <CardDescription>{t("tenants.tenantManagementDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Active Tenants Section */}
-            {activeTenants && activeTenants.length > 0 ? (
-              <div className="space-y-3">
-                {activeTenants.map((tenant) => (
-                  <div key={tenant.id} className="p-4 border rounded-lg space-y-2">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={cn(
-                              "h-2 w-2 rounded-full",
-                              tenant.tenancy_status === "active" ? "bg-green-500" : "bg-yellow-500",
-                            )}
-                          />
-                          <p className="font-medium">{getTenantName(tenant)}</p>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{tenant.email}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {t("properties.tenancyStarted")}: {formatDate(tenant.started_at)}
-                        </p>
-                        {tenant.notes && <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>}
-                      </div>
-                      {userRole?.isManager && (
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => setEditingTenant(tenant)}>
-                            {t("common.edit")}
-                          </Button>
-                          <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)}>
-                            <UserMinus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+        <CardContent className="space-y-4">
+          {activeTenants && activeTenants.length > 0 ? (
+            <>
+              <div className="space-y-3">{/* tenants list */}</div>
+              <div className="sm:hidden pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+                  className="w-full"
+                >
+                  <Ticket className="h-4 w-4 mr-2" />
+                  {t("tenants.viewAllTickets")}
+                </Button>
               </div>
-            ) : (
+            </>
+          ) : (
+            <>
               <p className="text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
-            )}
-
-            {/* Mobile Quick Action Button */}
-            <div className="pt-2 sm:hidden">
-              {" "}
-              {/* Remove sm:hidden or adjust breakpoint */}
-              <Button
-                variant="outline"
-                onClick={() => navigate(`/properties/${propertyId}/tickets`)}
-                className="w-full"
-              >
-                <Ticket className="h-4 w-4 mr-2" />
-                {t("tenants.viewAllTickets")}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="sm:hidden pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+                  className="w-full"
+                >
+                  <Ticket className="h-4 w-4 mr-2" />
+                  {t("tenants.viewAllTickets")}
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
 
         {/* Tenancy Documents Section */}
         {currentTenant && (
