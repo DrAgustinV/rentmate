@@ -624,7 +624,9 @@ export default function PropertyTenants() {
             )}
 
             {/* Mobile Quick Action Button */}
-            <div className="sm:hidden pt-2">
+            <div className="pt-2 sm:hidden">
+              {" "}
+              {/* Remove sm:hidden or adjust breakpoint */}
               <Button
                 variant="outline"
                 onClick={() => navigate(`/properties/${propertyId}/tickets`)}
