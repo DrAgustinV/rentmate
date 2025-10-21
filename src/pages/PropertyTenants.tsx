@@ -567,11 +567,23 @@ export default function PropertyTenants() {
         {/* Active Tenants Section */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              {t("tenants.activeTenants")} {activeTenants && activeTenants.length > 0 && `(${activeTenants.length})`}
+            <CardTitle className="flex items-center justify-between">
+              <span>
+                {t("tenants.activeTenants")} {activeTenants && activeTenants.length > 0 && `(${activeTenants.length})`}
+              </span>
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+                className="hidden sm:flex"
+              >
+                <Ticket className="h-4 w-4 mr-2" />
+                {t("tenants.viewAllTickets")}
+              </Button>
             </CardTitle>
+            <CardDescription>{t("tenants.tenantManagementDescription")}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* Active Tenants Section */}
             {activeTenants && activeTenants.length > 0 ? (
               <div className="space-y-3">
                 {activeTenants.map((tenant) => (
@@ -610,24 +622,18 @@ export default function PropertyTenants() {
             ) : (
               <p className="text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
             )}
-          </CardContent>
-        </Card>
 
-        {/* Quick Actions Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("properties.quickActions")}</CardTitle>
-            <CardDescription>{t("tenants.tenantManagementDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/properties/${propertyId}/tickets`)}
-              className="w-full sm:w-auto"
-            >
-              <Ticket className="h-4 w-4 mr-2" />
-              {t("tenants.viewAllTickets")}
-            </Button>
+            {/* Mobile Quick Action Button */}
+            <div className="sm:hidden pt-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+                className="w-full"
+              >
+                <Ticket className="h-4 w-4 mr-2" />
+                {t("tenants.viewAllTickets")}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
