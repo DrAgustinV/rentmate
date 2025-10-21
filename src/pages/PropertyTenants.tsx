@@ -460,16 +460,13 @@ export default function PropertyTenants() {
     });
   };
 
-  const groupedDocuments = tenancyDocuments?.reduce(
-    (acc, doc) => {
-      if (!acc[doc.document_title]) {
-        acc[doc.document_title] = [];
-      }
-      acc[doc.document_title].push(doc);
-      return acc;
-    },
-    {} as Record<string, TenancyDocument[]>,
-  );
+  const groupedDocuments = tenancyDocuments?.reduce((acc, doc) => {
+    if (!acc[doc.document_title]) {
+      acc[doc.document_title] = [];
+    }
+    acc[doc.document_title].push(doc);
+    return acc;
+  }, {} as Record<string, TenancyDocument[]>);
 
   Object.keys(groupedDocuments || {}).forEach((title) => {
     groupedDocuments![title].sort((a, b) => b.version - a.version);
@@ -485,11 +482,7 @@ export default function PropertyTenants() {
       refetchDocuments();
     },
     onError: (error: any) => {
-      toast({
-        title: t("properties.propertyDocuments.deleteFailed"),
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: t("properties.propertyDocuments.deleteFailed"), description: error.message, variant: "destructive" });
     },
   });
 
@@ -549,6 +542,24 @@ export default function PropertyTenants() {
           </div>
         </div>
 
+        {/* Quick Actions Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("properties.quickActions")}</CardTitle>
+            <CardDescription>{t("tenants.tenantManagementDescription")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+              className="w-full sm:w-auto"
+            >
+              <Ticket className="h-4 w-4 mr-2" />
+              {t("tenants.viewAllTickets")}
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Property Limit Warning */}
         {userRole?.isManager && propertyCount !== undefined && propertyCount >= maxPropertiesLimit - 1 && (
           <div className="p-4 border border-yellow-500/50 bg-yellow-500/10 rounded-lg flex items-start gap-3">
@@ -565,37 +576,55 @@ export default function PropertyTenants() {
         )}
 
         {/* Active Tenants Section */}
-        <CardContent className="space-y-4">
-          {activeTenants && activeTenants.length > 0 ? (
-            <>
-              <div className="space-y-3">{/* tenants list */}</div>
-              <div className="sm:hidden pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/properties/${propertyId}/tickets`)}
-                  className="w-full"
-                >
-                  <Ticket className="h-4 w-4 mr-2" />
-                  {t("tenants.viewAllTickets")}
-                </Button>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {t("tenants.activeTenants")} {activeTenants && activeTenants.length > 0 && `(${activeTenants.length})`}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {activeTenants && activeTenants.length > 0 ? (
+              <div className="space-y-3">
+                {activeTenants.map((tenant) => (
+                  <div key={tenant.id} className="p-4 border rounded-lg space-y-2">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={cn(
+                              "h-2 w-2 rounded-full",
+                              tenant.tenancy_status === "active" ? "bg-green-500" : "bg-yellow-500"
+                            )}
+                          />
+                          <p className="font-medium">{getTenantName(tenant)}</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{tenant.email}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t("properties.tenancyStarted")}: {formatDate(tenant.started_at)}
+                        </p>
+                        {tenant.notes && (
+                          <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>
+                        )}
+                      </div>
+                      {userRole?.isManager && (
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => setEditingTenant(tenant)}>
+                            {t("common.edit")}
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)}>
+                            <UserMinus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </>
-          ) : (
-            <>
+            ) : (
               <p className="text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
-              <div className="sm:hidden pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/properties/${propertyId}/tickets`)}
-                  className="w-full"
-                >
-                  <Ticket className="h-4 w-4 mr-2" />
-                  {t("tenants.viewAllTickets")}
-                </Button>
-              </div>
-            </>
-          )}
-        </CardContent>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Tenancy Documents Section */}
         {currentTenant && (
@@ -720,22 +749,16 @@ export default function PropertyTenants() {
                                 className="w-full justify-between"
                               >
                                 <span className="text-xs">
-                                  {isExpanded
-                                    ? t("properties.propertyDocuments.previousVersions")
-                                    : t("properties.propertyDocuments.seeVersions")}
+                                  {isExpanded ? t("properties.propertyDocuments.previousVersions") : t("properties.propertyDocuments.seeVersions")}
                                 </span>
-                                <ChevronDown
-                                  className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")}
-                                />
+                                <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
                               </Button>
 
                               {isExpanded && (
                                 <PropertyDocumentVersionHistory
                                   versions={olderVersions}
                                   onDownload={downloadDocument}
-                                  onDelete={
-                                    userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined
-                                  }
+                                  onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
                                   formatFileSize={formatFileSize}
                                   getUploaderName={getUploaderName}
                                 />
