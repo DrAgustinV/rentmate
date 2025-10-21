@@ -683,11 +683,19 @@ export default function PropertyTenants() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-sm">{t("properties.tenancyDocuments")}</h3>
-                    {isReadOnly && (
-                      <Badge variant="secondary" className="text-xs">
-                        {t("properties.readOnlyAccess")}
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {isReadOnly && (
+                        <Badge variant="secondary" className="text-xs">
+                          {t("properties.readOnlyAccess")}
+                        </Badge>
+                      )}
+                      {!isReadOnly && !uploadDocumentOpen && !selectedParentDoc && (
+                        <Button variant="outline" size="sm" onClick={() => setUploadDocumentOpen(true)}>
+                          <Upload className="h-4 w-4 mr-2" />
+                          {t("properties.uploadTenancyDocument")}
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   {uploadDocumentOpen && !isReadOnly && !selectedParentDoc && (
