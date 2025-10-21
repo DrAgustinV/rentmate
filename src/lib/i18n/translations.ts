@@ -846,6 +846,8 @@ export const translations = {
       tenantUpdatedDesc: "Tenant information has been updated successfully",
       viewAllTickets: "View All Tickets",
       tenantManagementDescription: "Manage tenants, documents, and tenant-related tickets",
+      manageTenants: "Tenants",
+      manageTenantsSections: "Manage current tenants and invitations",
     },
   },
   es: {
@@ -1642,6 +1644,8 @@ export const translations = {
       tenantUpdatedDesc: "La información del inquilino se ha actualizado correctamente",
       viewAllTickets: "Ver Todos los Tickets",
       tenantManagementDescription: "Gestionar inquilinos, documentos y tickets relacionados con inquilinos",
+      manageTenants: "Inquilinos",
+      manageTenantsSections: "Gestionar inquilinos actuales e invitaciones",
     },
   },
 };
