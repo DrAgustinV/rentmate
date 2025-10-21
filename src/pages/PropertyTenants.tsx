@@ -985,4 +985,3 @@ export default function PropertyTenants() {
     </AppLayout>
   );
 }
-```
