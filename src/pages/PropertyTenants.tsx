@@ -104,7 +104,6 @@ export default function PropertyTenants() {
   const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
   const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
   const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
-  const [showInviteForm, setShowInviteForm] = useState(false);
 
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
@@ -461,13 +460,16 @@ export default function PropertyTenants() {
     });
   };
 
-  const groupedDocuments = tenancyDocuments?.reduce((acc, doc) => {
-    if (!acc[doc.document_title]) {
-      acc[doc.document_title] = [];
-    }
-    acc[doc.document_title].push(doc);
-    return acc;
-  }, {} as Record<string, TenancyDocument[]>);
+  const groupedDocuments = tenancyDocuments?.reduce(
+    (acc, doc) => {
+      if (!acc[doc.document_title]) {
+        acc[doc.document_title] = [];
+      }
+      acc[doc.document_title].push(doc);
+      return acc;
+    },
+    {} as Record<string, TenancyDocument[]>,
+  );
 
   Object.keys(groupedDocuments || {}).forEach((title) => {
     groupedDocuments![title].sort((a, b) => b.version - a.version);
@@ -483,7 +485,11 @@ export default function PropertyTenants() {
       refetchDocuments();
     },
     onError: (error: any) => {
-      toast({ title: t("properties.propertyDocuments.deleteFailed"), description: error.message, variant: "destructive" });
+      toast({
+        title: t("properties.propertyDocuments.deleteFailed"),
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -558,152 +564,87 @@ export default function PropertyTenants() {
           </div>
         )}
 
-        {/* Consolidated Tenants Card */}
+        {/* Active Tenants Section */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("tenants.manageTenants")}</CardTitle>
-            <CardDescription>{t("tenants.manageTenantsSections")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Section 1: Active Tenants */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-sm">
+            <CardTitle className="flex items-center justify-between">
+              <span>
                 {t("tenants.activeTenants")} {activeTenants && activeTenants.length > 0 && `(${activeTenants.length})`}
-              </h3>
-              {activeTenants && activeTenants.length > 0 ? (
-                <div className="space-y-3">
-                  {activeTenants.map((tenant) => (
-                    <div key={tenant.id} className="p-4 border rounded-lg space-y-2">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={cn(
-                                "h-2 w-2 rounded-full",
-                                tenant.tenancy_status === "active" ? "bg-green-500" : "bg-yellow-500"
-                              )}
-                            />
-                            <p className="font-medium">{getTenantName(tenant)}</p>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{tenant.email}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {t("properties.tenancyStarted")}: {formatDate(tenant.started_at)}
-                          </p>
-                          {tenant.notes && (
-                            <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>
-                          )}
+              </span>
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+                className="hidden sm:flex"
+              >
+                <Ticket className="h-4 w-4 mr-2" />
+                {t("tenants.viewAllTickets")}
+              </Button>
+            </CardTitle>
+            <CardDescription>{t("tenants.tenantManagementDescription")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Active Tenants Section */}
+            {activeTenants && activeTenants.length > 0 ? (
+              <div className="space-y-3">
+                {activeTenants.map((tenant) => (
+                  <div key={tenant.id} className="p-4 border rounded-lg space-y-2">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={cn(
+                              "h-2 w-2 rounded-full",
+                              tenant.tenancy_status === "active" ? "bg-green-500" : "bg-yellow-500",
+                            )}
+                          />
+                          <p className="font-medium">{getTenantName(tenant)}</p>
                         </div>
-                        {userRole?.isManager && (
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => setEditingTenant(tenant)}>
-                              {t("common.edit")}
-                            </Button>
-                            <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)}>
-                              <UserMinus className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
+                        <p className="text-sm text-muted-foreground">{tenant.email}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t("properties.tenancyStarted")}: {formatDate(tenant.started_at)}
+                        </p>
+                        {tenant.notes && <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>}
                       </div>
+                      {userRole?.isManager && (
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => setEditingTenant(tenant)}>
+                            {t("common.edit")}
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)}>
+                            <UserMinus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
-              )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
+            )}
+
+            {/* Mobile Quick Action Button */}
+            <div className="sm:hidden pt-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+                className="w-full"
+              >
+                <Ticket className="h-4 w-4 mr-2" />
+                {t("tenants.viewAllTickets")}
+              </Button>
             </div>
-
-            {/* Section 2: Pending Invitations (Manager Only) */}
-            {userRole?.isManager && invitations && invitations.length > 0 && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-sm">
-                    {t("dialogs.manageTenants.pendingInvitations")} ({invitations.length})
-                  </h3>
-                  <div className="space-y-2">
-                    {invitations.map((inv) => (
-                      <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{inv.email}</p>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {t("dialogs.manageTenants.expires")}: {formatDate(inv.expires_at)}
-                          </p>
-                        </div>
-                        <Button variant="ghost" size="sm" onClick={() => setCancellingInvitation(inv)}>
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Section 3: Invite Form (Conditional, Manager Only) */}
-            {userRole?.isManager && showInviteForm && (
-              <>
-                <Separator />
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t("dialogs.inviteTenant.emailLabel")}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder={t("dialogs.inviteTenant.emailPlaceholder")}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && email.trim()) {
-                          inviteMutation.mutate(email.trim());
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={() => {
-                        const trimmedEmail = email.trim();
-                        if (trimmedEmail) {
-                          inviteMutation.mutate(trimmedEmail);
-                        }
-                      }}
-                      disabled={inviteMutation.isPending || !email.trim()}
-                    >
-                      <Mail className="h-4 w-4 mr-2" />
-                      {t("dialogs.inviteTenant.send")}
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Section 4: Action Buttons */}
-            <Separator />
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
+              <Button onClick={() => setUploadDocumentOpen(!uploadDocumentOpen)} variant="outline">
+                <Upload className="h-4 w-4 mr-2" />
+                {t("properties.uploadTenancyDocument")}
+              </Button>
               {userRole?.isManager && (
-                <Button
-                  variant="outline"
-                  onClick={() => setShowInviteForm(!showInviteForm)}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  {showInviteForm ? t("common.cancel") : t("properties.inviteNewTenant")}
-                </Button>
-              )}
-              {userRole?.isManager && currentTenant && (
-                <Button variant="outline" onClick={() => setCopyTemplatesOpen(true)}>
+                <Button onClick={() => setCopyTemplatesOpen(true)} variant="outline">
                   <Copy className="h-4 w-4 mr-2" />
                   {t("properties.copyTemplates")}
                 </Button>
               )}
-              {currentTenant && (
-                <Button variant="outline" onClick={() => setUploadDocumentOpen(!uploadDocumentOpen)}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  {t("properties.uploadTenancyDocument")}
-                </Button>
-              )}
-              <Button variant="outline" onClick={() => navigate(`/properties/${propertyId}/tickets`)}>
-                <Ticket className="h-4 w-4 mr-2" />
-                {t("tenants.viewAllTickets")}
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -831,16 +772,22 @@ export default function PropertyTenants() {
                                 className="w-full justify-between"
                               >
                                 <span className="text-xs">
-                                  {isExpanded ? t("properties.propertyDocuments.previousVersions") : t("properties.propertyDocuments.seeVersions")}
+                                  {isExpanded
+                                    ? t("properties.propertyDocuments.previousVersions")
+                                    : t("properties.propertyDocuments.seeVersions")}
                                 </span>
-                                <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
+                                <ChevronDown
+                                  className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")}
+                                />
                               </Button>
 
                               {isExpanded && (
                                 <PropertyDocumentVersionHistory
                                   versions={olderVersions}
                                   onDownload={downloadDocument}
-                                  onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
+                                  onDelete={
+                                    userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined
+                                  }
                                   formatFileSize={formatFileSize}
                                   getUploaderName={getUploaderName}
                                 />
@@ -859,6 +806,66 @@ export default function PropertyTenants() {
           </Card>
         )}
 
+        {/* Invite New Tenant Section (Manager Only) */}
+        {userRole?.isManager && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("properties.inviteNewTenant")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">{t("dialogs.inviteTenant.emailLabel")}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder={t("dialogs.inviteTenant.emailPlaceholder")}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && email.trim()) {
+                        inviteMutation.mutate(email.trim());
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={() => {
+                      const trimmedEmail = email.trim();
+                      if (trimmedEmail) {
+                        inviteMutation.mutate(trimmedEmail);
+                      }
+                    }}
+                    disabled={inviteMutation.isPending || !email.trim()}
+                  >
+                    <Mail className="h-4 w-4 mr-2" />
+                    {t("dialogs.inviteTenant.send")}
+                  </Button>
+                </div>
+              </div>
+
+              {invitations && invitations.length > 0 && (
+                <div className="space-y-2">
+                  <Separator />
+                  <h3 className="font-medium">{t("dialogs.manageTenants.pendingInvitations")}</h3>
+                  {invitations.map((inv) => (
+                    <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{inv.email}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {t("dialogs.manageTenants.expires")}: {formatDate(inv.expires_at)}
+                        </p>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => setCancellingInvitation(inv)}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tenancy History Section (Manager Only) */}
         {userRole?.isManager && tenancyHistory && tenancyHistory.length > 0 && (
