@@ -1,3 +1,4 @@
+```tsx
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -564,14 +565,26 @@ export default function PropertyTenants() {
           </div>
         )}
 
-        {/* Active Tenants Section */}
+        {/* Unified Main Card: Active Tenants, Tenancy Documents, Invite New Tenant */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              {t("tenants.activeTenants")} {activeTenants && activeTenants.length > 0 && `(${activeTenants.length})`}
+            <CardTitle className="flex items-center justify-between">
+              <span>
+                {t("tenants.activeTenants")} {activeTenants && activeTenants.length > 0 && `(${activeTenants.length})`}
+              </span>
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+                className="hidden sm:flex"
+              >
+                <Ticket className="h-4 w-4 mr-2" />
+                {t("tenants.viewAllTickets")}
+              </Button>
             </CardTitle>
+            <CardDescription>{t("tenants.tenantManagementDescription")}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
+            {/* Active Tenants Section */}
             {activeTenants && activeTenants.length > 0 ? (
               <div className="space-y-3">
                 {activeTenants.map((tenant) => (
@@ -610,246 +623,240 @@ export default function PropertyTenants() {
             ) : (
               <p className="text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
             )}
-          </CardContent>
-        </Card>
 
-        {/* Quick Actions Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("properties.quickActions")}</CardTitle>
-            <CardDescription>{t("tenants.tenantManagementDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/properties/${propertyId}/tickets`)}
-              className="w-full sm:w-auto"
-            >
-              <Ticket className="h-4 w-4 mr-2" />
-              {t("tenants.viewAllTickets")}
-            </Button>
-          </CardContent>
-        </Card>
+            {/* Mobile Quick Action Button */}
+            <div className="sm:hidden pt-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+                className="w-full"
+              >
+                <Ticket className="h-4 w-4 mr-2" />
+                {t("tenants.viewAllTickets")}
+              </Button>
+            </div>
 
-        {/* Tenancy Documents Section */}
-        {currentTenant && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("properties.tenancyDocuments")}</CardTitle>
-              <CardDescription>{isReadOnly && t("properties.readOnlyAccess")}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {!isReadOnly && (
-                <div className="flex gap-2">
-                  <Button onClick={() => setUploadDocumentOpen(!uploadDocumentOpen)} variant="outline">
-                    <Upload className="h-4 w-4 mr-2" />
-                    {t("properties.uploadTenancyDocument")}
-                  </Button>
-                  {userRole?.isManager && (
-                    <Button onClick={() => setCopyTemplatesOpen(true)} variant="outline">
-                      <Copy className="h-4 w-4 mr-2" />
-                      {t("properties.copyTemplates")}
-                    </Button>
+            {/* Tenancy Documents Section */}
+            {currentTenant && (
+              <>
+                <Separator />
+                <div>
+                  <CardTitle className="mb-2">{t("properties.tenancyDocuments")}</CardTitle>
+                  <p className="text-sm text-muted-foreground mb-4">{isReadOnly && t("properties.readOnlyAccess")}</p>
+                  {!isReadOnly && (
+                    <div className="flex gap-2 mb-4">
+                      <Button onClick={() => setUploadDocumentOpen(!uploadDocumentOpen)} variant="outline">
+                        <Upload className="h-4 w-4 mr-2" />
+                        {t("properties.uploadTenancyDocument")}
+                      </Button>
+                      {userRole?.isManager && (
+                        <Button onClick={() => setCopyTemplatesOpen(true)} variant="outline">
+                          <Copy className="h-4 w-4 mr-2" />
+                          {t("properties.copyTemplates")}
+                        </Button>
+                      )}
+                    </div>
                   )}
-                </div>
-              )}
 
-              {uploadDocumentOpen && !isReadOnly && !selectedParentDoc && (
-                <PropertyDocumentUpload
-                  propertyId={propertyId!}
-                  category="tenancy"
-                  tenancyId={currentTenant.id}
-                  onUploadComplete={() => {
-                    refetchDocuments();
-                    setUploadDocumentOpen(false);
-                  }}
-                />
-              )}
+                  {uploadDocumentOpen && !isReadOnly && !selectedParentDoc && (
+                    <PropertyDocumentUpload
+                      propertyId={propertyId!}
+                      category="tenancy"
+                      tenancyId={currentTenant.id}
+                      onUploadComplete={() => {
+                        refetchDocuments();
+                        setUploadDocumentOpen(false);
+                      }}
+                    />
+                  )}
 
-              {selectedParentDoc && !isReadOnly && (
-                <div className="space-y-3">
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium">
-                      {t("properties.propertyDocuments.uploadNewVersion")}: {selectedParentDoc.title}
-                    </p>
-                  </div>
-                  <PropertyDocumentUpload
-                    propertyId={propertyId!}
-                    category="tenancy"
-                    tenancyId={currentTenant.id}
-                    parentDocumentId={selectedParentDoc.id}
-                    parentDocumentTitle={selectedParentDoc.title}
-                    onUploadComplete={() => {
-                      refetchDocuments();
-                      setSelectedParentDoc(null);
-                    }}
-                  />
-                  <Button variant="outline" onClick={() => setSelectedParentDoc(null)}>
-                    {t("common.cancel")}
-                  </Button>
-                </div>
-              )}
+                  {selectedParentDoc && !isReadOnly && (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-muted/50 rounded-lg">
+                        <p className="text-sm font-medium">
+                          {t("properties.propertyDocuments.uploadNewVersion")}: {selectedParentDoc.title}
+                        </p>
+                      </div>
+                      <PropertyDocumentUpload
+                        propertyId={propertyId!}
+                        category="tenancy"
+                        tenancyId={currentTenant.id}
+                        parentDocumentId={selectedParentDoc.id}
+                        parentDocumentTitle={selectedParentDoc.title}
+                        onUploadComplete={() => {
+                          refetchDocuments();
+                          setSelectedParentDoc(null);
+                        }}
+                      />
+                      <Button variant="outline" onClick={() => setSelectedParentDoc(null)}>
+                        {t("common.cancel")}
+                      </Button>
+                    </div>
+                  )}
 
-              {groupedDocuments && Object.keys(groupedDocuments).length > 0 ? (
-                <div className="space-y-4">
-                  {Object.entries(groupedDocuments).map(([title, docs]) => {
-                    const latestDoc = docs[0];
-                    const olderVersions = docs.slice(1);
-                    const isExpanded = expandedDocuments.has(title);
+                  {groupedDocuments && Object.keys(groupedDocuments).length > 0 ? (
+                    <div className="space-y-4">
+                      {Object.entries(groupedDocuments).map(([title, docs]) => {
+                        const latestDoc = docs[0];
+                        const olderVersions = docs.slice(1);
+                        const isExpanded = expandedDocuments.has(title);
 
-                    return (
-                      <div key={title} className="border rounded-lg">
-                        <div className="p-4 space-y-3">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-medium truncate">{title}</h4>
-                                {docs.length > 1 && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    {docs.length} {t("properties.propertyDocuments.versions")}
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="text-xs text-muted-foreground space-y-0.5">
-                                <p>
-                                  v{latestDoc.version} · {formatFileSize(latestDoc.file_size_bytes)} ·{" "}
-                                  {formatDate(latestDoc.created_at)}
-                                </p>
-                                {latestDoc.description && <p className="italic">{latestDoc.description}</p>}
-                              </div>
-                            </div>
-                            <div className="flex gap-2 flex-shrink-0">
-                              <Button variant="outline" size="sm" onClick={() => downloadDocument(latestDoc)}>
-                                <Download className="h-3 w-3" />
-                              </Button>
-                              {!isReadOnly && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSelectedParentDoc({ id: latestDoc.id, title })}
-                                  >
-                                    <Upload className="h-3 w-3" />
+                        return (
+                          <div key={title} className="border rounded-lg">
+                            <div className="p-4 space-y-3">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h4 className="font-medium truncate">{title}</h4>
+                                    {docs.length > 1 && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        {docs.length} {t("properties.propertyDocuments.versions")}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground space-y-0.5">
+                                    <p>
+                                      v{latestDoc.version} · {formatFileSize(latestDoc.file_size_bytes)} ·{" "}
+                                      {formatDate(latestDoc.created_at)}
+                                    </p>
+                                    {latestDoc.description && <p className="italic">{latestDoc.description}</p>}
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 flex-shrink-0">
+                                  <Button variant="outline" size="sm" onClick={() => downloadDocument(latestDoc)}>
+                                    <Download className="h-3 w-3" />
                                   </Button>
-                                  {userRole?.isManager && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => deleteDocumentMutation.mutate(latestDoc.id)}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
+                                  {!isReadOnly && (
+                                    <>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setSelectedParentDoc({ id: latestDoc.id, title })}
+                                      >
+                                        <Upload className="h-3 w-3" />
+                                      </Button>
+                                      {userRole?.isManager && (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => deleteDocumentMutation.mutate(latestDoc.id)}
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      )}
+                                    </>
                                   )}
-                                </>
+                                </div>
+                              </div>
+
+                              {olderVersions.length > 0 && (
+                                <div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleDocumentExpansion(title)}
+                                    className="w-full justify-between"
+                                  >
+                                    <span className="text-xs">
+                                      {isExpanded
+                                        ? t("properties.propertyDocuments.previousVersions")
+                                        : t("properties.propertyDocuments.seeVersions")}
+                                    </span>
+                                    <ChevronDown
+                                      className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")}
+                                    />
+                                  </Button>
+
+                                  {isExpanded && (
+                                    <PropertyDocumentVersionHistory
+                                      versions={olderVersions}
+                                      onDownload={downloadDocument}
+                                      onDelete={
+                                        userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined
+                                      }
+                                      formatFileSize={formatFileSize}
+                                      getUploaderName={getUploaderName}
+                                    />
+                                  )}
+                                </div>
                               )}
                             </div>
                           </div>
-
-                          {olderVersions.length > 0 && (
-                            <div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleDocumentExpansion(title)}
-                                className="w-full justify-between"
-                              >
-                                <span className="text-xs">
-                                  {isExpanded
-                                    ? t("properties.propertyDocuments.previousVersions")
-                                    : t("properties.propertyDocuments.seeVersions")}
-                                </span>
-                                <ChevronDown
-                                  className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")}
-                                />
-                              </Button>
-
-                              {isExpanded && (
-                                <PropertyDocumentVersionHistory
-                                  versions={olderVersions}
-                                  onDownload={downloadDocument}
-                                  onDelete={
-                                    userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined
-                                  }
-                                  formatFileSize={formatFileSize}
-                                  getUploaderName={getUploaderName}
-                                />
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">{t("properties.noTenancyDocuments")}</p>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Invite New Tenant Section (Manager Only) */}
-        {userRole?.isManager && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("properties.inviteNewTenant")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">{t("dialogs.inviteTenant.emailLabel")}</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder={t("dialogs.inviteTenant.emailPlaceholder")}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && email.trim()) {
-                        inviteMutation.mutate(email.trim());
-                      }
-                    }}
-                  />
-                  <Button
-                    onClick={() => {
-                      const trimmedEmail = email.trim();
-                      if (trimmedEmail) {
-                        inviteMutation.mutate(trimmedEmail);
-                      }
-                    }}
-                    disabled={inviteMutation.isPending || !email.trim()}
-                  >
-                    <Mail className="h-4 w-4 mr-2" />
-                    {t("dialogs.inviteTenant.send")}
-                  </Button>
-                </div>
-              </div>
-
-              {invitations && invitations.length > 0 && (
-                <div className="space-y-2">
-                  <Separator />
-                  <h3 className="font-medium">{t("dialogs.manageTenants.pendingInvitations")}</h3>
-                  {invitations.map((inv) => (
-                    <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{inv.email}</p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {t("dialogs.manageTenants.expires")}: {formatDate(inv.expires_at)}
-                        </p>
-                      </div>
-                      <Button variant="ghost" size="sm" onClick={() => setCancellingInvitation(inv)}>
-                        <X className="h-4 w-4" />
-                      </Button>
+                        );
+                      })}
                     </div>
-                  ))}
+                  ) : (
+                    <p className="text-sm text-muted-foreground">{t("properties.noTenancyDocuments")}</p>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+              </>
+            )}
 
-        {/* Tenancy History Section (Manager Only) */}
+            {/* Invite New Tenant Section (Manager Only) */}
+            {userRole?.isManager && (
+              <>
+                <Separator />
+                <div>
+                  <CardTitle className="mb-2">{t("properties.inviteNewTenant")}</CardTitle>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">{t("dialogs.inviteTenant.emailLabel")}</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder={t("dialogs.inviteTenant.emailPlaceholder")}
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && email.trim()) {
+                              inviteMutation.mutate(email.trim());
+                            }
+                          }}
+                        />
+                        <Button
+                          onClick={() => {
+                            const trimmedEmail = email.trim();
+                            if (trimmedEmail) {
+                              inviteMutation.mutate(trimmedEmail);
+                            }
+                          }}
+                          disabled={inviteMutation.isPending || !email.trim()}
+                        >
+                          <Mail className="h-4 w-4 mr-2" />
+                          {t("dialogs.inviteTenant.send")}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {invitations && invitations.length > 0 && (
+                      <div className="space-y-2">
+                        <Separator />
+                        <h3 className="font-medium">{t("dialogs.manageTenants.pendingInvitations")}</h3>
+                        {invitations.map((inv) => (
+                          <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <p className="font-medium">{inv.email}</p>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {t("dialogs.manageTenants.expires")}: {formatDate(inv.expires_at)}
+                              </p>
+                            </div>
+                            <Button variant="ghost" size="sm" onClick={() => setCancellingInvitation(inv)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Tenancy History Section (Manager Only) - Kept Separate */}
         {userRole?.isManager && tenancyHistory && tenancyHistory.length > 0 && (
           <Card>
             <CardHeader>
@@ -978,3 +985,4 @@ export default function PropertyTenants() {
     </AppLayout>
   );
 }
+```
