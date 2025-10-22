@@ -260,6 +260,8 @@ export default function PropertyDetails() {
   };
 
   const fetchPropertyPhotoUrl = async (storagePath: string) => {
+    console.log('[PropertyDetails] Fetching signed URL for:', storagePath);
+    
     if (!storagePath) {
       setPropertyPhotoUrl(undefined);
       return;
@@ -269,7 +271,15 @@ export default function PropertyDetails() {
       .from('property-photos')
       .createSignedUrl(storagePath, 3600);
     
-    if (!error && data) {
+    if (error) {
+      console.error('[PropertyDetails] Error creating signed URL:', error);
+      toast.error(t("properties.photoLoadError"));
+      setPropertyPhotoUrl(undefined);
+      return;
+    }
+    
+    if (data) {
+      console.log('[PropertyDetails] Successfully created signed URL');
       setPropertyPhotoUrl(data.signedUrl);
     }
   };
@@ -393,12 +403,9 @@ export default function PropertyDetails() {
                   <PropertyPhotoUpload
                     propertyId={propertyId!}
                     currentPhoto={propertyPhotoUrl}
-                    onPhotoChange={async (storagePath) => {
-                      // Fetch new signed URL after upload
-                      if (storagePath) {
-                        await fetchPropertyPhotoUrl(storagePath);
-                      }
-                      queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
+                    onPhotoChange={() => {
+                      // Query invalidation is handled in PropertyPhotoUpload component
+                      // The useEffect will automatically fetch new photo URL when property.images updates
                     }}
                   />
                 ) : (

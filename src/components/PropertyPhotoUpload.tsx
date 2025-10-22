@@ -98,6 +98,10 @@ export function PropertyPhotoUpload({
       // Invalidate queries to refresh property data everywhere
       queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: [TENANT_PROPERTIES_QUERY_KEY] });
+      // Invalidate individual property query for PropertyDetails page
+      if (propertyId) {
+        queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
+      }
       
       toast({
         title: t('common.success'),
