@@ -112,6 +112,54 @@ export default function PropertyDetails() {
     enabled: !!propertyId,
   });
 
+  // Query for tenant's own tenancy record (when viewing as tenant)
+  const { data: currentUserTenancy } = useQuery({
+    queryKey: ["current-user-tenancy", propertyId, userRole?.userId],
+    queryFn: async () => {
+      if (userRole?.isManager || !userRole?.userId) return null;
+      
+      const { data, error } = await supabase
+        .from("property_tenants")
+        .select("id, tenancy_status, started_at, ended_at")
+        .eq("property_id", propertyId)
+        .eq("tenant_id", userRole.userId)
+        .in("tenancy_status", ["active", "ending_tenancy"])
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!propertyId && !!userRole?.userId && !userRole?.isManager,
+  });
+
+  // Query for tenancy documents (only for tenants viewing their own documents)
+  const { data: tenancyDocuments, isLoading: tenancyDocsLoading } = useQuery({
+    queryKey: ["tenancy-documents", propertyId, currentUserTenancy?.id],
+    queryFn: async () => {
+      if (!currentUserTenancy?.id) return [];
+
+      const { data, error } = await supabase
+        .from("property_documents")
+        .select(`
+          *,
+          profiles:uploaded_by (
+            first_name,
+            last_name,
+            email
+          )
+        `)
+        .eq("property_id", propertyId)
+        .eq("document_category", "tenancy")
+        .eq("tenancy_id", currentUserTenancy.id)
+        .order("document_title", { ascending: true })
+        .order("version", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!propertyId && !!currentUserTenancy?.id && !userRole?.isManager,
+  });
+
   const { data: propertyTemplates, isLoading: templatesLoading } = useQuery({
     queryKey: ["property-templates", propertyId],
     queryFn: async () => {
@@ -277,6 +325,17 @@ export default function PropertyDetails() {
       return acc;
     },
     {} as Record<string, typeof propertyTemplates>,
+  );
+
+  const groupedTenancyDocs = tenancyDocuments?.reduce(
+    (acc, doc) => {
+      if (!acc[doc.document_title]) {
+        acc[doc.document_title] = [];
+      }
+      acc[doc.document_title].push(doc);
+      return acc;
+    },
+    {} as Record<string, typeof tenancyDocuments>,
   );
 
   return (
@@ -556,6 +615,161 @@ export default function PropertyDetails() {
                                     versions={olderVersions}
                                     onDownload={handleDownloadDocument}
                                     onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
+                                    formatFileSize={formatFileSize}
+                                    getUploaderName={getUploaderName}
+                                  />
+                                </CollapsibleContent>
+                              </Collapsible>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tenancy Documents Section - Only for Tenants */}
+        {!userRole?.isManager && currentUserTenancy && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>{t("properties.tenancyDocuments")}</CardTitle>
+                  <CardDescription>{t("properties.tenancyDocumentsDescription")}</CardDescription>
+                </div>
+                {!selectedParentDoc && (
+                  <Button onClick={() => setShowUpload(!showUpload)} variant="outline" size="sm">
+                    <UploadIcon className="h-4 w-4 mr-2" />
+                    {showUpload ? t("common.cancel") : t("properties.uploadDocument")}
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Upload new document */}
+              {showUpload && !selectedParentDoc && (
+                <>
+                  <PropertyDocumentUpload
+                    propertyId={propertyId!}
+                    category="tenancy"
+                    tenancyId={currentUserTenancy.id}
+                    onUploadComplete={() => {
+                      setShowUpload(false);
+                      queryClient.invalidateQueries({ queryKey: ["tenancy-documents", propertyId, currentUserTenancy.id] });
+                    }}
+                  />
+                  <Separator />
+                </>
+              )}
+
+              {/* Upload new version */}
+              {selectedParentDoc && (
+                <>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm font-medium">
+                      {t("properties.propertyDocuments.uploadNewVersion")}: {selectedParentDoc.title}
+                    </p>
+                  </div>
+                  <PropertyDocumentUpload
+                    propertyId={propertyId!}
+                    category="tenancy"
+                    tenancyId={currentUserTenancy.id}
+                    parentDocumentId={selectedParentDoc.id}
+                    parentDocumentTitle={selectedParentDoc.title}
+                    onUploadComplete={() => {
+                      setSelectedParentDoc(null);
+                      queryClient.invalidateQueries({ queryKey: ["tenancy-documents", propertyId, currentUserTenancy.id] });
+                    }}
+                  />
+                  <Button variant="outline" onClick={() => setSelectedParentDoc(null)}>
+                    {t("common.cancel")}
+                  </Button>
+                  <Separator />
+                </>
+              )}
+
+              {/* Documents list */}
+              {tenancyDocsLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : !tenancyDocuments || tenancyDocuments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>{t("properties.noDocuments")}</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {Object.entries(groupedTenancyDocs || {}).map(([docTitle, docs]) => {
+                    const latestDoc = docs[0];
+                    const olderVersions = docs.slice(1);
+
+                    return (
+                      <div key={docTitle} className="border rounded-lg">
+                        <div className="p-4 space-y-3">
+                          {/* Header with title and version badge */}
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <h4 className="font-medium truncate">{docTitle}</h4>
+                                {docs.length > 1 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {docs.length} {t("properties.propertyDocuments.versions")}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-xs text-muted-foreground space-y-0.5">
+                                <p>
+                                  v{latestDoc.version} · {formatFileSize(latestDoc.file_size_bytes)} ·{" "}
+                                  {new Date(latestDoc.created_at).toLocaleDateString()}
+                                </p>
+                                {latestDoc.description && <p className="italic">{latestDoc.description}</p>}
+                              </div>
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="flex gap-2 flex-shrink-0">
+                              <Button variant="outline" size="sm" onClick={() => handleDownloadDocument(latestDoc)}>
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedParentDoc({ id: latestDoc.id, title: docTitle })}
+                              >
+                                <Upload className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Version history */}
+                          {olderVersions.length > 0 && (
+                            <div>
+                              <Collapsible
+                                open={expandedDoc === docTitle}
+                                onOpenChange={(open) => setExpandedDoc(open ? docTitle : null)}
+                              >
+                                <CollapsibleTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="w-full justify-start text-xs">
+                                    <ChevronDown
+                                      className={cn(
+                                        "h-3 w-3 mr-2 transition-transform",
+                                        expandedDoc === docTitle && "transform rotate-180"
+                                      )}
+                                    />
+                                    {t("properties.propertyDocuments.previousVersions")} ({olderVersions.length})
+                                  </Button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent>
+                                  <PropertyDocumentVersionHistory
+                                    versions={olderVersions}
+                                    onDownload={handleDownloadDocument}
                                     formatFileSize={formatFileSize}
                                     getUploaderName={getUploaderName}
                                   />
