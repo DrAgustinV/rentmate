@@ -291,7 +291,7 @@ export default function PropertyDetails() {
     } else {
       setPropertyPhotoUrl(undefined);
     }
-  }, [property?.images]);
+  }, [property?.images?.[0]]);
 
   const handleDownloadDocument = async (doc: any) => {
     const { data, error } = await supabase.storage.from("property-documents").download(doc.file_path);
