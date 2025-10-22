@@ -35,6 +35,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
     pending_invites?: number;
   } | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
+  const [photoUrl, setPhotoUrl] = useState<string | undefined>();
   const navigate = useNavigate();
 
   const fetchTenantStatus = async () => {
@@ -56,6 +57,25 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
   useEffect(() => {
     fetchTenantStatus();
   }, [property.id]);
+
+  // Fetch signed URL for property photo
+  useEffect(() => {
+    const fetchPhotoUrl = async () => {
+      if (property.images?.[0]) {
+        const { data } = await supabase.storage
+          .from('property-photos')
+          .createSignedUrl(property.images[0], 3600);
+        
+        if (data) {
+          setPhotoUrl(data.signedUrl);
+        }
+      } else {
+        setPhotoUrl(undefined);
+      }
+    };
+    
+    fetchPhotoUrl();
+  }, [property.images]);
 
   const getStatusBadge = () => {
     if (property.status === "active") {
@@ -106,10 +126,10 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           <div className="flex items-start gap-4">
             {/* Property Photo */}
             <div className="flex-shrink-0 relative group/image">
-              {property.images?.[0] ? (
+              {photoUrl ? (
                 <>
                   <img
-                    src={property.images[0]}
+                    src={photoUrl}
                     alt={property.title}
                     className="w-24 h-24 rounded-lg object-cover shadow-md border-2 border-border transition-transform duration-300 group-hover/image:scale-105"
                   />

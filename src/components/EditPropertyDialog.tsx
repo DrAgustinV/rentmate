@@ -26,15 +26,34 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [signedPhotoUrl, setSignedPhotoUrl] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (property) {
-      setTitle(property.title || "");
-      setAddress(property.address || "");
-      setDescription(property.description || "");
-      setPhotoUrl(property.images?.[0] || "");
-    }
+    const fetchPhotoUrl = async () => {
+      if (property) {
+        setTitle(property.title || "");
+        setAddress(property.address || "");
+        setDescription(property.description || "");
+        const storagePath = property.images?.[0] || "";
+        setPhotoUrl(storagePath);
+        
+        // Fetch signed URL if storage path exists
+        if (storagePath) {
+          const { data } = await supabase.storage
+            .from('property-photos')
+            .createSignedUrl(storagePath, 3600);
+          
+          if (data) {
+            setSignedPhotoUrl(data.signedUrl);
+          }
+        } else {
+          setSignedPhotoUrl(undefined);
+        }
+      }
+    };
+    
+    fetchPhotoUrl();
   }, [property]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,8 +117,21 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
         <form onSubmit={handleSubmit} className="space-y-4">
           <PropertyPhotoUpload
             propertyId={property?.id}
-            currentPhoto={photoUrl}
-            onPhotoChange={setPhotoUrl}
+            currentPhoto={signedPhotoUrl}
+            onPhotoChange={async (storagePath) => {
+              setPhotoUrl(storagePath);
+              // Fetch new signed URL
+              if (storagePath) {
+                const { data } = await supabase.storage
+                  .from('property-photos')
+                  .createSignedUrl(storagePath, 3600);
+                if (data) {
+                  setSignedPhotoUrl(data.signedUrl);
+                }
+              } else {
+                setSignedPhotoUrl(undefined);
+              }
+            }}
             disabled={loading}
           />
 

@@ -71,12 +71,25 @@ export function PropertyPhotoUpload({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Generate signed URL for preview (expires in 1 hour)
+      const { data: signedData, error: signedError } = await supabase.storage
         .from('property-photos')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 3600);
 
-      setPreviewUrl(publicUrl);
-      onPhotoChange(publicUrl);
+      if (signedError) throw signedError;
+
+      // Update database with storage path
+      const { error: updateError } = await supabase
+        .from('properties')
+        .update({ images: [fileName] })
+        .eq('id', propertyId);
+
+      if (updateError) throw updateError;
+
+      // Set preview to signed URL for display
+      setPreviewUrl(signedData.signedUrl);
+      // Pass storage path to parent, not signed URL
+      onPhotoChange(fileName);
       
       toast({
         title: t('common.success'),

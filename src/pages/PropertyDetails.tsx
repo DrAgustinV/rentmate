@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +48,7 @@ export default function PropertyDetails() {
   >("sold");
   const [archiveNotes, setArchiveNotes] = useState<string>("");
   const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
+  const [propertyPhotoUrl, setPropertyPhotoUrl] = useState<string | undefined>();
 
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
@@ -258,6 +259,30 @@ export default function PropertyDetails() {
     updatePropertyMutation.mutate({ title, address, description });
   };
 
+  const fetchPropertyPhotoUrl = async (storagePath: string) => {
+    if (!storagePath) {
+      setPropertyPhotoUrl(undefined);
+      return;
+    }
+    
+    const { data, error } = await supabase.storage
+      .from('property-photos')
+      .createSignedUrl(storagePath, 3600);
+    
+    if (!error && data) {
+      setPropertyPhotoUrl(data.signedUrl);
+    }
+  };
+
+  // Fetch signed URL when property loads or changes
+  useEffect(() => {
+    if (property?.images?.[0]) {
+      fetchPropertyPhotoUrl(property.images[0]);
+    } else {
+      setPropertyPhotoUrl(undefined);
+    }
+  }, [property?.images]);
+
   const handleDownloadDocument = async (doc: any) => {
     const { data, error } = await supabase.storage.from("property-documents").download(doc.file_path);
 
@@ -367,17 +392,21 @@ export default function PropertyDetails() {
                 {userRole?.isManager ? (
                   <PropertyPhotoUpload
                     propertyId={propertyId!}
-                    currentPhoto={property.images?.[0]}
-                    onPhotoChange={(url) => {
+                    currentPhoto={propertyPhotoUrl}
+                    onPhotoChange={async (storagePath) => {
+                      // Fetch new signed URL after upload
+                      if (storagePath) {
+                        await fetchPropertyPhotoUrl(storagePath);
+                      }
                       queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
                     }}
                   />
                 ) : (
-                  property.images?.[0] && (
+                  propertyPhotoUrl && (
                     <div className="space-y-2">
                       <Label>{t("properties.photo")}</Label>
                       <img
-                        src={property.images[0]}
+                        src={propertyPhotoUrl}
                         alt={property.title}
                         className="w-full h-64 object-cover rounded-lg"
                       />

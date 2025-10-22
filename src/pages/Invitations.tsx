@@ -47,6 +47,7 @@ export default function Invitations() {
 
   const [invitationPreview, setInvitationPreview] = useState<Invitation | null>(null);
   const [showDecisionPage, setShowDecisionPage] = useState(false);
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     checkAuth();
@@ -160,6 +161,28 @@ export default function Invitations() {
 
       if (error) throw error;
       setInvitations(data || []);
+      
+      // Fetch signed URLs for all property images
+      if (data && data.length > 0) {
+        const urlMap: Record<string, string> = {};
+        
+        await Promise.all(
+          data.map(async (inv) => {
+            const storagePath = inv.properties?.images?.[0];
+            if (storagePath) {
+              const { data: signedData } = await supabase.storage
+                .from('property-photos')
+                .createSignedUrl(storagePath, 3600);
+              
+              if (signedData) {
+                urlMap[inv.id] = signedData.signedUrl;
+              }
+            }
+          })
+        );
+        
+        setPhotoUrls(urlMap);
+      }
     } catch (error: any) {
       toast({
         title: t('common.error'),
@@ -309,16 +332,16 @@ export default function Invitations() {
 
   // Decision page for unauthenticated users with invitation token
   if (showDecisionPage && invitationPreview) {
-    const propertyImage = invitationPreview.properties?.images?.[0];
+    const propertyImageUrl = photoUrls[invitationPreview.id];
     const token = searchParams.get('token');
     
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-2xl overflow-hidden">
-          {propertyImage && (
+          {propertyImageUrl && (
             <AspectRatio ratio={16 / 9}>
               <img
-                src={propertyImage}
+                src={propertyImageUrl}
                 alt={invitationPreview.properties?.title || "Property"}
                 className="object-cover w-full h-full"
               />
@@ -407,15 +430,15 @@ export default function Invitations() {
         ) : (
           <div className="space-y-6">
             {invitations.map((invitation) => {
-              const propertyImage = invitation.properties?.images?.[0];
+              const propertyImageUrl = photoUrls[invitation.id];
               const daysUntilExpiry = Math.ceil((new Date(invitation.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
               
               return (
                 <Card key={invitation.id} className="overflow-hidden">
-                  {propertyImage && (
+                  {propertyImageUrl && (
                     <AspectRatio ratio={16 / 9}>
                       <img
-                        src={propertyImage}
+                        src={propertyImageUrl}
                         alt={invitation.properties?.title || "Property"}
                         className="object-cover w-full h-full"
                       />
