@@ -172,7 +172,7 @@ export default function Dashboard() {
               </div>
               <h3 className="text-lg font-semibold mb-2">{t('dashboard.manageProperties')}</h3>
               <p className="text-muted-foreground mb-4 px-4">{t('dashboard.managePropertiesDesc')}</p>
-              <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+              <Button variant="default" onClick={() => setIsCreateOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 {t('dashboard.createProperty')}
               </Button>
@@ -194,14 +194,15 @@ export default function Dashboard() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-3xl font-bold flex items-center gap-2">
+                <h1 className="text-3xl font-bold flex items-center gap-2">
                   <Home className="h-8 w-8 text-primary" />
                   {t('dashboard.myProperties')}
-                </h2>
+                </h1>
                 <p className="text-muted-foreground mt-1">{t('dashboard.myPropertiesDesc')}</p>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <Button 
+                  variant="default"
                   onClick={() => setIsCreateOpen(true)} 
                   disabled={activeProperties.length >= maxPropertiesLimit}
                   className="gap-2"

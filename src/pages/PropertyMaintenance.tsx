@@ -100,7 +100,7 @@ const PropertyMaintenance = () => {
           <TabsContent value="library" className="mt-6">
             <div className="space-y-4">
               <div className="flex justify-end">
-                <Button onClick={() => setCreateTaskOpen(true)}>
+                <Button variant="default" onClick={() => setCreateTaskOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   {t('maintenance.buttons.createCustomTask') || 'Create Custom Task'}
                 </Button>

@@ -657,6 +657,7 @@ export default function PropertyTenants() {
                       }}
                     />
                     <Button
+                      variant="default"
                       onClick={() => {
                         const trimmedEmail = email.trim();
                         if (trimmedEmail) {

@@ -284,9 +284,10 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
   if (!scheduledTasks || scheduledTasks.length === 0) {
     return (
       <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          <Clock className="mx-auto h-12 w-12 mb-2 opacity-50" />
-          <p>No upcoming scheduled tasks</p>
+        <CardContent className="py-12 text-center">
+          <Clock className="mx-auto h-12 w-12 mb-4 text-muted-foreground opacity-50" />
+          <h3 className="text-lg font-semibold mb-2">No upcoming scheduled tasks</h3>
+          <p className="text-muted-foreground">Create recurring maintenance tasks to see them here</p>
         </CardContent>
       </Card>
     );

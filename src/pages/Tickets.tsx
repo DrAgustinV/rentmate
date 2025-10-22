@@ -39,7 +39,7 @@ const Tickets = () => {
           <h1 className="text-3xl font-bold">{t('tickets.title')}</h1>
           <p className="text-muted-foreground">{t('tickets.description')}</p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
+        <Button variant="default" onClick={() => setCreateDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           {t('tickets.newTicket')}
         </Button>
