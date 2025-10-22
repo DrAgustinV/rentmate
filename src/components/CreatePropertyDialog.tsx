@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { propertyBaseSchema } from "@/lib/validations";
 import { z } from "zod";
+import { Loader2 } from "lucide-react";
 
 interface CreatePropertyDialogProps {
   open: boolean;
@@ -117,6 +118,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Beachfront Villa"
               required
+              maxLength={100}
             />
           </div>
 
@@ -127,6 +129,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="123 Ocean Drive"
+              maxLength={200}
             />
           </div>
 
@@ -138,7 +141,11 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Beautiful property with ocean views..."
               rows={4}
+              maxLength={500}
             />
+            <p className="text-xs text-muted-foreground text-right">
+              {description.length}/500 characters
+            </p>
           </div>
 
           <div className="flex gap-2 justify-end">
@@ -146,6 +153,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {loading ? "Creating..." : "Create Property"}
             </Button>
           </div>

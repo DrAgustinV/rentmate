@@ -272,6 +272,9 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
               placeholder="Brief description of the issue"
               maxLength={200}
             />
+            <p className="text-xs text-muted-foreground text-right">
+              {formData.title.length}/200 characters
+            </p>
           </div>
 
           <div className="space-y-2">

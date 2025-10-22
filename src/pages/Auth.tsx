@@ -10,6 +10,8 @@ import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBrand } from "@/contexts/BrandContext";
 import { useSearchParams } from "react-router-dom";
+import { showToast, getAuthErrorMessage } from "@/lib/toastUtils";
+import { Loader2 } from "lucide-react";
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }),
@@ -36,12 +38,12 @@ export default function Auth() {
     const checkAuthAndToken = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      // Check for mode parameter (from decision page)
+      // Check for mode parameter
       const mode = searchParams.get('mode');
       const token = searchParams.get('token');
       
       if (mode) {
-        // Respect explicit mode parameter from decision page
+        // Respect explicit mode parameter
         setIsSignUp(mode === 'signup');
       }
       
@@ -167,16 +169,14 @@ export default function Auth() {
       }
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        toast({
-          title: "Validation Error",
+        showToast.error({
+          title: t('common.validationError'),
           description: error.errors[0].message,
-          variant: "destructive",
         });
       } else {
-        toast({
-          title: "Error",
-          description: error.message || "An error occurred during authentication",
-          variant: "destructive",
+        showToast.error({
+          title: isSignUp ? t('auth.signUpFailed') : t('auth.signInFailed'),
+          description: getAuthErrorMessage(error),
         });
       }
     } finally {
@@ -268,9 +268,15 @@ export default function Auth() {
             placeholder="••••••••"
             required
           />
+          {isSignUp && (
+            <p className="text-xs text-muted-foreground">
+              {t('auth.passwordRequirements')}
+            </p>
+          )}
         </div>
 
         <Button type="submit" className="w-full" disabled={loading}>
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {loading ? t('common.loading') : isSignUp ? t('auth.signUp') : t('auth.signIn')}
         </Button>
 

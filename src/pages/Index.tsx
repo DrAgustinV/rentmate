@@ -25,11 +25,11 @@ const Index = () => {
           <h1 className="text-5xl md:text-6xl font-bold mb-4 gradient-text">{brandName}</h1>
           <p className="text-xl text-muted-foreground mb-8">{tagline}</p>
           <div className="flex gap-4 justify-center">
-            <Button size="lg" onClick={() => navigate("/auth")} className="gap-2">
+            <Button size="lg" onClick={() => navigate("/auth?mode=signup")} className="gap-2">
               Get Started
               <ArrowRight className="h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate("/auth")}>
+            <Button size="lg" variant="outline" onClick={() => navigate("/auth?mode=signin")}>
               Sign In
             </Button>
           </div>
