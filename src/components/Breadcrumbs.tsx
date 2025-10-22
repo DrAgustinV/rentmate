@@ -74,9 +74,11 @@ export function Breadcrumbs() {
   }
 
   return (
-    <div className="container py-3">
+    <div className="container py-3 overflow-x-auto">
       <Breadcrumb>
-        <BreadcrumbList>
+        <BreadcrumbList className="flex-nowrap"
+          aria-label="Breadcrumb navigation"
+        >
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
               <Link to="/dashboard" className="flex items-center gap-1">

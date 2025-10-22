@@ -2,6 +2,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TemplatesManagerContent } from "./TemplatesManagerContent";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TemplatesManagerProps {
   propertyId: string;
@@ -9,6 +10,7 @@ interface TemplatesManagerProps {
 
 export default function TemplatesManager({ propertyId }: TemplatesManagerProps) {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const { data: tasksWithSchedules, isLoading } = useQuery({
     queryKey: ["tasks-with-schedules", propertyId],
@@ -37,7 +39,7 @@ export default function TemplatesManager({ propertyId }: TemplatesManagerProps) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks-with-schedules"] });
-      toast.success("Task deleted");
+      toast.success(t("maintenance.taskDeleted"));
     },
     onError: (error) => {
       console.error("Error deleting task:", error);
@@ -56,7 +58,7 @@ export default function TemplatesManager({ propertyId }: TemplatesManagerProps) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks-with-schedules"] });
-      toast.success("Schedule updated");
+      toast.success(t("maintenance.scheduleUpdated"));
     },
     onError: (error) => {
       console.error("Error updating schedule:", error);

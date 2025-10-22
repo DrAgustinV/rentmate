@@ -13,8 +13,10 @@ import { AttachmentUpload } from "@/components/ticket/AttachmentUpload";
 import { ActivityTimeline } from "@/components/ticket/ActivityTimeline";
 import { StatusManager } from "@/components/ticket/StatusManager";
 import { useEffect } from "react";
-import { RotateCw } from "lucide-react";
+import { RotateCw, FileX } from "lucide-react";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { EmptyState } from "@/components/EmptyState";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const statusColors = {
   open: "bg-blue-500",
@@ -32,6 +34,7 @@ const priorityColors = {
 
 const TicketDetail = () => {
   const { ticketId } = useParams<{ propertyId: string; ticketId: string }>();
+  const { t } = useLanguage();
 
   const { data: ticket, isLoading } = useQuery({
     queryKey: ["ticket", ticketId],
@@ -170,7 +173,12 @@ const TicketDetail = () => {
   if (!ticket) {
     return (
       <AppLayout>
-        <p className="text-muted-foreground">Ticket not found</p>
+        <EmptyState
+          icon={FileX}
+          title={t("tickets.ticketNotFound")}
+          description={t("tickets.ticketNotFoundDesc")}
+          variant="error"
+        />
       </AppLayout>
     );
   }
@@ -188,7 +196,7 @@ const TicketDetail = () => {
                   {ticket.source_template_id && (
                     <Badge variant="outline" className="flex items-center gap-1">
                       <RotateCw className="h-3 w-3" />
-                      Scheduled Maintenance
+                      {t("tickets.scheduledMaintenance")}
                     </Badge>
                   )}
                 </div>
@@ -217,22 +225,22 @@ const TicketDetail = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <h3 className="font-semibold mb-2">Ticket Information</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <h3 className="font-semibold mb-2">{t("tickets.ticketInformation")}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Ticket Number</p>
+                  <p className="text-muted-foreground">{t("tickets.ticketNumber")}</p>
                   <p className="font-mono">{ticket.ticket_number}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Type</p>
+                  <p className="text-muted-foreground">{t("tickets.type")}</p>
                   <p className="capitalize">{ticket.type}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Created</p>
+                  <p className="text-muted-foreground">{t("tickets.created")}</p>
                   <p>{formatDate(ticket.created_at)}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Created By</p>
+                  <p className="text-muted-foreground">{t("tickets.createdBy")}</p>
                   <p>
                     {ticket.profiles?.first_name} {ticket.profiles?.last_name}
                   </p>
@@ -243,7 +251,7 @@ const TicketDetail = () => {
             <Separator />
 
             <div>
-              <h3 className="font-semibold mb-2">Description</h3>
+              <h3 className="font-semibold mb-2">{t("tickets.description")}</h3>
               <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
             </div>
 
@@ -251,11 +259,11 @@ const TicketDetail = () => {
               <>
                 <Separator />
                 <div>
-                  <h3 className="font-semibold mb-2">Resolution Notes</h3>
+                  <h3 className="font-semibold mb-2">{t("tickets.resolutionNotes")}</h3>
                   <p className="text-sm whitespace-pre-wrap">{ticket.resolution_notes}</p>
                   {ticket.resolved_at && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      Resolved on {formatDate(ticket.resolved_at)}
+                      {t("tickets.resolvedOn")} {formatDate(ticket.resolved_at)}
                     </p>
                   )}
                 </div>
@@ -266,9 +274,9 @@ const TicketDetail = () => {
 
         <Card className="hover-lift">
           <CardHeader>
-            <CardTitle>Attachments</CardTitle>
+            <CardTitle>{t("tickets.attachments")}</CardTitle>
             <CardDescription>
-              Photos and videos related to this ticket
+              {t("tickets.attachmentsDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -288,9 +296,9 @@ const TicketDetail = () => {
 
         <Card className="hover-lift">
           <CardHeader>
-            <CardTitle>Comments</CardTitle>
+            <CardTitle>{t("tickets.comments")}</CardTitle>
             <CardDescription>
-              Discuss this ticket with your team
+              {t("tickets.commentsDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -303,9 +311,9 @@ const TicketDetail = () => {
 
         <Card className="hover-lift">
           <CardHeader>
-            <CardTitle>Activity Timeline</CardTitle>
+            <CardTitle>{t("tickets.activityTimeline")}</CardTitle>
             <CardDescription>
-              Track all changes and updates
+              {t("tickets.activityTimelineDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>

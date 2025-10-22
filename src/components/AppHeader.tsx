@@ -125,13 +125,18 @@ export function AppHeader() {
           <LanguageSwitcher />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="gap-2"
+                aria-label={t('header.myAccount')}
+              >
                 <UserCircle className="h-5 w-5" />
                 <span className="text-sm">{user.email}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('header.myAccount')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/settings")}>
                 <Settings className="mr-2 h-4 w-4" />
@@ -149,13 +154,13 @@ export function AppHeader() {
         {/* Mobile Menu */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" aria-label={t('header.menu')}>
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
           <SheetContent side="right">
             <SheetHeader>
-              <SheetTitle>Menu</SheetTitle>
+              <SheetTitle>{t('header.menu')}</SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-4 mt-6">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

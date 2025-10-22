@@ -179,4 +179,22 @@ All colors MUST be HSL.
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
   }
+
+  /* Accessibility: visible focus indicators */
+  *:focus-visible {
+    @apply ring-2 ring-primary ring-offset-2 ring-offset-background outline-none;
+  }
+
+  /* Screen reader only content */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
 }

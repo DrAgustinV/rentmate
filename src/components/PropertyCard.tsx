@@ -225,6 +225,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                   size="sm"
                   onClick={() => navigate(`/properties/${property.id}/details`)}
                   className="w-full gap-2"
+                  aria-label={`${t("properties.editProperty")} ${property.title}`}
                 >
                   <Edit className="h-4 w-4" />
                   {t("properties.editProperty")}
@@ -234,6 +235,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                   size="sm"
                   onClick={() => navigate(`/properties/${property.id}/tenants`)}
                   className="w-full gap-2"
+                  aria-label={`${t("properties.tenants")} ${property.title}`}
                 >
                   <Users className="h-4 w-4" />
                   {!tenantStatus || tenantStatus.status === "free" ? t("properties.inviteTenant") : ""}
@@ -248,6 +250,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                   size="sm"
                   onClick={() => navigate(`/properties/${property.id}/details`)}
                   className="w-full gap-2"
+                  aria-label={`${t("properties.viewDetails")} ${property.title}`}
                 >
                   <Eye className="h-4 w-4" />
                   {t("properties.viewDetails")}
@@ -257,6 +260,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                   size="sm"
                   onClick={() => navigate(`/properties/${property.id}/tickets`)}
                   className="w-full gap-2"
+                  aria-label={`${t("properties.myTickets")} ${property.title}`}
                 >
                   <Ticket className="h-4 w-4" />
                   {t("properties.myTickets")}
@@ -266,6 +270,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                   size="sm"
                   onClick={() => navigate(`/properties/${property.id}/maintenance`)}
                   className="w-full gap-2"
+                  aria-label={`${t("properties.maintenance")} ${property.title}`}
                 >
                   <Wrench className="h-4 w-4" />
                   {t("properties.maintenance")}
