@@ -16,6 +16,7 @@ import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 
 interface CreateMaintenanceTaskDialogProps {
   open: boolean;
@@ -39,6 +40,7 @@ export const CreateMaintenanceTaskDialog = ({
 
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const { trackEvent } = useAnalyticsContext();
 
   const createTaskMutation = useMutation({
     mutationFn: async () => {
@@ -83,9 +85,22 @@ export const CreateMaintenanceTaskDialog = ({
 
       return template;
     },
-    onSuccess: () => {
+    onSuccess: (template) => {
       queryClient.invalidateQueries({ queryKey: ["ticket-templates"] });
       queryClient.invalidateQueries({ queryKey: ["recurring-schedules"] });
+      
+      // Track maintenance schedule creation event
+      trackEvent({
+        event_name: 'maintenance_scheduled',
+        event_category: 'maintenance',
+        event_metadata: {
+          template_id: template.id,
+          property_id: propertyId,
+          type: type,
+          frequency: frequency,
+        },
+      });
+      
       toast({
         title: t('maintenance.createTask.success'),
         description: t('maintenance.createTask.successMessage'),

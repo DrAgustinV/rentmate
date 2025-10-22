@@ -51,19 +51,54 @@ export const useAnalytics = () => {
       const referrer = document.referrer;
       const pageTitle = document.title;
 
-      await supabase.from('analytics_page_views').insert({
-        user_id: user?.id || null,
-        session_id: sessionId,
-        page_path: location.pathname,
-        page_title: pageTitle,
-        referrer: referrer || null,
-        user_agent: userAgent,
-        device_type: deviceType,
-        ip_address: null, // IP will be captured server-side if needed
-        country: null,
-        region: null,
-        city: null,
-      });
+      // Insert page view and get the ID
+      const { data: pageView, error: insertError } = await supabase
+        .from('analytics_page_views')
+        .insert({
+          user_id: user?.id || null,
+          session_id: sessionId,
+          page_path: location.pathname,
+          page_title: pageTitle,
+          referrer: referrer || null,
+          user_agent: userAgent,
+          device_type: deviceType,
+          ip_address: null,
+          country: null,
+          region: null,
+          city: null,
+        })
+        .select('id')
+        .single();
+
+      if (insertError || !pageView) {
+        console.error('Error inserting page view:', insertError);
+        return;
+      }
+
+      // Fetch geolocation in the background (don't await)
+      supabase.functions
+        .invoke('get-geolocation', {
+          body: { ip: 'auto' }, // Edge function will extract real IP
+        })
+        .then(({ data: geoData, error: geoError }) => {
+          if (!geoError && geoData) {
+            // Update the page view with geolocation data
+            supabase
+              .from('analytics_page_views')
+              .update({
+                country: geoData.country,
+                region: geoData.region,
+                city: geoData.city,
+              })
+              .eq('id', pageView.id)
+              .then(() => {
+                console.log('Geolocation updated:', geoData);
+              });
+          }
+        })
+        .catch((err) => {
+          console.error('Geolocation fetch failed:', err);
+        });
     } catch (error) {
       console.error('Error tracking page view:', error);
     }

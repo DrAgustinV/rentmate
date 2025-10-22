@@ -16,6 +16,7 @@ import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 
 interface EditMaintenanceTaskDialogProps {
   open: boolean;
@@ -54,6 +55,7 @@ export const EditMaintenanceTaskDialog = ({
 
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const { trackEvent } = useAnalyticsContext();
 
   useEffect(() => {
     if (open) {
@@ -99,6 +101,18 @@ export const EditMaintenanceTaskDialog = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ticket-templates"] });
       queryClient.invalidateQueries({ queryKey: ["recurring-schedules"] });
+      
+      // Track maintenance task update event
+      trackEvent({
+        event_name: 'maintenance_updated',
+        event_category: 'maintenance',
+        event_metadata: {
+          template_id: templateId,
+          schedule_id: scheduleId,
+          type: type,
+        },
+      });
+      
       toast({
         title: t('maintenance.editTask.taskUpdated'),
         description: t('maintenance.editTask.updateSuccess'),

@@ -14,6 +14,7 @@ interface AnalyticsStats {
   totalPageViews: number;
   totalEvents: number;
   activeSessions: number;
+  uniqueUsers: number;
 }
 
 interface PageViewData {
@@ -47,6 +48,7 @@ export function AnalyticsDashboard() {
     totalPageViews: 0,
     totalEvents: 0,
     activeSessions: 0,
+    uniqueUsers: 0,
   });
   const [pageViewData, setPageViewData] = useState<PageViewData[]>([]);
   const [countryData, setCountryData] = useState<CountryData[]>([]);
@@ -78,7 +80,7 @@ export function AnalyticsDashboard() {
       const dateFilter = getDateFilter();
 
       // Fetch overview stats
-      const [visitorsResult, pageViewsResult, eventsResult, sessionsResult] = await Promise.all([
+      const [visitorsResult, pageViewsResult, eventsResult, sessionsResult, authUsersResult] = await Promise.all([
         supabase
           .from('analytics_page_views')
           .select('session_id', { count: 'exact', head: false })
@@ -95,11 +97,21 @@ export function AnalyticsDashboard() {
           .from('analytics_sessions')
           .select('*', { count: 'exact', head: true })
           .is('ended_at', null),
+        supabase
+          .from('analytics_page_views')
+          .select('user_id')
+          .gte('timestamp', dateFilter)
+          .not('user_id', 'is', null),
       ]);
 
-      // Get unique visitors
+      // Get unique visitors (sessions)
       const uniqueVisitors = visitorsResult.data 
         ? new Set(visitorsResult.data.map(v => v.session_id)).size 
+        : 0;
+
+      // Get unique authenticated users
+      const uniqueAuthUsers = authUsersResult.data 
+        ? new Set(authUsersResult.data.map(v => v.user_id)).size 
         : 0;
 
       setStats({
@@ -107,6 +119,7 @@ export function AnalyticsDashboard() {
         totalPageViews: pageViewsResult.count || 0,
         totalEvents: eventsResult.count || 0,
         activeSessions: sessionsResult.count || 0,
+        uniqueUsers: uniqueAuthUsers,
       });
 
       // Fetch page views over time
@@ -243,14 +256,26 @@ export function AnalyticsDashboard() {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('admin.analytics.totalVisitors')}</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.analytics.totalSessions')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalVisitors.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground mt-1">{t('admin.analytics.uniqueSessions')}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('admin.analytics.uniqueUsers')}</CardTitle>
+            <Globe className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.uniqueUsers.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground mt-1">{t('admin.analytics.authenticatedUsers')}</p>
           </CardContent>
         </Card>
 

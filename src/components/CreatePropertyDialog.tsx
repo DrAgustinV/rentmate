@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { supabase } from "@/integrations/supabase/client";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { propertyBaseSchema } from "@/lib/validations";
@@ -22,6 +23,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
   const [description, setDescription] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const { trackEvent } = useAnalyticsContext();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,15 +54,25 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
         throw new Error(`You have reached the maximum limit of ${maxLimit} active properties. Please contact support to increase your limit.`);
       }
 
-      const { error } = await supabase.from("properties").insert({
+      const { data: newProperty, error } = await supabase.from("properties").insert({
         title: data.title,
         address: data.address || null,
         description: data.description || null,
         images: photoUrl ? [photoUrl] : [],
         manager_id: user.id,
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Track property creation event
+      trackEvent({
+        event_name: 'property_created',
+        event_category: 'property_management',
+        event_metadata: {
+          property_id: newProperty.id,
+          has_photo: !!photoUrl,
+        },
+      });
 
       toast.success("Property created successfully");
 

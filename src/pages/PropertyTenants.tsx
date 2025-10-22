@@ -44,6 +44,7 @@ import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
 import { EditTenantDialog } from "@/components/EditTenantDialog";
 import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
+import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 
 interface Tenant {
   id: string;
@@ -92,6 +93,7 @@ export default function PropertyTenants() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { trackEvent } = useAnalyticsContext();
 
   const [email, setEmail] = useState("");
   const [removingTenant, setRemovingTenant] = useState<Tenant | null>(null);
@@ -380,6 +382,16 @@ export default function PropertyTenants() {
       });
     },
     onSuccess: () => {
+      // Track tenant invitation event
+      trackEvent({
+        event_name: 'tenant_invited',
+        event_category: 'tenant_management',
+        event_metadata: {
+          property_id: propertyId,
+          tenant_email: email,
+        },
+      });
+      
       toast({ title: t("dialogs.inviteTenant.sent"), description: `${t("dialogs.inviteTenant.sentDesc")} ${email}` });
       setEmail("");
       refetchInvitations();

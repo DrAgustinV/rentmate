@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Upload, X, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 
 interface PropertyDocumentUploadProps {
   propertyId: string;
@@ -61,6 +63,7 @@ export default function PropertyDocumentUpload({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { trackEvent } = useAnalyticsContext();
 
   const { data: settings } = useQuery({
     queryKey: ["system-settings"],
@@ -183,6 +186,17 @@ export default function PropertyDocumentUpload({
       setUploadProgress(100);
     },
     onSuccess: () => {
+      // Track document upload event
+      trackEvent({
+        event_name: 'document_uploaded',
+        event_category: 'document_management',
+        event_metadata: {
+          property_id: propertyId,
+          document_category: category,
+          is_new_version: !!parentDocumentId,
+        },
+      });
+      
       toast.success("Document uploaded successfully");
       setSelectedFile(null);
       setDescription("");

@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { ticketBaseSchema } from "@/lib/validations";
 import { z } from "zod";
+import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 
 interface CreateTicketDialogProps {
   open: boolean;
@@ -41,6 +42,7 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
   });
 
   const queryClient = useQueryClient();
+  const { trackEvent } = useAnalyticsContext();
 
   const { data: currentUserData } = useQuery({
     queryKey: ["current-user"],
@@ -127,9 +129,22 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
       queryClient.invalidateQueries({ queryKey: ["property-tickets"] });
+      
+      // Track ticket creation event
+      trackEvent({
+        event_name: 'ticket_created',
+        event_category: 'ticket_management',
+        event_metadata: {
+          ticket_id: data.id,
+          type: formData.type,
+          priority: formData.priority,
+          property_id: formData.propertyId,
+        },
+      });
+      
       toast.success("Ticket created", {
         description: "Your ticket has been created successfully.",
       });

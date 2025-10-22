@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { supabase } from "@/integrations/supabase/client";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { propertyBaseSchema } from "@/lib/validations";
@@ -20,6 +21,7 @@ interface EditPropertyDialogProps {
 
 export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: EditPropertyDialogProps) {
   const { t } = useLanguage();
+  const { trackEvent } = useAnalyticsContext();
   const [title, setTitle] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
@@ -57,6 +59,15 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
         .eq("id", property.id);
 
       if (error) throw error;
+
+      // Track property update event
+      trackEvent({
+        event_name: 'property_updated',
+        event_category: 'property_management',
+        event_metadata: {
+          property_id: property.id,
+        },
+      });
 
       toast.success(t('common.success'), {
         description: t('dialogs.editProperty.success'),
