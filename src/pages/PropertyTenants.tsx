@@ -48,7 +48,7 @@ import { z } from "zod";
 interface Tenant {
   id: string;
   tenant_id: string;
-  tenancy_status: string;
+  tenancy_status: 'active' | 'ending_tenancy' | 'historic';
   started_at: string;
   ended_at: string | null;
   email: string;
@@ -223,7 +223,7 @@ export default function PropertyTenants() {
         `,
         )
         .eq("property_id", propertyId)
-        .in("tenancy_status", ["ending_tenancy", "inactive"])
+        .in("tenancy_status", ["ending_tenancy", "historic"])
         .order("started_at", { ascending: false })
         .limit(5);
 
@@ -398,7 +398,7 @@ export default function PropertyTenants() {
       const { error } = await supabase
         .from("property_tenants")
         .update({
-          tenancy_status: "ending_tenancy",
+          tenancy_status: "historic",
           ended_at: new Date().toISOString(),
         })
         .eq("id", tenantId);

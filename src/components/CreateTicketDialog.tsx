@@ -42,6 +42,35 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
 
   const queryClient = useQueryClient();
 
+  const { data: currentUserData } = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      return await supabase.auth.getUser();
+    },
+  });
+
+  const user = currentUserData?.data?.user;
+
+  // Fetch current user's tenancy for the selected property
+  const { data: userTenancy } = useQuery({
+    queryKey: ["user-tenancy", formData.propertyId, user?.id],
+    queryFn: async () => {
+      if (!user || !formData.propertyId) return null;
+      
+      const { data, error } = await supabase
+        .from("property_tenants")
+        .select("id")
+        .eq("property_id", formData.propertyId)
+        .eq("tenant_id", user.id)
+        .in("tenancy_status", ["active", "ending_tenancy"])
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id && !!formData.propertyId,
+  });
+
   const { data: properties } = useQuery({
     queryKey: ["user-properties"],
     queryFn: async () => {
@@ -90,6 +119,7 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
           priority: formData.priority,
           property_id: formData.propertyId,
           created_by: user.id,
+          tenancy_id: userTenancy?.id || null,
         })
         .select()
         .single();

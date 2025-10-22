@@ -24,7 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 interface Tenant {
   id: string;
   tenant_id: string;
-  tenancy_status: string;
+  tenancy_status: 'active' | 'ending_tenancy' | 'historic';
   started_at: string;
   ended_at: string | null;
   email: string;
@@ -48,7 +48,9 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId }: Edi
   const [startDate, setStartDate] = useState<Date | undefined>(
     tenant ? new Date(tenant.started_at) : undefined
   );
-  const [tenancyStatus, setTenancyStatus] = useState(tenant?.tenancy_status || "active");
+  const [tenancyStatus, setTenancyStatus] = useState<'active' | 'ending_tenancy' | 'historic'>(
+    tenant?.tenancy_status || "active"
+  );
   const [notes, setNotes] = useState(tenant?.notes || "");
 
   const updateMutation = useMutation({
@@ -137,15 +139,16 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId }: Edi
           {/* Tenancy Status */}
           <div className="space-y-2">
             <Label>{t("tenants.tenancyStatus")}</Label>
-            <Select value={tenancyStatus} onValueChange={setTenancyStatus}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">{t("tenants.statusActive")}</SelectItem>
-                <SelectItem value="ending_tenancy">{t("tenants.statusEndingTenancy")}</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={tenancyStatus} onValueChange={(val) => setTenancyStatus(val as 'active' | 'ending_tenancy' | 'historic')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">{t("tenants.statusActive")}</SelectItem>
+                  <SelectItem value="ending_tenancy">{t("tenants.statusEndingTenancy")}</SelectItem>
+                  <SelectItem value="historic">{t("tenants.statusHistoric")}</SelectItem>
+                </SelectContent>
+              </Select>
           </div>
 
           {/* Notes */}
