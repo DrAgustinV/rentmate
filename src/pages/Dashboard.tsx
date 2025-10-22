@@ -1,10 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Plus, Home, Users, Archive } from "lucide-react";
-import { toast } from "sonner";
 import { PropertyCard } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
@@ -12,12 +10,11 @@ import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useProperties } from "@/hooks/useProperties";
+import { useTenantProperties } from "@/hooks/useTenantProperties";
 
 export default function Dashboard() {
-  const [user, setUser] = useState<User | null>(null);
-  const [properties, setProperties] = useState<any[]>([]);
-  const [tenantProperties, setTenantProperties] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [propertyView, setPropertyView] = useState<"active" | "ending_tenancy" | "archived">("active");
   const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
@@ -27,6 +24,20 @@ export default function Dashboard() {
   const { t } = useLanguage();
   
   const debouncedSearch = useDebounce(searchTerm, 300);
+
+  // Fetch managed properties using React Query
+  const { data: propertiesData, isLoading: isLoadingProperties } = useProperties({
+    managerId: userId || undefined,
+  });
+
+  // Fetch tenant properties using React Query
+  const { data: tenantPropertiesData, isLoading: isLoadingTenantProperties } = useTenantProperties({
+    tenantId: userId || undefined,
+  });
+
+  const properties = propertiesData?.properties || [];
+  const tenantProperties = tenantPropertiesData?.properties || [];
+  const loading = isLoadingProperties || isLoadingTenantProperties;
 
   const filteredAndSortedProperties = useMemo(() => {
     let filtered = properties.filter(p => {
@@ -72,8 +83,7 @@ export default function Dashboard() {
         navigate("/auth");
         return;
       }
-      setUser(session.user);
-      await fetchProperties(session.user.id);
+      setUserId(session.user.id);
     };
 
     checkUser();
@@ -81,8 +91,9 @@ export default function Dashboard() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         navigate("/auth");
+        setUserId(null);
       } else {
-        setUser(session.user);
+        setUserId(session.user.id);
       }
     });
 
@@ -103,49 +114,6 @@ export default function Dashboard() {
     };
     fetchPropertyLimit();
   }, []);
-
-  const fetchProperties = async (userId: string) => {
-    setLoading(true);
-    try {
-      // Fetch managed properties
-      const { data: managed, error: managedError } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("manager_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (managedError) throw managedError;
-
-      // Fetch tenant properties
-      const { data: tenantRels, error: tenantError } = await supabase
-        .from("property_tenants")
-        .select("property_id")
-        .eq("tenant_id", userId);
-
-      if (tenantError) throw tenantError;
-
-      if (tenantRels && tenantRels.length > 0) {
-        const propertyIds = tenantRels.map((rel) => rel.property_id);
-        const { data: tenant, error: tenantPropsError } = await supabase
-          .from("properties")
-          .select("*")
-          .in("id", propertyIds)
-          .order("created_at", { ascending: false });
-
-        if (tenantPropsError) throw tenantPropsError;
-        setTenantProperties(tenant || []);
-      }
-
-      setProperties(managed || []);
-    } catch (error: any) {
-      toast.error(t('common.error'), {
-        description: error.message,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
 
   if (loading) {
     return (
@@ -262,7 +230,7 @@ export default function Dashboard() {
                     key={property.id}
                     property={property}
                     isManager={true}
-                    onUpdate={() => fetchProperties(user!.id)}
+                    onUpdate={() => {}}
                   />
                 ))}
               </div>
@@ -283,7 +251,7 @@ export default function Dashboard() {
                   key={property.id}
                   property={property}
                   isManager={false}
-                  onUpdate={() => fetchProperties(user!.id)}
+                  onUpdate={() => {}}
                 />
               ))}
             </div>
@@ -295,7 +263,6 @@ export default function Dashboard() {
         onOpenChange={setIsCreateOpen}
         onSuccess={() => {
           setIsCreateOpen(false);
-          if (user) fetchProperties(user.id);
         }}
       />
     </AppLayout>

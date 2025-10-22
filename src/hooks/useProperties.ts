@@ -13,28 +13,32 @@ interface PropertyFilters {
 }
 
 export function useProperties(filters: PropertyFilters = {}) {
-  const { managerId, status, page = 1, pageSize = 10 } = filters;
+  const { managerId, status, page, pageSize } = filters;
 
   return useQuery({
     queryKey: [PROPERTIES_QUERY_KEY, managerId, status, page, pageSize],
     queryFn: async () => {
+      if (!managerId) {
+        return { properties: [], totalCount: 0, totalPages: 0 };
+      }
+
       let query = supabase
         .from('properties')
         .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
 
-      if (managerId) {
-        query = query.eq('manager_id', managerId);
-      }
+      query = query.eq('manager_id', managerId);
 
       if (status) {
         query = query.eq('status', status);
       }
 
-      // Pagination
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      query = query.range(from, to);
+      // Only apply pagination if page and pageSize are provided
+      if (page !== undefined && pageSize !== undefined) {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+        query = query.range(from, to);
+      }
 
       const { data, error, count } = await query;
 
@@ -43,9 +47,10 @@ export function useProperties(filters: PropertyFilters = {}) {
       return {
         properties: data || [],
         totalCount: count || 0,
-        totalPages: Math.ceil((count || 0) / pageSize),
+        totalPages: pageSize ? Math.ceil((count || 0) / pageSize) : 1,
       };
     },
+    enabled: !!managerId,
   });
 }
 

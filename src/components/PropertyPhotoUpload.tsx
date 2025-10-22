@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQueryClient } from "@tanstack/react-query";
+import { PROPERTIES_QUERY_KEY } from "@/hooks/useProperties";
+import { TENANT_PROPERTIES_QUERY_KEY } from "@/hooks/useTenantProperties";
 
 interface PropertyPhotoUploadProps {
   propertyId?: string;
@@ -22,6 +25,7 @@ export function PropertyPhotoUpload({
   const [previewUrl, setPreviewUrl] = useState(currentPhoto);
   const { toast } = useToast();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,6 +94,10 @@ export function PropertyPhotoUpload({
       setPreviewUrl(signedData.signedUrl);
       // Pass storage path to parent, not signed URL
       onPhotoChange(fileName);
+      
+      // Invalidate queries to refresh property data everywhere
+      queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [TENANT_PROPERTIES_QUERY_KEY] });
       
       toast({
         title: t('common.success'),
