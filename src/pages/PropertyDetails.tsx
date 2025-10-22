@@ -816,7 +816,7 @@ export default function PropertyDetails() {
           </Card>
         )}
 
-        {userRole?.isManager && property.status === "active" && (
+        {userRole?.isManager && (
           <Card>
             <CardHeader>
               <CardTitle>{t("properties.quickActions")}</CardTitle>
@@ -833,11 +833,16 @@ export default function PropertyDetails() {
           </Card>
         )}
 
-        {userRole?.isManager && !activeTenant && property.status === "active" && (
+        {userRole?.isManager && property.status === "active" && (
           <Card className="border-destructive/50">
             <CardHeader>
               <CardTitle className="text-destructive">{t("properties.archivePropertyTitle")}</CardTitle>
-              <CardDescription>{t("properties.archivePropertyWarning")}</CardDescription>
+              <CardDescription>
+                {activeTenant 
+                  ? `${t("properties.archivePropertyWithTenantWarning")} (${tenantName})`
+                  : t("properties.archivePropertyWarning")
+                }
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="destructive" onClick={() => setShowArchiveDialog(true)} className="gap-2">
@@ -853,7 +858,12 @@ export default function PropertyDetails() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("properties.archivePropertyTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("properties.archivePropertyDescription")}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {activeTenant 
+                ? `${t("properties.archivePropertyWithTenantDescription")} (${tenantName})`
+                : t("properties.archivePropertyDescription")
+              }
+            </AlertDialogDescription>
           </AlertDialogHeader>
 
           <div className="space-y-4 py-4">
