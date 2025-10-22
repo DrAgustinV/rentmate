@@ -71,10 +71,10 @@ export default function Invitations() {
     const token = searchParams.get('token');
     
     if (!session) {
-      // If not logged in and has token, show decision page
+      // If not logged in and has token, detect account and redirect
       if (token) {
-        // Fetch invitation details to show on decision page
-        const { data: invitation } = await supabase
+        // Fetch invitation details
+        const { data: invitation, error: invitationError } = await supabase
           .from("invitations")
           .select(`
             id,
@@ -94,18 +94,30 @@ export default function Invitations() {
           .gt("expires_at", new Date().toISOString())
           .single();
         
-        if (invitation) {
-          setInvitationPreview(invitation);
-          setShowDecisionPage(true);
-          setLoading(false);
-        } else {
+        if (!invitation || invitationError) {
           toast({
             title: "Invitation Not Found",
             description: "This invitation may have expired or been used already.",
             variant: "destructive",
           });
           navigate("/auth");
+          return;
         }
+
+        // Check if email exists in profiles (using invitations_safe view to bypass RLS)
+        const { data: existingUsers } = await supabase
+          .from("invitations_safe")
+          .select("invited_user_id, email")
+          .eq("email", invitation.email)
+          .not("invited_user_id", "is", null)
+          .limit(1);
+
+        // Determine mode based on whether user exists
+        const hasAccount = existingUsers && existingUsers.length > 0;
+        const mode = hasAccount ? 'signin' : 'signup';
+        
+        // Redirect to auth with appropriate mode and detection flag
+        navigate(`/auth?mode=${mode}&token=${token}&detected=true`);
         return;
       } else {
         navigate("/auth");

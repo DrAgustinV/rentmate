@@ -97,13 +97,27 @@ export default function Auth() {
 
   const getTitle = () => {
     if (invitationContext) {
+      const detected = searchParams.get('detected') === 'true';
+      if (detected) {
+        return isSignUp 
+          ? t('auth.noAccountDetected')
+          : t('auth.accountDetected');
+      }
       return isSignUp ? "Create Account to Accept Invitation" : "Sign In to Accept Invitation";
     }
     return isSignUp ? t('auth.createAccount') : t('auth.welcomeBack');
   };
 
   const getDescription = () => {
-    if (invitationContext) return "Join your property and start managing your tenancy";
+    if (invitationContext) {
+      const detected = searchParams.get('detected') === 'true';
+      if (detected) {
+        return isSignUp
+          ? t('auth.noAccountDetectedDesc')
+          : t('auth.accountDetectedDesc');
+      }
+      return "Join your property and start managing your tenancy";
+    }
     return isSignUp ? t('auth.getStarted') : t('auth.signInToContinue');
   };
 
@@ -177,16 +191,33 @@ export default function Auth() {
     >
       {invitationContext && (
         <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-md">
-          <p className="text-sm text-foreground">
-            {isSignUp 
-              ? "Create a new account to accept your property invitation" 
-              : "Sign in with your existing account to accept the invitation"}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {isSignUp 
-              ? "Already have an account? Click 'Sign in here' below" 
-              : "Don't have an account? Click 'Create one' below"}
-          </p>
+          {searchParams.get('detected') === 'true' ? (
+            <>
+              <p className="text-sm text-foreground font-medium">
+                {isSignUp 
+                  ? "🎉 " + t('auth.noAccountDetected')
+                  : "👋 " + t('auth.accountDetected')}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isSignUp 
+                  ? t('auth.settingUpAccount').replace('{email}', invitationContext.email)
+                  : t('auth.signInToAccept').replace('{email}', invitationContext.email)}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-foreground">
+                {isSignUp 
+                  ? "Create a new account to accept your property invitation" 
+                  : "Sign in with your existing account to accept the invitation"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isSignUp 
+                  ? "Already have an account? Click 'Sign in here' below" 
+                  : "Don't have an account? Click 'Create one' below"}
+              </p>
+            </>
+          )}
         </div>
       )}
       <form onSubmit={handleAuth} className="space-y-4">
