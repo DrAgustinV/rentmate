@@ -136,34 +136,31 @@ export default function PropertyTenants() {
   const { data: activeTenants } = useQuery({
     queryKey: ["active-tenants", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Step 1: Fetch property_tenants records (tenant can see their own via RLS)
+      const { data: tenancies, error: tenanciesError } = await supabase
         .from("property_tenants")
-        .select(
-          `
-          id,
-          tenant_id,
-          tenancy_status,
-          started_at,
-          ended_at,
-          notes,
-          profiles!fk_property_tenants_profiles (
-            email,
-            first_name,
-            last_name
-          )
-        `,
-        )
+        .select("id, tenant_id, tenancy_status, started_at, ended_at, notes")
         .eq("property_id", propertyId)
         .in("tenancy_status", ["active", "ending_tenancy"])
         .order("started_at", { ascending: false });
 
-      if (error) throw error;
-      if (!data) return [];
+      if (tenanciesError) throw tenanciesError;
+      if (!tenancies || tenancies.length === 0) return [];
 
-      return data.map((item: any) => {
-        const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+      // Step 2: Fetch profiles for the tenant IDs (users can see their own profile via RLS)
+      const tenantIds = tenancies.map(t => t.tenant_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .in("id", tenantIds);
+
+      if (profilesError) throw profilesError;
+
+      // Step 3: Merge the data client-side
+      return tenancies.map((tenancy) => {
+        const profile = profiles?.find(p => p.id === tenancy.tenant_id);
         return {
-          ...item,
+          ...tenancy,
           email: profile?.email || "Unknown",
           first_name: profile?.first_name || null,
           last_name: profile?.last_name || null,
