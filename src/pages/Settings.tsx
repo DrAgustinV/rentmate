@@ -10,9 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserCircle, Bell, Lock, Palette, Globe, Wrench } from "lucide-react";
+import { UserCircle, Bell, Lock, Palette, Globe, Wrench, CreditCard } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { StripeConnectOnboarding } from "@/components/payments/StripeConnectOnboarding";
 import { Language } from "@/lib/i18n/translations";
 import {
   DropdownMenu,
@@ -162,7 +163,7 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className={`grid w-full ${userRole === 'manager' ? 'grid-cols-5' : 'grid-cols-4'}`}>
+          <TabsList className={`grid w-full ${userRole === 'manager' ? 'grid-cols-6' : 'grid-cols-4'}`}>
             <TabsTrigger value="profile" className="gap-2">
               <UserCircle className="h-4 w-4" />
               <span className="hidden sm:inline">{t('settings.profile')}</span>
@@ -180,10 +181,16 @@ export default function Settings() {
               <span className="hidden sm:inline">{t('settings.security')}</span>
             </TabsTrigger>
             {userRole === 'manager' && (
-              <TabsTrigger value="repair-shops" className="gap-2">
-                <Wrench className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('repairShops.title')}</span>
-              </TabsTrigger>
+              <>
+                <TabsTrigger value="payments" className="gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t('settings.payments')}</span>
+                </TabsTrigger>
+                <TabsTrigger value="repair-shops" className="gap-2">
+                  <Wrench className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t('repairShops.title')}</span>
+                </TabsTrigger>
+              </>
             )}
           </TabsList>
 
@@ -333,9 +340,14 @@ export default function Settings() {
           </TabsContent>
 
           {userRole === 'manager' && (
-            <TabsContent value="repair-shops" className="mt-6">
-              <RepairShops />
-            </TabsContent>
+            <>
+              <TabsContent value="payments" className="mt-6">
+                <StripeConnectOnboarding />
+              </TabsContent>
+              <TabsContent value="repair-shops" className="mt-6">
+                <RepairShops />
+              </TabsContent>
+            </>
           )}
         </Tabs>
       </div>
