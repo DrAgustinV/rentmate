@@ -567,6 +567,60 @@ export type Database = {
           },
         ]
       }
+      repair_shops: {
+        Row: {
+          address: string | null
+          city: string | null
+          company_name: string
+          contact_person: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          license_number: string | null
+          manager_id: string
+          notes: string | null
+          phone: string
+          postal_code: string | null
+          specializations: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          company_name: string
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          license_number?: string | null
+          manager_id: string
+          notes?: string | null
+          phone: string
+          postal_code?: string | null
+          specializations?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          company_name?: string
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          license_number?: string | null
+          manager_id?: string
+          notes?: string | null
+          phone?: string
+          postal_code?: string | null
+          specializations?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       standard_maintenance_templates: {
         Row: {
           category: string

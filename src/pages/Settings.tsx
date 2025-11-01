@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserCircle, Bell, Lock, Palette, Globe } from "lucide-react";
+import { UserCircle, Bell, Lock, Palette, Globe, Wrench } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Language } from "@/lib/i18n/translations";
@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import RepairShops from "./RepairShops";
 
 const languages: { code: Language; label: string; flag: string }[] = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
@@ -36,6 +37,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const { t, language, changeLanguage } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -77,6 +79,15 @@ export default function Settings() {
         setLastName(data.last_name || "");
       }
       setSelectedLanguage(language);
+
+      // Check if user is a manager (has properties)
+      const { data: properties } = await supabase
+        .from("properties")
+        .select("id")
+        .eq("manager_id", userId)
+        .limit(1);
+
+      setUserRole(properties && properties.length > 0 ? "manager" : "tenant");
     } catch (error: any) {
       toast({
         title: t('common.error'),
@@ -151,7 +162,7 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${userRole === 'manager' ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="profile" className="gap-2">
               <UserCircle className="h-4 w-4" />
               <span className="hidden sm:inline">{t('settings.profile')}</span>
@@ -168,6 +179,12 @@ export default function Settings() {
               <Lock className="h-4 w-4" />
               <span className="hidden sm:inline">{t('settings.security')}</span>
             </TabsTrigger>
+            {userRole === 'manager' && (
+              <TabsTrigger value="repair-shops" className="gap-2">
+                <Wrench className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('repairShops.title')}</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="profile" className="mt-6">
@@ -314,6 +331,12 @@ export default function Settings() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {userRole === 'manager' && (
+            <TabsContent value="repair-shops" className="mt-6">
+              <RepairShops />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </AppLayout>
