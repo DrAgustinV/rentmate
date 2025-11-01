@@ -59,7 +59,7 @@ serve(async (req) => {
         JSON.stringify({
           accountId: existingAccount.stripe_account_id,
           onboardingUrl: accountLink.url,
-          status: existingAccount.account_status,
+          status: existingAccount.stripe_account_status,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -100,15 +100,7 @@ serve(async (req) => {
       .insert({
         manager_id: user.id,
         stripe_account_id: account.id,
-        account_status: 'pending',
-        charges_enabled: account.charges_enabled,
-        payouts_enabled: account.payouts_enabled,
-        country: account.country || 'DE',
-        currency: account.default_currency || 'eur',
-        metadata: {
-          email: profile?.email,
-          name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim(),
-        },
+        stripe_account_status: 'pending',
       });
 
     if (insertError) {
@@ -140,10 +132,13 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in create-stripe-connect-account:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorDetails = error instanceof Error ? error.toString() : String(error);
+    
     return new Response(
       JSON.stringify({
-        error: error.message,
-        details: error.toString(),
+        error: errorMessage,
+        details: errorDetails,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

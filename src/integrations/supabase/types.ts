@@ -271,6 +271,44 @@ export type Database = {
         }
         Relationships: []
       }
+      manager_stripe_accounts: {
+        Row: {
+          created_at: string
+          id: string
+          manager_id: string
+          onboarding_completed_at: string | null
+          stripe_account_id: string
+          stripe_account_status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          manager_id: string
+          onboarding_completed_at?: string | null
+          stripe_account_id: string
+          stripe_account_status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          manager_id?: string
+          onboarding_completed_at?: string | null
+          stripe_account_id?: string
+          stripe_account_status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_stripe_accounts_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -563,6 +601,92 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "ticket_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rent_agreements: {
+        Row: {
+          created_at: string
+          currency: string
+          end_date: string | null
+          id: string
+          is_active: boolean
+          manager_id: string
+          mandate_id: string | null
+          mandate_status: string
+          payment_day: number
+          property_id: string
+          rent_amount_cents: number
+          start_date: string
+          tenancy_id: string
+          tenant_iban: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          manager_id: string
+          mandate_id?: string | null
+          mandate_status?: string
+          payment_day: number
+          property_id: string
+          rent_amount_cents: number
+          start_date: string
+          tenancy_id: string
+          tenant_iban: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          manager_id?: string
+          mandate_id?: string | null
+          mandate_status?: string
+          payment_day?: number
+          property_id?: string
+          rent_amount_cents?: number
+          start_date?: string
+          tenancy_id?: string
+          tenant_iban?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rent_agreements_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rent_agreements_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rent_agreements_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: false
+            referencedRelation: "property_tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rent_agreements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
