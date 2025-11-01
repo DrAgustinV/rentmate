@@ -1768,9 +1768,6 @@ export const translations = {
 
 export type Language = keyof typeof translations;
 export type Translations = typeof translations.en;
-      title: "Repair Shops",
-      description: "Manage your repair shop contacts",
-      addContact: "Add Contact",
       addContactDesc: "Add a new repair shop contact to your list",
       editContact: "Edit Contact",
       editContactDesc: "Update repair shop contact information",
