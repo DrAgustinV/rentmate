@@ -9,3 +9,7 @@ verify_jwt = false  # Cron job - no user context available
 
 [functions.delete-user]
 verify_jwt = true  # Requires admin authentication
+
+# SEPA Rent Payment Functions - Phase 2A
+[functions.create-stripe-connect-account]
+verify_jwt = true  # Manager onboarding for Stripe Connect
