@@ -203,6 +203,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_job_health: {
+        Row: {
+          consecutive_failures: number
+          created_at: string
+          id: string
+          job_name: string
+          last_error: string | null
+          last_run_at: string | null
+          last_run_status: string | null
+          metadata: Json | null
+          run_count: number
+          updated_at: string
+        }
+        Insert: {
+          consecutive_failures?: number
+          created_at?: string
+          id?: string
+          job_name: string
+          last_error?: string | null
+          last_run_at?: string | null
+          last_run_status?: string | null
+          metadata?: Json | null
+          run_count?: number
+          updated_at?: string
+        }
+        Update: {
+          consecutive_failures?: number
+          created_at?: string
+          id?: string
+          job_name?: string
+          last_error?: string | null
+          last_run_at?: string | null
+          last_run_status?: string | null
+          metadata?: Json | null
+          run_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           created_at: string
@@ -305,6 +344,53 @@ export type Database = {
             columns: ["manager_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_disputes: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          dispute_reason: string
+          dispute_status: string
+          evidence_due_by: string | null
+          id: string
+          rent_payment_id: string
+          stripe_dispute_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          dispute_reason: string
+          dispute_status?: string
+          evidence_due_by?: string | null
+          id?: string
+          rent_payment_id: string
+          stripe_dispute_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          dispute_reason?: string
+          dispute_status?: string
+          evidence_due_by?: string | null
+          id?: string
+          rent_payment_id?: string
+          stripe_dispute_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_disputes_rent_payment_id_fkey"
+            columns: ["rent_payment_id"]
+            isOneToOne: false
+            referencedRelation: "rent_payments"
             referencedColumns: ["id"]
           },
         ]
@@ -691,6 +777,89 @@ export type Database = {
           },
         ]
       }
+      rent_payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          failure_reason: string | null
+          id: string
+          manager_id: string
+          payment_date: string
+          payment_status: string
+          processed_at: string | null
+          property_id: string
+          rent_agreement_id: string
+          stripe_charge_id: string | null
+          stripe_payment_intent_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          manager_id: string
+          payment_date: string
+          payment_status?: string
+          processed_at?: string | null
+          property_id: string
+          rent_agreement_id: string
+          stripe_charge_id?: string | null
+          stripe_payment_intent_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          manager_id?: string
+          payment_date?: string
+          payment_status?: string
+          processed_at?: string | null
+          property_id?: string
+          rent_agreement_id?: string
+          stripe_charge_id?: string | null
+          stripe_payment_intent_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rent_payments_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rent_payments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rent_payments_rent_agreement_id_fkey"
+            columns: ["rent_agreement_id"]
+            isOneToOne: false
+            referencedRelation: "rent_agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rent_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       repair_shops: {
         Row: {
           address: string | null
@@ -781,6 +950,39 @@ export type Database = {
           title?: string
           type?: Database["public"]["Enums"]["ticket_type"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      stripe_webhook_events: {
+        Row: {
+          created_at: string
+          event_data: Json
+          event_type: string
+          id: string
+          processed: boolean
+          processed_at: string | null
+          processing_error: string | null
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_data: Json
+          event_type: string
+          id?: string
+          processed?: boolean
+          processed_at?: string | null
+          processing_error?: string | null
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json
+          event_type?: string
+          id?: string
+          processed?: boolean
+          processed_at?: string | null
+          processing_error?: string | null
+          stripe_event_id?: string
         }
         Relationships: []
       }
