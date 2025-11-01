@@ -38,11 +38,16 @@ serve(async (req) => {
     console.log(`Creating Stripe Connect account for manager: ${user.id}`);
 
     // Check if manager already has a Stripe account
-    const { data: existingAccount } = await supabase
+    const { data: existingAccount, error: fetchError } = await supabase
       .from('manager_stripe_accounts')
       .select('*')
       .eq('manager_id', user.id)
-      .single();
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Error fetching existing account:', fetchError);
+      throw new Error('Failed to check existing Stripe account');
+    }
 
     if (existingAccount) {
       console.log(`Existing account found: ${existingAccount.stripe_account_id}`);
