@@ -6,6 +6,16 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
+import {
   Form,
   FormControl,
   FormField,
@@ -17,7 +27,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, CheckCircle2 } from 'lucide-react';
+import { InfoIcon, CheckCircle2, Edit } from 'lucide-react';
 import { useRentAgreementMutations } from '@/hooks/useRentAgreements';
 
 const ibanSchema = z.object({
@@ -82,10 +92,10 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
           <CardDescription>{t('rentAgreements.ibanConfiguredDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-muted-foreground">{t('rentAgreements.iban')}</p>
-              <p className="font-mono">
+              <p className="font-mono text-xs sm:text-sm break-all">
                 {agreement.tenant_iban.replace(/(.{4})/g, '$1 ').trim()}
               </p>
             </div>
@@ -95,6 +105,7 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+            <Edit className="h-4 w-4 mr-2" />
             {t('common.edit')}
           </Button>
         </CardContent>
@@ -103,88 +114,107 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('rentAgreements.setupPayment')}</CardTitle>
-        <CardDescription>{t('rentAgreements.setupPaymentDescription')}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Alert className="mb-4">
-          <InfoIcon className="h-4 w-4" />
-          <AlertDescription>
-            {t('rentAgreements.paymentInfo')
-              .replace('{amount}', formatCurrency(agreement.rent_amount_cents, agreement.currency))
-              .replace('{day}', agreement.payment_day.toString())}
-          </AlertDescription>
-        </Alert>
+    <Drawer open={isEditing} onOpenChange={setIsEditing}>
+      <DrawerTrigger asChild>
+        <Card className="cursor-pointer hover:border-primary transition-colors">
+          <CardHeader>
+            <CardTitle>{t('rentAgreements.setupPayment')}</CardTitle>
+            <CardDescription>{t('rentAgreements.setupPaymentDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Alert>
+              <InfoIcon className="h-4 w-4" />
+              <AlertDescription>
+                {t('rentAgreements.paymentInfo')
+                  .replace('{amount}', formatCurrency(agreement.rent_amount_cents, agreement.currency))
+                  .replace('{day}', agreement.payment_day.toString())}
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </DrawerTrigger>
+      <DrawerContent className="max-h-[90vh]">
+        <DrawerHeader>
+          <DrawerTitle>{t('rentAgreements.setupPayment')}</DrawerTitle>
+          <DrawerDescription>{t('rentAgreements.setupPaymentDescription')}</DrawerDescription>
+        </DrawerHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="iban"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('rentAgreements.iban')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="DE89370400440532013000"
-                      {...field}
-                      onChange={(e) => {
-                        // Auto-uppercase and remove spaces
-                        const value = e.target.value.toUpperCase().replace(/\s/g, '');
-                        field.onChange(value);
-                      }}
-                      className="font-mono"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    {t('rentAgreements.ibanDescription')}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <div className="overflow-y-auto px-4 pb-4 max-h-[60vh]">
+          <Alert className="mb-4">
+            <InfoIcon className="h-4 w-4" />
+            <AlertDescription>
+              {t('rentAgreements.paymentInfo')
+                .replace('{amount}', formatCurrency(agreement.rent_amount_cents, agreement.currency))
+                .replace('{day}', agreement.payment_day.toString())}
+            </AlertDescription>
+          </Alert>
 
-            <FormField
-              control={form.control}
-              name="consent"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>{t('rentAgreements.sepaConsent')}</FormLabel>
-                    <FormDescription className="text-xs">
-                      {t('rentAgreements.sepaConsentDescription')}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="iban"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('rentAgreements.iban')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="DE89370400440532013000"
+                        {...field}
+                        onChange={(e) => {
+                          const value = e.target.value.toUpperCase().replace(/\s/g, '');
+                          field.onChange(value);
+                        }}
+                        className="font-mono"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {t('rentAgreements.ibanDescription')}
                     </FormDescription>
                     <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
+                  </FormItem>
+                )}
+              />
 
-            <div className="flex justify-end gap-2">
-              {agreement.tenant_iban && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setIsEditing(false);
-                    form.reset();
-                  }}
-                >
-                  {t('common.cancel')}
-                </Button>
-              )}
-              <Button type="submit" disabled={updateIban.isPending}>
-                {updateIban.isPending ? t('common.loading') : t('common.submit')}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+              <FormField
+                control={form.control}
+                name="consent"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>{t('rentAgreements.sepaConsent')}</FormLabel>
+                      <FormDescription className="text-xs">
+                        {t('rentAgreements.sepaConsentDescription')}
+                      </FormDescription>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </div>
+
+        <DrawerFooter>
+          <Button type="submit" onClick={form.handleSubmit(onSubmit)} disabled={updateIban.isPending}>
+            {updateIban.isPending ? t('common.loading') : t('common.submit')}
+          </Button>
+          <DrawerClose asChild>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditing(false);
+                form.reset();
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

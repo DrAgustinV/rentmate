@@ -20,7 +20,7 @@ import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersion
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { CreateRentAgreementDialog } from "@/components/CreateRentAgreementDialog";
+import { CreateRentAgreementDrawer } from "@/components/CreateRentAgreementDrawer";
 import { TenantIBANForm } from "@/components/TenantIBANForm";
 import { useRentAgreements } from "@/hooks/useRentAgreements";
 import {
@@ -694,7 +694,7 @@ export default function PropertyDetails() {
                   <div className="flex items-center justify-between">
                     <CardTitle>{t("rentAgreements.monthlyRent")}</CardTitle>
                     {activeTenant && !rentAgreements?.some(ra => ra.tenancy_id === activeTenant.id && ra.is_active) && (
-                      <CreateRentAgreementDialog
+                      <CreateRentAgreementDrawer
                         propertyId={propertyId!}
                         activeTenant={activeTenant}
                       />
