@@ -67,12 +67,15 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
     },
   });
 
-  const onSubmit = (data: IBANFormData) => {
+  const onSubmit = async (data: IBANFormData) => {
     updateIban.mutate({
       agreement_id: agreement.id,
       tenant_iban: data.iban.toUpperCase().replace(/\s/g, ''),
+    }, {
+      onSuccess: () => {
+        setIsEditing(false);
+      },
     });
-    setIsEditing(false);
   };
 
   const formatCurrency = (cents: number, currency: string) => {

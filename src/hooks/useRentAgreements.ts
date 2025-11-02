@@ -105,20 +105,24 @@ export function useRentAgreementMutations() {
 
   const updateIban = useMutation({
     mutationFn: async (data: { agreement_id: string; tenant_iban: string }) => {
-      const { error } = await supabase
-        .from('rent_agreements')
-        .update({ tenant_iban: data.tenant_iban })
-        .eq('id', data.agreement_id);
+      // Call edge function to create SEPA mandate
+      const { data: result, error } = await supabase.functions.invoke('create-sepa-mandate', {
+        body: {
+          agreement_id: data.agreement_id,
+          tenant_iban: data.tenant_iban,
+        },
+      });
 
       if (error) throw error;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY] });
-      toast.success('IBAN updated successfully');
+      toast.success('IBAN saved and mandate creation initiated');
     },
     onError: (error: any) => {
       console.error('Update IBAN error:', error);
-      toast.error('Failed to update IBAN');
+      toast.error('Failed to create SEPA mandate. Please try again.');
     },
   });
 
