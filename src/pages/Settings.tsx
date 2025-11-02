@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCircle, Bell, Lock, Palette, Globe, Wrench, CreditCard } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { StripeConnectOnboarding } from "@/components/payments/StripeConnectOnboarding";
+import { SEPADirectDebitSettings } from "@/components/payments/SEPADirectDebitSettings";
 import { Language } from "@/lib/i18n/translations";
 import {
   DropdownMenu,
@@ -342,7 +342,7 @@ export default function Settings() {
           {userRole === 'manager' && (
             <>
               <TabsContent value="payments" className="mt-6">
-                <StripeConnectOnboarding />
+                <SEPADirectDebitSettings />
               </TabsContent>
               <TabsContent value="repair-shops" className="mt-6">
                 <RepairShops />

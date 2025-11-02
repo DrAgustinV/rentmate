@@ -480,7 +480,10 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          legal_name: string | null
+          manager_iban: string | null
           phone: string | null
+          sepa_creditor_identifier: string | null
           updated_at: string
         }
         Insert: {
@@ -489,7 +492,10 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          legal_name?: string | null
+          manager_iban?: string | null
           phone?: string | null
+          sepa_creditor_identifier?: string | null
           updated_at?: string
         }
         Update: {
@@ -498,7 +504,10 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          legal_name?: string | null
+          manager_iban?: string | null
           phone?: string | null
+          sepa_creditor_identifier?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -778,6 +787,8 @@ export type Database = {
           is_active: boolean
           manager_id: string
           mandate_id: string | null
+          mandate_pdf_url: string | null
+          mandate_signed_at: string | null
           mandate_status: string
           payment_day: number
           property_id: string
@@ -796,6 +807,8 @@ export type Database = {
           is_active?: boolean
           manager_id: string
           mandate_id?: string | null
+          mandate_pdf_url?: string | null
+          mandate_signed_at?: string | null
           mandate_status?: string
           payment_day: number
           property_id: string
@@ -814,6 +827,8 @@ export type Database = {
           is_active?: boolean
           manager_id?: string
           mandate_id?: string | null
+          mandate_pdf_url?: string | null
+          mandate_signed_at?: string | null
           mandate_status?: string
           payment_day?: number
           property_id?: string
@@ -863,11 +878,16 @@ export type Database = {
           failure_reason: string | null
           id: string
           manager_id: string
+          notes: string | null
           payment_date: string
+          payment_due_date: string | null
+          payment_method: string | null
+          payment_received_date: string | null
           payment_status: string
           processed_at: string | null
           property_id: string
           rent_agreement_id: string
+          status: string | null
           stripe_charge_id: string | null
           stripe_payment_intent_id: string | null
           tenant_id: string
@@ -880,11 +900,16 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           manager_id: string
+          notes?: string | null
           payment_date: string
+          payment_due_date?: string | null
+          payment_method?: string | null
+          payment_received_date?: string | null
           payment_status?: string
           processed_at?: string | null
           property_id: string
           rent_agreement_id: string
+          status?: string | null
           stripe_charge_id?: string | null
           stripe_payment_intent_id?: string | null
           tenant_id: string
@@ -897,11 +922,16 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           manager_id?: string
+          notes?: string | null
           payment_date?: string
+          payment_due_date?: string | null
+          payment_method?: string | null
+          payment_received_date?: string | null
           payment_status?: string
           processed_at?: string | null
           property_id?: string
           rent_agreement_id?: string
+          status?: string | null
           stripe_charge_id?: string | null
           stripe_payment_intent_id?: string | null
           tenant_id?: string

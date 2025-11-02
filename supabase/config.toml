@@ -20,3 +20,10 @@ verify_jwt = true  # Tenant creates SEPA mandate
 
 [functions.stripe-webhook-handler]
 verify_jwt = false  # Public webhook endpoint from Stripe
+
+# Track 1: Direct SEPA Rent Payments (Mock Phase)
+[functions.generate-sepa-mandate-pdf]
+verify_jwt = true  # Manager/Tenant generates mandate PDF
+
+[functions.generate-sepa-xml]
+verify_jwt = true  # Manager generates SEPA XML for bank

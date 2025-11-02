@@ -29,7 +29,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { InfoIcon, CheckCircle2, Edit, Loader2 } from 'lucide-react';
-import { useRentAgreementMutations } from '@/hooks/useRentAgreements';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const ibanSchema = z.object({
   iban: z
@@ -57,8 +58,8 @@ interface TenantIBANFormProps {
 
 export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
   const { t } = useLanguage();
-  const { updateIban } = useRentAgreementMutations();
   const [isEditing, setIsEditing] = useState(!agreement.tenant_iban);
+  const [saving, setSaving] = useState(false);
 
   const form = useForm<IBANFormData>({
     resolver: zodResolver(ibanSchema),
@@ -69,14 +70,25 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
   });
 
   const onSubmit = async (data: IBANFormData) => {
-    updateIban.mutate({
-      agreement_id: agreement.id,
-      tenant_iban: data.iban.toUpperCase().replace(/\s/g, ''),
-    }, {
-      onSuccess: () => {
-        setIsEditing(false);
-      },
-    });
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('rent_agreements')
+        .update({
+          tenant_iban: data.iban.toUpperCase().replace(/\s/g, ''),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', agreement.id);
+
+      if (error) throw error;
+      
+      toast.success('IBAN saved successfully');
+      setIsEditing(false);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const formatCurrency = (cents: number, currency: string) => {
@@ -154,20 +166,6 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
         </DrawerHeader>
 
         <div className="overflow-y-auto px-4 pb-4 max-h-[60vh]">
-          {updateIban.isPending && (
-            <Alert className="mb-4">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <AlertDescription className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">Step 1/2: Saving IBAN...</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">Step 2/2: Creating SEPA mandate...</span>
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-          
           <Alert className="mb-4">
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
@@ -227,8 +225,8 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
         </div>
 
         <DrawerFooter>
-          <Button type="submit" onClick={form.handleSubmit(onSubmit)} disabled={updateIban.isPending}>
-            {updateIban.isPending ? t('common.loading') : t('common.submit')}
+          <Button type="submit" onClick={form.handleSubmit(onSubmit)} disabled={saving}>
+            {saving ? t('common.loading') : t('common.submit')}
           </Button>
           <DrawerClose asChild>
             <Button
