@@ -706,7 +706,7 @@ export type Database = {
           rent_amount_cents: number
           start_date: string
           tenancy_id: string
-          tenant_iban: string
+          tenant_iban: string | null
           tenant_id: string
           updated_at: string
         }
@@ -724,7 +724,7 @@ export type Database = {
           rent_amount_cents: number
           start_date: string
           tenancy_id: string
-          tenant_iban: string
+          tenant_iban?: string | null
           tenant_id: string
           updated_at?: string
         }
@@ -742,7 +742,7 @@ export type Database = {
           rent_amount_cents?: number
           start_date?: string
           tenancy_id?: string
-          tenant_iban?: string
+          tenant_iban?: string | null
           tenant_id?: string
           updated_at?: string
         }
