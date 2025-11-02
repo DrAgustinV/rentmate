@@ -27,7 +27,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, CheckCircle2, Edit } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { InfoIcon, CheckCircle2, Edit, Loader2 } from 'lucide-react';
 import { useRentAgreementMutations } from '@/hooks/useRentAgreements';
 
 const ibanSchema = z.object({
@@ -95,16 +96,26 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
           <CardDescription>{t('rentAgreements.ibanConfiguredDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div className="space-y-4">
             <div>
-              <p className="text-muted-foreground">{t('rentAgreements.iban')}</p>
+              <p className="text-sm text-muted-foreground mb-1">{t('rentAgreements.iban')}</p>
               <p className="font-mono text-xs sm:text-sm break-all">
                 {agreement.tenant_iban.replace(/(.{4})/g, '$1 ').trim()}
               </p>
             </div>
             <div>
-              <p className="text-muted-foreground">{t('rentAgreements.mandateStatus')}</p>
-              <p className="capitalize">{agreement.mandate_status}</p>
+              <p className="text-sm text-muted-foreground mb-2">{t('rentAgreements.mandateStatusLabel')}</p>
+              <Badge
+                variant={
+                  agreement.mandate_status === 'active'
+                    ? 'default'
+                    : agreement.mandate_status === 'pending'
+                    ? 'secondary'
+                    : 'destructive'
+                }
+              >
+                {t(`rentAgreements.mandateStatus.${agreement.mandate_status}`)}
+              </Badge>
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
@@ -143,6 +154,20 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
         </DrawerHeader>
 
         <div className="overflow-y-auto px-4 pb-4 max-h-[60vh]">
+          {updateIban.isPending && (
+            <Alert className="mb-4">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <AlertDescription className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Step 1/2: Saving IBAN...</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Step 2/2: Creating SEPA mandate...</span>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <Alert className="mb-4">
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>

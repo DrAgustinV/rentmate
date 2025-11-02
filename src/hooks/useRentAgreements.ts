@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 export const RENT_AGREEMENTS_QUERY_KEY = 'rent-agreements';
 
@@ -24,6 +25,43 @@ interface RentAgreement {
 }
 
 export function useRentAgreements(propertyId?: string) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!propertyId) return;
+
+    const channel = supabase
+      .channel('mandate-status-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'rent_agreements',
+          filter: `property_id=eq.${propertyId}`,
+        },
+        (payload: any) => {
+          const oldStatus = payload.old?.mandate_status;
+          const newStatus = payload.new?.mandate_status;
+
+          if (oldStatus !== newStatus) {
+            queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY, propertyId] });
+            
+            if (newStatus === 'active') {
+              toast.success('SEPA mandate verified and activated!');
+            } else if (newStatus === 'failed') {
+              toast.error('Mandate verification failed. Please check your IBAN and try again.');
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [propertyId, queryClient]);
+
   return useQuery({
     queryKey: [RENT_AGREEMENTS_QUERY_KEY, propertyId],
     queryFn: async () => {
