@@ -45,6 +45,7 @@ import { EditTenantDialog } from "@/components/EditTenantDialog";
 import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
+import { ContractSignatureManager } from "@/components/ContractSignatureManager";
 
 interface Tenant {
   id: string;
@@ -833,6 +834,19 @@ export default function PropertyTenants() {
                     <p className="text-sm text-muted-foreground">{t("properties.noTenancyDocuments")}</p>
                   )}
                 </div>
+              </>
+            )}
+
+            {/* Section 4.5: Digital Contract Signature */}
+            {currentTenant && (
+              <>
+                <Separator />
+                <ContractSignatureManager
+                  tenancyId={currentTenant.id}
+                  propertyId={propertyId!}
+                  isManager={userRole?.isManager || false}
+                  onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
+                />
               </>
             )}
 

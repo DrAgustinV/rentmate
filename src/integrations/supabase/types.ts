@@ -203,6 +203,84 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_signatures: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          initiated_at: string
+          initiated_by: string
+          manager_signature_ip: string | null
+          manager_signature_method: string | null
+          manager_signed_at: string | null
+          property_id: string
+          signed_document_url: string | null
+          tenancy_id: string
+          tenant_signature_ip: string | null
+          tenant_signature_method: string | null
+          tenant_signed_at: string | null
+          updated_at: string
+          workflow_id: string | null
+          workflow_status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          initiated_at?: string
+          initiated_by: string
+          manager_signature_ip?: string | null
+          manager_signature_method?: string | null
+          manager_signed_at?: string | null
+          property_id: string
+          signed_document_url?: string | null
+          tenancy_id: string
+          tenant_signature_ip?: string | null
+          tenant_signature_method?: string | null
+          tenant_signed_at?: string | null
+          updated_at?: string
+          workflow_id?: string | null
+          workflow_status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          initiated_at?: string
+          initiated_by?: string
+          manager_signature_ip?: string | null
+          manager_signature_method?: string | null
+          manager_signed_at?: string | null
+          property_id?: string
+          signed_document_url?: string | null
+          tenancy_id?: string
+          tenant_signature_ip?: string | null
+          tenant_signature_method?: string | null
+          tenant_signed_at?: string | null
+          updated_at?: string
+          workflow_id?: string | null
+          workflow_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_signatures_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_signatures_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: false
+            referencedRelation: "property_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cron_job_health: {
         Row: {
           consecutive_failures: number
@@ -913,6 +991,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      signature_events: {
+        Row: {
+          contract_signature_id: string
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          contract_signature_id: string
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          contract_signature_id?: string
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signature_events_contract_signature_id_fkey"
+            columns: ["contract_signature_id"]
+            isOneToOne: false
+            referencedRelation: "contract_signatures"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       standard_maintenance_templates: {
         Row: {
