@@ -879,7 +879,7 @@ export type Database = {
           id: string
           manager_id: string
           notes: string | null
-          payment_date: string
+          payment_date: string | null
           payment_due_date: string | null
           payment_method: string | null
           payment_received_date: string | null
@@ -901,7 +901,7 @@ export type Database = {
           id?: string
           manager_id: string
           notes?: string | null
-          payment_date: string
+          payment_date?: string | null
           payment_due_date?: string | null
           payment_method?: string | null
           payment_received_date?: string | null
@@ -923,7 +923,7 @@ export type Database = {
           id?: string
           manager_id?: string
           notes?: string | null
-          payment_date?: string
+          payment_date?: string | null
           payment_due_date?: string | null
           payment_method?: string | null
           payment_received_date?: string | null
