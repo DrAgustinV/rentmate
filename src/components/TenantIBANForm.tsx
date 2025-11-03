@@ -91,8 +91,12 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
 
       if (pdfError) {
         console.error('PDF generation error:', pdfError);
-        // Don't fail the entire operation if PDF generation fails
-        toast.warning('IBAN saved, but PDF generation is pending');
+        // Check if error is due to missing manager SEPA settings
+        if (pdfError.message?.includes('SEPA settings not configured')) {
+          toast.error('Manager has not configured SEPA payment details yet. Please contact your landlord.');
+        } else {
+          toast.warning('IBAN saved, but mandate generation is pending');
+        }
       } else {
         toast.success('IBAN saved and mandate generated!');
       }

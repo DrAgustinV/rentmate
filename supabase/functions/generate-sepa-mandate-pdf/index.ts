@@ -37,7 +37,7 @@ serve(async (req) => {
 
     console.log("Generating SEPA mandate PDF for agreement:", agreement_id);
 
-    // Authenticate user
+    // Authenticate user with regular client
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -53,7 +53,13 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser();
     if (!user) throw new Error("Not authenticated");
 
-    // Fetch rent agreement details
+    // Create service role client for privileged operations (bypasses RLS)
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    // Fetch rent agreement details with user context (respects RLS)
     const { data: agreement, error: agreementError } = await supabaseClient
       .from("rent_agreements")
       .select("*")
@@ -68,8 +74,8 @@ serve(async (req) => {
 
     console.log("Agreement found:", agreement.id);
 
-    // Fetch manager profile separately
-    const { data: managerProfile, error: managerError } = await supabaseClient
+    // Fetch manager profile with service role (bypasses RLS)
+    const { data: managerProfile, error: managerError } = await supabaseAdmin
       .from("profiles")
       .select("id, first_name, last_name, email, manager_iban, sepa_creditor_identifier, legal_name")
       .eq("id", agreement.manager_id)
@@ -83,8 +89,8 @@ serve(async (req) => {
 
     console.log("Manager profile found:", managerProfile.id);
 
-    // Fetch tenant profile separately
-    const { data: tenantProfile, error: tenantError } = await supabaseClient
+    // Fetch tenant profile with service role (bypasses RLS)
+    const { data: tenantProfile, error: tenantError } = await supabaseAdmin
       .from("profiles")
       .select("id, first_name, last_name, email")
       .eq("id", agreement.tenant_id)
@@ -98,8 +104,8 @@ serve(async (req) => {
 
     console.log("Tenant profile found:", tenantProfile.id);
 
-    // Fetch property details
-    const { data: property, error: propertyError } = await supabaseClient
+    // Fetch property details with service role (bypasses RLS)
+    const { data: property, error: propertyError } = await supabaseAdmin
       .from("properties")
       .select("id, title, address")
       .eq("id", agreement.property_id)
@@ -146,8 +152,8 @@ serve(async (req) => {
     // For now, return a mock PDF URL
     const mockPdfUrl = `https://mock-pdf-storage.com/mandate-${mandate_reference}.pdf`;
 
-    // Update rent agreement with mandate details
-    const { error: updateError } = await supabaseClient
+    // Update rent agreement with mandate details using service role
+    const { error: updateError } = await supabaseAdmin
       .from("rent_agreements")
       .update({
         mandate_id: mandate_reference,
