@@ -56,40 +56,45 @@ serve(async (req) => {
     // Fetch rent agreement details
     const { data: agreement, error: agreementError } = await supabaseClient
       .from("rent_agreements")
-      .select(
-        `
-        *,
-        property:properties (
-          id,
-          title,
-          address,
-          manager_id
-        ),
-        tenant:profiles!rent_agreements_tenant_id_fkey (
-          id,
-          first_name,
-          last_name,
-          email
-        ),
-        manager:profiles!rent_agreements_manager_id_fkey (
-          id,
-          first_name,
-          last_name,
-          email,
-          manager_iban,
-          sepa_creditor_identifier,
-          legal_name
-        )
-      `
-      )
+      .select("*")
       .eq("id", agreement_id)
       .single();
 
     if (agreementError) throw agreementError;
     if (!agreement) throw new Error("Agreement not found");
 
+    // Fetch manager profile separately
+    const { data: managerProfile, error: managerError } = await supabaseClient
+      .from("profiles")
+      .select("id, first_name, last_name, email, manager_iban, sepa_creditor_identifier, legal_name")
+      .eq("id", agreement.manager_id)
+      .single();
+
+    if (managerError) throw managerError;
+    if (!managerProfile) throw new Error("Manager profile not found");
+
+    // Fetch tenant profile separately
+    const { data: tenantProfile, error: tenantError } = await supabaseClient
+      .from("profiles")
+      .select("id, first_name, last_name, email")
+      .eq("id", agreement.tenant_id)
+      .single();
+
+    if (tenantError) throw tenantError;
+    if (!tenantProfile) throw new Error("Tenant profile not found");
+
+    // Fetch property details
+    const { data: property, error: propertyError } = await supabaseClient
+      .from("properties")
+      .select("id, title, address")
+      .eq("id", agreement.property_id)
+      .single();
+
+    if (propertyError) throw propertyError;
+    if (!property) throw new Error("Property not found");
+
     // Validate manager has SEPA settings configured
-    if (!agreement.manager.manager_iban || !agreement.manager.sepa_creditor_identifier) {
+    if (!managerProfile.manager_iban || !managerProfile.sepa_creditor_identifier) {
       throw new Error("Manager SEPA settings not configured");
     }
 
@@ -99,13 +104,13 @@ serve(async (req) => {
 
     // Prepare mandate data
     const mandateData: SEPAMandateData = {
-      creditor_name: agreement.manager.legal_name || `${agreement.manager.first_name} ${agreement.manager.last_name}`,
-      creditor_iban: agreement.manager.manager_iban,
-      creditor_identifier: agreement.manager.sepa_creditor_identifier,
-      creditor_address: agreement.property.address || "N/A",
-      debtor_name: `${agreement.tenant.first_name} ${agreement.tenant.last_name}`,
+      creditor_name: managerProfile.legal_name || `${managerProfile.first_name} ${managerProfile.last_name}`,
+      creditor_iban: managerProfile.manager_iban,
+      creditor_identifier: managerProfile.sepa_creditor_identifier,
+      creditor_address: property.address || "N/A",
+      debtor_name: `${tenantProfile.first_name} ${tenantProfile.last_name}`,
       debtor_iban: agreement.tenant_iban || "",
-      debtor_address: agreement.property.address || "N/A",
+      debtor_address: property.address || "N/A",
       mandate_reference,
       mandate_type: "RCUR", // Recurrent
       sequence_type: "FRST", // First payment
