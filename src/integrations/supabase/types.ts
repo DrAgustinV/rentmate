@@ -206,6 +206,8 @@ export type Database = {
       contract_signatures: {
         Row: {
           completed_at: string | null
+          contract_document_hash: string | null
+          contract_pdf_url: string | null
           created_at: string
           dock_contract_url: string | null
           dock_manager_signature_proof: string | null
@@ -231,6 +233,8 @@ export type Database = {
         }
         Insert: {
           completed_at?: string | null
+          contract_document_hash?: string | null
+          contract_pdf_url?: string | null
           created_at?: string
           dock_contract_url?: string | null
           dock_manager_signature_proof?: string | null
@@ -256,6 +260,8 @@ export type Database = {
         }
         Update: {
           completed_at?: string | null
+          contract_document_hash?: string | null
+          contract_pdf_url?: string | null
           created_at?: string
           dock_contract_url?: string | null
           dock_manager_signature_proof?: string | null

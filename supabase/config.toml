@@ -36,3 +36,17 @@ verify_jwt = true  # Manager generates SEPA XML for bank
 
 [functions.generate-monthly-payments]
 verify_jwt = false  # Cron job - no user context available
+
+# Contract Signature Functions - Mock Phase
+[functions.initiate-contract-signature]
+verify_jwt = true  # Manager initiates mock signature
+
+[functions.handle-signature-webhook]
+verify_jwt = false  # Mock webhook endpoint
+
+# Contract Signature Functions - Dock Labs VC Phase
+[functions.initiate-dock-contract-signature]
+verify_jwt = true  # Manager initiates Dock VC signature
+
+[functions.verify-dock-signature-webhook]
+verify_jwt = false  # Public webhook endpoint from Dock Labs
