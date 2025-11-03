@@ -944,9 +944,12 @@ export default function PropertyDetails() {
                   <TenantIBANForm agreement={rentAgreements[0]} />
                   
                   {/* SEPA Mandate Signature */}
-                  {rentAgreements[0].tenant_iban && rentAgreements[0].mandate_id && (
+                  {rentAgreements[0].tenant_iban && (
                     <SEPAMandateSignature 
-                      agreement={rentAgreements[0]}
+                      agreement={{
+                        ...rentAgreements[0],
+                        manager_id: property?.manager_id || '',
+                      }}
                       creditorName={property?.title || ''}
                       tenantName={`${rentAgreements[0].tenant.first_name || ''} ${rentAgreements[0].tenant.last_name || ''}`.trim()}
                     />
