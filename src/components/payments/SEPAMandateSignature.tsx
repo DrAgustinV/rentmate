@@ -12,19 +12,19 @@ interface SEPAMandateSignatureProps {
     id: string;
     mandate_id: string | null;
     mandate_status: string;
-    mandate_pdf_url: string | null;
-    mandate_signed_at: string | null;
+    mandate_pdf_url?: string | null;
+    mandate_signed_at?: string | null;
     rent_amount_cents: number;
     currency: string;
     payment_day: number;
     tenant_iban: string | null;
   };
   creditorName: string;
-  creditorIban: string;
+  creditorIban?: string;
   tenantName: string;
 }
 
-export function SEPAMandateSignature({ agreement, creditorName, creditorIban, tenantName }: SEPAMandateSignatureProps) {
+export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '', tenantName }: SEPAMandateSignatureProps) {
   const [signing, setSigning] = useState(false);
 
   const handleMockSignature = async () => {
