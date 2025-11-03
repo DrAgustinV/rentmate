@@ -1,31 +1,31 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
-        auth: {
-          persistSession: false,
-        },
         global: {
           headers: { Authorization: req.headers.get('Authorization')! },
         },
       }
     );
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseClient.auth.getUser();
+
     if (authError || !user) {
       throw new Error('Unauthorized');
     }
@@ -39,7 +39,7 @@ serve(async (req) => {
     console.log('[Mock Mode] Initiating signature for tenancy:', tenancyId);
 
     // Verify user is property manager
-    const { data: property, error: propertyError } = await supabase
+    const { data: property, error: propertyError } = await supabaseClient
       .from('properties')
       .select('manager_id')
       .eq('id', propertyId)
@@ -54,7 +54,7 @@ serve(async (req) => {
     }
 
     // Get tenancy details
-    const { data: tenancy, error: tenancyError } = await supabase
+    const { data: tenancy, error: tenancyError } = await supabaseClient
       .from('property_tenants')
       .select('id, tenant_id, property_id')
       .eq('id', tenancyId)
@@ -65,7 +65,7 @@ serve(async (req) => {
     }
 
     // Get tenant profile
-    const { data: tenantProfile, error: tenantError } = await supabase
+    const { data: tenantProfile, error: tenantError } = await supabaseClient
       .from('profiles')
       .select('first_name, last_name, email')
       .eq('id', tenancy.tenant_id)
@@ -76,7 +76,7 @@ serve(async (req) => {
     }
 
     // Get manager details
-    const { data: manager, error: managerError } = await supabase
+    const { data: manager, error: managerError } = await supabaseClient
       .from('profiles')
       .select('first_name, last_name, email')
       .eq('id', user.id)
@@ -87,7 +87,7 @@ serve(async (req) => {
     }
 
     // Create contract signature record (MOCK MODE)
-    const { data: signature, error: signatureError } = await supabase
+    const { data: signature, error: signatureError } = await supabaseClient
       .from('contract_signatures')
       .insert({
         tenancy_id: tenancyId,
@@ -106,7 +106,7 @@ serve(async (req) => {
     }
 
     // Log initiation event
-    await supabase.from('signature_events').insert({
+    await supabaseClient.from('signature_events').insert({
       contract_signature_id: signature.id,
       event_type: 'initiated',
       event_data: {
