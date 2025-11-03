@@ -72,7 +72,8 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
   const onSubmit = async (data: IBANFormData) => {
     setSaving(true);
     try {
-      const { error } = await supabase
+      // 1. Save IBAN to rent_agreements
+      const { error: updateError } = await supabase
         .from('rent_agreements')
         .update({
           tenant_iban: data.iban.toUpperCase().replace(/\s/g, ''),
@@ -80,10 +81,26 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
         })
         .eq('id', agreement.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // 2. Generate SEPA mandate PDF
+      const { data: pdfData, error: pdfError } = await supabase.functions.invoke(
+        'generate-sepa-mandate-pdf',
+        { body: { agreement_id: agreement.id } }
+      );
+
+      if (pdfError) {
+        console.error('PDF generation error:', pdfError);
+        // Don't fail the entire operation if PDF generation fails
+        toast.warning('IBAN saved, but PDF generation is pending');
+      } else {
+        toast.success('IBAN saved and mandate generated!');
+      }
       
-      toast.success('IBAN saved successfully');
       setIsEditing(false);
+      
+      // Trigger payment generation happens automatically via database trigger
+      window.location.reload(); // Refresh to show new payment records
     } catch (error: any) {
       toast.error(error.message);
     } finally {

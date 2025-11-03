@@ -1581,6 +1581,10 @@ export type Database = {
         Args: { _file_size_bytes: number; _ticket_id: string }
         Returns: boolean
       }
+      generate_rent_payments: {
+        Args: { p_agreement_id: string; p_months_ahead?: number }
+        Returns: number
+      }
       get_property_tenant_status: {
         Args: { p_property_id: string }
         Returns: {

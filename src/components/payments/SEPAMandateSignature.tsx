@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ interface SEPAMandateSignatureProps {
     currency: string;
     payment_day: number;
     tenant_iban: string | null;
+    manager_id: string;
   };
   creditorName: string;
   creditorIban?: string;
@@ -26,6 +27,36 @@ interface SEPAMandateSignatureProps {
 
 export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '', tenantName }: SEPAMandateSignatureProps) {
   const [signing, setSigning] = useState(false);
+  const [managerIban, setManagerIban] = useState<string>('');
+  const [loadingIban, setLoadingIban] = useState(true);
+
+  // Fetch manager's IBAN from profiles
+  useEffect(() => {
+    const fetchManagerIban = async () => {
+      setLoadingIban(true);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('manager_iban')
+          .eq('id', agreement.manager_id)
+          .single();
+        
+        if (error) throw error;
+        
+        if (data?.manager_iban) {
+          setManagerIban(data.manager_iban);
+        }
+      } catch (error: any) {
+        console.error('Error fetching manager IBAN:', error);
+      } finally {
+        setLoadingIban(false);
+      }
+    };
+    
+    if (agreement.manager_id) {
+      fetchManagerIban();
+    }
+  }, [agreement.manager_id]);
 
   const handleMockSignature = async () => {
     setSigning(true);
@@ -90,6 +121,16 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
     }
   };
 
+  if (loadingIban) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -124,7 +165,7 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Creditor (Landlord)</p>
             <p className="font-medium">{creditorName}</p>
-            <p className="text-sm font-mono">{maskIban(creditorIban)}</p>
+            <p className="text-sm font-mono">{managerIban ? maskIban(managerIban) : 'Not configured'}</p>
           </div>
 
           <div className="space-y-1">
