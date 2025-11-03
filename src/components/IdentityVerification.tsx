@@ -58,14 +58,14 @@ export function IdentityVerification() {
     try {
       setInitiating(true);
       
-      const { data, error } = await supabase.functions.invoke("initiate-dock-kyc");
+      const { data, error } = await supabase.functions.invoke("initiate-kilt-kyc");
 
       if (error) throw error;
 
       if (data.success) {
         toast({
           title: "Verification initiated",
-          description: "Please scan the QR code with your Dock Wallet",
+          description: "Scan the QR code with Sporran wallet",
         });
         await fetchKYCStatus();
       } else {
@@ -126,7 +126,7 @@ export function IdentityVerification() {
           Identity Verification
         </CardTitle>
         <CardDescription>
-          Optional identity verification using Dock Labs for enhanced trust and security
+          Verify your identity using KILT Protocol blockchain credentials
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -164,7 +164,7 @@ export function IdentityVerification() {
             <Alert>
               <QrCode className="w-4 h-4" />
               <AlertDescription>
-                Scan this QR code with your Dock Wallet to complete the verification process
+                Scan this QR code with your Sporran wallet to complete verification
               </AlertDescription>
             </Alert>
             <div className="flex justify-center p-4 bg-muted rounded-lg">
@@ -175,7 +175,7 @@ export function IdentityVerification() {
               />
             </div>
             <p className="text-xs text-center text-muted-foreground">
-              Don't have Dock Wallet? Download it from the App Store or Google Play
+              Don't have Sporran? Download from sporran.org
             </p>
           </div>
         )}

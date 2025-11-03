@@ -1,5 +1,8 @@
 project_id = "jrjwkpjfgsyrqztuokoo"
 
+[functions.generate-kilt-test-credentials]
+verify_jwt = false
+
 # Edge function security configuration
 [functions.send-tenant-invitation]
 verify_jwt = true  # Requires user authentication to prevent spam

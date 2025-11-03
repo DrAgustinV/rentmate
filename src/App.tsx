@@ -14,6 +14,7 @@ import ScheduledTasks from "./pages/ScheduledTasks";
 import TicketDetail from "./pages/TicketDetail";
 import Tickets from "./pages/Tickets";
 import Settings from "./pages/Settings";
+import KiltSetup from "./pages/KiltSetup";
 import Admin from "./pages/Admin";
 import TemplatesManager from "./pages/TemplatesManager";
 import Invitations from "./pages/Invitations";
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/invitations" element={<Invitations />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/kilt-setup" element={<KiltSetup />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/properties/:propertyId/details" element={<PropertyDetails />} />
           <Route path="/properties/:propertyId/tenants" element={<PropertyTenants />} />
