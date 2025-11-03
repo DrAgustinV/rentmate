@@ -51,6 +51,9 @@ export const ContractSignatureManager = ({
   const [signature, setSignature] = useState<ContractSignature | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [signingMethod, setSigningMethod] = useState<'mock' | 'dock'>('mock');
+  const [managerKYCVerified, setManagerKYCVerified] = useState(false);
+  const [tenantKYCVerified, setTenantKYCVerified] = useState(false);
+  const [kycLoading, setKycLoading] = useState(true);
   
 
   const loadSignature = async () => {
@@ -71,9 +74,60 @@ export const ContractSignatureManager = ({
     }
   };
 
+  const checkKYCStatus = async () => {
+    try {
+      setKycLoading(true);
+      
+      // Get manager profile
+      const { data: property } = await supabase
+        .from('properties')
+        .select('manager_id')
+        .eq('id', propertyId)
+        .single();
+      
+      if (property) {
+        const { data: managerProfile } = await supabase
+          .from('profiles')
+          .select('kyc_status, dock_wallet_did')
+          .eq('id', property.manager_id)
+          .single();
+        
+        setManagerKYCVerified(
+          managerProfile?.kyc_status === 'verified' && 
+          !!managerProfile?.dock_wallet_did
+        );
+      }
+      
+      // Get tenant profile
+      const { data: tenancy } = await supabase
+        .from('property_tenants')
+        .select('tenant_id')
+        .eq('id', tenancyId)
+        .single();
+      
+      if (tenancy) {
+        const { data: tenantProfile } = await supabase
+          .from('profiles')
+          .select('kyc_status, dock_wallet_did')
+          .eq('id', tenancy.tenant_id)
+          .single();
+        
+        setTenantKYCVerified(
+          tenantProfile?.kyc_status === 'verified' && 
+          !!tenantProfile?.dock_wallet_did
+        );
+      }
+    } catch (error) {
+      console.error('Error checking KYC:', error);
+    } finally {
+      setKycLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!initialized) {
       loadSignature();
+      checkKYCStatus();
     }
   }, [initialized]);
 
@@ -90,6 +144,32 @@ export const ContractSignatureManager = ({
 
       if (error) throw error;
 
+      if (!data?.success) {
+        const errorMsg = data?.error || 'Unknown error';
+        
+        // Parse backend errors into friendly messages
+        if (errorMsg.includes('Manager KYC verification required')) {
+          toast({
+            title: t('contractSignature.verificationRequired'),
+            description: t('contractSignature.managerKYCRequired'),
+            variant: "destructive",
+          });
+        } else if (errorMsg.includes('Tenant KYC verification required')) {
+          toast({
+            title: t('contractSignature.verificationRequired'),
+            description: t('contractSignature.tenantKYCRequired'),
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: t('common.error'),
+            description: errorMsg,
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+
       toast({
         title: t('contractSignature.initiated'),
         description: data.message,
@@ -98,11 +178,29 @@ export const ContractSignatureManager = ({
       await loadSignature();
       onRefresh?.();
     } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error('Error initiating signature:', error);
+      const errorMsg = error.message || 'Failed to initiate signature';
+      
+      // Parse error messages
+      if (errorMsg.includes('Manager KYC')) {
+        toast({
+          title: t('contractSignature.verificationRequired'),
+          description: t('contractSignature.managerKYCRequired'),
+          variant: "destructive",
+        });
+      } else if (errorMsg.includes('Tenant KYC')) {
+        toast({
+          title: t('contractSignature.verificationRequired'),
+          description: t('contractSignature.tenantKYCRequired'),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: t('common.error'),
+          description: errorMsg,
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -188,43 +286,92 @@ export const ContractSignatureManager = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {kycLoading && (
+            <Alert>
+              <AlertDescription>
+                {t('contractSignature.checkingKYC')}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {!kycLoading && isManager && signingMethod === 'dock' && (!managerKYCVerified || !tenantKYCVerified) && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="space-y-2">
+                <p className="font-semibold">{t('contractSignature.verificationRequired')}</p>
+                {!managerKYCVerified && (
+                  <p>{t('contractSignature.managerKYCRequired')}</p>
+                )}
+                {!tenantKYCVerified && (
+                  <p>{t('contractSignature.tenantKYCRequired')}</p>
+                )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => window.location.href = '/settings?tab=identity'}
+                  className="mt-2"
+                >
+                  {t('contractSignature.completeVerificationLink')}
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {isManager && (
             <>
               {/* Signing Method Selector */}
               <div className="space-y-3">
-                <Label>Select Signing Method</Label>
+                <Label className="text-base font-semibold">Select Signing Method</Label>
                 <RadioGroup value={signingMethod} onValueChange={(v) => setSigningMethod(v as 'mock' | 'dock')}>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent">
                     <RadioGroupItem value="mock" id="mock" />
-                    <Label htmlFor="mock" className="font-normal cursor-pointer">
-                      Mock Signature (Testing)
+                    <Label htmlFor="mock" className="flex-1 cursor-pointer">
+                      <div className="font-medium">Mock Signature (Testing)</div>
+                      <div className="text-sm text-muted-foreground">
+                        Quick signature for testing purposes
+                      </div>
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="dock" id="dock" />
-                    <Label htmlFor="dock" className="font-normal cursor-pointer">
-                      Dock Labs Verifiable Credentials
+                  
+                  <div className={`flex items-center space-x-3 rounded-lg border p-4 ${
+                    !kycLoading && (!managerKYCVerified || !tenantKYCVerified) 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'hover:bg-accent'
+                  }`}>
+                    <RadioGroupItem 
+                      value="dock" 
+                      id="dock" 
+                      disabled={!kycLoading && (!managerKYCVerified || !tenantKYCVerified)}
+                    />
+                    <Label 
+                      htmlFor="dock" 
+                      className={`flex-1 ${
+                        !kycLoading && (!managerKYCVerified || !tenantKYCVerified)
+                          ? 'cursor-not-allowed'
+                          : 'cursor-pointer'
+                      }`}
+                    >
+                      <div className="font-medium">Dock Labs Verifiable Credentials</div>
+                      <div className="text-sm text-muted-foreground">
+                        Secure, verifiable digital signatures with blockchain verification
+                      </div>
+                      {!kycLoading && (!managerKYCVerified || !tenantKYCVerified) && (
+                        <div className="text-xs text-destructive mt-1">
+                          {t('contractSignature.kycRequiredForDock')}
+                        </div>
+                      )}
                     </Label>
                   </div>
                 </RadioGroup>
-
-                {signingMethod === 'dock' && (
-                  <Alert>
-                    <Shield className="h-4 w-4" />
-                    <AlertDescription>
-                      This will create a verifiable credential contract signature using Dock Labs blockchain technology.
-                    </AlertDescription>
-                  </Alert>
-                )}
               </div>
 
               <Button 
                 onClick={handleInitiateSignature} 
-                disabled={loading} 
+                disabled={loading || kycLoading || (signingMethod === 'dock' && (!managerKYCVerified || !tenantKYCVerified))} 
                 className="w-full"
               >
                 <FileSignature className="h-4 w-4 mr-2" />
-                {t('contractSignature.initiate')}
+                {loading ? t('common.loading') : t('contractSignature.initiate')}
               </Button>
             </>
           )}

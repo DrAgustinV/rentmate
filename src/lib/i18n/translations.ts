@@ -40,6 +40,12 @@ export const translations = {
       downloadContract: "Signed Contract Available",
       signedOn: "Signed on",
       expiresOn: "Signature request expires",
+      verificationRequired: "Verification Required",
+      managerKYCRequired: "You need to complete identity verification before signing contracts with Dock Labs.",
+      tenantKYCRequired: "The tenant needs to complete identity verification before using Dock Labs signatures.",
+      completeVerificationLink: "Complete Verification in Settings",
+      checkingKYC: "Checking verification status...",
+      kycRequiredForDock: "Identity verification required",
       status: {
         pending: "Pending",
         inProgress: "In Progress",
