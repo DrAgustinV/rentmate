@@ -475,10 +475,19 @@ export type Database = {
       }
       profiles: {
         Row: {
+          aml_status: string | null
           created_at: string
+          dock_kyc_credential_id: string | null
+          dock_kyc_qr_code_url: string | null
+          dock_wallet_did: string | null
           email: string
           first_name: string | null
           id: string
+          id_document_country: string | null
+          id_document_type: string | null
+          kyc_expires_at: string | null
+          kyc_status: string | null
+          kyc_verified_at: string | null
           last_name: string | null
           legal_name: string | null
           manager_iban: string | null
@@ -487,10 +496,19 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          aml_status?: string | null
           created_at?: string
+          dock_kyc_credential_id?: string | null
+          dock_kyc_qr_code_url?: string | null
+          dock_wallet_did?: string | null
           email: string
           first_name?: string | null
           id: string
+          id_document_country?: string | null
+          id_document_type?: string | null
+          kyc_expires_at?: string | null
+          kyc_status?: string | null
+          kyc_verified_at?: string | null
           last_name?: string | null
           legal_name?: string | null
           manager_iban?: string | null
@@ -499,10 +517,19 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          aml_status?: string | null
           created_at?: string
+          dock_kyc_credential_id?: string | null
+          dock_kyc_qr_code_url?: string | null
+          dock_wallet_did?: string | null
           email?: string
           first_name?: string | null
           id?: string
+          id_document_country?: string | null
+          id_document_type?: string | null
+          kyc_expires_at?: string | null
+          kyc_status?: string | null
+          kyc_verified_at?: string | null
           last_name?: string | null
           legal_name?: string | null
           manager_iban?: string | null

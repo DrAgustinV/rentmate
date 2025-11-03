@@ -4,6 +4,12 @@ project_id = "jrjwkpjfgsyrqztuokoo"
 [functions.send-tenant-invitation]
 verify_jwt = true  # Requires user authentication to prevent spam
 
+[functions.initiate-dock-kyc]
+verify_jwt = true  # Requires user authentication
+
+[functions.verify-dock-kyc-webhook]
+verify_jwt = false  # Public webhook endpoint from Dock Labs
+
 [functions.create-recurring-tickets]
 verify_jwt = false  # Cron job - no user context available
 

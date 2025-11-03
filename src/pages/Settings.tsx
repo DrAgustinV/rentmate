@@ -10,10 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserCircle, Bell, Lock, Palette, Globe, Wrench, CreditCard } from "lucide-react";
+import { UserCircle, Bell, Lock, Palette, Globe, Wrench, CreditCard, ShieldCheck } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SEPADirectDebitSettings } from "@/components/payments/SEPADirectDebitSettings";
+import { IdentityVerification } from "@/components/IdentityVerification";
 import { Language } from "@/lib/i18n/translations";
 import {
   DropdownMenu,
@@ -163,7 +164,7 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className={`grid w-full ${userRole === 'manager' ? 'grid-cols-6' : 'grid-cols-4'}`}>
+          <TabsList className={`grid w-full ${userRole === 'manager' ? 'grid-cols-7' : 'grid-cols-5'}`}>
             <TabsTrigger value="profile" className="gap-2">
               <UserCircle className="h-4 w-4" />
               <span className="hidden sm:inline">{t('settings.profile')}</span>
@@ -171,6 +172,10 @@ export default function Settings() {
             <TabsTrigger value="appearance" className="gap-2">
               <Palette className="h-4 w-4" />
               <span className="hidden sm:inline">{t('settings.appearance')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="identity" className="gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              <span className="hidden sm:inline">Identity</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2">
               <Bell className="h-4 w-4" />
@@ -290,6 +295,10 @@ export default function Settings() {
                 <AppearanceSettings />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="identity" className="mt-6">
+            <IdentityVerification />
           </TabsContent>
 
           <TabsContent value="notifications" className="mt-6">
