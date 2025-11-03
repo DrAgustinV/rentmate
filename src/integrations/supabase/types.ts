@@ -207,6 +207,10 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string
+          dock_contract_url: string | null
+          dock_manager_signature_proof: string | null
+          dock_tenant_signature_proof: string | null
+          dock_workflow_id: string | null
           expires_at: string | null
           id: string
           initiated_at: string
@@ -216,6 +220,7 @@ export type Database = {
           manager_signed_at: string | null
           property_id: string
           signed_document_url: string | null
+          signing_method: string | null
           tenancy_id: string
           tenant_signature_ip: string | null
           tenant_signature_method: string | null
@@ -227,6 +232,10 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           created_at?: string
+          dock_contract_url?: string | null
+          dock_manager_signature_proof?: string | null
+          dock_tenant_signature_proof?: string | null
+          dock_workflow_id?: string | null
           expires_at?: string | null
           id?: string
           initiated_at?: string
@@ -236,6 +245,7 @@ export type Database = {
           manager_signed_at?: string | null
           property_id: string
           signed_document_url?: string | null
+          signing_method?: string | null
           tenancy_id: string
           tenant_signature_ip?: string | null
           tenant_signature_method?: string | null
@@ -247,6 +257,10 @@ export type Database = {
         Update: {
           completed_at?: string | null
           created_at?: string
+          dock_contract_url?: string | null
+          dock_manager_signature_proof?: string | null
+          dock_tenant_signature_proof?: string | null
+          dock_workflow_id?: string | null
           expires_at?: string | null
           id?: string
           initiated_at?: string
@@ -256,6 +270,7 @@ export type Database = {
           manager_signed_at?: string | null
           property_id?: string
           signed_document_url?: string | null
+          signing_method?: string | null
           tenancy_id?: string
           tenant_signature_ip?: string | null
           tenant_signature_method?: string | null
@@ -1085,6 +1100,13 @@ export type Database = {
             referencedRelation: "contract_signatures"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "signature_events_contract_signature_id_fkey"
+            columns: ["contract_signature_id"]
+            isOneToOne: false
+            referencedRelation: "dock_signed_contracts"
+            referencedColumns: ["id"]
+          },
         ]
       }
       standard_maintenance_templates: {
@@ -1548,6 +1570,65 @@ export type Database = {
       }
     }
     Views: {
+      dock_signed_contracts: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          dock_contract_url: string | null
+          dock_manager_signature_proof: string | null
+          dock_tenant_signature_proof: string | null
+          dock_workflow_id: string | null
+          expires_at: string | null
+          id: string | null
+          initiated_at: string | null
+          initiated_by: string | null
+          manager_email: string | null
+          manager_first_name: string | null
+          manager_last_name: string | null
+          manager_signature_ip: string | null
+          manager_signature_method: string | null
+          manager_signed_at: string | null
+          property_address: string | null
+          property_id: string | null
+          property_title: string | null
+          signed_document_url: string | null
+          signing_method: string | null
+          tenancy_id: string | null
+          tenant_email: string | null
+          tenant_first_name: string | null
+          tenant_id: string | null
+          tenant_last_name: string | null
+          tenant_signature_ip: string | null
+          tenant_signature_method: string | null
+          tenant_signed_at: string | null
+          updated_at: string | null
+          workflow_id: string | null
+          workflow_status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_signatures_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_signatures_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: false
+            referencedRelation: "property_tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_property_tenants_profiles"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations_safe: {
         Row: {
           created_at: string | null

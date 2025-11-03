@@ -10,6 +10,12 @@ verify_jwt = true  # Requires user authentication
 [functions.verify-dock-kyc-webhook]
 verify_jwt = false  # Public webhook endpoint from Dock Labs
 
+[functions.initiate-dock-contract-signature]
+verify_jwt = true  # Requires user authentication
+
+[functions.verify-dock-signature-webhook]
+verify_jwt = false  # Public webhook endpoint from Dock Labs
+
 [functions.create-recurring-tickets]
 verify_jwt = false  # Cron job - no user context available
 
