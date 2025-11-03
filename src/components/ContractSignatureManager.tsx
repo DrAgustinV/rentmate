@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,8 +6,12 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { FileSignature, CheckCircle2, Clock, Shield, Smartphone, AlertCircle } from "lucide-react";
+import { FileSignature, CheckCircle2, Clock, Shield, Smartphone, AlertCircle, QrCode } from "lucide-react";
 import { format } from "date-fns";
+import { QRCodeSVG } from "qrcode.react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ContractSignature {
   id: string;
@@ -21,7 +25,12 @@ interface ContractSignature {
   initiated_at: string;
   expires_at: string | null;
   completed_at: string | null;
+  dock_workflow_id: string | null;
+  dock_contract_url: string | null;
+  dock_manager_signature_proof: string | null;
+  dock_tenant_signature_proof: string | null;
 }
+
 
 interface ContractSignatureManagerProps {
   tenancyId: string;
@@ -41,6 +50,7 @@ export const ContractSignatureManager = ({
   const [loading, setLoading] = useState(false);
   const [signature, setSignature] = useState<ContractSignature | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [signingMethod, setSigningMethod] = useState<'mock' | 'dock'>('mock');
   
 
   const loadSignature = async () => {
@@ -61,14 +71,20 @@ export const ContractSignatureManager = ({
     }
   };
 
-  if (!initialized) {
-    loadSignature();
-  }
+  useEffect(() => {
+    if (!initialized) {
+      loadSignature();
+    }
+  }, [initialized]);
 
   const handleInitiateSignature = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('initiate-contract-signature', {
+      const functionName = signingMethod === 'dock' 
+        ? 'initiate-dock-contract-signature'
+        : 'initiate-contract-signature';
+
+      const { data, error } = await supabase.functions.invoke(functionName, {
         body: { tenancyId, propertyId }
       });
 
@@ -148,6 +164,14 @@ export const ContractSignatureManager = ({
         </Badge>
       );
     }
+    if (method === 'verifiable_credential') {
+      return (
+        <Badge variant="outline" className="text-xs">
+          <Shield className="h-3 w-3 mr-1" />
+          Dock Labs VC
+        </Badge>
+      );
+    }
     return <Badge variant="outline" className="text-xs">{method}</Badge>;
   };
 
@@ -165,10 +189,44 @@ export const ContractSignatureManager = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {isManager && (
-            <Button onClick={handleInitiateSignature} disabled={loading} className="w-full">
-              <FileSignature className="h-4 w-4 mr-2" />
-              {t('contractSignature.initiate')}
-            </Button>
+            <>
+              {/* Signing Method Selector */}
+              <div className="space-y-3">
+                <Label>Select Signing Method</Label>
+                <RadioGroup value={signingMethod} onValueChange={(v) => setSigningMethod(v as 'mock' | 'dock')}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="mock" id="mock" />
+                    <Label htmlFor="mock" className="font-normal cursor-pointer">
+                      Mock Signature (Testing)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="dock" id="dock" />
+                    <Label htmlFor="dock" className="font-normal cursor-pointer">
+                      Dock Labs Verifiable Credentials
+                    </Label>
+                  </div>
+                </RadioGroup>
+
+                {signingMethod === 'dock' && (
+                  <Alert>
+                    <Shield className="h-4 w-4" />
+                    <AlertDescription>
+                      This will create a verifiable credential contract signature using Dock Labs blockchain technology.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+
+              <Button 
+                onClick={handleInitiateSignature} 
+                disabled={loading} 
+                className="w-full"
+              >
+                <FileSignature className="h-4 w-4 mr-2" />
+                {t('contractSignature.initiate')}
+              </Button>
+            </>
           )}
           {!isManager && (
             <div className="text-sm text-muted-foreground">
@@ -183,6 +241,7 @@ export const ContractSignatureManager = ({
   const isCompleted = signature.workflow_status === 'completed';
   const managerSigned = !!signature.manager_signed_at;
   const tenantSigned = !!signature.tenant_signed_at;
+  const isDockSignature = signature.signing_method === 'dock' || signature.dock_workflow_id;
 
   return (
     <Card>
@@ -205,9 +264,34 @@ export const ContractSignatureManager = ({
         </CardTitle>
         <CardDescription>
           {t('contractSignature.initiated')}: {format(new Date(signature.initiated_at), 'PPP')}
+          {isDockSignature && (
+            <Badge variant="outline" className="ml-2">
+              <Shield className="h-3 w-3 mr-1" />
+              Dock Labs
+            </Badge>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Dock QR Code - Show if Dock signature and not completed */}
+        {isDockSignature && !isCompleted && signature.dock_contract_url && (
+          <div className="flex flex-col items-center gap-3 p-4 bg-muted rounded-lg">
+            <div className="text-sm font-medium flex items-center gap-2">
+              <QrCode className="h-4 w-4" />
+              Scan to Sign with Dock Wallet
+            </div>
+            <QRCodeSVG 
+              value={signature.dock_contract_url} 
+              size={200}
+              level="H"
+              includeMargin
+            />
+            <div className="text-xs text-muted-foreground text-center max-w-xs">
+              Scan this QR code with your Dock Wallet app to review and sign the contract using verifiable credentials
+            </div>
+          </div>
+        )}
+
         {/* Manager Signature Status */}
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -223,9 +307,15 @@ export const ContractSignatureManager = ({
               <div className="text-sm text-muted-foreground space-y-1">
                 <div>{format(new Date(signature.manager_signed_at!), 'PPP p')}</div>
                 <div>{getSignatureMethodBadge(signature.manager_signature_method)}</div>
+                {isDockSignature && signature.dock_manager_signature_proof && (
+                  <div className="flex items-center gap-1 text-green-600">
+                    <Shield className="h-3 w-3" />
+                    <span className="text-xs">Verified Credential</span>
+                  </div>
+                )}
               </div>
             )}
-            {!managerSigned && isManager && (
+            {!managerSigned && isManager && !isDockSignature && (
               <Button 
                 size="sm" 
                 onClick={() => handleMockSign('manager')} 
@@ -255,9 +345,15 @@ export const ContractSignatureManager = ({
               <div className="text-sm text-muted-foreground space-y-1">
                 <div>{format(new Date(signature.tenant_signed_at!), 'PPP p')}</div>
                 <div>{getSignatureMethodBadge(signature.tenant_signature_method)}</div>
+                {isDockSignature && signature.dock_tenant_signature_proof && (
+                  <div className="flex items-center gap-1 text-green-600">
+                    <Shield className="h-3 w-3" />
+                    <span className="text-xs">Verified Credential</span>
+                  </div>
+                )}
               </div>
             )}
-            {!tenantSigned && !isManager && (
+            {!tenantSigned && !isManager && !isDockSignature && (
               <Button 
                 size="sm" 
                 onClick={() => handleMockSign('tenant')} 
