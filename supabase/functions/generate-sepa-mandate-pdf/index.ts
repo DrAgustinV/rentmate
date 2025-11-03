@@ -58,40 +58,60 @@ serve(async (req) => {
       .from("rent_agreements")
       .select("*")
       .eq("id", agreement_id)
-      .single();
+      .maybeSingle();
 
-    if (agreementError) throw agreementError;
+    if (agreementError) {
+      console.error("Error fetching agreement:", agreementError);
+      throw new Error(`Failed to fetch agreement: ${agreementError.message}`);
+    }
     if (!agreement) throw new Error("Agreement not found");
+
+    console.log("Agreement found:", agreement.id);
 
     // Fetch manager profile separately
     const { data: managerProfile, error: managerError } = await supabaseClient
       .from("profiles")
       .select("id, first_name, last_name, email, manager_iban, sepa_creditor_identifier, legal_name")
       .eq("id", agreement.manager_id)
-      .single();
+      .maybeSingle();
 
-    if (managerError) throw managerError;
-    if (!managerProfile) throw new Error("Manager profile not found");
+    if (managerError) {
+      console.error("Error fetching manager profile:", managerError);
+      throw new Error(`Failed to fetch manager profile: ${managerError.message}`);
+    }
+    if (!managerProfile) throw new Error(`Manager profile not found for ID: ${agreement.manager_id}`);
+
+    console.log("Manager profile found:", managerProfile.id);
 
     // Fetch tenant profile separately
     const { data: tenantProfile, error: tenantError } = await supabaseClient
       .from("profiles")
       .select("id, first_name, last_name, email")
       .eq("id", agreement.tenant_id)
-      .single();
+      .maybeSingle();
 
-    if (tenantError) throw tenantError;
-    if (!tenantProfile) throw new Error("Tenant profile not found");
+    if (tenantError) {
+      console.error("Error fetching tenant profile:", tenantError);
+      throw new Error(`Failed to fetch tenant profile: ${tenantError.message}`);
+    }
+    if (!tenantProfile) throw new Error(`Tenant profile not found for ID: ${agreement.tenant_id}`);
+
+    console.log("Tenant profile found:", tenantProfile.id);
 
     // Fetch property details
     const { data: property, error: propertyError } = await supabaseClient
       .from("properties")
       .select("id, title, address")
       .eq("id", agreement.property_id)
-      .single();
+      .maybeSingle();
 
-    if (propertyError) throw propertyError;
-    if (!property) throw new Error("Property not found");
+    if (propertyError) {
+      console.error("Error fetching property:", propertyError);
+      throw new Error(`Failed to fetch property: ${propertyError.message}`);
+    }
+    if (!property) throw new Error(`Property not found for ID: ${agreement.property_id}`);
+
+    console.log("Property found:", property.id);
 
     // Validate manager has SEPA settings configured
     if (!managerProfile.manager_iban || !managerProfile.sepa_creditor_identifier) {
