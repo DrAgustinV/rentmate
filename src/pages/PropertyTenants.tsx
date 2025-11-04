@@ -896,12 +896,12 @@ export default function PropertyTenants() {
             )}
 
             {/* Section 4.5: Digital Contract Signature */}
-            {currentTenant && (
+            {currentTenant && currentTenant.id && propertyId && (
               <>
                 <Separator />
                 <ContractSignatureManager
                   tenancyId={currentTenant.id}
-                  propertyId={propertyId!}
+                  propertyId={propertyId}
                   isManager={userRole?.isManager || false}
                   onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
                 />
