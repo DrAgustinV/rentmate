@@ -3,6 +3,15 @@ project_id = "jrjwkpjfgsyrqztuokoo"
 [functions.generate-kilt-test-credentials]
 verify_jwt = false
 
+[functions.generate-docuseal-token]
+verify_jwt = true
+
+[functions.initiate-docuseal-signature]
+verify_jwt = true
+
+[functions.finalize-docuseal-signature]
+verify_jwt = true
+
 # Edge function security configuration
 [functions.send-tenant-invitation]
 verify_jwt = true  # Requires user authentication to prevent spam
