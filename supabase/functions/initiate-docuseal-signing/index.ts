@@ -162,8 +162,7 @@ Deno.serve(async (req) => {
       .insert({
         tenancy_id: tenancyId,
         property_id: propertyId,
-        manager_id: property.manager_id,
-        tenant_id: tenancy.tenant_id,
+        initiated_by: property.manager_id,
         signing_method: 'docuseal',
         workflow_status: 'pending',
         kyc_enforced: kycEnforced,
