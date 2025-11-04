@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     // Get tenancy details
     const { data: tenancy, error: tenancyError } = await supabase
       .from('property_tenants')
-      .select('tenant_id, start_date, end_date')
+      .select('tenant_id, started_at, ended_at')
       .eq('id', tenancyId)
       .single();
 
@@ -129,8 +129,8 @@ Deno.serve(async (req) => {
       ],
       fields: [
         { name: 'property_address', value: property.address },
-        { name: 'start_date', value: tenancy.start_date },
-        { name: 'end_date', value: tenancy.end_date || '' },
+        { name: 'start_date', value: tenancy.started_at },
+        { name: 'end_date', value: tenancy.ended_at || '' },
         { name: 'manager_name', value: `${managerProfile.first_name} ${managerProfile.last_name}` },
         { name: 'tenant_name', value: `${tenantProfile.first_name} ${tenantProfile.last_name}` },
       ]
