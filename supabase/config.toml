@@ -53,3 +53,13 @@ verify_jwt = true  # Manager initiates Dock VC signature
 
 [functions.verify-dock-signature-webhook]
 verify_jwt = false  # Public webhook endpoint from Dock Labs
+
+# Contract Signature Functions - DocuSeal Phase
+[functions.initiate-docuseal-signing]
+verify_jwt = true  # Manager initiates DocuSeal signing
+
+[functions.generate-docuseal-token]
+verify_jwt = true  # Generate embed token for signing
+
+[functions.verify-docuseal-webhook]
+verify_jwt = false  # Public webhook endpoint from DocuSeal

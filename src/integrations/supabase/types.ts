@@ -214,8 +214,11 @@ export type Database = {
           dock_tenant_signature_proof: string | null
           dock_workflow_id: string | null
           docuseal_audit_log_url: string | null
+          docuseal_manager_document_url: string | null
           docuseal_submission_id: string | null
+          docuseal_submission_slug: string | null
           docuseal_template_id: string | null
+          docuseal_tenant_document_url: string | null
           expires_at: string | null
           id: string
           initiated_at: string
@@ -247,8 +250,11 @@ export type Database = {
           dock_tenant_signature_proof?: string | null
           dock_workflow_id?: string | null
           docuseal_audit_log_url?: string | null
+          docuseal_manager_document_url?: string | null
           docuseal_submission_id?: string | null
+          docuseal_submission_slug?: string | null
           docuseal_template_id?: string | null
+          docuseal_tenant_document_url?: string | null
           expires_at?: string | null
           id?: string
           initiated_at?: string
@@ -280,8 +286,11 @@ export type Database = {
           dock_tenant_signature_proof?: string | null
           dock_workflow_id?: string | null
           docuseal_audit_log_url?: string | null
+          docuseal_manager_document_url?: string | null
           docuseal_submission_id?: string | null
+          docuseal_submission_slug?: string | null
           docuseal_template_id?: string | null
+          docuseal_tenant_document_url?: string | null
           expires_at?: string | null
           id?: string
           initiated_at?: string
