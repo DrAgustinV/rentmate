@@ -12,11 +12,12 @@ import { QRCodeSVG } from "qrcode.react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { DocusealForm } from "@docuseal/react";
 
 interface ContractSignature {
   id: string;
   workflow_status: string;
-  signing_method: string;
+  signing_method: string | null;
   manager_signed_at: string | null;
   manager_signature_method: string | null;
   tenant_signed_at: string | null;
@@ -29,7 +30,9 @@ interface ContractSignature {
   dock_contract_url: string | null;
   dock_manager_signature_proof: string | null;
   dock_tenant_signature_proof: string | null;
-  kyc_enforced: boolean;
+  kyc_enforced: boolean | null;
+  docuseal_submission_id: string | null;
+  docuseal_audit_log_url: string | null;
 }
 
 
@@ -51,10 +54,11 @@ export const ContractSignatureManager = ({
   const [loading, setLoading] = useState(false);
   const [signature, setSignature] = useState<ContractSignature | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [signingMethod, setSigningMethod] = useState<'mock' | 'dock'>('mock');
+  const [signingMethod, setSigningMethod] = useState<'mock' | 'dock' | 'docuseal'>('mock');
   const [managerKYCVerified, setManagerKYCVerified] = useState(false);
   const [tenantKYCVerified, setTenantKYCVerified] = useState(false);
   const [kycLoading, setKycLoading] = useState(true);
+  const [docusealToken, setDocusealToken] = useState<string | null>(null);
   
 
   const loadSignature = async () => {
@@ -135,9 +139,12 @@ export const ContractSignatureManager = ({
   const handleInitiateSignature = async () => {
     setLoading(true);
     try {
-      const functionName = signingMethod === 'dock' 
-        ? 'initiate-dock-contract-signature'
-        : 'initiate-contract-signature';
+      let functionName = 'initiate-contract-signature';
+      if (signingMethod === 'dock') {
+        functionName = 'initiate-dock-contract-signature';
+      } else if (signingMethod === 'docuseal') {
+        functionName = 'initiate-docuseal-signature';
+      }
 
       const { data, error } = await supabase.functions.invoke(functionName, {
         body: { tenancyId, propertyId }
@@ -204,6 +211,47 @@ export const ContractSignatureManager = ({
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const generateDocusealToken = async (role: 'manager' | 'tenant') => {
+    if (!signature?.docuseal_submission_id) return null;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-docuseal-token', {
+        body: { 
+          signatureId: signature.id,
+          role 
+        }
+      });
+
+      if (error) throw error;
+      if (!data?.success || !data?.token) {
+        throw new Error('Failed to generate DocuSeal token');
+      }
+
+      return data.token;
+    } catch (error) {
+      console.error('Error generating DocuSeal token:', error);
+      toast({
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : 'Failed to generate signing token',
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  const handleDocusealComplete = async () => {
+    try {
+      await loadSignature();
+      onRefresh?.();
+      toast({
+        title: t('contractSignature.signed'),
+        description: 'Document signed successfully',
+      });
+    } catch (error) {
+      console.error('Error after DocuSeal completion:', error);
     }
   };
 
@@ -368,6 +416,16 @@ export const ContractSignatureManager = ({
                       )}
                     </Label>
                   </div>
+
+                  <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent">
+                    <RadioGroupItem value="docuseal" id="docuseal" />
+                    <Label htmlFor="docuseal" className="flex-1 cursor-pointer">
+                      <div className="font-medium">DocuSeal</div>
+                      <div className="text-sm text-muted-foreground">
+                        Professional e-signature workflow with audit trail
+                      </div>
+                    </Label>
+                  </div>
                 </RadioGroup>
               </div>
 
@@ -395,6 +453,20 @@ export const ContractSignatureManager = ({
   const managerSigned = !!signature.manager_signed_at;
   const tenantSigned = !!signature.tenant_signed_at;
   const isDockSignature = signature.signing_method === 'dock' || signature.dock_workflow_id;
+  const isDocusealSignature = signature.signing_method === 'docuseal' || signature.docuseal_submission_id;
+
+  // Generate DocuSeal token if needed
+  useEffect(() => {
+    const loadDocusealToken = async () => {
+      if (isDocusealSignature && !isCompleted && signature?.docuseal_submission_id) {
+        const role = isManager ? 'manager' : 'tenant';
+        const token = await generateDocusealToken(role);
+        setDocusealToken(token);
+      }
+    };
+    
+    loadDocusealToken();
+  }, [isDocusealSignature, isCompleted, signature?.docuseal_submission_id, isManager]);
 
   return (
     <Card>
@@ -423,6 +495,12 @@ export const ContractSignatureManager = ({
               Dock Labs
             </Badge>
           )}
+          {isDocusealSignature && (
+            <Badge variant="outline" className="ml-2">
+              <FileSignature className="h-3 w-3 mr-1" />
+              DocuSeal
+            </Badge>
+          )}
           {isCompleted && signature.kyc_enforced && (
             <Badge variant="outline" className="ml-2 text-green-600">
               <Shield className="h-3 w-3 mr-1" />
@@ -438,6 +516,22 @@ export const ContractSignatureManager = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* DocuSeal Form - Show if DocuSeal signature and not completed */}
+        {isDocusealSignature && !isCompleted && docusealToken && signature?.docuseal_submission_id && (
+          <div className="p-4 bg-muted rounded-lg">
+            <div className="text-sm font-medium mb-3 flex items-center gap-2">
+              <FileSignature className="h-4 w-4" />
+              Sign Document Below
+            </div>
+            <DocusealForm
+              src={`https://docuseal.com/d/${signature.docuseal_submission_id}`}
+              token={docusealToken}
+              onComplete={handleDocusealComplete}
+              className="min-h-[600px] w-full"
+            />
+          </div>
+        )}
+
         {/* Dock QR Code - Show if Dock signature and not completed */}
         {isDockSignature && !isCompleted && signature.dock_contract_url && (
           <div className="flex flex-col items-center gap-3 p-4 bg-muted rounded-lg">
