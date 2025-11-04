@@ -34,7 +34,9 @@ const getUserRole = async (userId: string): Promise<string | null> => {
     .from('user_roles')
     .select('role')
     .eq('user_id', userId)
-    .single();
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
   return data?.role || 'user';
 };
 
