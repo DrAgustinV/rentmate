@@ -555,27 +555,6 @@ export default function PropertyTenants() {
     );
   }
 
-  if (propertyLoading) {
-    return (
-      <AppLayout>
-        <div className="space-y-6">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-64 w-full" />
-        </div>
-      </AppLayout>
-    );
-  }
-
-  if (!property) {
-    return (
-      <AppLayout>
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">{t("properties.notFound")}</p>
-        </div>
-      </AppLayout>
-    );
-  }
-
   const isReadOnly = currentTenant?.tenancy_status === "ending_tenancy";
 
   const downloadDocument = async (doc: TenancyDocument) => {
