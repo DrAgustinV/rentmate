@@ -130,7 +130,7 @@ export default function PropertyTenants() {
         .from("properties")
         .select("manager_id")
         .eq("id", propertyId)
-        .single();
+        .maybeSingle();
       return { isManager: propertyData?.manager_id === user.id };
     },
     enabled: !!propertyId,
