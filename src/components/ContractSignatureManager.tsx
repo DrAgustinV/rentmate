@@ -26,10 +26,6 @@ interface ContractSignature {
   initiated_at: string;
   expires_at: string | null;
   completed_at: string | null;
-  dock_workflow_id: string | null;
-  dock_contract_url: string | null;
-  dock_manager_signature_proof: string | null;
-  dock_tenant_signature_proof: string | null;
   kyc_enforced: boolean | null;
   docuseal_submission_id: string | null;
   docuseal_audit_log_url: string | null;
