@@ -576,6 +576,19 @@ export default function PropertyTenants() {
     }
   };
 
+  if (!property) {
+    return (
+      <AppLayout>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">{t("properties.notFound")}</p>
+          <Button onClick={() => navigate("/dashboard")} className="mt-4">
+            {t("common.back")}
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="space-y-6">
