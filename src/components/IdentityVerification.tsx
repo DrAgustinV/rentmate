@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { QRCodeSVG } from "qrcode.react";
 
 interface KYCStatus {
   kyc_status: string;
@@ -167,11 +168,12 @@ export function IdentityVerification() {
                 Scan this QR code with your Sporran wallet to complete verification
               </AlertDescription>
             </Alert>
-            <div className="flex justify-center p-4 bg-muted rounded-lg">
-              <img 
-                src={kycStatus.kyc_qr_code_url} 
-                alt="Verification QR Code"
-                className="w-48 h-48"
+            <div className="flex justify-center p-4 bg-white rounded-lg">
+              <QRCodeSVG 
+                value={kycStatus.kyc_qr_code_url} 
+                size={192}
+                level="H"
+                includeMargin={true}
               />
             </div>
             <p className="text-xs text-center text-muted-foreground">
