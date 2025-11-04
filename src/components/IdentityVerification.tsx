@@ -9,10 +9,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface KYCStatus {
   kyc_status: string;
-  dock_kyc_qr_code_url: string | null;
+  kyc_qr_code_url: string | null;
   kyc_verified_at: string | null;
   kyc_expires_at: string | null;
-  dock_wallet_did: string | null;
+  kyc_wallet_did: string | null;
 }
 
 export function IdentityVerification() {
@@ -36,7 +36,7 @@ export function IdentityVerification() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("kyc_status, dock_kyc_qr_code_url, kyc_verified_at, kyc_expires_at, dock_wallet_did")
+        .select("kyc_status, kyc_qr_code_url, kyc_verified_at, kyc_expires_at, kyc_wallet_did")
         .eq("id", user.id)
         .single();
 
@@ -159,7 +159,7 @@ export function IdentityVerification() {
         )}
 
         {(kycStatus?.kyc_status === "pending" || kycStatus?.kyc_status === "in_progress") && 
-         kycStatus?.dock_kyc_qr_code_url && (
+         kycStatus?.kyc_qr_code_url && (
           <div className="space-y-4">
             <Alert>
               <QrCode className="w-4 h-4" />
@@ -169,7 +169,7 @@ export function IdentityVerification() {
             </Alert>
             <div className="flex justify-center p-4 bg-muted rounded-lg">
               <img 
-                src={kycStatus.dock_kyc_qr_code_url} 
+                src={kycStatus.kyc_qr_code_url} 
                 alt="Verification QR Code"
                 className="w-48 h-48"
               />
@@ -202,10 +202,10 @@ export function IdentityVerification() {
           </Button>
         )}
 
-        {kycStatus?.dock_wallet_did && (
+        {kycStatus?.kyc_wallet_did && (
           <div className="pt-4 border-t">
             <p className="text-xs text-muted-foreground">
-              Wallet DID: <code className="text-xs">{kycStatus.dock_wallet_did}</code>
+              Wallet DID: <code className="text-xs">{kycStatus.kyc_wallet_did}</code>
             </p>
           </div>
         )}

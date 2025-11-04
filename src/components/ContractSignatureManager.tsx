@@ -88,13 +88,13 @@ export const ContractSignatureManager = ({
       if (property) {
         const { data: managerProfile } = await supabase
           .from('profiles')
-          .select('kyc_status, dock_wallet_did')
+          .select('kyc_status, kyc_wallet_did')
           .eq('id', property.manager_id)
           .single();
         
         setManagerKYCVerified(
           managerProfile?.kyc_status === 'verified' && 
-          !!managerProfile?.dock_wallet_did
+          !!managerProfile?.kyc_wallet_did
         );
       }
       
@@ -108,13 +108,13 @@ export const ContractSignatureManager = ({
       if (tenancy) {
         const { data: tenantProfile } = await supabase
           .from('profiles')
-          .select('kyc_status, dock_wallet_did')
+          .select('kyc_status, kyc_wallet_did')
           .eq('id', tenancy.tenant_id)
           .single();
         
         setTenantKYCVerified(
           tenantProfile?.kyc_status === 'verified' && 
-          !!tenantProfile?.dock_wallet_did
+          !!tenantProfile?.kyc_wallet_did
         );
       }
     } catch (error) {
