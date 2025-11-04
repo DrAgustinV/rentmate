@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
     const templateId = Deno.env.get('DOCUSEAL_RENTAL_TEMPLATE_ID')!;
 
     const submissionData = {
-      template_id: parseInt(templateId),
+      template_slug: templateId,
       send_email: false, // We'll handle notifications ourselves
       submitters: [
         {
