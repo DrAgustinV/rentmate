@@ -1,103 +1,58 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { QRCodeSVG } from "qrcode.react";
-
-interface KYCStatus {
-  kyc_status: string;
-  kyc_qr_code_url: string | null;
-  kyc_verified_at: string | null;
-  kyc_expires_at: string | null;
-  kyc_wallet_did: string | null;
-}
+import { useKiltKYC } from "@/hooks/useKiltKYC";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { isKYCExpiringSoon } from "@/lib/validations/kyc.schema";
 
 export function IdentityVerification() {
-  const [loading, setLoading] = useState(false);
-  const [initiating, setInitiating] = useState(false);
-  const [kycStatus, setKycStatus] = useState<KYCStatus | null>(null);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    fetchKYCStatus();
-  }, []);
-
-  const fetchKYCStatus = async () => {
-    try {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error("Not authenticated");
-      }
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("kyc_status, kyc_qr_code_url, kyc_verified_at, kyc_expires_at, kyc_wallet_did")
-        .eq("id", user.id)
-        .single();
-
-      if (error) throw error;
-      setKycStatus(data);
-    } catch (error) {
-      console.error("Error fetching KYC status:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load verification status",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const initiateVerification = async () => {
-    try {
-      setInitiating(true);
-      
-      const { data, error } = await supabase.functions.invoke("initiate-kilt-kyc");
-
-      if (error) throw error;
-
-      if (data.success) {
-        toast({
-          title: "Verification initiated",
-          description: "Scan the QR code with Sporran wallet",
-        });
-        await fetchKYCStatus();
-      } else {
-        throw new Error(data.message || "Failed to initiate verification");
-      }
-    } catch (error) {
-      console.error("Error initiating verification:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to initiate verification",
-        variant: "destructive",
-      });
-    } finally {
-      setInitiating(false);
-    }
-  };
+  const { t } = useLanguage();
+  const {
+    kycProfile,
+    loading,
+    initiating,
+    isVerified,
+    isPending,
+    canInitiate,
+    initiateVerification,
+  } = useKiltKYC();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "verified":
-        return <Badge className="bg-green-500"><CheckCircle2 className="w-3 h-3 mr-1" />Verified</Badge>;
+        return (
+          <Badge className="bg-green-500">
+            <CheckCircle2 className="w-3 h-3 mr-1" />
+            {t('kyc.status.verified')}
+          </Badge>
+        );
       case "pending":
-        return <Badge variant="outline"><Loader2 className="w-3 h-3 mr-1 animate-spin" />Pending</Badge>;
       case "in_progress":
-        return <Badge variant="outline"><Loader2 className="w-3 h-3 mr-1 animate-spin" />In Progress</Badge>;
+        return (
+          <Badge variant="outline">
+            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            {t(`kyc.status.${status === 'pending' ? 'pending' : 'inProgress'}`)}
+          </Badge>
+        );
       case "rejected":
-        return <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+        return (
+          <Badge variant="destructive">
+            <AlertCircle className="w-3 h-3 mr-1" />
+            {t('kyc.status.rejected')}
+          </Badge>
+        );
       case "expired":
-        return <Badge variant="secondary"><AlertCircle className="w-3 h-3 mr-1" />Expired</Badge>;
+        return (
+          <Badge variant="secondary">
+            <AlertCircle className="w-3 h-3 mr-1" />
+            {t('kyc.status.expired')}
+          </Badge>
+        );
       default:
-        return <Badge variant="secondary">Not Started</Badge>;
+        return <Badge variant="secondary">{t('kyc.status.notStarted')}</Badge>;
     }
   };
 
@@ -107,7 +62,7 @@ export function IdentityVerification() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5" />
-            Identity Verification
+            {t('kyc.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -119,95 +74,125 @@ export function IdentityVerification() {
     );
   }
 
+  const showExpiryWarning = isVerified && 
+    kycProfile?.kyc_expires_at && 
+    isKYCExpiringSoon(kycProfile.kyc_expires_at);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5" />
-          Identity Verification
+          {t('kyc.title')}
         </CardTitle>
         <CardDescription>
-          Verify your identity using KILT Protocol blockchain credentials
+          {t('kyc.subtitle')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Status Display */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-sm font-medium">Verification Status</p>
+            <p className="text-sm font-medium">{t('kyc.statusLabel')}</p>
             <p className="text-xs text-muted-foreground">
-              {kycStatus?.kyc_status === "verified" && kycStatus?.kyc_verified_at
-                ? `Verified on ${new Date(kycStatus.kyc_verified_at).toLocaleDateString()}`
-                : "Not verified"}
+              {isVerified && kycProfile?.kyc_verified_at
+                ? `${t('kyc.verifiedOn')} ${new Date(kycProfile.kyc_verified_at).toLocaleDateString()}`
+                : t('kyc.notVerified')}
             </p>
           </div>
-          {kycStatus && getStatusBadge(kycStatus.kyc_status)}
+          {kycProfile && getStatusBadge(kycProfile.kyc_status)}
         </div>
 
-        {kycStatus?.kyc_status === "verified" && kycStatus?.kyc_expires_at && (
+        {/* Expiry Alert */}
+        {showExpiryWarning && (
           <Alert>
+            <AlertCircle className="w-4 h-4" />
             <AlertDescription>
-              Your verification expires on {new Date(kycStatus.kyc_expires_at).toLocaleDateString()}
+              {t('kyc.alerts.expiringSoon')}
             </AlertDescription>
           </Alert>
         )}
 
-        {kycStatus?.kyc_status === "not_started" && (
+        {/* Verified - Show Expiry */}
+        {isVerified && kycProfile?.kyc_expires_at && (
           <Alert>
             <AlertDescription>
-              Complete identity verification to increase trust with property managers and access exclusive features.
+              {t('kyc.expiresOn')} {new Date(kycProfile.kyc_expires_at).toLocaleDateString()}
             </AlertDescription>
           </Alert>
         )}
 
-        {(kycStatus?.kyc_status === "pending" || kycStatus?.kyc_status === "in_progress") && 
-         kycStatus?.kyc_qr_code_url && (
+        {/* Not Started Alert */}
+        {kycProfile?.kyc_status === "not_started" && (
+          <Alert>
+            <AlertDescription>
+              {t('kyc.alerts.notStarted')}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* QR Code for Pending/In Progress */}
+        {isPending && kycProfile?.kyc_qr_code_url && (
           <div className="space-y-4">
             <Alert>
               <QrCode className="w-4 h-4" />
               <AlertDescription>
-                Scan this QR code with your Sporran wallet to complete verification
+                {t('kyc.scanQRCode')}
               </AlertDescription>
             </Alert>
             <div className="flex justify-center p-4 bg-white rounded-lg">
               <QRCodeSVG 
-                value={kycStatus.kyc_qr_code_url} 
+                value={kycProfile.kyc_qr_code_url} 
                 size={192}
                 level="H"
                 includeMargin={true}
               />
             </div>
             <p className="text-xs text-center text-muted-foreground">
-              Don't have Sporran? Download from sporran.org
+              {t('kyc.downloadSporran')}
             </p>
           </div>
         )}
 
-        {kycStatus?.kyc_status === "rejected" && (
+        {/* Rejected Alert */}
+        {kycProfile?.kyc_status === "rejected" && (
           <Alert variant="destructive">
             <AlertCircle className="w-4 h-4" />
             <AlertDescription>
-              Your verification was not successful. Please try again or contact support.
+              {t('kyc.alerts.rejected')}
             </AlertDescription>
           </Alert>
         )}
 
-        {(kycStatus?.kyc_status === "not_started" || 
-          kycStatus?.kyc_status === "rejected" || 
-          kycStatus?.kyc_status === "expired") && (
+        {/* Expired Alert */}
+        {kycProfile?.kyc_status === "expired" && (
+          <Alert variant="destructive">
+            <AlertCircle className="w-4 h-4" />
+            <AlertDescription>
+              {t('kyc.alerts.expired')}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Action Button */}
+        {canInitiate && (
           <Button 
             onClick={initiateVerification} 
             disabled={initiating}
             className="w-full"
           >
             {initiating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {kycStatus?.kyc_status === "expired" ? "Renew Verification" : "Start Verification"}
+            {kycProfile?.kyc_status === "expired" 
+              ? t('kyc.actions.renewVerification')
+              : t('kyc.actions.startVerification')}
           </Button>
         )}
 
-        {kycStatus?.kyc_wallet_did && (
+        {/* Wallet DID Display */}
+        {kycProfile?.kyc_wallet_did && (
           <div className="pt-4 border-t">
             <p className="text-xs text-muted-foreground">
-              Wallet DID: <code className="text-xs">{kycStatus.kyc_wallet_did}</code>
+              {t('kyc.walletDID')}: <code className="text-xs">{kycProfile.kyc_wallet_did}</code>
             </p>
           </div>
         )}
