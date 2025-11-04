@@ -156,7 +156,7 @@ export const useAnalytics = () => {
         .from('analytics_sessions')
         .select('id')
         .eq('session_id', sessionId)
-        .single();
+        .maybeSingle();
 
       if (!existingSession) {
         // Create new session
