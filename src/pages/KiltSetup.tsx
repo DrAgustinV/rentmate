@@ -1,15 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Key, Copy, CheckCircle } from "lucide-react";
 import { showToast } from "@/lib/toastUtils";
+import { AppLayout } from "@/components/layouts/AppLayout";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function KiltSetup() {
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [credentials, setCredentials] = useState<any>(null);
   const [copied, setCopied] = useState<{ [key: string]: boolean }>({});
+
+  useEffect(() => {
+    checkAdminRole();
+  }, []);
+
+  const checkAdminRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    
+    const { data, error } = await supabase.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin'
+    });
+    
+    if (error || !data) {
+      console.error('Role check error:', error);
+      navigate('/dashboard');
+      return;
+    }
+    
+    setIsAdmin(data);
+  };
 
   const generateCredentials = async () => {
     try {
@@ -39,9 +71,24 @@ export default function KiltSetup() {
     setTimeout(() => setCopied({ ...copied, [key]: false }), 2000);
   };
 
+  if (isAdmin === null) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
+
   return (
-    <div className="container max-w-4xl py-8">
-      <Card>
+    <AppLayout>
+      <div className="container max-w-4xl py-8">
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Key className="w-5 h-5" />
@@ -154,5 +201,6 @@ export default function KiltSetup() {
         </CardContent>
       </Card>
     </div>
+    </AppLayout>
   );
 }

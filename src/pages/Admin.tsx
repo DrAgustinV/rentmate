@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Ticket, Users, Settings, Paintbrush, Languages, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Building2, Ticket, Users, Settings, Paintbrush, Languages, BarChart3, Key } from "lucide-react";
 import { PropertiesTable } from "@/components/admin/PropertiesTable";
 import { TicketsTable } from "@/components/admin/TicketsTable";
 import { UsersTable } from "@/components/admin/UsersTable";
@@ -66,7 +67,7 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="users" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="users">
               <Users className="mr-2 h-4 w-4" />
               {t('admin.users')}
@@ -94,6 +95,10 @@ export default function Admin() {
             <TabsTrigger value="analytics">
               <BarChart3 className="mr-2 h-4 w-4" />
               {t('admin.analytics.tab')}
+            </TabsTrigger>
+            <TabsTrigger value="kilt-setup">
+              <Key className="mr-2 h-4 w-4" />
+              {t('admin.kiltSetup')}
             </TabsTrigger>
           </TabsList>
 
@@ -175,6 +180,23 @@ export default function Admin() {
 
           <TabsContent value="analytics">
             <AnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="kilt-setup">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('admin.kiltSetupTitle')}</CardTitle>
+                <CardDescription>
+                  {t('admin.kiltSetupDesc')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => navigate('/kilt-setup')} className="w-full">
+                  <Key className="mr-2 h-4 w-4" />
+                  {t('admin.openKiltSetup')}
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
