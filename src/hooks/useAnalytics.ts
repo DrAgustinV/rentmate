@@ -34,9 +34,7 @@ const getUserRole = async (userId: string): Promise<string | null> => {
     .from('user_roles')
     .select('role')
     .eq('user_id', userId)
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .single();
   return data?.role || 'user';
 };
 
@@ -156,7 +154,7 @@ export const useAnalytics = () => {
         .from('analytics_sessions')
         .select('id')
         .eq('session_id', sessionId)
-        .maybeSingle();
+        .single();
 
       if (!existingSession) {
         // Create new session

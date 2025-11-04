@@ -109,17 +109,17 @@ export default function PropertyTenants() {
   const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
   const [showInviteForm, setShowInviteForm] = useState(false);
 
-  const { data: property, isLoading: propertyLoading, isError: propertyError, error: propertyErrorDetails } = useQuery({
+  const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("properties").select("*").eq("id", propertyId).maybeSingle();
+      const { data, error } = await supabase.from("properties").select("*").eq("id", propertyId).single();
       if (error) throw error;
       return data;
     },
     enabled: !!propertyId,
   });
 
-  const { data: userRole, isLoading: userRoleLoading } = useQuery({
+  const { data: userRole } = useQuery({
     queryKey: ["user-role", propertyId],
     queryFn: async () => {
       const {
@@ -130,74 +130,47 @@ export default function PropertyTenants() {
         .from("properties")
         .select("manager_id")
         .eq("id", propertyId)
-        .maybeSingle();
+        .single();
       return { isManager: propertyData?.manager_id === user.id };
     },
     enabled: !!propertyId,
   });
 
-  const { data: activeTenants, isLoading: tenantsLoading, isError: tenantsError, error: tenantsErrorDetails } = useQuery({
+  const { data: activeTenants } = useQuery({
     queryKey: ["active-tenants", propertyId],
     queryFn: async () => {
-      try {
-        console.log('[PropertyTenants] Fetching tenancies for property:', propertyId);
-        
-        // Step 1: Fetch property_tenants records (tenant can see their own via RLS)
-        const { data: tenancies, error: tenanciesError } = await supabase
-          .from("property_tenants")
-          .select("id, tenant_id, tenancy_status, started_at, ended_at, notes")
-          .eq("property_id", propertyId)
-          .in("tenancy_status", ["active", "ending_tenancy"])
-          .order("started_at", { ascending: false });
+      // Step 1: Fetch property_tenants records (tenant can see their own via RLS)
+      const { data: tenancies, error: tenanciesError } = await supabase
+        .from("property_tenants")
+        .select("id, tenant_id, tenancy_status, started_at, ended_at, notes")
+        .eq("property_id", propertyId)
+        .in("tenancy_status", ["active", "ending_tenancy"])
+        .order("started_at", { ascending: false });
 
-        if (tenanciesError) {
-          console.error('[PropertyTenants] Tenancies error:', tenanciesError);
-          throw tenanciesError;
-        }
-        if (!tenancies || tenancies.length === 0) {
-          console.log('[PropertyTenants] No active tenancies found');
-          return [];
-        }
+      if (tenanciesError) throw tenanciesError;
+      if (!tenancies || tenancies.length === 0) return [];
 
-        console.log('[PropertyTenants] Found tenancies:', tenancies.length);
+      // Step 2: Fetch profiles for the tenant IDs (users can see their own profile via RLS)
+      const tenantIds = tenancies.map(t => t.tenant_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .in("id", tenantIds);
 
-        // Step 2: Fetch profiles for the tenant IDs (users can see their own profile via RLS)
-        const tenantIds = tenancies.map(t => t.tenant_id);
-        const { data: profiles, error: profilesError } = await supabase
-          .from("profiles")
-          .select("id, email, first_name, last_name")
-          .in("id", tenantIds);
+      if (profilesError) throw profilesError;
 
-        if (profilesError) {
-          console.error('[PropertyTenants] Profiles error:', profilesError);
-          // Don't throw - return tenancies with placeholder data
-          return tenancies.map((tenancy) => ({
-            ...tenancy,
-            email: "Unknown",
-            first_name: null,
-            last_name: null,
-          } as Tenant));
-        }
-
-        console.log('[PropertyTenants] Fetched profiles:', profiles?.length);
-
-        // Step 3: Merge the data client-side
-        return tenancies.map((tenancy) => {
-          const profile = profiles?.find(p => p.id === tenancy.tenant_id);
-          return {
-            ...tenancy,
-            email: profile?.email || "Unknown",
-            first_name: profile?.first_name || null,
-            last_name: profile?.last_name || null,
-          } as Tenant;
-        });
-      } catch (error) {
-        console.error('[PropertyTenants] Critical error:', error);
-        throw error;
-      }
+      // Step 3: Merge the data client-side
+      return tenancies.map((tenancy) => {
+        const profile = profiles?.find(p => p.id === tenancy.tenant_id);
+        return {
+          ...tenancy,
+          email: profile?.email || "Unknown",
+          first_name: profile?.first_name || null,
+          last_name: profile?.last_name || null,
+        } as Tenant;
+      });
     },
     enabled: !!propertyId,
-    retry: 1,
   });
 
   // For backward compatibility, get the first active tenant
@@ -524,32 +497,22 @@ export default function PropertyTenants() {
     },
   });
 
-  if (propertyLoading || userRoleLoading || tenantsLoading) {
+  if (propertyLoading) {
     return (
       <AppLayout>
         <div className="space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-48 w-full" />
         </div>
       </AppLayout>
     );
   }
 
-  if (propertyError || tenantsError) {
+  if (!property) {
     return (
       <AppLayout>
-        <div className="text-center py-12 space-y-4">
-          <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
-          <div>
-            <p className="text-lg font-semibold text-destructive">{t("common.error")}</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              {propertyErrorDetails?.message || tenantsErrorDetails?.message || "Failed to load page"}
-            </p>
-          </div>
-          <Button onClick={() => navigate("/dashboard")}>
-            {t("common.back")}
-          </Button>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">{t("properties.notFound")}</p>
         </div>
       </AppLayout>
     );
@@ -575,31 +538,6 @@ export default function PropertyTenants() {
       toast({ title: t("common.error"), description: error.message, variant: "destructive" });
     }
   };
-
-  // Check loading state FIRST
-  if (propertyLoading || userRoleLoading) {
-    return (
-      <AppLayout>
-        <div className="flex justify-center items-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  // Then check for errors or missing data
-  if (propertyError || !property) {
-    return (
-      <AppLayout>
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">{t("properties.notFound")}</p>
-          <Button onClick={() => navigate("/dashboard")} className="mt-4">
-            {t("common.back")}
-          </Button>
-        </div>
-      </AppLayout>
-    );
-  }
 
   return (
     <AppLayout>
@@ -900,12 +838,12 @@ export default function PropertyTenants() {
             )}
 
             {/* Section 4.5: Digital Contract Signature */}
-            {currentTenant?.id && propertyId && activeTenants && activeTenants.length > 0 && (
+            {currentTenant && (
               <>
                 <Separator />
                 <ContractSignatureManager
                   tenancyId={currentTenant.id}
-                  propertyId={propertyId}
+                  propertyId={propertyId!}
                   isManager={userRole?.isManager || false}
                   onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
                 />
