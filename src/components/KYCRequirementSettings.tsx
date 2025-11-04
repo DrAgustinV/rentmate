@@ -95,7 +95,7 @@ export function KYCRequirementSettings() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription className="text-xs space-y-2">
-            <p><strong>Optional (Default):</strong> Contracts can be signed with standard Dock Labs e-signatures. KILT KYC provides additional blockchain identity verification but is not required.</p>
+            <p><strong>Optional (Default):</strong> Contracts can be signed with standard e-signatures. KILT KYC provides additional blockchain identity verification but is not required.</p>
             <p><strong>Required:</strong> Both parties must complete KILT KYC verification before initiating contract signatures. Provides maximum security and verifiable digital identities.</p>
           </AlertDescription>
         </Alert>

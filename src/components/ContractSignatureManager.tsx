@@ -54,10 +54,7 @@ export const ContractSignatureManager = ({
   const [loading, setLoading] = useState(false);
   const [signature, setSignature] = useState<ContractSignature | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [signingMethod, setSigningMethod] = useState<'mock' | 'dock' | 'docuseal'>('mock');
-  const [managerKYCVerified, setManagerKYCVerified] = useState(false);
-  const [tenantKYCVerified, setTenantKYCVerified] = useState(false);
-  const [kycLoading, setKycLoading] = useState(true);
+  const [signingMethod, setSigningMethod] = useState<'mock' | 'docuseal'>('mock');
   const [docusealToken, setDocusealToken] = useState<string | null>(null);
   const [rentAgreement, setRentAgreement] = useState<any>(null);
   const [agreementLoading, setAgreementLoading] = useState(true);
@@ -81,55 +78,6 @@ export const ContractSignatureManager = ({
     }
   };
 
-  const checkKYCStatus = async () => {
-    try {
-      setKycLoading(true);
-      
-      // Get manager profile
-      const { data: property } = await supabase
-        .from('properties')
-        .select('manager_id')
-        .eq('id', propertyId)
-        .single();
-      
-      if (property) {
-        const { data: managerProfile } = await supabase
-          .from('profiles')
-          .select('kyc_status, kyc_wallet_did')
-          .eq('id', property.manager_id)
-          .single();
-        
-        setManagerKYCVerified(
-          managerProfile?.kyc_status === 'verified' && 
-          !!managerProfile?.kyc_wallet_did
-        );
-      }
-      
-      // Get tenant profile
-      const { data: tenancy } = await supabase
-        .from('property_tenants')
-        .select('tenant_id')
-        .eq('id', tenancyId)
-        .single();
-      
-      if (tenancy) {
-        const { data: tenantProfile } = await supabase
-          .from('profiles')
-          .select('kyc_status, kyc_wallet_did')
-          .eq('id', tenancy.tenant_id)
-          .single();
-        
-        setTenantKYCVerified(
-          tenantProfile?.kyc_status === 'verified' && 
-          !!tenantProfile?.kyc_wallet_did
-        );
-      }
-    } catch (error) {
-      console.error('Error checking KYC:', error);
-    } finally {
-      setKycLoading(false);
-    }
-  };
 
   const checkRentAgreement = async () => {
     try {
@@ -153,7 +101,6 @@ export const ContractSignatureManager = ({
   useEffect(() => {
     if (!initialized) {
       loadSignature();
-      checkKYCStatus();
       checkRentAgreement();
     }
   }, [initialized]);
@@ -169,9 +116,7 @@ export const ContractSignatureManager = ({
     setLoading(true);
     try {
       let functionName = 'initiate-contract-signature';
-      if (signingMethod === 'dock') {
-        functionName = 'initiate-dock-contract-signature';
-      } else if (signingMethod === 'docuseal') {
+      if (signingMethod === 'docuseal') {
         functionName = 'initiate-docuseal-signature';
       }
 
@@ -340,14 +285,6 @@ export const ContractSignatureManager = ({
         </Badge>
       );
     }
-    if (method === 'verifiable_credential') {
-      return (
-        <Badge variant="outline" className="text-xs">
-          <Shield className="h-3 w-3 mr-1" />
-          Dock Labs VC
-        </Badge>
-      );
-    }
     return <Badge variant="outline" className="text-xs">{method}</Badge>;
   };
 
@@ -364,32 +301,6 @@ export const ContractSignatureManager = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {kycLoading && (
-            <Alert>
-              <AlertDescription>
-                {t('contractSignature.checkingKYC')}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {!kycLoading && isManager && signingMethod === 'dock' && (!managerKYCVerified || !tenantKYCVerified) && (
-            <Alert>
-              <Shield className="h-4 w-4" />
-              <AlertDescription className="space-y-2">
-                <p className="font-semibold">{t('contractSignature.kycOptional')}</p>
-                <p className="text-sm">{t('contractSignature.kycEnhancement')}</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => window.location.href = '/settings?tab=identity'}
-                  className="mt-2"
-                >
-                  {t('contractSignature.completeVerificationLink')}
-                </Button>
-              </AlertDescription>
-            </Alert>
-          )}
-
           {!agreementLoading && isManager && signingMethod === 'docuseal' && !rentAgreement?.contract_pdf_url && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -408,7 +319,7 @@ export const ContractSignatureManager = ({
               {/* Signing Method Selector */}
               <div className="space-y-3">
                 <Label className="text-base font-semibold">Select Signing Method</Label>
-                <RadioGroup value={signingMethod} onValueChange={(v) => setSigningMethod(v as 'mock' | 'dock')}>
+                <RadioGroup value={signingMethod} onValueChange={(v) => setSigningMethod(v as 'mock' | 'docuseal')}>
                   <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent">
                     <RadioGroupItem value="mock" id="mock" />
                     <Label htmlFor="mock" className="flex-1 cursor-pointer">
@@ -416,46 +327,6 @@ export const ContractSignatureManager = ({
                       <div className="text-sm text-muted-foreground">
                         Quick signature for testing purposes
                       </div>
-                    </Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent">
-                    <RadioGroupItem 
-                      value="dock" 
-                      id="dock" 
-                      disabled={false}
-                    />
-                    <Label htmlFor="dock" className="flex-1 cursor-pointer">
-                      <div className="font-medium">Dock Labs Verifiable Credentials</div>
-                      <div className="text-sm text-muted-foreground">
-                        Secure, verifiable digital signatures with optional blockchain identity verification
-                      </div>
-                      {!kycLoading && (
-                        <div className="flex gap-2 mt-2 flex-wrap">
-                          {managerKYCVerified ? (
-                            <Badge variant="outline" className="text-green-600">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
-                              Manager: {t('contractSignature.kycVerified')}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-muted-foreground">
-                              <AlertCircle className="h-3 w-3 mr-1" />
-                              Manager: {t('contractSignature.kycNotVerified')}
-                            </Badge>
-                          )}
-                          {tenantKYCVerified ? (
-                            <Badge variant="outline" className="text-green-600">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
-                              Tenant: {t('contractSignature.kycVerified')}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-muted-foreground">
-                              <AlertCircle className="h-3 w-3 mr-1" />
-                              Tenant: {t('contractSignature.kycNotVerified')}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
                     </Label>
                   </div>
 
@@ -475,10 +346,9 @@ export const ContractSignatureManager = ({
                 onClick={handleInitiateSignature} 
                 disabled={
                   loading || 
-                  kycLoading || 
                   agreementLoading ||
                   (signingMethod === 'docuseal' && !rentAgreement?.contract_pdf_url)
-                } 
+                }
                 className="w-full"
               >
                 <FileSignature className="h-4 w-4 mr-2" />
@@ -499,7 +369,6 @@ export const ContractSignatureManager = ({
   const isCompleted = signature.workflow_status === 'completed';
   const managerSigned = !!signature.manager_signed_at;
   const tenantSigned = !!signature.tenant_signed_at;
-  const isDockSignature = signature.signing_method === 'dock' || signature.dock_workflow_id;
   const isDocusealSignature = signature.signing_method === 'docuseal' || signature.docuseal_submission_id;
 
   // Generate DocuSeal token if needed
@@ -536,12 +405,6 @@ export const ContractSignatureManager = ({
         </CardTitle>
         <CardDescription>
           {t('contractSignature.initiated')}: {format(new Date(signature.initiated_at), 'PPP')}
-          {isDockSignature && (
-            <Badge variant="outline" className="ml-2">
-              <Shield className="h-3 w-3 mr-1" />
-              Dock Labs
-            </Badge>
-          )}
           {isDocusealSignature && (
             <Badge variant="outline" className="ml-2">
               <FileSignature className="h-3 w-3 mr-1" />
@@ -579,24 +442,6 @@ export const ContractSignatureManager = ({
           </div>
         )}
 
-        {/* Dock QR Code - Show if Dock signature and not completed */}
-        {isDockSignature && !isCompleted && signature.dock_contract_url && (
-          <div className="flex flex-col items-center gap-3 p-4 bg-muted rounded-lg">
-            <div className="text-sm font-medium flex items-center gap-2">
-              <QrCode className="h-4 w-4" />
-              Scan to Sign with Dock Wallet
-            </div>
-            <QRCodeSVG 
-              value={signature.dock_contract_url} 
-              size={200}
-              level="H"
-              includeMargin
-            />
-            <div className="text-xs text-muted-foreground text-center max-w-xs">
-              Scan this QR code with your Dock Wallet app to review and sign the contract using verifiable credentials
-            </div>
-          </div>
-        )}
 
         {/* Manager Signature Status */}
         <div className="flex items-start justify-between">
@@ -613,15 +458,9 @@ export const ContractSignatureManager = ({
               <div className="text-sm text-muted-foreground space-y-1">
                 <div>{format(new Date(signature.manager_signed_at!), 'PPP p')}</div>
                 <div>{getSignatureMethodBadge(signature.manager_signature_method)}</div>
-                {isDockSignature && signature.dock_manager_signature_proof && (
-                  <div className="flex items-center gap-1 text-green-600">
-                    <Shield className="h-3 w-3" />
-                    <span className="text-xs">Verified Credential</span>
-                  </div>
-                )}
               </div>
             )}
-            {!managerSigned && isManager && !isDockSignature && (
+            {!managerSigned && isManager && !isDocusealSignature && (
               <Button 
                 size="sm" 
                 onClick={() => handleMockSign('manager')} 
@@ -651,15 +490,9 @@ export const ContractSignatureManager = ({
               <div className="text-sm text-muted-foreground space-y-1">
                 <div>{format(new Date(signature.tenant_signed_at!), 'PPP p')}</div>
                 <div>{getSignatureMethodBadge(signature.tenant_signature_method)}</div>
-                {isDockSignature && signature.dock_tenant_signature_proof && (
-                  <div className="flex items-center gap-1 text-green-600">
-                    <Shield className="h-3 w-3" />
-                    <span className="text-xs">Verified Credential</span>
-                  </div>
-                )}
               </div>
             )}
-            {!tenantSigned && !isManager && !isDockSignature && (
+            {!tenantSigned && !isManager && !isDocusealSignature && (
               <Button 
                 size="sm" 
                 onClick={() => handleMockSign('tenant')} 
