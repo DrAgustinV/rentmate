@@ -29,6 +29,7 @@ interface ContractSignature {
   dock_contract_url: string | null;
   dock_manager_signature_proof: string | null;
   dock_tenant_signature_proof: string | null;
+  kyc_enforced: boolean;
 }
 
 
@@ -295,16 +296,11 @@ export const ContractSignatureManager = ({
           )}
 
           {!kycLoading && isManager && signingMethod === 'dock' && (!managerKYCVerified || !tenantKYCVerified) && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
+            <Alert>
+              <Shield className="h-4 w-4" />
               <AlertDescription className="space-y-2">
-                <p className="font-semibold">{t('contractSignature.verificationRequired')}</p>
-                {!managerKYCVerified && (
-                  <p>{t('contractSignature.managerKYCRequired')}</p>
-                )}
-                {!tenantKYCVerified && (
-                  <p>{t('contractSignature.tenantKYCRequired')}</p>
-                )}
+                <p className="font-semibold">{t('contractSignature.kycOptional')}</p>
+                <p className="text-sm">{t('contractSignature.kycEnhancement')}</p>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -333,31 +329,41 @@ export const ContractSignatureManager = ({
                     </Label>
                   </div>
                   
-                  <div className={`flex items-center space-x-3 rounded-lg border p-4 ${
-                    !kycLoading && (!managerKYCVerified || !tenantKYCVerified) 
-                      ? 'opacity-50 cursor-not-allowed' 
-                      : 'hover:bg-accent'
-                  }`}>
+                  <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent">
                     <RadioGroupItem 
                       value="dock" 
                       id="dock" 
-                      disabled={!kycLoading && (!managerKYCVerified || !tenantKYCVerified)}
+                      disabled={false}
                     />
-                    <Label 
-                      htmlFor="dock" 
-                      className={`flex-1 ${
-                        !kycLoading && (!managerKYCVerified || !tenantKYCVerified)
-                          ? 'cursor-not-allowed'
-                          : 'cursor-pointer'
-                      }`}
-                    >
+                    <Label htmlFor="dock" className="flex-1 cursor-pointer">
                       <div className="font-medium">Dock Labs Verifiable Credentials</div>
                       <div className="text-sm text-muted-foreground">
-                        Secure, verifiable digital signatures with blockchain verification
+                        Secure, verifiable digital signatures with optional blockchain identity verification
                       </div>
-                      {!kycLoading && (!managerKYCVerified || !tenantKYCVerified) && (
-                        <div className="text-xs text-destructive mt-1">
-                          {t('contractSignature.kycRequiredForDock')}
+                      {!kycLoading && (
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          {managerKYCVerified ? (
+                            <Badge variant="outline" className="text-green-600">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Manager: {t('contractSignature.kycVerified')}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-muted-foreground">
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              Manager: {t('contractSignature.kycNotVerified')}
+                            </Badge>
+                          )}
+                          {tenantKYCVerified ? (
+                            <Badge variant="outline" className="text-green-600">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Tenant: {t('contractSignature.kycVerified')}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-muted-foreground">
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              Tenant: {t('contractSignature.kycNotVerified')}
+                            </Badge>
+                          )}
                         </div>
                       )}
                     </Label>
@@ -367,7 +373,7 @@ export const ContractSignatureManager = ({
 
               <Button 
                 onClick={handleInitiateSignature} 
-                disabled={loading || kycLoading || (signingMethod === 'dock' && (!managerKYCVerified || !tenantKYCVerified))} 
+                disabled={loading || kycLoading} 
                 className="w-full"
               >
                 <FileSignature className="h-4 w-4 mr-2" />
@@ -415,6 +421,18 @@ export const ContractSignatureManager = ({
             <Badge variant="outline" className="ml-2">
               <Shield className="h-3 w-3 mr-1" />
               Dock Labs
+            </Badge>
+          )}
+          {isCompleted && signature.kyc_enforced && (
+            <Badge variant="outline" className="ml-2 text-green-600">
+              <Shield className="h-3 w-3 mr-1" />
+              {t('contractSignature.blockchainVerified')}
+            </Badge>
+          )}
+          {isCompleted && !signature.kyc_enforced && (
+            <Badge variant="outline" className="ml-2 text-muted-foreground">
+              <FileSignature className="h-3 w-3 mr-1" />
+              {t('contractSignature.standardSignature')}
             </Badge>
           )}
         </CardDescription>

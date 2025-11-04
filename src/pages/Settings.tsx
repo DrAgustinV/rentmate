@@ -10,11 +10,12 @@ import { useToast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserCircle, Bell, Lock, Palette, Globe, Wrench, CreditCard, ShieldCheck } from "lucide-react";
+import { UserCircle, Bell, Lock, Palette, Globe, Wrench, CreditCard, ShieldCheck, FileSignature } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SEPADirectDebitSettings } from "@/components/payments/SEPADirectDebitSettings";
 import { IdentityVerification } from "@/components/IdentityVerification";
+import { KYCRequirementSettings } from "@/components/KYCRequirementSettings";
 import { Language } from "@/lib/i18n/translations";
 import {
   DropdownMenu,
@@ -187,6 +188,10 @@ export default function Settings() {
             </TabsTrigger>
             {userRole === 'manager' && (
               <>
+                <TabsTrigger value="contracts" className="gap-2">
+                  <FileSignature className="h-4 w-4" />
+                  <span className="hidden sm:inline">Contracts</span>
+                </TabsTrigger>
                 <TabsTrigger value="payments" className="gap-2">
                   <CreditCard className="h-4 w-4" />
                   <span className="hidden sm:inline">{t('settings.payments')}</span>
@@ -350,6 +355,9 @@ export default function Settings() {
 
           {userRole === 'manager' && (
             <>
+              <TabsContent value="contracts" className="mt-6">
+                <KYCRequirementSettings />
+              </TabsContent>
               <TabsContent value="payments" className="mt-6">
                 <SEPADirectDebitSettings />
               </TabsContent>

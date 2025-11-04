@@ -220,6 +220,7 @@ export type Database = {
           id: string
           initiated_at: string
           initiated_by: string
+          kyc_enforced: boolean | null
           manager_signature_data: Json | null
           manager_signature_ip: string | null
           manager_signature_method: string | null
@@ -252,6 +253,7 @@ export type Database = {
           id?: string
           initiated_at?: string
           initiated_by: string
+          kyc_enforced?: boolean | null
           manager_signature_data?: Json | null
           manager_signature_ip?: string | null
           manager_signature_method?: string | null
@@ -284,6 +286,7 @@ export type Database = {
           id?: string
           initiated_at?: string
           initiated_by?: string
+          kyc_enforced?: boolean | null
           manager_signature_data?: Json | null
           manager_signature_ip?: string | null
           manager_signature_method?: string | null
@@ -528,6 +531,7 @@ export type Database = {
           legal_name: string | null
           manager_iban: string | null
           phone: string | null
+          require_kyc_for_contracts: boolean | null
           sepa_creditor_identifier: string | null
           updated_at: string
         }
@@ -549,6 +553,7 @@ export type Database = {
           legal_name?: string | null
           manager_iban?: string | null
           phone?: string | null
+          require_kyc_for_contracts?: boolean | null
           sepa_creditor_identifier?: string | null
           updated_at?: string
         }
@@ -570,6 +575,7 @@ export type Database = {
           legal_name?: string | null
           manager_iban?: string | null
           phone?: string | null
+          require_kyc_for_contracts?: boolean | null
           sepa_creditor_identifier?: string | null
           updated_at?: string
         }
@@ -588,6 +594,7 @@ export type Database = {
           manager_id: string
           modification_reason: string | null
           previous_property_id: string | null
+          require_kyc_for_contracts: boolean | null
           status: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at: string
@@ -605,6 +612,7 @@ export type Database = {
           manager_id: string
           modification_reason?: string | null
           previous_property_id?: string | null
+          require_kyc_for_contracts?: boolean | null
           status?: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at?: string
@@ -622,6 +630,7 @@ export type Database = {
           manager_id?: string
           modification_reason?: string | null
           previous_property_id?: string | null
+          require_kyc_for_contracts?: boolean | null
           status?: Database["public"]["Enums"]["property_status"]
           title?: string
           updated_at?: string
