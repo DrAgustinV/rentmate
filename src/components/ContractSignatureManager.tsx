@@ -59,6 +59,8 @@ export const ContractSignatureManager = ({
   const [tenantKYCVerified, setTenantKYCVerified] = useState(false);
   const [kycLoading, setKycLoading] = useState(true);
   const [docusealToken, setDocusealToken] = useState<string | null>(null);
+  const [rentAgreement, setRentAgreement] = useState<any>(null);
+  const [agreementLoading, setAgreementLoading] = useState(true);
   
 
   const loadSignature = async () => {
@@ -129,12 +131,39 @@ export const ContractSignatureManager = ({
     }
   };
 
+  const checkRentAgreement = async () => {
+    try {
+      setAgreementLoading(true);
+      const { data } = await supabase
+        .from('rent_agreements')
+        .select('id, contract_pdf_url')
+        .eq('tenancy_id', tenancyId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      setRentAgreement(data);
+    } catch (error) {
+      console.error('Error checking rent agreement:', error);
+    } finally {
+      setAgreementLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!initialized) {
       loadSignature();
       checkKYCStatus();
+      checkRentAgreement();
     }
   }, [initialized]);
+
+  // Reset states when signing method changes
+  useEffect(() => {
+    if (signature?.signing_method && signingMethod !== signature.signing_method) {
+      setDocusealToken(null);
+    }
+  }, [signingMethod, signature?.signing_method]);
 
   const handleInitiateSignature = async () => {
     setLoading(true);
@@ -361,6 +390,19 @@ export const ContractSignatureManager = ({
             </Alert>
           )}
 
+          {!agreementLoading && isManager && signingMethod === 'docuseal' && !rentAgreement?.contract_pdf_url && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <p className="font-semibold">Rent Agreement Required</p>
+                <p className="text-sm mt-1">
+                  Please create a rent agreement with a PDF contract before using DocuSeal signatures.
+                  You can upload a contract in the "Rent Agreement" section.
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {isManager && (
             <>
               {/* Signing Method Selector */}
@@ -431,7 +473,12 @@ export const ContractSignatureManager = ({
 
               <Button 
                 onClick={handleInitiateSignature} 
-                disabled={loading || kycLoading} 
+                disabled={
+                  loading || 
+                  kycLoading || 
+                  agreementLoading ||
+                  (signingMethod === 'docuseal' && !rentAgreement?.contract_pdf_url)
+                } 
                 className="w-full"
               >
                 <FileSignature className="h-4 w-4 mr-2" />

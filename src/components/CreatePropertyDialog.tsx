@@ -7,11 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { supabase } from "@/integrations/supabase/client";
-import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { propertyBaseSchema } from "@/lib/validations";
 import { usePropertyMutations } from "@/hooks/useProperties";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 
 interface CreatePropertyDialogProps {
   open: boolean;
@@ -23,7 +22,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
   const [title, setTitle] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
-  const [photoUrl, setPhotoUrl] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const { trackEvent } = useAnalyticsContext();
   const { createProperty } = usePropertyMutations();
@@ -57,28 +56,51 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
         throw new Error(`You have reached the maximum limit of ${maxLimit} active properties. Please contact support to increase your limit.`);
       }
 
+      // Create property first without photo
       createProperty.mutate({
         title: data.title,
         address: data.address || null,
         description: data.description || null,
-        images: photoUrl ? [photoUrl] : [],
+        images: [],
         manager_id: user.id,
       }, {
-        onSuccess: (newProperty) => {
+        onSuccess: async (newProperty) => {
+          // Upload photo if one was selected
+          if (photoFile && newProperty?.id) {
+            try {
+              const fileExt = photoFile.name.split('.').pop();
+              const fileName = `${newProperty.id}/profile.${fileExt}`;
+
+              const { error: uploadError } = await supabase.storage
+                .from('property-photos')
+                .upload(fileName, photoFile, { upsert: true });
+
+              if (!uploadError) {
+                // Update property with photo path
+                await supabase
+                  .from('properties')
+                  .update({ images: [fileName] })
+                  .eq('id', newProperty.id);
+              }
+            } catch (photoError) {
+              console.error('Photo upload error:', photoError);
+            }
+          }
+
           // Track property creation event
           trackEvent({
             event_name: 'property_created',
             event_category: 'property_management',
             event_metadata: {
               property_id: newProperty.id,
-              has_photo: !!photoUrl,
+              has_photo: !!photoFile,
             },
           });
 
           setTitle("");
           setAddress("");
           setDescription("");
-          setPhotoUrl("");
+          setPhotoFile(null);
           setLoading(false);
           onSuccess();
         },
@@ -109,11 +131,72 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
           <DialogTitle>Create New Property</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <PropertyPhotoUpload
-            currentPhoto={photoUrl}
-            onPhotoChange={setPhotoUrl}
-            disabled={loading}
-          />
+          <div className="space-y-2">
+            <Label>Property Photo</Label>
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                {photoFile ? (
+                  <div className="relative">
+                    <img 
+                      src={URL.createObjectURL(photoFile)} 
+                      alt="Property preview" 
+                      className="w-24 h-24 rounded-lg object-cover border-2 border-border"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                      onClick={() => setPhotoFile(null)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="w-24 h-24 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/20">
+                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={loading}
+                  onClick={() => document.getElementById('create-photo-upload')?.click()}
+                  className="w-full"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Photo
+                </Button>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Maximum 5MB. JPG, PNG, or WEBP
+                </p>
+              </div>
+              
+              <input
+                id="create-photo-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (!file.type.startsWith('image/')) {
+                      toast.error("Please upload an image file");
+                      return;
+                    }
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast.error("Image must be less than 5MB");
+                      return;
+                    }
+                    setPhotoFile(file);
+                  }
+                }}
+              />
+            </div>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="title">Property Title *</Label>

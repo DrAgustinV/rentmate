@@ -39,6 +39,8 @@ export function CopyTemplatesDialog({
         .is("tenancy_id", null);
 
       if (error) throw error;
+      
+      console.log('Property templates found:', data?.length || 0, data);
       return data || [];
     },
     enabled: open,
@@ -185,9 +187,15 @@ export function CopyTemplatesDialog({
             </div>
           </div>
         ) : (
-          <p className="text-center text-muted-foreground py-8">
-            {t('properties.noTemplatesAvailable')}
-          </p>
+          <div className="text-center py-8 space-y-3">
+            <p className="text-muted-foreground">
+              {t('properties.noTemplatesAvailable')}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              To create property templates, go to the "Documents" tab and upload documents 
+              without selecting a tenant. These will become reusable templates.
+            </p>
+          </div>
         )}
       </DialogContent>
     </Dialog>
