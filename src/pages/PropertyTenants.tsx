@@ -896,7 +896,7 @@ export default function PropertyTenants() {
             )}
 
             {/* Section 4.5: Digital Contract Signature */}
-            {currentTenant && currentTenant.id && propertyId && (
+            {currentTenant?.id && propertyId && activeTenants && activeTenants.length > 0 && (
               <>
                 <Separator />
                 <ContractSignatureManager
