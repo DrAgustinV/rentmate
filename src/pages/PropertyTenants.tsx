@@ -112,7 +112,7 @@ export default function PropertyTenants() {
   const { data: property, isLoading: propertyLoading, isError: propertyError, error: propertyErrorDetails } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("properties").select("*").eq("id", propertyId).single();
+      const { data, error } = await supabase.from("properties").select("*").eq("id", propertyId).maybeSingle();
       if (error) throw error;
       return data;
     },
