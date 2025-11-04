@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
 
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('kyc_status, dock_kyc_credential_id, kyc_verified_at, first_name, last_name, email')
+      .select('kyc_status, kyc_credential_id, kyc_verified_at, first_name, last_name, email')
       .eq('id', user.id)
       .single();
 
@@ -89,8 +89,8 @@ Deno.serve(async (req) => {
     const { error: updateError } = await supabaseClient
       .from('profiles')
       .update({
-        dock_kyc_credential_id: credentialId,
-        dock_kyc_qr_code_url: sporranDeepLink,
+        kyc_credential_id: credentialId,
+        kyc_qr_code_url: sporranDeepLink,
         kyc_status: 'pending',
       })
       .eq('id', user.id);

@@ -27,8 +27,8 @@ Deno.serve(async (req) => {
     // Find user by credential ID
     const { data: profiles, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('id, kyc_status, dock_kyc_credential_id')
-      .eq('dock_kyc_credential_id', credentialId)
+      .select('id, kyc_status, kyc_credential_id')
+      .eq('kyc_credential_id', credentialId)
       .eq('kyc_status', 'pending');
 
     if (profileError || !profiles || profiles.length === 0) {
@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
         kyc_status: 'verified',
         kyc_verified_at: new Date().toISOString(),
         kyc_expires_at: expiryDate.toISOString(),
-        dock_wallet_did: claimerDid,
+        kyc_wallet_did: claimerDid,
       })
       .eq('id', profile.id);
 
