@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { CreateRentAgreementDrawer } from "@/components/CreateRentAgreementDrawer";
 import { TenantIBANForm } from "@/components/TenantIBANForm";
 import { useRentAgreements } from "@/hooks/useRentAgreements";
+import { usePropertyMutations } from "@/hooks/useProperties";
 import { SEPAMandateSignature } from "@/components/payments/SEPAMandateSignature";
 import { RentPaymentHistory } from "@/components/payments/RentPaymentHistory";
 import {
@@ -197,6 +198,9 @@ export default function PropertyDetails() {
   // Query for rent agreements (for managers)
   const { data: rentAgreements, isLoading: agreementsLoading } = useRentAgreements(propertyId);
 
+  // Get property mutations
+  const { archiveProperty } = usePropertyMutations();
+
   const updatePropertyMutation = useMutation({
     mutationFn: async (updates: { title: string; address: string; description: string }) => {
       const { error } = await supabase.from("properties").update(updates).eq("id", propertyId);
@@ -237,32 +241,6 @@ export default function PropertyDetails() {
     },
   });
 
-  const archivePropertyMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from("properties")
-        .update({
-          status: "inactive",
-          deleted_at: new Date().toISOString(),
-          delete_reason: archiveReason as "sold" | "no_longer_managing" | "merged_with_other_property" | "other",
-          modification_reason: archiveNotes || null,
-        })
-        .eq("id", propertyId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success(t("properties.propertyArchived"));
-      setShowArchiveDialog(false);
-      setArchiveReason("sold");
-      setArchiveNotes("");
-      navigate("/dashboard");
-    },
-    onError: (error) => {
-      toast.error(t("properties.archiveFailed"));
-      console.error("Archive error:", error);
-    },
-  });
 
   const handleSave = () => {
     updatePropertyMutation.mutate({ title, address, description });
@@ -1060,7 +1038,20 @@ export default function PropertyDetails() {
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => archivePropertyMutation.mutate()}
+              onClick={() => {
+                archiveProperty.mutate({
+                  id: propertyId!,
+                  reason: archiveReason,
+                  notes: archiveNotes || undefined,
+                }, {
+                  onSuccess: () => {
+                    setShowArchiveDialog(false);
+                    setArchiveReason("sold");
+                    setArchiveNotes("");
+                    navigate("/dashboard");
+                  }
+                });
+              }}
               disabled={!archiveReason}
               className="bg-destructive hover:bg-destructive/90"
             >

@@ -9,6 +9,7 @@ import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { supabase } from "@/integrations/supabase/client";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { propertyBaseSchema } from "@/lib/validations";
+import { usePropertyMutations } from "@/hooks/useProperties";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
 
@@ -25,6 +26,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
   const [photoUrl, setPhotoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const { trackEvent } = useAnalyticsContext();
+  const { createProperty } = usePropertyMutations();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,33 +57,36 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
         throw new Error(`You have reached the maximum limit of ${maxLimit} active properties. Please contact support to increase your limit.`);
       }
 
-      const { data: newProperty, error } = await supabase.from("properties").insert({
+      createProperty.mutate({
         title: data.title,
         address: data.address || null,
         description: data.description || null,
         images: photoUrl ? [photoUrl] : [],
         manager_id: user.id,
-      }).select().single();
+      }, {
+        onSuccess: (newProperty) => {
+          // Track property creation event
+          trackEvent({
+            event_name: 'property_created',
+            event_category: 'property_management',
+            event_metadata: {
+              property_id: newProperty.id,
+              has_photo: !!photoUrl,
+            },
+          });
 
-      if (error) throw error;
-
-      // Track property creation event
-      trackEvent({
-        event_name: 'property_created',
-        event_category: 'property_management',
-        event_metadata: {
-          property_id: newProperty.id,
-          has_photo: !!photoUrl,
+          setTitle("");
+          setAddress("");
+          setDescription("");
+          setPhotoUrl("");
+          setLoading(false);
+          onSuccess();
         },
+        onError: (error: any) => {
+          setLoading(false);
+          throw error;
+        }
       });
-
-      toast.success("Property created successfully");
-
-      setTitle("");
-      setAddress("");
-      setDescription("");
-      setPhotoUrl("");
-      onSuccess();
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast.error("Validation Error", {
