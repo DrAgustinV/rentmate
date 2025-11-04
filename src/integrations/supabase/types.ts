@@ -213,10 +213,14 @@ export type Database = {
           dock_manager_signature_proof: string | null
           dock_tenant_signature_proof: string | null
           dock_workflow_id: string | null
+          docuseal_audit_log_url: string | null
+          docuseal_submission_id: string | null
+          docuseal_template_id: string | null
           expires_at: string | null
           id: string
           initiated_at: string
           initiated_by: string
+          manager_signature_data: Json | null
           manager_signature_ip: string | null
           manager_signature_method: string | null
           manager_signed_at: string | null
@@ -224,6 +228,7 @@ export type Database = {
           signed_document_url: string | null
           signing_method: string | null
           tenancy_id: string
+          tenant_signature_data: Json | null
           tenant_signature_ip: string | null
           tenant_signature_method: string | null
           tenant_signed_at: string | null
@@ -240,10 +245,14 @@ export type Database = {
           dock_manager_signature_proof?: string | null
           dock_tenant_signature_proof?: string | null
           dock_workflow_id?: string | null
+          docuseal_audit_log_url?: string | null
+          docuseal_submission_id?: string | null
+          docuseal_template_id?: string | null
           expires_at?: string | null
           id?: string
           initiated_at?: string
           initiated_by: string
+          manager_signature_data?: Json | null
           manager_signature_ip?: string | null
           manager_signature_method?: string | null
           manager_signed_at?: string | null
@@ -251,6 +260,7 @@ export type Database = {
           signed_document_url?: string | null
           signing_method?: string | null
           tenancy_id: string
+          tenant_signature_data?: Json | null
           tenant_signature_ip?: string | null
           tenant_signature_method?: string | null
           tenant_signed_at?: string | null
@@ -267,10 +277,14 @@ export type Database = {
           dock_manager_signature_proof?: string | null
           dock_tenant_signature_proof?: string | null
           dock_workflow_id?: string | null
+          docuseal_audit_log_url?: string | null
+          docuseal_submission_id?: string | null
+          docuseal_template_id?: string | null
           expires_at?: string | null
           id?: string
           initiated_at?: string
           initiated_by?: string
+          manager_signature_data?: Json | null
           manager_signature_ip?: string | null
           manager_signature_method?: string | null
           manager_signed_at?: string | null
@@ -278,6 +292,7 @@ export type Database = {
           signed_document_url?: string | null
           signing_method?: string | null
           tenancy_id?: string
+          tenant_signature_data?: Json | null
           tenant_signature_ip?: string | null
           tenant_signature_method?: string | null
           tenant_signed_at?: string | null
@@ -498,17 +513,17 @@ export type Database = {
         Row: {
           aml_status: string | null
           created_at: string
-          dock_kyc_credential_id: string | null
-          dock_kyc_qr_code_url: string | null
-          dock_wallet_did: string | null
           email: string
           first_name: string | null
           id: string
           id_document_country: string | null
           id_document_type: string | null
+          kyc_credential_id: string | null
           kyc_expires_at: string | null
+          kyc_qr_code_url: string | null
           kyc_status: string | null
           kyc_verified_at: string | null
+          kyc_wallet_did: string | null
           last_name: string | null
           legal_name: string | null
           manager_iban: string | null
@@ -519,17 +534,17 @@ export type Database = {
         Insert: {
           aml_status?: string | null
           created_at?: string
-          dock_kyc_credential_id?: string | null
-          dock_kyc_qr_code_url?: string | null
-          dock_wallet_did?: string | null
           email: string
           first_name?: string | null
           id: string
           id_document_country?: string | null
           id_document_type?: string | null
+          kyc_credential_id?: string | null
           kyc_expires_at?: string | null
+          kyc_qr_code_url?: string | null
           kyc_status?: string | null
           kyc_verified_at?: string | null
+          kyc_wallet_did?: string | null
           last_name?: string | null
           legal_name?: string | null
           manager_iban?: string | null
@@ -540,17 +555,17 @@ export type Database = {
         Update: {
           aml_status?: string | null
           created_at?: string
-          dock_kyc_credential_id?: string | null
-          dock_kyc_qr_code_url?: string | null
-          dock_wallet_did?: string | null
           email?: string
           first_name?: string | null
           id?: string
           id_document_country?: string | null
           id_document_type?: string | null
+          kyc_credential_id?: string | null
           kyc_expires_at?: string | null
+          kyc_qr_code_url?: string | null
           kyc_status?: string | null
           kyc_verified_at?: string | null
+          kyc_wallet_did?: string | null
           last_name?: string | null
           legal_name?: string | null
           manager_iban?: string | null
