@@ -576,7 +576,19 @@ export default function PropertyTenants() {
     }
   };
 
-  if (!property) {
+  // Check loading state FIRST
+  if (propertyLoading || userRoleLoading) {
+    return (
+      <AppLayout>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Then check for errors or missing data
+  if (propertyError || !property) {
     return (
       <AppLayout>
         <div className="text-center py-12">
