@@ -18,6 +18,21 @@ interface BreadcrumbSegment {
 export function Breadcrumbs() {
   const location = useLocation();
   
+  const breadcrumbMap: Record<string, string> = {
+    'properties': 'Properties',
+    'renting': 'Renting',
+    'configuration': 'Configuration',
+    'profile': 'Profile',
+    'identity': 'Identity Verification',
+    'settings': 'Settings',
+    'admin': 'Admin',
+    'tickets': 'Tickets',
+    'maintenance': 'Maintenance',
+    'tenants': 'Tenants',
+    'details': 'Details',
+    'documents': 'Documents',
+  };
+
   const generateBreadcrumbs = (): BreadcrumbSegment[] => {
     const pathSegments = location.pathname.split("/").filter(Boolean);
     const breadcrumbs: BreadcrumbSegment[] = [];
@@ -26,35 +41,19 @@ export function Breadcrumbs() {
     pathSegments.forEach((segment, index) => {
       const isLast = index === pathSegments.length - 1;
 
-      // Handle special cases
-      if (segment === "properties") {
-        // Map "properties" to dashboard since that's where the property list is shown
-        breadcrumbs.push({
-          label: "Properties",
-          path: "/dashboard",
-          isLast,
-        });
-        currentPath += `/${segment}`;
-        return;
-      } else if (segment.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-        // Skip UUID segments completely
+      // Skip UUID segments
+      if (segment.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
         currentPath += `/${segment}`;
         return;
       }
 
       currentPath += `/${segment}`;
 
-      // Generate human-readable labels
-      let label = segment
+      // Use breadcrumbMap or generate human-readable labels
+      const label = breadcrumbMap[segment] || segment
         .split("-")
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
-
-      if (segment === "tickets" && index > 0) {
-        label = "Tickets";
-      } else if (segment === "maintenance") {
-        label = "Maintenance";
-      }
 
       breadcrumbs.push({
         label,

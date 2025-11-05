@@ -10,37 +10,16 @@ import { useToast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserCircle, Bell, Lock, Palette, Globe, Wrench, CreditCard, ShieldCheck, FileSignature } from "lucide-react";
+import { Bell, Lock, Palette } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { SEPADirectDebitSettings } from "@/components/payments/SEPADirectDebitSettings";
-import { IdentityVerification } from "@/components/IdentityVerification";
-import { KYCRequirementSettings } from "@/components/KYCRequirementSettings";
-import { Language } from "@/lib/i18n/translations";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import RepairShops from "./RepairShops";
-
-const languages: { code: Language; label: string; flag: string }[] = [
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
-];
 
 export default function Settings() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [saving, setSaving] = useState(false);
-  const { t, language, changeLanguage } = useLanguage();
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -67,75 +46,7 @@ export default function Settings() {
   }, [navigate]);
 
   const fetchProfile = async (userId: string) => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("first_name, last_name")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") throw error;
-
-      if (data) {
-        setFirstName(data.first_name || "");
-        setLastName(data.last_name || "");
-      }
-      setSelectedLanguage(language);
-
-      // Check if user is a manager (has properties)
-      const { data: properties } = await supabase
-        .from("properties")
-        .select("id")
-        .eq("manager_id", userId)
-        .limit(1);
-
-      setUserRole(properties && properties.length > 0 ? "manager" : "tenant");
-    } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveProfile = async () => {
-    if (!user) return;
-
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          first_name: firstName,
-          last_name: lastName,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      // Save language preference if changed
-      if (selectedLanguage !== language) {
-        await changeLanguage(selectedLanguage);
-      }
-
-      toast({
-        title: t('common.success'),
-        description: t('settings.saved'),
-      });
-    } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
+    setLoading(false);
   };
 
   const handleSignOut = async () => {
@@ -164,19 +75,11 @@ export default function Settings() {
           <p className="text-muted-foreground mt-1">{t('settings.description')}</p>
         </div>
 
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className={`grid w-full ${userRole === 'manager' ? 'grid-cols-7' : 'grid-cols-5'}`}>
-            <TabsTrigger value="profile" className="gap-2">
-              <UserCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('settings.profile')}</span>
-            </TabsTrigger>
+        <Tabs defaultValue="appearance" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="appearance" className="gap-2">
               <Palette className="h-4 w-4" />
               <span className="hidden sm:inline">{t('settings.appearance')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="identity" className="gap-2">
-              <ShieldCheck className="h-4 w-4" />
-              <span className="hidden sm:inline">Identity</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2">
               <Bell className="h-4 w-4" />
@@ -186,107 +89,7 @@ export default function Settings() {
               <Lock className="h-4 w-4" />
               <span className="hidden sm:inline">{t('settings.security')}</span>
             </TabsTrigger>
-            {userRole === 'manager' && (
-              <>
-                <TabsTrigger value="contracts" className="gap-2">
-                  <FileSignature className="h-4 w-4" />
-                  <span className="hidden sm:inline">Contracts</span>
-                </TabsTrigger>
-                <TabsTrigger value="payments" className="gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t('settings.payments')}</span>
-                </TabsTrigger>
-                <TabsTrigger value="repair-shops" className="gap-2">
-                  <Wrench className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t('repairShops.title')}</span>
-                </TabsTrigger>
-              </>
-            )}
           </TabsList>
-
-          <TabsContent value="profile" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('settings.profileTitle')}</CardTitle>
-                <CardDescription>
-                  {t('settings.profileDesc')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">{t('settings.firstName')}</Label>
-                    <Input
-                      id="firstName"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder={t('settings.firstNamePlaceholder')}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">{t('settings.lastName')}</Label>
-                    <Input
-                      id="lastName"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder={t('settings.lastNamePlaceholder')}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t('settings.email')}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={user?.email || ""}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {t('settings.emailNote')}
-                  </p>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label htmlFor="language">{t('settings.languageLabel')}</Label>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {t('settings.languageDesc')}
-                  </p>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        <Globe className="mr-2 h-4 w-4" />
-                        {languages.find(l => l.code === selectedLanguage)?.flag} {languages.find(l => l.code === selectedLanguage)?.label}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-full">
-                      {languages.map((lang) => (
-                        <DropdownMenuItem
-                          key={lang.code}
-                          onClick={() => setSelectedLanguage(lang.code)}
-                          className={selectedLanguage === lang.code ? 'bg-accent' : ''}
-                        >
-                          <span className="mr-2">{lang.flag}</span>
-                          {lang.label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <Separator />
-
-                <div className="flex justify-end">
-                  <Button onClick={handleSaveProfile} disabled={saving}>
-                    {saving ? t('settings.saving') : t('settings.saveChanges')}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="appearance" className="mt-6">
             <Card>
@@ -300,10 +103,6 @@ export default function Settings() {
                 <AppearanceSettings />
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="identity" className="mt-6">
-            <IdentityVerification />
           </TabsContent>
 
           <TabsContent value="notifications" className="mt-6">
@@ -352,20 +151,6 @@ export default function Settings() {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {userRole === 'manager' && (
-            <>
-              <TabsContent value="contracts" className="mt-6">
-                <KYCRequirementSettings />
-              </TabsContent>
-              <TabsContent value="payments" className="mt-6">
-                <SEPADirectDebitSettings />
-              </TabsContent>
-              <TabsContent value="repair-shops" className="mt-6">
-                <RepairShops />
-              </TabsContent>
-            </>
-          )}
         </Tabs>
       </div>
     </AppLayout>
