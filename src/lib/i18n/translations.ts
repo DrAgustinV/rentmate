@@ -682,6 +682,9 @@ export const translations = {
     tickets: {
       title: "Tickets",
       description: "Manage property tickets and requests",
+      openTickets: "Open Tickets",
+      openTicketsDesc: "Active tickets for this property",
+      noOpenTickets: "No open tickets at the moment",
       newTicket: "New Ticket",
       all: "All",
       ticketNumber: "Ticket #",
@@ -1670,6 +1673,9 @@ export const translations = {
     tickets: {
       title: "Tickets",
       description: "Gestiona tickets y solicitudes de propiedades",
+      openTickets: "Tickets Abiertos",
+      openTicketsDesc: "Tickets activos para esta propiedad",
+      noOpenTickets: "No hay tickets abiertos en este momento",
       newTicket: "Nuevo Ticket",
       all: "Todos",
       ticketNumber: "Ticket #",

@@ -84,6 +84,17 @@ export default function Dashboard() {
         return;
       }
       setUserId(session.user.id);
+      
+      // Redirect managers to Properties page
+      const { data: properties } = await supabase
+        .from("properties")
+        .select("id")
+        .eq("manager_id", session.user.id)
+        .limit(1);
+      
+      if (properties && properties.length > 0) {
+        navigate("/properties", { replace: true });
+      }
     };
 
     checkUser();

@@ -65,6 +65,10 @@ export function Breadcrumbs() {
     return breadcrumbs;
   };
 
+  // Breadcrumbs are hidden - top tabs provide navigation context
+  return null;
+  
+  // Keep code below for future use
   const breadcrumbs = generateBreadcrumbs();
 
   // Don't show breadcrumbs on home/dashboard

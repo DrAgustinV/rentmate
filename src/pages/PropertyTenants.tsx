@@ -641,6 +641,18 @@ export default function PropertyTenants() {
               ) : (
                 <p className="text-sm text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
               )}
+              
+              {/* Invite New Tenant Button */}
+              {userRole?.isManager && !isReadOnly && (
+                <Button
+                  variant={!currentTenant ? "default" : "outline"}
+                  onClick={() => setShowInviteForm(!showInviteForm)}
+                  className="w-full mt-3"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  {showInviteForm ? t("common.cancel") : t("properties.inviteNewTenant")}
+                </Button>
+              )}
             </div>
 
             {/* Section 2: Pending Invitations (Manager Only) */}
@@ -722,10 +734,18 @@ export default function PropertyTenants() {
                         </Badge>
                       )}
                       {!isReadOnly && !uploadDocumentOpen && !selectedParentDoc && (
-                        <Button variant="outline" size="sm" onClick={() => setUploadDocumentOpen(true)}>
-                          <Upload className="h-4 w-4 mr-2" />
-                          {t("properties.uploadTenancyDocument")}
-                        </Button>
+                        <>
+                          {userRole?.isManager && (
+                            <Button variant="outline" size="sm" onClick={() => setCopyTemplatesOpen(true)}>
+                              <Copy className="h-4 w-4 mr-2" />
+                              {t("properties.copyTemplates")}
+                            </Button>
+                          )}
+                          <Button variant="outline" size="sm" onClick={() => setUploadDocumentOpen(true)}>
+                            <Upload className="h-4 w-4 mr-2" />
+                            {t("properties.uploadTenancyDocument")}
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -871,36 +891,27 @@ export default function PropertyTenants() {
               </>
             )}
 
-            {/* Section 5: Action Buttons */}
-            <Separator />
-            <div className="flex flex-wrap gap-2">
-              {userRole?.isManager && !isReadOnly && (
-                <Button
-                  variant="outline"
-                  onClick={() => setShowInviteForm(!showInviteForm)}
-                  disabled={isReadOnly}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  {showInviteForm ? t("common.cancel") : t("properties.inviteNewTenant")}
-                </Button>
-              )}
-              {userRole?.isManager && currentTenant && !isReadOnly && (
-                <Button variant="outline" onClick={() => setCopyTemplatesOpen(true)} disabled={isReadOnly}>
-                  <Copy className="h-4 w-4 mr-2" />
-                  {t("properties.copyTemplates")}
-                </Button>
-              )}
-              {currentTenant && !isReadOnly && (
-                <Button variant="outline" onClick={() => setUploadDocumentOpen(!uploadDocumentOpen)} disabled={isReadOnly}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  {t("properties.uploadTenancyDocument")}
-                </Button>
-              )}
-              <Button variant="outline" onClick={() => navigate(`/properties/${propertyId}/tickets`)}>
-                <Ticket className="h-4 w-4 mr-2" />
-                {t("tenants.viewAllTickets")}
-              </Button>
+          </CardContent>
+        </Card>
+
+        {/* Open Tickets Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("tickets.openTickets")}</CardTitle>
+            <CardDescription>{t("tickets.openTicketsDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">{t("tickets.noOpenTickets")}</p>
             </div>
+            <Button 
+              variant="outline" 
+              className="w-full mt-4"
+              onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+            >
+              <Ticket className="h-4 w-4 mr-2" />
+              {t("tenants.viewAllTickets")}
+            </Button>
           </CardContent>
         </Card>
 
