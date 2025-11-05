@@ -54,7 +54,7 @@ export const ContractSignatureManager = ({
   const [docusealToken, setDocusealToken] = useState<string | null>(null);
   const [rentAgreement, setRentAgreement] = useState<any>(null);
   const [agreementLoading, setAgreementLoading] = useState(true);
-  
+  const tokenGenerationAttempted = useRef(false);
 
   const loadSignature = async () => {
     try {
@@ -387,8 +387,6 @@ export const ContractSignatureManager = ({
   const isDocusealSignature = signature.signing_method === 'docuseal' || signature.docuseal_submission_id;
 
   // Generate DocuSeal token if needed - with guard to prevent infinite loops
-  const tokenGenerationAttempted = useRef(false);
-
   useEffect(() => {
     const loadDocusealToken = async () => {
       // Guard: only attempt once per signature
