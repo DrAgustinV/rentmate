@@ -108,7 +108,8 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
   return (
     <>
       <Card
-        className="overflow-hidden hover-lift group animate-fade-in min-h-[420px]"
+        className="overflow-hidden hover-lift group animate-fade-in min-h-[420px] cursor-pointer transition-all duration-200 hover:shadow-lg"
+        onClick={() => navigate(`/properties/${property.id}/details`)}
         style={{
           borderTop: `3px solid ${
             property.status === "active"
@@ -236,67 +237,34 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           )}
         </CardContent>
 
-        {(property.status === "active" || property.status === "ending_tenancy") && (
+        {(property.status === "active" || property.status === "ending_tenancy") && !isManager && (
           <CardFooter className="border-t bg-muted/50 pt-4 flex-col gap-2">
-            {isManager ? (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/properties/${property.id}/details`)}
-                  className="w-full gap-2"
-                  aria-label={`${t("properties.editProperty")} ${property.title}`}
-                >
-                  <Edit className="h-4 w-4" />
-                  {t("properties.editProperty")}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/properties/${property.id}/tenants`)}
-                  className="w-full gap-2"
-                  aria-label={`${t("properties.tenants")} ${property.title}`}
-                >
-                  <Users className="h-4 w-4" />
-                  {!tenantStatus || tenantStatus.status === "free" ? t("properties.inviteTenant") : ""}
-                  {tenantStatus?.status === "occupied" && `${t("properties.tenants")} (${tenantStatus.tenant_name})`}
-                  {tenantStatus?.status === "invited" && `${t("properties.pending")} (${tenantStatus.pending_invites})`}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/properties/${property.id}/details`)}
-                  className="w-full gap-2"
-                  aria-label={`${t("properties.viewDetails")} ${property.title}`}
-                >
-                  <Eye className="h-4 w-4" />
-                  {t("properties.viewDetails")}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/properties/${property.id}/tickets`)}
-                  className="w-full gap-2"
-                  aria-label={`${t("properties.myTickets")} ${property.title}`}
-                >
-                  <Ticket className="h-4 w-4" />
-                  {t("properties.myTickets")}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/properties/${property.id}/maintenance`)}
-                  className="w-full gap-2"
-                  aria-label={`${t("properties.maintenance")} ${property.title}`}
-                >
-                  <Wrench className="h-4 w-4" />
-                  {t("properties.maintenance")}
-                </Button>
-              </>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/properties/${property.id}/tickets`);
+              }}
+              className="w-full gap-2"
+              aria-label={`${t("properties.myTickets")} ${property.title}`}
+            >
+              <Ticket className="h-4 w-4" />
+              {t("properties.myTickets")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/properties/${property.id}/maintenance`);
+              }}
+              className="w-full gap-2"
+              aria-label={`${t("properties.maintenance")} ${property.title}`}
+            >
+              <Wrench className="h-4 w-4" />
+              {t("properties.maintenance")}
+            </Button>
           </CardFooter>
         )}
       </Card>
