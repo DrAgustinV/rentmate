@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from '@tanstack/react-query';
+import { TENANT_PROPERTIES_QUERY_KEY } from '@/hooks/useTenantProperties';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, CheckCircle, XCircle, Home, MapPin } from "lucide-react";
@@ -44,6 +46,7 @@ export default function Invitations() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
 
   const [invitationPreview, setInvitationPreview] = useState<Invitation | null>(null);
   const [showDecisionPage, setShowDecisionPage] = useState(false);
@@ -229,6 +232,11 @@ export default function Invitations() {
       // Enforce FIFO tenancy limit (delete oldest inactive if > 5 tenancies)
       await supabase.functions.invoke("manage-tenancy-limit", {
         body: { property_id: propertyId },
+      });
+
+      // Invalidate tenant properties cache to refresh the list
+      await queryClient.invalidateQueries({ 
+        queryKey: [TENANT_PROPERTIES_QUERY_KEY] 
       });
 
       toast({
