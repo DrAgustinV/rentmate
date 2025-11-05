@@ -12,32 +12,19 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    console.log('Authorization header present:', !!authHeader);
-    if (authHeader) {
-      console.log('Auth header preview:', authHeader.substring(0, 20) + '...');
-    }
-
-    if (!authHeader) {
-      throw new Error('No authorization header provided. Please log out and log in again.');
-    }
-
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: authHeader },
+          headers: { Authorization: req.headers.get('Authorization')! },
         },
       }
     );
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    console.log('Auth check - user found:', !!user, 'auth error:', authError?.message);
-
+    const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
-      const errorMsg = authError?.message || 'User verification failed';
-      throw new Error(`Not authenticated: ${errorMsg}. Please log out and log in again.`);
+      throw new Error('Not authenticated');
     }
 
     const { tenancyId } = await req.json();

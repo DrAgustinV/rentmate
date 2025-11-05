@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,7 +54,7 @@ export const ContractSignatureManager = ({
   const [docusealToken, setDocusealToken] = useState<string | null>(null);
   const [rentAgreement, setRentAgreement] = useState<any>(null);
   const [agreementLoading, setAgreementLoading] = useState(true);
-  const tokenGenerationAttempted = useRef(false);
+  
 
   const loadSignature = async () => {
     try {
@@ -80,9 +80,8 @@ export const ContractSignatureManager = ({
       setAgreementLoading(true);
       const { data } = await supabase
         .from('rent_agreements')
-        .select('id, rent_amount_cents, currency, start_date')
+        .select('id, contract_pdf_url')
         .eq('tenancy_id', tenancyId)
-        .eq('is_active', true)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -112,21 +111,6 @@ export const ContractSignatureManager = ({
   const handleInitiateSignature = async () => {
     setLoading(true);
     try {
-      // Refresh session to get a fresh token
-      const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
-      
-      if (refreshError || !session) {
-        console.error('Session refresh failed:', refreshError);
-        toast({
-          title: "Session Expired",
-          description: "Please log out and log in again to continue.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
-      console.log('Session refreshed, initiating signature...');
       let functionName = 'initiate-contract-signature';
       if (signingMethod === 'docuseal') {
         functionName = 'initiate-docuseal-signature';
@@ -136,10 +120,7 @@ export const ContractSignatureManager = ({
         body: { tenancyId, propertyId }
       });
 
-      if (error) {
-        console.error('Edge function error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       if (!data?.success) {
         const errorMsg = data?.error || 'Unknown error';
@@ -176,10 +157,7 @@ export const ContractSignatureManager = ({
       onRefresh?.();
     } catch (error: any) {
       console.error('Error initiating signature:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
-      
-      const errorMsg = error.message || error.msg || 'Failed to initiate signature';
-      console.error('Showing toast for error:', errorMsg);
+      const errorMsg = error.message || 'Failed to initiate signature';
       
       // Parse error messages
       if (errorMsg.includes('Manager KYC')) {
@@ -225,8 +203,11 @@ export const ContractSignatureManager = ({
       return data.token;
     } catch (error) {
       console.error('Error generating DocuSeal token:', error);
-      // Don't show toast - this creates state updates that can cause loops
-      // Just log and return null
+      toast({
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : 'Failed to generate signing token',
+        variant: "destructive",
+      });
       return null;
     }
   };
@@ -316,14 +297,14 @@ export const ContractSignatureManager = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!agreementLoading && isManager && signingMethod === 'docuseal' && !rentAgreement && (
+          {!agreementLoading && isManager && signingMethod === 'docuseal' && !rentAgreement?.contract_pdf_url && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 <p className="font-semibold">Rent Agreement Required</p>
                 <p className="text-sm mt-1">
-                  Please create a rent agreement before initiating DocuSeal signatures.
-                  The rent agreement provides the necessary details for the contract.
+                  Please create a rent agreement with a PDF contract before using DocuSeal signatures.
+                  You can upload a contract in the "Rent Agreement" section.
                 </p>
               </AlertDescription>
             </Alert>
@@ -362,7 +343,7 @@ export const ContractSignatureManager = ({
                 disabled={
                   loading || 
                   agreementLoading ||
-                  (signingMethod === 'docuseal' && !rentAgreement)
+                  (signingMethod === 'docuseal' && !rentAgreement?.contract_pdf_url)
                 }
                 className="w-full"
               >
@@ -386,33 +367,18 @@ export const ContractSignatureManager = ({
   const tenantSigned = !!signature.tenant_signed_at;
   const isDocusealSignature = signature.signing_method === 'docuseal' || signature.docuseal_submission_id;
 
-  // Generate DocuSeal token if needed - with guard to prevent infinite loops
+  // Generate DocuSeal token if needed
   useEffect(() => {
     const loadDocusealToken = async () => {
-      // Guard: only attempt once per signature
-      if (tokenGenerationAttempted.current) return;
-      
       if (isDocusealSignature && !isCompleted && signature?.docuseal_submission_id) {
-        tokenGenerationAttempted.current = true;
-        
-        try {
-          const role = isManager ? 'manager' : 'tenant';
-          const token = await generateDocusealToken(role);
-          setDocusealToken(token);
-        } catch (error) {
-          // Silent fail - don't trigger UI updates
-          console.error('Token generation failed:', error);
-        }
+        const role = isManager ? 'manager' : 'tenant';
+        const token = await generateDocusealToken(role);
+        setDocusealToken(token);
       }
     };
     
     loadDocusealToken();
   }, [isDocusealSignature, isCompleted, signature?.docuseal_submission_id, isManager]);
-
-  // Reset the flag when signature changes
-  useEffect(() => {
-    tokenGenerationAttempted.current = false;
-  }, [signature?.id]);
 
   return (
     <Card>
