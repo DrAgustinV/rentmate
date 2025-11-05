@@ -85,7 +85,7 @@ export default function Dashboard() {
       }
       setUserId(session.user.id);
       
-      // Redirect managers to Properties page
+      // Check if user is a manager
       const { data: properties } = await supabase
         .from("properties")
         .select("id")
@@ -94,6 +94,19 @@ export default function Dashboard() {
       
       if (properties && properties.length > 0) {
         navigate("/properties", { replace: true });
+        return;
+      }
+
+      // Check if user is a tenant
+      const { data: tenancies } = await supabase
+        .from("property_tenants")
+        .select("id")
+        .eq("tenant_id", session.user.id)
+        .limit(1);
+      
+      if (tenancies && tenancies.length > 0) {
+        navigate("/renting", { replace: true });
+        return;
       }
     };
 

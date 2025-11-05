@@ -10,6 +10,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
+import { useQueryClient } from '@tanstack/react-query';
+import { TENANT_PROPERTIES_QUERY_KEY } from '@/hooks/useTenantProperties';
 
 interface TenancyRelationship {
   id: string;
@@ -46,6 +48,7 @@ export default function Renting() {
   const [currentView, setCurrentView] = useState<"active" | "ending_tenancy" | "archived">("active");
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -236,16 +239,51 @@ export default function Renting() {
   const handleAcceptInvitation = async (invitationId: string) => {
     setProcessingInvitation(invitationId);
     try {
-      const { error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Find the invitation to get property_id
+      const invitation = invitations.find(inv => inv.id === invitationId);
+      if (!invitation) throw new Error("Invitation not found");
+
+      // Create property_tenants record
+      const { error: tenantError } = await supabase
+        .from("property_tenants")
+        .insert({
+          property_id: invitation.property_id,
+          tenant_id: user.id,
+          tenancy_status: 'active',
+          started_at: new Date().toISOString(),
+        });
+
+      if (tenantError) throw tenantError;
+
+      // Update invitation status
+      const { error: updateError } = await supabase
         .from("invitations")
-        .update({ status: "accepted" })
+        .update({
+          status: "accepted",
+          invited_user_id: user.id,
+        })
         .eq("id", invitationId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Enforce FIFO tenancy limit
+      await supabase.functions.invoke("manage-tenancy-limit", {
+        body: { property_id: invitation.property_id },
+      });
+
+      // Invalidate cache to refresh
+      await queryClient.invalidateQueries({ 
+        queryKey: [TENANT_PROPERTIES_QUERY_KEY] 
+      });
 
       toast.success("Invitation accepted");
-      if (userId) {
-        await fetchData(userId, "", isManager);
+      
+      // Refresh data
+      if (userId && user.email) {
+        await fetchData(userId, user.email, isManager);
       }
     } catch (error: any) {
       toast.error(error.message);
