@@ -48,6 +48,17 @@ const rentAgreementSchema = z.object({
     },
     { message: 'Rent amount must be a positive number' }
   ),
+  security_deposit: z.string().optional().refine(
+    (val) => {
+      if (!val || val === '') return true;
+      const num = parseFloat(val);
+      return !isNaN(num) && num >= 0;
+    },
+    { message: 'Security deposit must be a positive number or zero' }
+  ),
+  deposit_return_days: z.string().optional(),
+  utilities_tenant: z.string().optional(),
+  utilities_manager: z.string().optional(),
   payment_day: z.string().min(1, 'Payment day is required'),
   start_date: z.date({ required_error: 'Start date is required' }),
   end_date: z.date().optional(),
@@ -85,6 +96,10 @@ export function CreateRentAgreementDrawer({
       tenancy_id: activeTenant?.id || '',
       tenant_id: activeTenant?.tenant_id || '',
       rent_amount: '',
+      security_deposit: '',
+      deposit_return_days: '30',
+      utilities_tenant: '',
+      utilities_manager: '',
       payment_day: '1',
       currency: 'eur',
     },
@@ -96,6 +111,12 @@ export function CreateRentAgreementDrawer({
       tenancy_id: data.tenancy_id,
       tenant_id: data.tenant_id,
       rent_amount_cents: Math.round(parseFloat(data.rent_amount) * 100),
+      security_deposit_cents: data.security_deposit && data.security_deposit !== '' 
+        ? Math.round(parseFloat(data.security_deposit) * 100) 
+        : undefined,
+      deposit_return_days: data.deposit_return_days ? parseInt(data.deposit_return_days) : 30,
+      utilities_tenant_responsible: data.utilities_tenant || undefined,
+      utilities_manager_responsible: data.utilities_manager || undefined,
       payment_day: parseInt(data.payment_day),
       start_date: format(data.start_date, 'yyyy-MM-dd'),
       end_date: data.end_date ? format(data.end_date, 'yyyy-MM-dd') : undefined,
@@ -179,6 +200,93 @@ export function CreateRentAgreementDrawer({
                           <SelectItem value="gbp">GBP (£)</SelectItem>
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="security_deposit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Security Deposit ({t('common.optional')})</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="2000.00"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Amount held as security deposit
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="deposit_return_days"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Deposit Return Period ({t('common.optional')})</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="30"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Days to return deposit after tenancy ends
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="utilities_tenant"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tenant Utilities ({t('common.optional')})</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Electricity, Water, Gas"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Comma-separated list of utilities paid by tenant
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="utilities_manager"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Manager Utilities ({t('common.optional')})</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Heating, Internet"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Comma-separated list of utilities paid by manager
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -873,6 +873,7 @@ export type Database = {
         Row: {
           created_at: string
           currency: string
+          deposit_return_days: number | null
           end_date: string | null
           id: string
           is_active: boolean
@@ -884,15 +885,19 @@ export type Database = {
           payment_day: number
           property_id: string
           rent_amount_cents: number
+          security_deposit_cents: number | null
           start_date: string
           tenancy_id: string
           tenant_iban: string | null
           tenant_id: string
           updated_at: string
+          utilities_manager_responsible: string | null
+          utilities_tenant_responsible: string | null
         }
         Insert: {
           created_at?: string
           currency?: string
+          deposit_return_days?: number | null
           end_date?: string | null
           id?: string
           is_active?: boolean
@@ -904,15 +909,19 @@ export type Database = {
           payment_day: number
           property_id: string
           rent_amount_cents: number
+          security_deposit_cents?: number | null
           start_date: string
           tenancy_id: string
           tenant_iban?: string | null
           tenant_id: string
           updated_at?: string
+          utilities_manager_responsible?: string | null
+          utilities_tenant_responsible?: string | null
         }
         Update: {
           created_at?: string
           currency?: string
+          deposit_return_days?: number | null
           end_date?: string | null
           id?: string
           is_active?: boolean
@@ -924,11 +933,14 @@ export type Database = {
           payment_day?: number
           property_id?: string
           rent_amount_cents?: number
+          security_deposit_cents?: number | null
           start_date?: string
           tenancy_id?: string
           tenant_iban?: string | null
           tenant_id?: string
           updated_at?: string
+          utilities_manager_responsible?: string | null
+          utilities_tenant_responsible?: string | null
         }
         Relationships: [
           {
