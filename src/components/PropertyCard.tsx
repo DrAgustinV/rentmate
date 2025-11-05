@@ -2,18 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  MapPin,
-  Edit,
-  Mail,
-  Archive,
-  Users,
-  Home,
-  Image as ImageIcon,
-  Eye,
-  Ticket,
-  Wrench,
-} from "lucide-react";
+import { MapPin, Edit, Mail, Archive, Users, Home, Image as ImageIcon, Eye, Ticket, Wrench } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,10 +51,8 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
   useEffect(() => {
     const fetchPhotoUrl = async () => {
       if (property.images?.[0]) {
-        const { data } = await supabase.storage
-          .from('property-photos')
-          .createSignedUrl(property.images[0], 3600);
-        
+        const { data } = await supabase.storage.from("property-photos").createSignedUrl(property.images[0], 3600);
+
         if (data) {
           setPhotoUrl(data.signedUrl);
         }
@@ -73,7 +60,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
         setPhotoUrl(undefined);
       }
     };
-    
+
     fetchPhotoUrl();
   }, [property.images]);
 
@@ -95,7 +82,11 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
         };
       }
     } else if (property.status === "ending_tenancy") {
-      return { variant: "default" as const, className: "bg-orange-500 hover:bg-orange-600", text: t("properties.endingTenancy") };
+      return {
+        variant: "default" as const,
+        className: "bg-orange-500 hover:bg-orange-600",
+        text: t("properties.endingTenancy"),
+      };
     } else {
       return { variant: "secondary" as const, className: "", text: t("properties.inactive") };
     }
@@ -114,8 +105,8 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           borderTop: `3px solid ${
             property.status === "active"
               ? tenantStatus?.status === "occupied"
-                ? "hsl(142 71% 45%)"  // Green for occupied
-                : "hsl(217 91% 60%)"  // Blue for free
+                ? "hsl(142 71% 45%)" // Green for occupied
+                : "hsl(217 91% 60%)" // Blue for free
               : property.status === "ending_tenancy"
                 ? "hsl(var(--warning))"
                 : "hsl(var(--muted))"
@@ -132,12 +123,12 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                   <img
                     src={photoUrl}
                     alt={property.title}
-                    className="w-32 h-32 rounded-lg object-cover shadow-md border-2 border-border transition-transform duration-300 group-hover/image:scale-105"
+                    className="w-48 h-48 rounded-lg object-cover shadow-md border-2 border-border transition-transform duration-300 group-hover/image:scale-105"
                   />
                   <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
                 </>
               ) : (
-                <div className="w-32 h-32 rounded-lg bg-muted/50 flex items-center justify-center border-2 border-dashed border-border transition-colors duration-200 hover:border-primary/50">
+                <div className="w-48 h-48 rounded-lg bg-muted/50 flex items-center justify-center border-2 border-dashed border-border transition-colors duration-200 hover:border-primary/50">
                   <ImageIcon className="h-12 w-12 text-muted-foreground" />
                 </div>
               )}
