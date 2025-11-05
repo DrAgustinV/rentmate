@@ -23,6 +23,11 @@ import Help from "./pages/Help";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
+import Properties from "./pages/Properties";
+import Renting from "./pages/Renting";
+import Configuration from "./pages/Configuration";
+import Profile from "./pages/Profile";
+import Identity from "./pages/Identity";
 import { queryClient } from "./lib/queryClient";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 
@@ -36,7 +41,12 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/invitations" element={<Invitations />} />
+          <Route path="/properties" element={<Properties />} />
+          <Route path="/renting" element={<Renting />} />
+          <Route path="/configuration" element={<Configuration />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/identity" element={<Identity />} />
+          <Route path="/invitations" element={<Navigate to="/renting" replace />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/kilt-setup" element={<KiltSetup />} />
           <Route path="/admin" element={<Admin />} />

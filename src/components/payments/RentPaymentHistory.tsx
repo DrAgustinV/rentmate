@@ -3,11 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DollarSign, CheckCircle2, Clock, AlertTriangle, Loader2 } from 'lucide-react';
+import { DollarSign, CheckCircle2, Clock, AlertTriangle, Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { ProofOfPaymentUpload } from '@/components/ProofOfPaymentUpload';
 
 interface RentPayment {
   id: string;
@@ -35,6 +37,8 @@ export function RentPaymentHistory({ propertyId, isManager }: RentPaymentHistory
   const [loading, setLoading] = useState(true);
   const [payments, setPayments] = useState<RentPayment[]>([]);
   const [marking, setMarking] = useState<string | null>(null);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPayments();
@@ -183,6 +187,18 @@ export function RentPaymentHistory({ propertyId, isManager }: RentPaymentHistory
                   </div>
                   <div className="flex items-center gap-3">
                     {getStatusBadge(payment.status)}
+                    {!isManager && payment.status === 'pending' && (
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPaymentId(payment.id);
+                          setUploadDialogOpen(true);
+                        }}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Proof
+                      </Button>
+                    )}
                     {isManager && payment.status === 'pending' && (
                       <Button
                         size="sm"
@@ -269,6 +285,15 @@ export function RentPaymentHistory({ propertyId, isManager }: RentPaymentHistory
           )}
         </CardContent>
       </Card>
+
+      {selectedPaymentId && (
+        <ProofOfPaymentUpload
+          paymentId={selectedPaymentId}
+          open={uploadDialogOpen}
+          onOpenChange={setUploadDialogOpen}
+          onSuccess={fetchPayments}
+        />
+      )}
     </div>
   );
 }

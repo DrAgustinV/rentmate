@@ -18,7 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck } from "lucide-react";
+import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck, Building, Handshake, FolderOpen, CreditCard } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -29,6 +29,7 @@ export function AppHeader() {
   const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isManager, setIsManager] = useState(false);
   const [pendingInvitations, setPendingInvitations] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
@@ -49,6 +50,7 @@ export function AppHeader() {
   useEffect(() => {
     if (user) {
       checkAdminRole();
+      checkManagerRole();
       fetchPendingInvitations();
     }
   }, [user]);
@@ -57,6 +59,16 @@ export function AppHeader() {
     if (!user) return;
     const { data } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
     setIsAdmin(data || false);
+  };
+
+  const checkManagerRole = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("properties")
+      .select("id")
+      .eq("manager_id", user.id)
+      .limit(1);
+    setIsManager(data && data.length > 0);
   };
 
   const fetchPendingInvitations = async () => {
@@ -78,11 +90,18 @@ export function AppHeader() {
 
   if (!user) return null;
 
-  const navLinks = [
-    { path: "/dashboard", label: t('header.dashboard'), icon: Home },
-    { path: "/invitations", label: t('header.invitations'), icon: Bell, badge: pendingInvitations },
-    { path: "/settings", label: t('header.settings'), icon: Settings },
-  ];
+  const navLinks = isManager
+    ? [
+        { path: "/dashboard", label: t('header.dashboard'), icon: Home },
+        { path: "/properties", label: t('properties.title'), icon: Building },
+        { path: "/renting", label: t('renting.title'), icon: Handshake },
+        { path: "/configuration", label: t('configuration.title'), icon: FolderOpen },
+      ]
+    : [
+        { path: "/dashboard", label: t('header.dashboard'), icon: Home },
+        { path: "/renting", label: t('renting.title'), icon: Handshake, badge: pendingInvitations },
+        { path: "/settings", label: t('header.settings'), icon: Settings },
+      ];
 
   if (isAdmin) {
     navLinks.push({ path: "/admin", label: t('header.admin'), icon: ShieldCheck });
@@ -138,9 +157,18 @@ export function AppHeader() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>{t('header.myAccount')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/settings")}>
-                <Settings className="mr-2 h-4 w-4" />
-                {t('header.settings')}
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
+                <UserCircle className="mr-2 h-4 w-4" />
+                {t('account.profile')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/identity")}>
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                {t('account.identity')}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled>
+                <CreditCard className="mr-2 h-4 w-4" />
+                {t('account.plansCredits')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">

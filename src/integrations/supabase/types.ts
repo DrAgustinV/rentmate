@@ -513,6 +513,7 @@ export type Database = {
         Row: {
           aml_status: string | null
           created_at: string
+          default_rent_settings: Json | null
           email: string
           first_name: string | null
           id: string
@@ -535,6 +536,7 @@ export type Database = {
         Insert: {
           aml_status?: string | null
           created_at?: string
+          default_rent_settings?: Json | null
           email: string
           first_name?: string | null
           id: string
@@ -557,6 +559,7 @@ export type Database = {
         Update: {
           aml_status?: string | null
           created_at?: string
+          default_rent_settings?: Json | null
           email?: string
           first_name?: string | null
           id?: string
@@ -954,11 +957,14 @@ export type Database = {
           payment_received_date: string | null
           payment_status: string
           processed_at: string | null
+          proof_of_payment_url: string | null
           property_id: string
           rent_agreement_id: string
           status: string | null
           stripe_charge_id: string | null
           stripe_payment_intent_id: string | null
+          tenant_confirmed: boolean | null
+          tenant_confirmed_at: string | null
           tenant_id: string
           updated_at: string
         }
@@ -976,11 +982,14 @@ export type Database = {
           payment_received_date?: string | null
           payment_status?: string
           processed_at?: string | null
+          proof_of_payment_url?: string | null
           property_id: string
           rent_agreement_id: string
           status?: string | null
           stripe_charge_id?: string | null
           stripe_payment_intent_id?: string | null
+          tenant_confirmed?: boolean | null
+          tenant_confirmed_at?: string | null
           tenant_id: string
           updated_at?: string
         }
@@ -998,11 +1007,14 @@ export type Database = {
           payment_received_date?: string | null
           payment_status?: string
           processed_at?: string | null
+          proof_of_payment_url?: string | null
           property_id?: string
           rent_agreement_id?: string
           status?: string | null
           stripe_charge_id?: string | null
           stripe_payment_intent_id?: string | null
+          tenant_confirmed?: boolean | null
+          tenant_confirmed_at?: string | null
           tenant_id?: string
           updated_at?: string
         }

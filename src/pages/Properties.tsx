@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Home, Users, Archive } from "lucide-react";
+import { Plus, Building, Archive } from "lucide-react";
 import { PropertyCard } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
@@ -11,9 +11,8 @@ import { AppLayout } from "@/components/layouts/AppLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProperties } from "@/hooks/useProperties";
-import { useTenantProperties } from "@/hooks/useTenantProperties";
 
-export default function Dashboard() {
+export default function Properties() {
   const [userId, setUserId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [propertyView, setPropertyView] = useState<"active" | "ending_tenancy" | "archived">("active");
@@ -25,19 +24,11 @@ export default function Dashboard() {
   
   const debouncedSearch = useDebounce(searchTerm, 300);
 
-  // Fetch managed properties using React Query
-  const { data: propertiesData, isLoading: isLoadingProperties } = useProperties({
+  const { data: propertiesData, isLoading } = useProperties({
     managerId: userId || undefined,
   });
 
-  // Fetch tenant properties using React Query
-  const { data: tenantPropertiesData, isLoading: isLoadingTenantProperties } = useTenantProperties({
-    tenantId: userId || undefined,
-  });
-
   const properties = propertiesData?.properties || [];
-  const tenantProperties = tenantPropertiesData?.properties || [];
-  const loading = isLoadingProperties || isLoadingTenantProperties;
 
   const filteredAndSortedProperties = useMemo(() => {
     let filtered = properties.filter(p => {
@@ -58,7 +49,6 @@ export default function Dashboard() {
       );
     });
     
-    // Sort
     filtered.sort((a, b) => {
       if (sortBy === 'newest') {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -115,9 +105,9 @@ export default function Dashboard() {
     fetchPropertyLimit();
   }, []);
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <AppLayout showBreadcrumbs={false}>
+      <AppLayout>
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -129,26 +119,92 @@ export default function Dashboard() {
   }
 
   return (
-    <AppLayout showBreadcrumbs={false}>
+    <AppLayout>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">{t('header.dashboard')}</h1>
-        <p className="text-muted-foreground mt-1">Welcome to your dashboard</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Building className="h-8 w-8 text-primary" />
+              {t('properties.title')}
+            </h1>
+            <p className="text-muted-foreground mt-1">{t('properties.description')}</p>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <Button 
+              variant="default"
+              onClick={() => setIsCreateOpen(true)} 
+              disabled={activeProperties.length >= maxPropertiesLimit}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              {t('dashboard.createProperty')}
+            </Button>
+            {activeProperties.length >= maxPropertiesLimit && (
+              <p className="text-sm text-muted-foreground">
+                Property limit reached ({maxPropertiesLimit} properties)
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="p-6 border rounded-lg">
-          <h3 className="font-semibold mb-2">Properties</h3>
-          <p className="text-3xl font-bold">{activeProperties.length}</p>
-        </div>
-        <div className="p-6 border rounded-lg">
-          <h3 className="font-semibold mb-2">Rentings</h3>
-          <p className="text-3xl font-bold">{tenantProperties.length}</p>
-        </div>
-        <div className="p-6 border rounded-lg">
-          <h3 className="font-semibold mb-2">Total</h3>
-          <p className="text-3xl font-bold">{activeProperties.length + tenantProperties.length}</p>
-        </div>
+      <div className="mb-6 space-y-4">
+        <ArchiveToggle
+          activeCount={activeProperties.length}
+          endingTenancyCount={endingTenancyProperties.length}
+          archivedCount={archivedProperties.length}
+          currentView={propertyView}
+          onViewChange={setPropertyView}
+        />
+        
+        <SearchFilterBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+        />
       </div>
+
+      {filteredAndSortedProperties.length === 0 ? (
+        <div className="text-center py-16 bg-gradient-to-br from-card to-secondary/20 border border-border rounded-lg animate-fade-in">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/20 flex items-center justify-center">
+            <Archive className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">
+            {debouncedSearch ? "No properties match your search" :
+              propertyView === "active" ? t('dashboard.noActiveProperties') :
+              propertyView === "ending_tenancy" ? "No properties ending tenancy" :
+              t('dashboard.noArchivedProperties')
+            }
+          </h3>
+          <p className="text-muted-foreground px-4">
+            {debouncedSearch ? "Try adjusting your search terms" :
+              propertyView === "active" ? "All properties are either ending tenancy or archived" :
+              propertyView === "ending_tenancy" ? "No properties are currently ending tenancy" :
+              t('dashboard.noArchivedProperties')
+            }
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAndSortedProperties.map((property) => (
+            <PropertyCard
+              key={property.id}
+              property={property}
+              isManager={true}
+              onUpdate={() => {}}
+            />
+          ))}
+        </div>
+      )}
+
+      <CreatePropertyDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        onSuccess={() => {
+          setIsCreateOpen(false);
+        }}
+      />
     </AppLayout>
   );
 }
