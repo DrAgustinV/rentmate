@@ -225,7 +225,7 @@ export default function PropertyTenants() {
           tenancy_status,
           started_at,
           ended_at,
-          profiles!fk_property_tenants_profiles (
+          profiles!property_tenants_tenant_id_fkey (
             email,
             first_name,
             last_name

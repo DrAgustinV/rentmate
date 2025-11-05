@@ -103,7 +103,7 @@ export default function PropertyDetails() {
         .select(
           `
           *,
-          profiles:tenant_id (
+          profiles!property_tenants_tenant_id_fkey (
             first_name,
             last_name,
             email
