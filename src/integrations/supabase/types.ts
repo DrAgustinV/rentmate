@@ -584,6 +584,8 @@ export type Database = {
       properties: {
         Row: {
           address: string | null
+          city: string | null
+          country: string | null
           created_at: string
           delete_reason: Database["public"]["Enums"]["delete_reason"] | null
           deleted_at: string | null
@@ -593,8 +595,10 @@ export type Database = {
           last_modified_by: string | null
           manager_id: string
           modification_reason: string | null
+          postal_code: string | null
           previous_property_id: string | null
           require_kyc_for_contracts: boolean | null
+          state_province: string | null
           status: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at: string
@@ -602,6 +606,8 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           delete_reason?: Database["public"]["Enums"]["delete_reason"] | null
           deleted_at?: string | null
@@ -611,8 +617,10 @@ export type Database = {
           last_modified_by?: string | null
           manager_id: string
           modification_reason?: string | null
+          postal_code?: string | null
           previous_property_id?: string | null
           require_kyc_for_contracts?: boolean | null
+          state_province?: string | null
           status?: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at?: string
@@ -620,6 +628,8 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           delete_reason?: Database["public"]["Enums"]["delete_reason"] | null
           deleted_at?: string | null
@@ -629,8 +639,10 @@ export type Database = {
           last_modified_by?: string | null
           manager_id?: string
           modification_reason?: string | null
+          postal_code?: string | null
           previous_property_id?: string | null
           require_kyc_for_contracts?: boolean | null
+          state_province?: string | null
           status?: Database["public"]["Enums"]["property_status"]
           title?: string
           updated_at?: string

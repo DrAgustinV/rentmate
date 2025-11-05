@@ -24,6 +24,10 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
   const { trackEvent } = useAnalyticsContext();
   const [title, setTitle] = useState("");
   const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [stateProvince, setStateProvince] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState("");
   const [description, setDescription] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [signedPhotoUrl, setSignedPhotoUrl] = useState<string | undefined>();
@@ -34,6 +38,10 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
       if (property) {
         setTitle(property.title || "");
         setAddress(property.address || "");
+        setCity(property.city || "");
+        setStateProvince(property.state_province || "");
+        setPostalCode(property.postal_code || "");
+        setCountry(property.country || "");
         setDescription(property.description || "");
         const storagePath = property.images?.[0] || "";
         setPhotoUrl(storagePath);
@@ -61,7 +69,15 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
     setLoading(true);
 
     try {
-      const data = propertyBaseSchema.parse({ title, address, description });
+      const data = propertyBaseSchema.parse({ 
+        title, 
+        address, 
+        city,
+        state_province: stateProvince,
+        postal_code: postalCode,
+        country,
+        description 
+      });
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -71,6 +87,10 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
         .update({
           title: data.title,
           address: data.address || null,
+          city: data.city || null,
+          state_province: data.state_province || null,
+          postal_code: data.postal_code || null,
+          country: data.country || null,
           description: data.description || null,
           images: photoUrl ? [photoUrl] : [],
           last_modified_by: user.id,
@@ -147,13 +167,61 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-address">{t('dialogs.createProperty.addressLabel')}</Label>
+            <Label htmlFor="edit-address">Street Address</Label>
             <Input
               id="edit-address"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder={t('dialogs.createProperty.addressPlaceholder')}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-city">City</Label>
+              <Input
+                id="edit-city"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Berlin"
+                maxLength={100}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-state">State/Province</Label>
+              <Input
+                id="edit-state"
+                value={stateProvince}
+                onChange={(e) => setStateProvince(e.target.value)}
+                placeholder="Berlin"
+                maxLength={100}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-postal">Postal Code</Label>
+              <Input
+                id="edit-postal"
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+                placeholder="10115"
+                maxLength={20}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-country">Country</Label>
+              <Input
+                id="edit-country"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="Germany"
+                maxLength={100}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

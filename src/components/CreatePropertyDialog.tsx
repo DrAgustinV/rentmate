@@ -21,6 +21,10 @@ interface CreatePropertyDialogProps {
 export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePropertyDialogProps) {
   const [title, setTitle] = useState("");
   const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [stateProvince, setStateProvince] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState("Germany");
   const [description, setDescription] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -32,7 +36,15 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
     setLoading(true);
 
     try {
-      const data = propertyBaseSchema.parse({ title, address, description });
+      const data = propertyBaseSchema.parse({ 
+        title, 
+        address, 
+        city,
+        state_province: stateProvince,
+        postal_code: postalCode,
+        country,
+        description 
+      });
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -60,6 +72,10 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
       createProperty.mutate({
         title: data.title,
         address: data.address || null,
+        city: data.city || null,
+        state_province: data.state_province || null,
+        postal_code: data.postal_code || null,
+        country: data.country || null,
         description: data.description || null,
         images: [],
         manager_id: user.id,
@@ -99,6 +115,10 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
 
           setTitle("");
           setAddress("");
+          setCity("");
+          setStateProvince("");
+          setPostalCode("");
+          setCountry("Germany");
           setDescription("");
           setPhotoFile(null);
           setLoading(false);
@@ -211,7 +231,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">Street Address</Label>
             <Input
               id="address"
               value={address}
@@ -219,6 +239,54 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
               placeholder="123 Ocean Drive"
               maxLength={200}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Berlin"
+                maxLength={100}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="state">State/Province</Label>
+              <Input
+                id="state"
+                value={stateProvince}
+                onChange={(e) => setStateProvince(e.target.value)}
+                placeholder="Berlin"
+                maxLength={100}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="postal">Postal Code</Label>
+              <Input
+                id="postal"
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+                placeholder="10115"
+                maxLength={20}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="Germany"
+                maxLength={100}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
