@@ -11,9 +11,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Archive, ChevronDown, Upload, Euro } from "lucide-react";
+import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Archive, ChevronDown, Upload, Euro, Mail } from "lucide-react";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
@@ -393,6 +394,25 @@ export default function PropertyDetails() {
             </div>
           </div>
         </div>
+
+        {/* Free Property Alert - Invite Tenant */}
+        {userRole?.isManager && !activeTenant && property.status === 'active' && (
+          <Alert className="border-primary/50 bg-primary/5 animate-fade-in">
+            <Mail className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary">{t("properties.propertyIsFree")}</AlertTitle>
+            <AlertDescription className="flex items-center justify-between gap-4">
+              <span className="text-sm">{t("properties.inviteTenantToGetStarted")}</span>
+              <Button
+                size="sm"
+                onClick={() => navigate(`/properties/${propertyId}/tenants`)}
+                className="gap-2"
+              >
+              <Mail className="h-4 w-4" />
+              {t("properties.inviteTenantButton")}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card>
           <CardHeader>

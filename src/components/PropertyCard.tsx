@@ -228,6 +228,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           )}
         </CardContent>
 
+        {/* Tenant Actions */}
         {(property.status === "active" || property.status === "ending_tenancy") && !isManager && (
           <CardFooter className="border-t bg-muted/50 pt-4 flex-col gap-2">
             <Button
@@ -255,6 +256,25 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
             >
               <Wrench className="h-4 w-4" />
               {t("properties.maintenance")}
+            </Button>
+          </CardFooter>
+        )}
+
+        {/* Manager Actions - Invite Tenant */}
+        {property.status === "active" && isManager && tenantStatus?.status === "free" && (
+          <CardFooter className="border-t bg-primary/5 pt-4">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/properties/${property.id}/tenants`);
+              }}
+              className="w-full gap-2"
+              aria-label={`${t("properties.inviteTenant")} ${property.title}`}
+            >
+              <Mail className="h-4 w-4" />
+              {t("properties.inviteTenantButton")}
             </Button>
           </CardFooter>
         )}

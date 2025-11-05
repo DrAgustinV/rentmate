@@ -642,15 +642,34 @@ export default function PropertyTenants() {
                 <p className="text-sm text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
               )}
               
-              {/* Invite New Tenant Button */}
-              {userRole?.isManager && !isReadOnly && (
+              {/* Invite New Tenant - Prominent when no tenants */}
+              {userRole?.isManager && !isReadOnly && !currentTenant && (
+                <Alert className="border-primary/50 bg-primary/5 mt-4">
+                  <Mail className="h-4 w-4 text-primary" />
+                  <AlertTitle className="text-primary">{t("properties.noTenantsYet")}</AlertTitle>
+                  <AlertDescription>
+                    <p className="text-sm mb-3">{t("properties.inviteTenantToGetStarted")}</p>
+                    <Button
+                      variant="default"
+                      onClick={() => setShowInviteForm(true)}
+                      className="w-full"
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      {t("properties.inviteTenantButton")}
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {/* Invite Additional Tenant Button */}
+              {userRole?.isManager && !isReadOnly && currentTenant && (
                 <Button
-                  variant={!currentTenant ? "default" : "outline"}
+                  variant="outline"
                   onClick={() => setShowInviteForm(!showInviteForm)}
                   className="w-full mt-3"
                 >
                   <Mail className="h-4 w-4 mr-2" />
-                  {showInviteForm ? t("common.cancel") : t("properties.inviteNewTenant")}
+                  {showInviteForm ? t("common.cancel") : t("properties.inviteAdditionalTenant")}
                 </Button>
               )}
             </div>
