@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -110,21 +110,23 @@ export const ContractSignatureManager = ({
   }, [signingMethod, signature?.signing_method]);
 
   const handleInitiateSignature = async () => {
-    // Verify session exists first
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      console.error('No valid session found');
-      toast({
-        title: "Session Expired",
-        description: "Please log out and log in again to continue.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    console.log('Session valid, initiating signature...');
     setLoading(true);
     try {
+      // Refresh session to get a fresh token
+      const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError || !session) {
+        console.error('Session refresh failed:', refreshError);
+        toast({
+          title: "Session Expired",
+          description: "Please log out and log in again to continue.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      console.log('Session refreshed, initiating signature...');
       let functionName = 'initiate-contract-signature';
       if (signingMethod === 'docuseal') {
         functionName = 'initiate-docuseal-signature';
@@ -223,11 +225,8 @@ export const ContractSignatureManager = ({
       return data.token;
     } catch (error) {
       console.error('Error generating DocuSeal token:', error);
-      toast({
-        title: t('common.error'),
-        description: error instanceof Error ? error.message : 'Failed to generate signing token',
-        variant: "destructive",
-      });
+      // Don't show toast - this creates state updates that can cause loops
+      // Just log and return null
       return null;
     }
   };
@@ -387,18 +386,35 @@ export const ContractSignatureManager = ({
   const tenantSigned = !!signature.tenant_signed_at;
   const isDocusealSignature = signature.signing_method === 'docuseal' || signature.docuseal_submission_id;
 
-  // Generate DocuSeal token if needed
+  // Generate DocuSeal token if needed - with guard to prevent infinite loops
+  const tokenGenerationAttempted = useRef(false);
+
   useEffect(() => {
     const loadDocusealToken = async () => {
+      // Guard: only attempt once per signature
+      if (tokenGenerationAttempted.current) return;
+      
       if (isDocusealSignature && !isCompleted && signature?.docuseal_submission_id) {
-        const role = isManager ? 'manager' : 'tenant';
-        const token = await generateDocusealToken(role);
-        setDocusealToken(token);
+        tokenGenerationAttempted.current = true;
+        
+        try {
+          const role = isManager ? 'manager' : 'tenant';
+          const token = await generateDocusealToken(role);
+          setDocusealToken(token);
+        } catch (error) {
+          // Silent fail - don't trigger UI updates
+          console.error('Token generation failed:', error);
+        }
       }
     };
     
     loadDocusealToken();
   }, [isDocusealSignature, isCompleted, signature?.docuseal_submission_id, isManager]);
+
+  // Reset the flag when signature changes
+  useEffect(() => {
+    tokenGenerationAttempted.current = false;
+  }, [signature?.id]);
 
   return (
     <Card>
