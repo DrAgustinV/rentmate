@@ -11,6 +11,8 @@ import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { propertyBaseSchema } from "@/lib/validations";
 import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQueryClient } from '@tanstack/react-query';
+import { PROPERTIES_QUERY_KEY } from '@/hooks/useProperties';
 
 interface EditPropertyDialogProps {
   open: boolean;
@@ -22,6 +24,7 @@ interface EditPropertyDialogProps {
 export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: EditPropertyDialogProps) {
   const { t } = useLanguage();
   const { trackEvent } = useAnalyticsContext();
+  const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
@@ -107,6 +110,10 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
           property_id: property.id,
         },
       });
+
+      // Invalidate both query keys to refresh all views
+      queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ["property", property.id] });
 
       toast.success(t('common.success'), {
         description: t('dialogs.editProperty.success'),

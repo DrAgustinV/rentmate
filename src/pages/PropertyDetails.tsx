@@ -220,6 +220,7 @@ export default function PropertyDetails() {
       toast.success(t("properties.updateSuccess"));
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
     },
     onError: (error) => {
       console.error("Update error:", error);
