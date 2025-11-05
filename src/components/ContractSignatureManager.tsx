@@ -367,19 +367,6 @@ export const ContractSignatureManager = ({
   const tenantSigned = !!signature.tenant_signed_at;
   const isDocusealSignature = signature.signing_method === 'docuseal' || signature.docuseal_submission_id;
 
-  // Generate DocuSeal token if needed
-  useEffect(() => {
-    const loadDocusealToken = async () => {
-      if (isDocusealSignature && !isCompleted && signature?.docuseal_submission_id) {
-        const role = isManager ? 'manager' : 'tenant';
-        const token = await generateDocusealToken(role);
-        setDocusealToken(token);
-      }
-    };
-    
-    loadDocusealToken();
-  }, [isDocusealSignature, isCompleted, signature?.docuseal_submission_id, isManager]);
-
   return (
     <Card>
       <CardHeader>
