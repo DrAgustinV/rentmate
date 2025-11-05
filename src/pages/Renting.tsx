@@ -55,27 +55,29 @@ export default function Renting() {
         return;
       }
       setUserId(session.user.id);
-      await checkIfManager(session.user.id);
-      await fetchData(session.user.id, session.user.email || "");
+      const isManagerResult = await checkIfManager(session.user.id);
+      await fetchData(session.user.id, session.user.email || "", isManagerResult);
     };
 
     checkUser();
   }, [navigate]);
 
-  const checkIfManager = async (uid: string) => {
+  const checkIfManager = async (uid: string): Promise<boolean> => {
     const { data } = await supabase
       .from("properties")
       .select("id")
       .eq("manager_id", uid)
       .limit(1);
     
-    setIsManager(data && data.length > 0);
+    const isManagerResult = data && data.length > 0;
+    setIsManager(isManagerResult);
+    return isManagerResult;
   };
 
-  const fetchData = async (uid: string, email: string) => {
+  const fetchData = async (uid: string, email: string, isManagerParam: boolean) => {
     setLoading(true);
     try {
-      if (isManager) {
+      if (isManagerParam) {
         await fetchManagerTenancies(uid);
       } else {
         await fetchTenantTenancies(uid);
@@ -243,7 +245,7 @@ export default function Renting() {
 
       toast.success("Invitation accepted");
       if (userId) {
-        await fetchData(userId, "");
+        await fetchData(userId, "", isManager);
       }
     } catch (error: any) {
       toast.error(error.message);
