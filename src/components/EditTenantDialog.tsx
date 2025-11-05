@@ -15,11 +15,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Tenant {
   id: string;
@@ -38,9 +39,10 @@ interface EditTenantDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   propertyId: string;
+  readOnly?: boolean;
 }
 
-export function EditTenantDialog({ tenant, open, onOpenChange, propertyId }: EditTenantDialogProps) {
+export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readOnly = false }: EditTenantDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -100,6 +102,13 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId }: Edi
           <DialogDescription>{t("tenants.editTenantDesc")}</DialogDescription>
         </DialogHeader>
 
+        {readOnly && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{t("renting.cannotEditArchived")}</AlertDescription>
+          </Alert>
+        )}
+
         <div className="space-y-4 py-4">
           {/* Read-only tenant info */}
           <div className="space-y-2">
@@ -114,6 +123,7 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId }: Edi
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
+                  disabled={readOnly}
                   className={cn(
                     "w-full justify-start text-left font-normal",
                     !startDate && "text-muted-foreground"
@@ -139,8 +149,8 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId }: Edi
           {/* Tenancy Status */}
           <div className="space-y-2">
             <Label>{t("tenants.tenancyStatus")}</Label>
-              <Select value={tenancyStatus} onValueChange={(val) => setTenancyStatus(val as 'active' | 'ending_tenancy' | 'historic')}>
-                <SelectTrigger>
+              <Select value={tenancyStatus} onValueChange={(val) => setTenancyStatus(val as 'active' | 'ending_tenancy' | 'historic')} disabled={readOnly}>
+                <SelectTrigger disabled={readOnly}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -160,6 +170,7 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId }: Edi
               placeholder={t("tenants.tenantNotesPlaceholder")}
               rows={4}
               maxLength={500}
+              disabled={readOnly}
             />
             <p className="text-xs text-muted-foreground">
               {notes.length}/500 {t("dialogs.createTicket.characters")}
@@ -169,11 +180,13 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId }: Edi
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("common.cancel")}
+            {readOnly ? t("common.close") : t("common.cancel")}
           </Button>
-          <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending || !startDate}>
-            {updateMutation.isPending ? t("settings.saving") : t("tenants.updateTenant")}
-          </Button>
+          {!readOnly && (
+            <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending || !startDate}>
+              {updateMutation.isPending ? t("settings.saving") : t("tenants.updateTenant")}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

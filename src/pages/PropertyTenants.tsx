@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layouts/AppLayout";
@@ -20,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -91,10 +92,15 @@ const createInviteSchema = (t: (key: string) => string) =>
 export default function PropertyTenants() {
   const { propertyId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackEvent } = useAnalyticsContext();
+
+  // Extract navigation state
+  const { tenancyId, tenancyStatus, fromRenting } = location.state || {};
+  const isReadOnly = tenancyStatus === 'historic';
 
   const [email, setEmail] = useState("");
   const [removingTenant, setRemovingTenant] = useState<Tenant | null>(null);
@@ -173,8 +179,9 @@ export default function PropertyTenants() {
     enabled: !!propertyId,
   });
 
-  // For backward compatibility, get the first active tenant
-  const currentTenant = activeTenants && activeTenants.length > 0 ? activeTenants[0] : null;
+  // Find focused tenant if tenancyId provided, otherwise get first active tenant
+  const focusedTenant = activeTenants?.find((t) => t.id === tenancyId);
+  const currentTenant = focusedTenant || (activeTenants && activeTenants.length > 0 ? activeTenants[0] : null);
 
   const { data: tenancyDocuments, refetch: refetchDocuments } = useQuery({
     queryKey: ["tenancy-documents", currentTenant?.id],
@@ -497,6 +504,24 @@ export default function PropertyTenants() {
     },
   });
 
+  const downloadDocument = async (doc: TenancyDocument) => {
+    try {
+      const { data, error } = await supabase.storage.from('property-documents').download(doc.file_path);
+      if (error) throw error;
+      
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
+    }
+  };
+
   if (propertyLoading) {
     return (
       <AppLayout>
@@ -518,40 +543,36 @@ export default function PropertyTenants() {
     );
   }
 
-  const isReadOnly = currentTenant?.tenancy_status === "ending_tenancy";
-
-  const downloadDocument = async (doc: TenancyDocument) => {
-    try {
-      const { data, error } = await supabase.storage.from("property-documents").download(doc.file_path);
-
-      if (error) throw error;
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = doc.file_name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error: any) {
-      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
-    }
-  };
-
   return (
     <AppLayout>
       <div className="space-y-6">
+        {/* Back Button */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(`/properties/${propertyId}/details`)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("common.back")}
-          </Button>
+          {fromRenting ? (
+            <Button variant="ghost" size="sm" onClick={() => navigate('/renting')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t("renting.backToRenting")}
+            </Button>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={() => navigate(`/properties/${propertyId}/details`)}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t("common.back")}
+            </Button>
+          )}
           <div>
             <h1 className="text-3xl font-bold">{property.title}</h1>
             <p className="text-muted-foreground">{t("properties.tenantManagement")}</p>
           </div>
         </div>
+
+        {/* Read-Only Warning for Archived Tenancies */}
+        {isReadOnly && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>{t("renting.archivedTenancy")}</AlertTitle>
+            <AlertDescription>{t("renting.archivedWarning")}</AlertDescription>
+          </Alert>
+        )}
 
         {/* Property Limit Warning */}
         {userRole?.isManager && propertyCount !== undefined && propertyCount >= maxPropertiesLimit - 1 && (
@@ -603,12 +624,12 @@ export default function PropertyTenants() {
                             <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>
                           )}
                         </div>
-                        {userRole?.isManager && (
+                         {userRole?.isManager && !isReadOnly && (
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => setEditingTenant(tenant)}>
+                            <Button variant="outline" size="sm" onClick={() => setEditingTenant(tenant)} disabled={isReadOnly}>
                               {t("common.edit")}
                             </Button>
-                            <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)}>
+                            <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)} disabled={isReadOnly}>
                               <UserMinus className="h-4 w-4" />
                             </Button>
                           </div>
@@ -650,8 +671,8 @@ export default function PropertyTenants() {
               </>
             )}
 
-            {/* Section 3: Invite Form (Conditional, Manager Only) */}
-            {userRole?.isManager && showInviteForm && (
+            {/* Section 3: Invite Form (Conditional, Manager Only, Not Read-Only) */}
+            {userRole?.isManager && !isReadOnly && showInviteForm && (
               <>
                 <Separator />
                 <div className="space-y-2">
@@ -853,23 +874,24 @@ export default function PropertyTenants() {
             {/* Section 5: Action Buttons */}
             <Separator />
             <div className="flex flex-wrap gap-2">
-              {userRole?.isManager && (
+              {userRole?.isManager && !isReadOnly && (
                 <Button
                   variant="outline"
                   onClick={() => setShowInviteForm(!showInviteForm)}
+                  disabled={isReadOnly}
                 >
                   <Mail className="h-4 w-4 mr-2" />
                   {showInviteForm ? t("common.cancel") : t("properties.inviteNewTenant")}
                 </Button>
               )}
-              {userRole?.isManager && currentTenant && (
-                <Button variant="outline" onClick={() => setCopyTemplatesOpen(true)}>
+              {userRole?.isManager && currentTenant && !isReadOnly && (
+                <Button variant="outline" onClick={() => setCopyTemplatesOpen(true)} disabled={isReadOnly}>
                   <Copy className="h-4 w-4 mr-2" />
                   {t("properties.copyTemplates")}
                 </Button>
               )}
-              {currentTenant && (
-                <Button variant="outline" onClick={() => setUploadDocumentOpen(!uploadDocumentOpen)}>
+              {currentTenant && !isReadOnly && (
+                <Button variant="outline" onClick={() => setUploadDocumentOpen(!uploadDocumentOpen)} disabled={isReadOnly}>
                   <Upload className="h-4 w-4 mr-2" />
                   {t("properties.uploadTenancyDocument")}
                 </Button>
@@ -1009,6 +1031,7 @@ export default function PropertyTenants() {
         open={!!editingTenant}
         onOpenChange={(open) => !open && setEditingTenant(null)}
         propertyId={propertyId!}
+        readOnly={isReadOnly}
       />
     </AppLayout>
   );

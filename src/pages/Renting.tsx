@@ -9,6 +9,7 @@ import { Handshake, Building, Users, Calendar, DollarSign, Mail, Bell } from "lu
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { ArchiveToggle } from "@/components/ArchiveToggle";
 
 interface TenancyRelationship {
   id: string;
@@ -42,6 +43,7 @@ export default function Renting() {
   const [tenancies, setTenancies] = useState<TenancyRelationship[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [processingInvitation, setProcessingInvitation] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<"active" | "ending_tenancy" | "archived">("active");
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -85,6 +87,7 @@ export default function Renting() {
   };
 
   const fetchManagerTenancies = async (managerId: string) => {
+    // Fetch ALL tenancies (no status filter)
     const { data, error } = await supabase
       .from("property_tenants")
       .select(`
@@ -150,6 +153,7 @@ export default function Renting() {
   };
 
   const fetchTenantTenancies = async (tenantId: string) => {
+    // Include archived tenancies
     const { data, error } = await supabase
       .from("property_tenants")
       .select(`
@@ -163,7 +167,7 @@ export default function Renting() {
         )
       `)
       .eq("tenant_id", tenantId)
-      .in("tenancy_status", ["active", "ending_tenancy"]);
+      .in("tenancy_status", ["active", "ending_tenancy", "historic"]);
 
     if (error) {
       toast.error(error.message);
@@ -257,13 +261,28 @@ export default function Renting() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge variant="default">Active</Badge>;
+        return <Badge variant="default">{t("dashboard.active")}</Badge>;
       case "ending_tenancy":
-        return <Badge variant="secondary">Ending</Badge>;
+        return <Badge variant="secondary">{t("properties.endingTenancy")}</Badge>;
+      case "historic":
+        return <Badge variant="outline">{t("renting.archived")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
+
+  // Filter tenancies by current view
+  const filteredTenancies = tenancies.filter((t) => {
+    if (currentView === "active") return t.tenancy_status === "active";
+    if (currentView === "ending_tenancy") return t.tenancy_status === "ending_tenancy";
+    if (currentView === "archived") return t.tenancy_status === "historic";
+    return true;
+  });
+
+  // Count tenancies by status
+  const activeCount = tenancies.filter((t) => t.tenancy_status === "active").length;
+  const endingCount = tenancies.filter((t) => t.tenancy_status === "ending_tenancy").length;
+  const archivedCount = tenancies.filter((t) => t.tenancy_status === "historic").length;
 
   if (loading) {
     return (
@@ -286,6 +305,17 @@ export default function Renting() {
           {t("renting.title")}
         </h1>
         <p className="text-muted-foreground mt-1">{t("renting.description")}</p>
+      </div>
+
+      {/* Status Tabs */}
+      <div className="mb-6">
+        <ArchiveToggle
+          activeCount={activeCount}
+          endingTenancyCount={endingCount}
+          archivedCount={archivedCount}
+          currentView={currentView}
+          onViewChange={setCurrentView}
+        />
       </div>
 
       {!isManager && invitations.length > 0 && (
@@ -317,27 +347,35 @@ export default function Renting() {
         </div>
       )}
 
-      {tenancies.length === 0 ? (
+      {filteredTenancies.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
             <Handshake className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">
-              {isManager ? "No Active Tenancies" : "No Active Rentings"}
+              {currentView === "active" && (isManager ? t("renting.noActiveTenancies") : t("renting.noActiveRentings"))}
+              {currentView === "ending_tenancy" && t("renting.noEndingTenancies")}
+              {currentView === "archived" && t("renting.noArchivedTenancies")}
             </h3>
             <p className="text-muted-foreground">
-              {isManager
-                ? "You don't have any active tenancy relationships yet"
-                : "You don't have any active rentings yet"}
+              {currentView === "active" && (isManager ? t("renting.noActiveTenanciesDesc") : t("renting.noActiveRentingsDesc"))}
+              {currentView === "ending_tenancy" && t("renting.noEndingTenanciesDesc")}
+              {currentView === "archived" && t("renting.noArchivedTenanciesDesc")}
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-6">
-          {tenancies.map((tenancy) => (
+          {filteredTenancies.map((tenancy) => (
             <Card
               key={tenancy.id}
               className="hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate(`/properties/${tenancy.property_id}/details`)}
+              onClick={() => navigate(`/properties/${tenancy.property_id}/tenants`, {
+                state: {
+                  tenancyId: tenancy.id,
+                  tenancyStatus: tenancy.tenancy_status,
+                  fromRenting: true
+                }
+              })}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
