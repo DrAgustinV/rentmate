@@ -46,6 +46,10 @@ export default function PropertyDetails() {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");
   const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [stateProvince, setStateProvince] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState("");
   const [description, setDescription] = useState("");
   const [showUpload, setShowUpload] = useState(false);
   const [expandedDoc, setExpandedDoc] = useState<string | null>(null);
@@ -66,6 +70,10 @@ export default function PropertyDetails() {
 
       setTitle(data.title);
       setAddress(data.address || "");
+      setCity(data.city || "");
+      setStateProvince(data.state_province || "");
+      setPostalCode(data.postal_code || "");
+      setCountry(data.country || "");
       setDescription(data.description || "");
 
       return data;
@@ -202,7 +210,7 @@ export default function PropertyDetails() {
   const { archiveProperty } = usePropertyMutations();
 
   const updatePropertyMutation = useMutation({
-    mutationFn: async (updates: { title: string; address: string; description: string }) => {
+    mutationFn: async (updates: { title: string; address: string; city: string; state_province: string; postal_code: string; country: string; description: string }) => {
       const { error } = await supabase.from("properties").update(updates).eq("id", propertyId);
 
       if (error) throw error;
@@ -243,7 +251,15 @@ export default function PropertyDetails() {
 
 
   const handleSave = () => {
-    updatePropertyMutation.mutate({ title, address, description });
+    updatePropertyMutation.mutate({ 
+      title, 
+      address, 
+      city, 
+      state_province: stateProvince, 
+      postal_code: postalCode, 
+      country, 
+      description 
+    });
   };
 
   const fetchPropertyPhotoUrl = async (storagePath: string) => {
@@ -434,10 +450,79 @@ export default function PropertyDetails() {
                         setAddress(e.target.value);
                         setIsEditing(true);
                       }}
+                      placeholder={t("properties.streetAddress")}
                     />
                   ) : (
                     <p className="text-sm py-2">{address}</p>
                   )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">{t("properties.city")}</Label>
+                    {userRole?.isManager ? (
+                      <Input
+                        id="city"
+                        value={city}
+                        onChange={(e) => {
+                          setCity(e.target.value);
+                          setIsEditing(true);
+                        }}
+                        placeholder={t("properties.cityPlaceholder")}
+                      />
+                    ) : (
+                      <p className="text-sm py-2">{city || "-"}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">{t("properties.stateProvince")}</Label>
+                    {userRole?.isManager ? (
+                      <Input
+                        id="state"
+                        value={stateProvince}
+                        onChange={(e) => {
+                          setStateProvince(e.target.value);
+                          setIsEditing(true);
+                        }}
+                        placeholder={t("properties.statePlaceholder")}
+                      />
+                    ) : (
+                      <p className="text-sm py-2">{stateProvince || "-"}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="postalCode">{t("properties.postalCode")}</Label>
+                    {userRole?.isManager ? (
+                      <Input
+                        id="postalCode"
+                        value={postalCode}
+                        onChange={(e) => {
+                          setPostalCode(e.target.value);
+                          setIsEditing(true);
+                        }}
+                        placeholder={t("properties.postalCodePlaceholder")}
+                      />
+                    ) : (
+                      <p className="text-sm py-2">{postalCode || "-"}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="country">{t("properties.country")}</Label>
+                    {userRole?.isManager ? (
+                      <Input
+                        id="country"
+                        value={country}
+                        onChange={(e) => {
+                          setCountry(e.target.value);
+                          setIsEditing(true);
+                        }}
+                        placeholder={t("properties.countryPlaceholder")}
+                      />
+                    ) : (
+                      <p className="text-sm py-2">{country || "-"}</p>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label>{t("properties.status")}</Label>
@@ -479,6 +564,10 @@ export default function PropertyDetails() {
                   onClick={() => {
                     setTitle(property.title);
                     setAddress(property.address || "");
+                    setCity(property.city || "");
+                    setStateProvince(property.state_province || "");
+                    setPostalCode(property.postal_code || "");
+                    setCountry(property.country || "");
                     setDescription(property.description || "");
                     setIsEditing(false);
                   }}
