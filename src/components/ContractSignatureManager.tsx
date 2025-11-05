@@ -110,6 +110,19 @@ export const ContractSignatureManager = ({
   }, [signingMethod, signature?.signing_method]);
 
   const handleInitiateSignature = async () => {
+    // Verify session exists first
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.error('No valid session found');
+      toast({
+        title: "Session Expired",
+        description: "Please log out and log in again to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Session valid, initiating signature...');
     setLoading(true);
     try {
       let functionName = 'initiate-contract-signature';
@@ -121,7 +134,10 @@ export const ContractSignatureManager = ({
         body: { tenancyId, propertyId }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
 
       if (!data?.success) {
         const errorMsg = data?.error || 'Unknown error';
@@ -158,7 +174,10 @@ export const ContractSignatureManager = ({
       onRefresh?.();
     } catch (error: any) {
       console.error('Error initiating signature:', error);
-      const errorMsg = error.message || 'Failed to initiate signature';
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      const errorMsg = error.message || error.msg || 'Failed to initiate signature';
+      console.error('Showing toast for error:', errorMsg);
       
       // Parse error messages
       if (errorMsg.includes('Manager KYC')) {
