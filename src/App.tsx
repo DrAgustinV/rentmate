@@ -28,6 +28,7 @@ import Renting from "./pages/Renting";
 import Configuration from "./pages/Configuration";
 import Profile from "./pages/Profile";
 import Identity from "./pages/Identity";
+import Account from "./pages/Account";
 import { queryClient } from "./lib/queryClient";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 
@@ -44,8 +45,9 @@ const App = () => (
           <Route path="/properties" element={<Properties />} />
           <Route path="/renting" element={<Renting />} />
           <Route path="/configuration" element={<Configuration />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/identity" element={<Identity />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/profile" element={<Navigate to="/account" replace />} />
+          <Route path="/identity" element={<Navigate to="/account" replace />} />
           <Route path="/invitations" element={<Navigate to="/renting" replace />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/kilt-setup" element={<KiltSetup />} />

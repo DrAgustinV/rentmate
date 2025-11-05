@@ -132,13 +132,13 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                   <img
                     src={photoUrl}
                     alt={property.title}
-                    className="w-24 h-24 rounded-lg object-cover shadow-md border-2 border-border transition-transform duration-300 group-hover/image:scale-105"
+                    className="w-32 h-32 rounded-lg object-cover shadow-md border-2 border-border transition-transform duration-300 group-hover/image:scale-105"
                   />
                   <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
                 </>
               ) : (
-                <div className="w-24 h-24 rounded-lg bg-muted/50 flex items-center justify-center border-2 border-dashed border-border transition-colors duration-200 hover:border-primary/50">
-                  <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                <div className="w-32 h-32 rounded-lg bg-muted/50 flex items-center justify-center border-2 border-dashed border-border transition-colors duration-200 hover:border-primary/50">
+                  <ImageIcon className="h-12 w-12 text-muted-foreground" />
                 </div>
               )}
             </div>

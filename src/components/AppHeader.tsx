@@ -86,19 +86,20 @@ export function AppHeader() {
     navigate("/auth");
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => 
+    location.pathname === path || location.pathname.startsWith(path + '/');
 
   if (!user) return null;
 
   const navLinks = isManager
     ? [
-        { path: "/dashboard", label: t('header.dashboard'), icon: Home },
+        // { path: "/dashboard", label: t('header.dashboard'), icon: Home }, // Hidden for now
         { path: "/properties", label: t('properties.title'), icon: Building },
         { path: "/renting", label: t('renting.title'), icon: Handshake },
         { path: "/configuration", label: t('configuration.title'), icon: FolderOpen },
       ]
     : [
-        { path: "/dashboard", label: t('header.dashboard'), icon: Home },
+        // { path: "/dashboard", label: t('header.dashboard'), icon: Home }, // Hidden for now
         { path: "/renting", label: t('renting.title'), icon: Handshake, badge: pendingInvitations },
         { path: "/settings", label: t('header.settings'), icon: Settings },
       ];
@@ -157,11 +158,11 @@ export function AppHeader() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>{t('header.myAccount')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/profile")}>
+              <DropdownMenuItem onClick={() => navigate("/account")}>
                 <UserCircle className="mr-2 h-4 w-4" />
                 {t('account.profile')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/identity")}>
+              <DropdownMenuItem onClick={() => navigate("/account")}>
                 <ShieldCheck className="mr-2 h-4 w-4" />
                 {t('account.identity')}
               </DropdownMenuItem>

@@ -221,7 +221,7 @@ export default function Configuration() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="deposit">Default Security Deposit (in cents)</Label>
+                <Label htmlFor="deposit">Default Security Deposit</Label>
                 <Input
                   id="deposit"
                   type="number"
@@ -230,7 +230,7 @@ export default function Configuration() {
                   placeholder="0"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Enter amount in cents (e.g., 100000 = €1,000.00)
+                  Enter the default security deposit amount (e.g., 1000 for €1,000.00)
                 </p>
               </div>
 
