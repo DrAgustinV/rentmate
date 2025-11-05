@@ -80,8 +80,9 @@ export const ContractSignatureManager = ({
       setAgreementLoading(true);
       const { data } = await supabase
         .from('rent_agreements')
-        .select('id, contract_pdf_url')
+        .select('id, rent_amount_cents, currency, start_date')
         .eq('tenancy_id', tenancyId)
+        .eq('is_active', true)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -297,14 +298,14 @@ export const ContractSignatureManager = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!agreementLoading && isManager && signingMethod === 'docuseal' && !rentAgreement?.contract_pdf_url && (
+          {!agreementLoading && isManager && signingMethod === 'docuseal' && !rentAgreement && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 <p className="font-semibold">Rent Agreement Required</p>
                 <p className="text-sm mt-1">
-                  Please create a rent agreement with a PDF contract before using DocuSeal signatures.
-                  You can upload a contract in the "Rent Agreement" section.
+                  Please create a rent agreement before initiating DocuSeal signatures.
+                  The rent agreement provides the necessary details for the contract.
                 </p>
               </AlertDescription>
             </Alert>
@@ -343,7 +344,7 @@ export const ContractSignatureManager = ({
                 disabled={
                   loading || 
                   agreementLoading ||
-                  (signingMethod === 'docuseal' && !rentAgreement?.contract_pdf_url)
+                  (signingMethod === 'docuseal' && !rentAgreement)
                 }
                 className="w-full"
               >
