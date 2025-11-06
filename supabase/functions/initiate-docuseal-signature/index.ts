@@ -12,19 +12,45 @@ serve(async (req) => {
   }
 
   try {
+    // Log request details for debugging
+    console.log('Received request headers:', Object.fromEntries(req.headers.entries()));
+    const authHeader = req.headers.get('Authorization');
+    console.log('Authorization header present:', !!authHeader);
+    console.log('Authorization header preview:', authHeader?.substring(0, 30) + '...');
+    console.log('Authorization header format check:', authHeader?.startsWith('Bearer ') ? 'Valid Bearer format' : 'Invalid or missing Bearer format');
+
+    if (!authHeader) {
+      console.error('Missing Authorization header');
+      throw new Error('Missing Authorization header');
+    }
+
+    if (!authHeader.startsWith('Bearer ')) {
+      console.error('Invalid Authorization header format');
+      throw new Error('Invalid Authorization header format');
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
 
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    console.log('getUser() result:', { 
+      userId: user?.id, 
+      userEmail: user?.email,
+      errorMessage: authError?.message,
+      errorStatus: authError?.status
+    });
+
     if (!user) {
-      throw new Error('Not authenticated');
+      const errorMsg = `Not authenticated: ${authError?.message || 'No user found'}`;
+      console.error(errorMsg);
+      throw new Error(errorMsg);
     }
 
     const { tenancyId } = await req.json();
