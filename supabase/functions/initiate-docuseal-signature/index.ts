@@ -158,8 +158,8 @@ serve(async (req) => {
       signing_method: 'docuseal',
       workflow_status: 'pending',
       docuseal_template_id: templateId,
-      docuseal_submission_id: docusealData.id || docusealData.submission_id,
-      docuseal_submission_slug: docusealData.slug,
+      docuseal_submission_id: docusealData[0]?.submission_id,
+      docuseal_submission_slug: docusealData[0]?.slug,
       expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
     };
 
