@@ -69,8 +69,10 @@ export const ContractSignatureManager = ({
       if (error) throw error;
       setSignature(data);
       setInitialized(true);
+      return data;
     } catch (error) {
       console.error('Error loading signature:', error);
+      return null;
     }
   };
 
@@ -153,14 +155,26 @@ export const ContractSignatureManager = ({
         description: data.message,
       });
 
-      await loadSignature();
+      const loadedSignature = await loadSignature();
       
       // Auto-generate token for current user to show signing form
-      if (signingMethod === 'docuseal') {
+      if (signingMethod === 'docuseal' && loadedSignature?.docuseal_submission_id) {
         const role = isManager ? 'manager' : 'tenant';
-        const token = await generateDocusealToken(role);
-        if (token) {
-          setDocusealToken(token);
+        
+        try {
+          const { data: tokenData, error: tokenError } = await supabase.functions.invoke('generate-docuseal-token', {
+            body: { 
+              signatureId: loadedSignature.id,
+              role 
+            }
+          });
+
+          if (tokenError) throw tokenError;
+          if (tokenData?.success && tokenData?.token) {
+            setDocusealToken(tokenData.token);
+          }
+        } catch (error) {
+          console.error('Error generating token:', error);
         }
       }
       
