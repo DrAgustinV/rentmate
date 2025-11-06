@@ -92,6 +92,25 @@ serve(async (req) => {
       throw new Error('DocuSeal API credentials not configured');
     }
 
+    // Helper functions
+    const buildFullAddress = (property: any): string => {
+      const parts = [
+        property.address,
+        property.city,
+        property.postal_code,
+        property.country
+      ].filter(Boolean);
+      return parts.join(', ');
+    };
+
+    const calculateDurationMonths = (startDate: string, endDate: string | null): string => {
+      if (!endDate) return 'Indefinite';
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+      return months.toString();
+    };
+
     // Create DocuSeal submission with 2 signers
     const submissionPayload = {
       template_id: templateId,
@@ -102,13 +121,26 @@ serve(async (req) => {
           email: managerProfile.email,
           name: `${managerProfile.first_name || ''} ${managerProfile.last_name || ''}`.trim(),
           fields: [
-            { name: "property_address", default_value: tenancy.properties.address || '' },
-            { name: "property_title", default_value: tenancy.properties.title || '' },
-            { name: "manager_name", default_value: `${managerProfile.first_name || ''} ${managerProfile.last_name || ''}`.trim() },
-            { name: "manager_email", default_value: managerProfile.email },
-            { name: "start_date", default_value: rentAgreement?.start_date || '' },
-            { name: "rent_amount", default_value: rentAgreement ? (rentAgreement.rent_amount_cents / 100).toString() : '' },
-            { name: "currency", default_value: rentAgreement?.currency || 'EUR' }
+            // General & Parties
+            { name: "lease_execution_date", default_value: new Date().toISOString().split('T')[0] },
+            { name: "landlord_full_name", default_value: `${managerProfile.first_name || ''} ${managerProfile.last_name || ''}`.trim() },
+            { name: "landlord_email_address", default_value: managerProfile.email },
+            
+            // Property
+            { name: "rental_property_full_address", default_value: buildFullAddress(tenancy.properties) },
+            
+            // Term & Duration
+            { name: "lease_duration_months", default_value: calculateDurationMonths(rentAgreement?.start_date || '', rentAgreement?.end_date || null) },
+            { name: "lease_start_date", default_value: rentAgreement?.start_date || '' },
+            
+            // Financials
+            { name: "monthly_rent_amount", default_value: rentAgreement ? (rentAgreement.rent_amount_cents / 100).toString() : '' },
+            { name: "rent_due_day", default_value: rentAgreement?.payment_day?.toString() || '' },
+            { name: "security_deposit_amount", default_value: rentAgreement?.security_deposit_cents ? (rentAgreement.security_deposit_cents / 100).toString() : '0' },
+            
+            // Premises Rules
+            { name: "utilities_tenant_responsible_for", default_value: rentAgreement?.utilities_tenant_responsible || '' },
+            { name: "currency", default_value: rentAgreement?.currency?.toUpperCase() || 'EUR' }
           ]
         },
         {
@@ -116,8 +148,8 @@ serve(async (req) => {
           email: tenancy.profiles.email,
           name: `${tenancy.profiles.first_name || ''} ${tenancy.profiles.last_name || ''}`.trim(),
           fields: [
-            { name: "tenant_name", default_value: `${tenancy.profiles.first_name || ''} ${tenancy.profiles.last_name || ''}`.trim() },
-            { name: "tenant_email", default_value: tenancy.profiles.email }
+            { name: "tenant_full_names", default_value: `${tenancy.profiles.first_name || ''} ${tenancy.profiles.last_name || ''}`.trim() },
+            { name: "tenant_email_address", default_value: tenancy.profiles.email }
           ]
         }
       ]
