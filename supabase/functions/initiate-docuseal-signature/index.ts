@@ -160,6 +160,8 @@ serve(async (req) => {
       docuseal_template_id: templateId,
       docuseal_submission_id: docusealData[0]?.submission_id,
       docuseal_submission_slug: docusealData[0]?.slug,
+      manager_embed_slug: docusealData.find((s: any) => s.role === 'Manager')?.slug || null,
+      tenant_embed_slug: docusealData.find((s: any) => s.role === 'Tenant')?.slug || null,
       expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
     };
 

@@ -3,9 +3,6 @@ project_id = "jrjwkpjfgsyrqztuokoo"
 [functions.generate-kilt-test-credentials]
 verify_jwt = false
 
-[functions.generate-docuseal-token]
-verify_jwt = true
-
 [functions.initiate-docuseal-signature]
 verify_jwt = true
 

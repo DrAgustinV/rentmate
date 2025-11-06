@@ -29,6 +29,8 @@ interface ContractSignature {
   kyc_enforced: boolean | null;
   docuseal_submission_id: string | null;
   docuseal_audit_log_url: string | null;
+  manager_embed_slug: string | null;
+  tenant_embed_slug: string | null;
 }
 
 
@@ -51,7 +53,6 @@ export const ContractSignatureManager = ({
   const [signature, setSignature] = useState<ContractSignature | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [signingMethod, setSigningMethod] = useState<'mock' | 'docuseal'>('mock');
-  const [docusealToken, setDocusealToken] = useState<string | null>(null);
   const [rentAgreement, setRentAgreement] = useState<any>(null);
   const [agreementLoading, setAgreementLoading] = useState(true);
   
@@ -103,12 +104,6 @@ export const ContractSignatureManager = ({
     }
   }, [initialized]);
 
-  // Reset states when signing method changes
-  useEffect(() => {
-    if (signature?.signing_method && signingMethod !== signature.signing_method) {
-      setDocusealToken(null);
-    }
-  }, [signingMethod, signature?.signing_method]);
 
   const handleInitiateSignature = async () => {
     setLoading(true);
@@ -155,29 +150,7 @@ export const ContractSignatureManager = ({
         description: data.message,
       });
 
-      const loadedSignature = await loadSignature();
-      
-      // Auto-generate token for current user to show signing form
-      if (signingMethod === 'docuseal' && loadedSignature?.docuseal_submission_id) {
-        const role = isManager ? 'manager' : 'tenant';
-        
-        try {
-          const { data: tokenData, error: tokenError } = await supabase.functions.invoke('generate-docuseal-token', {
-            body: { 
-              signatureId: loadedSignature.id,
-              role 
-            }
-          });
-
-          if (tokenError) throw tokenError;
-          if (tokenData?.success && tokenData?.token) {
-            setDocusealToken(tokenData.token);
-          }
-        } catch (error) {
-          console.error('Error generating token:', error);
-        }
-      }
-      
+      await loadSignature();
       onRefresh?.();
     } catch (error: any) {
       console.error('Error initiating signature:', error);
@@ -208,33 +181,6 @@ export const ContractSignatureManager = ({
     }
   };
 
-  const generateDocusealToken = async (role: 'manager' | 'tenant') => {
-    if (!signature?.docuseal_submission_id) return null;
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-docuseal-token', {
-        body: { 
-          signatureId: signature.id,
-          role 
-        }
-      });
-
-      if (error) throw error;
-      if (!data?.success || !data?.token) {
-        throw new Error('Failed to generate DocuSeal token');
-      }
-
-      return data.token;
-    } catch (error) {
-      console.error('Error generating DocuSeal token:', error);
-      toast({
-        title: t('common.error'),
-        description: error instanceof Error ? error.message : 'Failed to generate signing token',
-        variant: "destructive",
-      });
-      return null;
-    }
-  };
 
   const handleDocusealComplete = async () => {
     try {
@@ -417,19 +363,25 @@ export const ContractSignatureManager = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* DocuSeal Form - Show if DocuSeal signature and not completed */}
-        {isDocusealSignature && !isCompleted && docusealToken && signature?.docuseal_submission_id && (
-          <div className="p-4 bg-muted rounded-lg">
-            <div className="text-sm font-medium mb-3 flex items-center gap-2">
-              <FileSignature className="h-4 w-4" />
-              Sign Document Below
-            </div>
-            <DocusealForm
-              src={`https://docuseal.com/d/${signature.docuseal_submission_id}`}
-              token={docusealToken}
-              onComplete={handleDocusealComplete}
-              className="min-h-[600px] w-full"
-            />
-          </div>
+        {isDocusealSignature && !isCompleted && (
+          (() => {
+            const embedSlug = isManager ? signature.manager_embed_slug : signature.tenant_embed_slug;
+            if (!embedSlug) return null;
+            
+            return (
+              <div className="p-4 bg-muted rounded-lg">
+                <div className="text-sm font-medium mb-3 flex items-center gap-2">
+                  <FileSignature className="h-4 w-4" />
+                  Sign Document Below
+                </div>
+                <DocusealForm
+                  src={`https://docuseal.eu/s/${embedSlug}`}
+                  onComplete={handleDocusealComplete}
+                  className="min-h-[600px] w-full"
+                />
+              </div>
+            );
+          })()
         )}
 
 

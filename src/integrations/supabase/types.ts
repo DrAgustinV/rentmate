@@ -220,6 +220,7 @@ export type Database = {
           initiated_at: string
           initiated_by: string
           kyc_enforced: boolean | null
+          manager_embed_slug: string | null
           manager_signature_data: Json | null
           manager_signature_ip: string | null
           manager_signature_method: string | null
@@ -228,6 +229,7 @@ export type Database = {
           signed_document_url: string | null
           signing_method: string | null
           tenancy_id: string
+          tenant_embed_slug: string | null
           tenant_signature_data: Json | null
           tenant_signature_ip: string | null
           tenant_signature_method: string | null
@@ -252,6 +254,7 @@ export type Database = {
           initiated_at?: string
           initiated_by: string
           kyc_enforced?: boolean | null
+          manager_embed_slug?: string | null
           manager_signature_data?: Json | null
           manager_signature_ip?: string | null
           manager_signature_method?: string | null
@@ -260,6 +263,7 @@ export type Database = {
           signed_document_url?: string | null
           signing_method?: string | null
           tenancy_id: string
+          tenant_embed_slug?: string | null
           tenant_signature_data?: Json | null
           tenant_signature_ip?: string | null
           tenant_signature_method?: string | null
@@ -284,6 +288,7 @@ export type Database = {
           initiated_at?: string
           initiated_by?: string
           kyc_enforced?: boolean | null
+          manager_embed_slug?: string | null
           manager_signature_data?: Json | null
           manager_signature_ip?: string | null
           manager_signature_method?: string | null
@@ -292,6 +297,7 @@ export type Database = {
           signed_document_url?: string | null
           signing_method?: string | null
           tenancy_id?: string
+          tenant_embed_slug?: string | null
           tenant_signature_data?: Json | null
           tenant_signature_ip?: string | null
           tenant_signature_method?: string | null
