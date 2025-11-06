@@ -398,9 +398,18 @@ export const ContractSignatureManager = ({
             
             return (
               <div className="p-4 bg-muted rounded-lg">
-                <div className="text-sm font-medium mb-3 flex items-center gap-2">
-                  <FileSignature className="h-4 w-4" />
-                  Sign Document Below
+                <div className="text-sm font-medium mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileSignature className="h-4 w-4" />
+                    Sign Document Below
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => setShowSigningForm(false)}
+                  >
+                    Close
+                  </Button>
                 </div>
                 <DocusealForm
                   src={`https://docuseal.eu/s/${embedSlug}`}
