@@ -12,46 +12,30 @@ serve(async (req) => {
   }
 
   try {
-    // Log request details for debugging
-    console.log('Received request headers:', Object.fromEntries(req.headers.entries()));
+    // Extract JWT from Authorization header
     const authHeader = req.headers.get('Authorization');
+    console.log('Received request headers:', Object.fromEntries(req.headers.entries()));
     console.log('Authorization header present:', !!authHeader);
-    console.log('Authorization header preview:', authHeader?.substring(0, 30) + '...');
-    console.log('Authorization header format check:', authHeader?.startsWith('Bearer ') ? 'Valid Bearer format' : 'Invalid or missing Bearer format');
+    console.log('Authorization header format check:', authHeader?.startsWith('Bearer ') ? 'Valid Bearer format' : 'Invalid');
 
-    if (!authHeader) {
-      console.error('Missing Authorization header');
-      throw new Error('Missing Authorization header');
+    if (!authHeader?.startsWith('Bearer ')) {
+      throw new Error('Missing or invalid Authorization header');
     }
 
-    if (!authHeader.startsWith('Bearer ')) {
-      console.error('Invalid Authorization header format');
-      throw new Error('Invalid Authorization header format');
-    }
+    const jwt = authHeader.replace('Bearer ', '');
 
+    // Decode JWT payload (no verification needed - Supabase already verified it via verify_jwt=true)
+    const payload = JSON.parse(atob(jwt.split('.')[1]));
+    const userId = payload.sub;
+    const userEmail = payload.email;
+
+    console.log('Authenticated user from JWT:', { userId, userEmail });
+
+    // Create service role client for database operations (no user auth header needed)
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    console.log('getUser() result:', { 
-      userId: user?.id, 
-      userEmail: user?.email,
-      errorMessage: authError?.message,
-      errorStatus: authError?.status
-    });
-
-    if (!user) {
-      const errorMsg = `Not authenticated: ${authError?.message || 'No user found'}`;
-      console.error(errorMsg);
-      throw new Error(errorMsg);
-    }
 
     const { tenancyId } = await req.json();
     console.log('Initiating DocuSeal signature for tenancy:', tenancyId);
@@ -77,7 +61,7 @@ serve(async (req) => {
     }
 
     // Verify user is the manager
-    if (tenancy.properties.manager_id !== user.id) {
+    if (tenancy.properties.manager_id !== userId) {
       throw new Error('Only property manager can initiate signature');
     }
 
@@ -85,7 +69,7 @@ serve(async (req) => {
     const { data: managerProfile } = await supabaseClient
       .from('profiles')
       .select('email, first_name, last_name')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
     if (!managerProfile?.email) {
@@ -168,7 +152,7 @@ serve(async (req) => {
     const signatureData = {
       tenancy_id: tenancyId,
       property_id: tenancy.properties.id,
-      initiated_by: user.id,
+      initiated_by: userId,
       signing_method: 'docuseal',
       workflow_status: 'pending',
       docuseal_template_id: templateId,
