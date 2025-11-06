@@ -101,22 +101,22 @@ serve(async (req) => {
           role: "Manager",
           email: managerProfile.email,
           name: `${managerProfile.first_name || ''} ${managerProfile.last_name || ''}`.trim(),
-          fields: {
-            property_address: tenancy.properties.address || '',
-            property_title: tenancy.properties.title || '',
-            manager_name: `${managerProfile.first_name || ''} ${managerProfile.last_name || ''}`.trim(),
-            rent_amount: rentAgreement ? (rentAgreement.rent_amount_cents / 100).toString() : '',
-            currency: rentAgreement?.currency || 'EUR',
-          }
+          fields: [
+            { name: "property_address", default_value: tenancy.properties.address || '' },
+            { name: "property_title", default_value: tenancy.properties.title || '' },
+            { name: "manager_name", default_value: `${managerProfile.first_name || ''} ${managerProfile.last_name || ''}`.trim() },
+            { name: "rent_amount", default_value: rentAgreement ? (rentAgreement.rent_amount_cents / 100).toString() : '' },
+            { name: "currency", default_value: rentAgreement?.currency || 'EUR' }
+          ]
         },
         {
           role: "Tenant",
           email: tenancy.profiles.email,
           name: `${tenancy.profiles.first_name || ''} ${tenancy.profiles.last_name || ''}`.trim(),
-          fields: {
-            tenant_name: `${tenancy.profiles.first_name || ''} ${tenancy.profiles.last_name || ''}`.trim(),
-            tenant_email: tenancy.profiles.email,
-          }
+          fields: [
+            { name: "tenant_name", default_value: `${tenancy.profiles.first_name || ''} ${tenancy.profiles.last_name || ''}`.trim() },
+            { name: "tenant_email", default_value: tenancy.profiles.email }
+          ]
         }
       ]
     };
