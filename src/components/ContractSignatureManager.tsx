@@ -55,6 +55,7 @@ export const ContractSignatureManager = ({
   const [signingMethod, setSigningMethod] = useState<'mock' | 'docuseal'>('mock');
   const [rentAgreement, setRentAgreement] = useState<any>(null);
   const [agreementLoading, setAgreementLoading] = useState(true);
+  const [showSigningForm, setShowSigningForm] = useState(false);
   
 
   const loadSignature = async () => {
@@ -69,6 +70,13 @@ export const ContractSignatureManager = ({
 
       if (error) throw error;
       setSignature(data);
+      
+      // Initialize form visibility based on current user's signature status
+      if (data) {
+        const currentUserSigned = isManager ? !!data.manager_signed_at : !!data.tenant_signed_at;
+        setShowSigningForm(!currentUserSigned);
+      }
+      
       setInitialized(true);
       return data;
     } catch (error) {
@@ -184,6 +192,7 @@ export const ContractSignatureManager = ({
 
   const handleDocusealComplete = async () => {
     try {
+      setShowSigningForm(false);
       await loadSignature();
       onRefresh?.();
       toast({
@@ -362,11 +371,13 @@ export const ContractSignatureManager = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* DocuSeal Form - Show if DocuSeal signature and not completed */}
-        {isDocusealSignature && !isCompleted && (
+        {/* DocuSeal Form - Show only if current user hasn't signed and form is visible */}
+        {isDocusealSignature && !isCompleted && showSigningForm && (
           (() => {
             const embedSlug = isManager ? signature.manager_embed_slug : signature.tenant_embed_slug;
-            if (!embedSlug) return null;
+            const currentUserSigned = isManager ? managerSigned : tenantSigned;
+            
+            if (!embedSlug || currentUserSigned) return null;
             
             return (
               <div className="p-4 bg-muted rounded-lg">
@@ -412,6 +423,16 @@ export const ContractSignatureManager = ({
                 {t('contractSignature.signNow')} (Mock)
               </Button>
             )}
+            {!managerSigned && isManager && isDocusealSignature && !showSigningForm && (
+              <Button 
+                size="sm" 
+                onClick={() => setShowSigningForm(true)} 
+                className="mt-2"
+              >
+                <FileSignature className="h-4 w-4 mr-2" />
+                Sign Document
+              </Button>
+            )}
           </div>
         </div>
 
@@ -442,6 +463,16 @@ export const ContractSignatureManager = ({
                 className="mt-2"
               >
                 {t('contractSignature.signNow')} (Mock)
+              </Button>
+            )}
+            {!tenantSigned && !isManager && isDocusealSignature && !showSigningForm && (
+              <Button 
+                size="sm" 
+                onClick={() => setShowSigningForm(true)} 
+                className="mt-2"
+              >
+                <FileSignature className="h-4 w-4 mr-2" />
+                Sign Document
               </Button>
             )}
           </div>
