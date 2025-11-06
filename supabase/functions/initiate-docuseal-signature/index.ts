@@ -105,6 +105,8 @@ serve(async (req) => {
             { name: "property_address", default_value: tenancy.properties.address || '' },
             { name: "property_title", default_value: tenancy.properties.title || '' },
             { name: "manager_name", default_value: `${managerProfile.first_name || ''} ${managerProfile.last_name || ''}`.trim() },
+            { name: "manager_email", default_value: managerProfile.email },
+            { name: "start_date", default_value: rentAgreement?.start_date || '' },
             { name: "rent_amount", default_value: rentAgreement ? (rentAgreement.rent_amount_cents / 100).toString() : '' },
             { name: "currency", default_value: rentAgreement?.currency || 'EUR' }
           ]
