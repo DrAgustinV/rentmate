@@ -154,6 +154,16 @@ export const ContractSignatureManager = ({
       });
 
       await loadSignature();
+      
+      // Auto-generate token for current user to show signing form
+      if (signingMethod === 'docuseal') {
+        const role = isManager ? 'manager' : 'tenant';
+        const token = await generateDocusealToken(role);
+        if (token) {
+          setDocusealToken(token);
+        }
+      }
+      
       onRefresh?.();
     } catch (error: any) {
       console.error('Error initiating signature:', error);
