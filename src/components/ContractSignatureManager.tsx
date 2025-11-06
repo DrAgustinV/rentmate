@@ -55,7 +55,6 @@ export const ContractSignatureManager = ({
   const [signingMethod, setSigningMethod] = useState<'mock' | 'docuseal'>('mock');
   const [rentAgreement, setRentAgreement] = useState<any>(null);
   const [agreementLoading, setAgreementLoading] = useState(true);
-  const [showSigningForm, setShowSigningForm] = useState(false);
   
 
   const loadSignature = async () => {
@@ -185,7 +184,6 @@ export const ContractSignatureManager = ({
 
   const handleDocusealComplete = async () => {
     try {
-      setShowSigningForm(false); // Close the form
       await loadSignature();
       onRefresh?.();
       toast({
@@ -367,31 +365,14 @@ export const ContractSignatureManager = ({
         {/* DocuSeal Form - Show if DocuSeal signature and not completed */}
         {isDocusealSignature && !isCompleted && (
           (() => {
-            const currentUserSigned = isManager ? managerSigned : tenantSigned;
             const embedSlug = isManager ? signature.manager_embed_slug : signature.tenant_embed_slug;
-            
-            // Don't show if current user already signed
-            if (currentUserSigned) return null;
-            
-            // Only show if form is explicitly opened OR if no one has signed yet
-            const shouldShowForm = showSigningForm || (!managerSigned && !tenantSigned);
-            
-            if (!embedSlug || !shouldShowForm) return null;
+            if (!embedSlug) return null;
             
             return (
-              <div className="p-4 bg-muted rounded-lg space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium flex items-center gap-2">
-                    <FileSignature className="h-4 w-4" />
-                    Sign Document Below
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant="ghost"
-                    onClick={() => setShowSigningForm(false)}
-                  >
-                    Close Form
-                  </Button>
+              <div className="p-4 bg-muted rounded-lg">
+                <div className="text-sm font-medium mb-3 flex items-center gap-2">
+                  <FileSignature className="h-4 w-4" />
+                  Sign Document Below
                 </div>
                 <DocusealForm
                   src={`https://docuseal.eu/s/${embedSlug}`}
@@ -421,14 +402,14 @@ export const ContractSignatureManager = ({
                 <div>{getSignatureMethodBadge(signature.manager_signature_method)}</div>
               </div>
             )}
-            {!managerSigned && isManager && (
+            {!managerSigned && isManager && !isDocusealSignature && (
               <Button 
                 size="sm" 
-                onClick={() => isDocusealSignature ? setShowSigningForm(true) : handleMockSign('manager')} 
+                onClick={() => handleMockSign('manager')} 
                 disabled={loading}
                 className="mt-2"
               >
-                {isDocusealSignature ? t('contractSignature.signNow') : `${t('contractSignature.signNow')} (Mock)`}
+                {t('contractSignature.signNow')} (Mock)
               </Button>
             )}
           </div>
@@ -453,14 +434,14 @@ export const ContractSignatureManager = ({
                 <div>{getSignatureMethodBadge(signature.tenant_signature_method)}</div>
               </div>
             )}
-            {!tenantSigned && !isManager && (
+            {!tenantSigned && !isManager && !isDocusealSignature && (
               <Button 
                 size="sm" 
-                onClick={() => isDocusealSignature ? setShowSigningForm(true) : handleMockSign('tenant')} 
+                onClick={() => handleMockSign('tenant')} 
                 disabled={loading}
                 className="mt-2"
               >
-                {isDocusealSignature ? t('contractSignature.signNow') : `${t('contractSignature.signNow')} (Mock)`}
+                {t('contractSignature.signNow')} (Mock)
               </Button>
             )}
           </div>
