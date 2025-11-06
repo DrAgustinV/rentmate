@@ -193,14 +193,31 @@ export const ContractSignatureManager = ({
   const handleDocusealComplete = async () => {
     try {
       setShowSigningForm(false);
+      
+      // Call backend to finalize and update database with signature timestamps
+      const { data, error } = await supabase.functions.invoke('finalize-docuseal-signature', {
+        body: { signatureId: signature.id }
+      });
+      
+      if (error) throw error;
+      
+      // Reload signature data to reflect updated timestamps
       await loadSignature();
       onRefresh?.();
+      
       toast({
         title: t('contractSignature.signed'),
-        description: 'Document signed successfully',
+        description: data?.both_signed 
+          ? 'Both parties have signed! Contract is complete.'
+          : 'Document signed successfully',
       });
     } catch (error) {
       console.error('Error after DocuSeal completion:', error);
+      toast({
+        title: t('common.error'),
+        description: 'Failed to finalize signature. Please try again.',
+        variant: 'destructive'
+      });
     }
   };
 
