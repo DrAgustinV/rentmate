@@ -159,6 +159,7 @@ export default function Properties() {
           archivedCount={archivedProperties.length}
           currentView={propertyView}
           onViewChange={setPropertyView}
+          showEndingTenancy={false}
         />
 
         <SearchFilterBar
