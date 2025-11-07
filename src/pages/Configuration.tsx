@@ -14,11 +14,15 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { CreateStandardMaintenanceDialog } from "@/components/CreateStandardMaintenanceDialog";
+import { CreatePropertyTemplateDialog } from "@/components/CreatePropertyTemplateDialog";
 
 export default function Configuration() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [createMaintenanceOpen, setCreateMaintenanceOpen] = useState(false);
+  const [createTemplateOpen, setCreateTemplateOpen] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -170,14 +174,12 @@ export default function Configuration() {
                   Reusable maintenance task templates (Feature coming soon)
                 </CardDescription>
               </div>
-              <Button disabled>
+              <Button onClick={() => setCreateMaintenanceOpen(true)}>
                 Add Maintenance Task
               </Button>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                This feature will allow you to create standard maintenance templates that can be copied to properties.
-              </p>
+              <StandardTasksSection propertyId="" />
             </CardContent>
           </Card>
         </TabsContent>
@@ -191,7 +193,7 @@ export default function Configuration() {
                   Reusable document templates for properties
                 </CardDescription>
               </div>
-              <Button>
+              <Button onClick={() => setCreateTemplateOpen(true)}>
                 Add Template
               </Button>
             </CardHeader>
@@ -295,6 +297,16 @@ export default function Configuration() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <CreateStandardMaintenanceDialog
+        open={createMaintenanceOpen}
+        onOpenChange={setCreateMaintenanceOpen}
+      />
+      
+      <CreatePropertyTemplateDialog
+        open={createTemplateOpen}
+        onOpenChange={setCreateTemplateOpen}
+      />
     </AppLayout>
   );
 }
