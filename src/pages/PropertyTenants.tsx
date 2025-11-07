@@ -48,9 +48,10 @@ import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { ContractSignatureManager } from "@/components/ContractSignatureManager";
-import { CreateRentAgreementDrawer } from "@/components/CreateRentAgreementDrawer";
-import { useRentAgreements } from "@/hooks/useRentAgreements";
-import { RentPaymentHistory } from "@/components/payments/RentPaymentHistory";
+import { CreateRentAgreementDrawer } from '@/components/CreateRentAgreementDrawer';
+import { EditRentAgreementDrawer } from '@/components/EditRentAgreementDrawer';
+import { useRentAgreements } from '@/hooks/useRentAgreements';
+import { RentPaymentHistory } from '@/components/payments/RentPaymentHistory';
 
 interface Tenant {
   id: string;
@@ -219,6 +220,22 @@ export default function PropertyTenants() {
 
   // Query for rent agreements (for managers)
   const { data: rentAgreements, isLoading: agreementsLoading } = useRentAgreements(propertyId);
+
+  // Check for active contract signatures
+  const { data: contractSignatures } = useQuery({
+    queryKey: ['contract-signatures', propertyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contract_signatures')
+        .select('tenancy_id, workflow_status')
+        .eq('property_id', propertyId)
+        .in('workflow_status', ['pending', 'in_progress']);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!propertyId,
+  });
 
   const { data: tenancyHistory } = useQuery({
     queryKey: ["tenancy-history", propertyId],
@@ -730,9 +747,15 @@ export default function PropertyTenants() {
                                   <span>{t("rentAgreements.paymentDay")}: {agreement.payment_day}</span>
                                 </div>
                               </div>
-                              <Badge variant={agreement.is_active ? "default" : "secondary"}>
-                                {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={agreement.is_active ? "default" : "secondary"}>
+                                  {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
+                                </Badge>
+                                <EditRentAgreementDrawer 
+                                  agreement={agreement}
+                                  isContractSigning={!!contractSignatures?.some(sig => sig.tenancy_id === agreement.tenancy_id)}
+                                />
+                              </div>
                             </div>
                             {!agreement.tenant_iban && (
                               <div className="text-sm text-muted-foreground">

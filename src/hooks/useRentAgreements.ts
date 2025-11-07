@@ -82,7 +82,7 @@ export function useRentAgreements(propertyId?: string) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as (RentAgreement & { tenant: any })[];
+      return data;
     },
     enabled: !!propertyId,
   });
@@ -141,6 +141,72 @@ export function useRentAgreementMutations() {
     },
   });
 
+  const updateAgreement = useMutation({
+    mutationFn: async (data: {
+      agreement_id: string;
+      rent_amount_cents: number;
+      payment_day: number;
+      start_date: string;
+      end_date?: string | null;
+      currency: string;
+      security_deposit_cents?: number | null;
+      deposit_return_days?: number | null;
+      utilities_tenant_responsible?: string | null;
+      utilities_manager_responsible?: string | null;
+    }) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Check if contract signing is in progress
+      const { data: existingAgreement } = await supabase
+        .from('rent_agreements')
+        .select('tenancy_id, property_id')
+        .eq('id', data.agreement_id)
+        .single();
+
+      if (!existingAgreement) {
+        throw new Error('Agreement not found');
+      }
+
+      const { data: activeSignature } = await supabase
+        .from('contract_signatures')
+        .select('workflow_status')
+        .eq('tenancy_id', existingAgreement.tenancy_id)
+        .in('workflow_status', ['pending', 'in_progress'])
+        .maybeSingle();
+
+      if (activeSignature) {
+        throw new Error('Cannot edit rent agreement while contract signing is in progress');
+      }
+
+      const { agreement_id, ...updateData } = data;
+
+      const { data: result, error } = await supabase
+        .from('rent_agreements')
+        .update(updateData)
+        .eq('id', agreement_id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { result, property_id: existingAgreement.property_id };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY, data.property_id] });
+      toast.success('Rent agreement updated successfully');
+    },
+    onError: (error: any) => {
+      console.error('Update rent agreement error:', error);
+      if (error.message.includes('contract signing is in progress')) {
+        toast.error('Cannot edit while contract signing is in progress');
+      } else {
+        toast.error('Failed to update rent agreement');
+      }
+    },
+  });
+
   const updateIban = useMutation({
     mutationFn: async (data: { agreement_id: string; tenant_iban: string }) => {
       // Call edge function to create SEPA mandate
@@ -166,6 +232,7 @@ export function useRentAgreementMutations() {
 
   return {
     createAgreement,
+    updateAgreement,
     updateIban,
   };
 }
