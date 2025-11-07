@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Home, Users, Shield, ArrowRight } from "lucide-react";
+import { Home, Users, Shield, ArrowRight, Settings, LayoutDashboard, ShieldCheck, CheckCircle, FileCheck, Key } from "lucide-react";
 import heroProperty from "@/assets/hero-property.jpg";
 import { useBrand } from "@/contexts/BrandContext";
 
@@ -35,15 +35,18 @@ return (
         </div>
       </div>
 
-      {/* First Row - Original 3 divs */}
-      <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-20">
+      {/* For Property Managers */}
+      <div className="text-center mb-8 mt-20">
+        <h2 className="text-3xl font-bold mb-2">For Property Managers</h2>
+      </div>
+      <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
         <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-card hover-lift animate-slide-up">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <Home className="h-6 w-6 text-primary" />
+            <Settings className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Manage Properties</h3>
+          <h3 className="text-xl font-semibold mb-2">Automated Operations</h3>
           <p className="text-muted-foreground">
-            Create and manage multiple properties with ease. Track all your rental units in one place.
+            Streamline rent collection, maintenance, and document workflows.
           </p>
         </div>
 
@@ -52,11 +55,11 @@ return (
           style={{ animationDelay: "100ms" }}
         >
           <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-            <Users className="h-6 w-6 text-accent" />
+            <LayoutDashboard className="h-6 w-6 text-accent" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Invite Tenants</h3>
+          <h3 className="text-xl font-semibold mb-2">Centralized Control</h3>
           <p className="text-muted-foreground">
-            Easily invite and manage tenants for your properties. Keep everyone connected and informed.
+            Manage your entire property portfolio and tenant communications from one dashboard.
           </p>
         </div>
 
@@ -65,27 +68,30 @@ return (
           style={{ animationDelay: "200ms" }}
         >
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <Shield className="h-6 w-6 text-primary" />
+            <ShieldCheck className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Secure & Reliable</h3>
+          <h3 className="text-xl font-semibold mb-2">Reduced Risk</h3>
           <p className="text-muted-foreground">
-            Role-based access control ensures your data is protected and only accessible to authorized users.
+            Ensure compliance with verified tenant identities and legally-sound digital contracts.
           </p>
         </div>
       </div>
 
-      {/* Second Row - New 3 divs */}
-      <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-12">
+      {/* For Tenants */}
+      <div className="text-center mb-8 mt-20">
+        <h2 className="text-3xl font-bold mb-2">For Tenants</h2>
+      </div>
+      <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
         <div
           className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-card hover-lift animate-slide-up"
           style={{ animationDelay: "300ms" }}
         >
           <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-            <FileText className="h-6 w-6 text-accent" />
+            <CheckCircle className="h-6 w-6 text-accent" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Track Payments</h3>
+          <h3 className="text-xl font-semibold mb-2">Effortless Renting</h3>
           <p className="text-muted-foreground">
-            Monitor rent payments and financial transactions. Get real-time updates on your property income.
+            Handle payments, documents, and issue reporting all in one place.
           </p>
         </div>
 
@@ -94,11 +100,11 @@ return (
           style={{ animationDelay: "400ms" }}
         >
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <MessageSquare className="h-6 w-6 text-primary" />
+            <FileCheck className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Communication Hub</h3>
+          <h3 className="text-xl font-semibold mb-2">Total Transparency</h3>
           <p className="text-muted-foreground">
-            Streamline communication between landlords and tenants with built-in messaging and announcements.
+            Track rent payments, maintenance requests, and communications clearly.
           </p>
         </div>
 
@@ -107,16 +113,17 @@ return (
           style={{ animationDelay: "500ms" }}
         >
           <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-            <BarChart3 className="h-6 w-6 text-accent" />
+            <Key className="h-6 w-6 text-accent" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Analytics & Reports</h3>
+          <h3 className="text-xl font-semibold mb-2">Move-In Ready</h3>
           <p className="text-muted-foreground">
-            Gain insights with detailed analytics and reports on property performance and tenant activity.
+            Securely verify your identity and sign contracts digitally for a faster start.
           </p>
         </div>
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default Index;
