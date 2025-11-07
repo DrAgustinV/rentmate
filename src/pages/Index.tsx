@@ -4,13 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Home, Users, Shield, ArrowRight, Settings, LayoutDashboard, ShieldCheck, CheckCircle, FileCheck, Key } from "lucide-react";
 import heroProperty from "@/assets/hero-property.jpg";
 import { useBrand } from "@/contexts/BrandContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const Index = () => {
   const navigate = useNavigate();
   const { brandName, logoUrl, logoAlt, tagline } = useBrand();
+  const { t } = useLanguage();
 
 return (
   <div className="min-h-screen relative overflow-hidden">
+    {/* Language Switcher - Top Right */}
+    <div className="absolute top-4 right-4 z-50">
+      <LanguageSwitcher />
+    </div>
+    
     {/* Background Image with Overlay */}
     <div
       className="absolute inset-0 bg-cover bg-center opacity-50"
@@ -26,27 +34,27 @@ return (
         <p className="text-xl text-muted-foreground mb-8">{tagline}</p>
         <div className="flex gap-4 justify-center">
           <Button size="lg" onClick={() => navigate("/auth?mode=signup")} className="gap-2">
-            Get Started
+            {t('landing.getStarted')}
             <ArrowRight className="h-5 w-5" />
           </Button>
           <Button size="lg" variant="outline" onClick={() => navigate("/auth?mode=signin")}>
-            Sign In
+            {t('landing.signIn')}
           </Button>
         </div>
       </div>
 
       {/* For Property Managers */}
       <div className="text-center mb-8 mt-20">
-        <h2 className="text-3xl font-bold mb-2">For Property Managers</h2>
+        <h2 className="text-3xl font-bold mb-2">{t('landing.forManagers')}</h2>
       </div>
       <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
         <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-card hover-lift animate-slide-up">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <Settings className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Automated Operations</h3>
+          <h3 className="text-xl font-semibold mb-2">{t('landing.managers.automatedOps.title')}</h3>
           <p className="text-muted-foreground">
-            Streamline rent collection, maintenance, and document workflows.
+            {t('landing.managers.automatedOps.description')}
           </p>
         </div>
 
@@ -57,9 +65,9 @@ return (
           <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
             <LayoutDashboard className="h-6 w-6 text-accent" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Centralized Control</h3>
+          <h3 className="text-xl font-semibold mb-2">{t('landing.managers.centralizedControl.title')}</h3>
           <p className="text-muted-foreground">
-            Manage your entire property portfolio and tenant communications from one dashboard.
+            {t('landing.managers.centralizedControl.description')}
           </p>
         </div>
 
@@ -70,16 +78,16 @@ return (
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <ShieldCheck className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Reduced Risk</h3>
+          <h3 className="text-xl font-semibold mb-2">{t('landing.managers.reducedRisk.title')}</h3>
           <p className="text-muted-foreground">
-            Ensure compliance with verified tenant identities and legally-sound digital contracts.
+            {t('landing.managers.reducedRisk.description')}
           </p>
         </div>
       </div>
 
       {/* For Tenants */}
       <div className="text-center mb-8 mt-20">
-        <h2 className="text-3xl font-bold mb-2">For Tenants</h2>
+        <h2 className="text-3xl font-bold mb-2">{t('landing.forTenants')}</h2>
       </div>
       <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
         <div
@@ -89,9 +97,9 @@ return (
           <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
             <CheckCircle className="h-6 w-6 text-accent" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Effortless Renting</h3>
+          <h3 className="text-xl font-semibold mb-2">{t('landing.tenants.effortlessRenting.title')}</h3>
           <p className="text-muted-foreground">
-            Handle payments, documents, and issue reporting all in one place.
+            {t('landing.tenants.effortlessRenting.description')}
           </p>
         </div>
 
@@ -102,9 +110,9 @@ return (
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <FileCheck className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Total Transparency</h3>
+          <h3 className="text-xl font-semibold mb-2">{t('landing.tenants.totalTransparency.title')}</h3>
           <p className="text-muted-foreground">
-            Track rent payments, maintenance requests, and communications clearly.
+            {t('landing.tenants.totalTransparency.description')}
           </p>
         </div>
 
@@ -115,9 +123,9 @@ return (
           <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
             <Key className="h-6 w-6 text-accent" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Move-In Ready</h3>
+          <h3 className="text-xl font-semibold mb-2">{t('landing.tenants.moveInReady.title')}</h3>
           <p className="text-muted-foreground">
-            Securely verify your identity and sign contracts digitally for a faster start.
+            {t('landing.tenants.moveInReady.description')}
           </p>
         </div>
       </div>

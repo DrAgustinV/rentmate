@@ -27,6 +27,40 @@ export const translations = {
       download: "Download",
       archive: "Archive",
     },
+    landing: {
+      getStarted: "Get Started",
+      signIn: "Sign In",
+      forManagers: "For Property Managers",
+      forTenants: "For Tenants",
+      managers: {
+        automatedOps: {
+          title: "Automated Operations",
+          description: "Streamline rent collection, maintenance, and document workflows."
+        },
+        centralizedControl: {
+          title: "Centralized Control",
+          description: "Manage your entire property portfolio and tenant communications from one dashboard."
+        },
+        reducedRisk: {
+          title: "Reduced Risk",
+          description: "Ensure compliance with verified tenant identities and legally-sound digital contracts."
+        }
+      },
+      tenants: {
+        effortlessRenting: {
+          title: "Effortless Renting",
+          description: "Handle payments, documents, and issue reporting all in one place."
+        },
+        totalTransparency: {
+          title: "Total Transparency",
+          description: "Track rent payments, maintenance requests, and communications clearly."
+        },
+        moveInReady: {
+          title: "Move-In Ready",
+          description: "Securely verify your identity and sign contracts digitally for a faster start."
+        }
+      }
+    },
     contractSignature: {
       title: "Digital Contract Signature",
       description: "Securely sign rental contracts with eIDAS-qualified electronic signatures",
@@ -1266,6 +1300,40 @@ export const translations = {
       optional: "Opcional",
       download: "Descargar",
       archive: "Archivar",
+    },
+    landing: {
+      getStarted: "Comenzar",
+      signIn: "Iniciar Sesión",
+      forManagers: "Para Administradores de Propiedades",
+      forTenants: "Para Inquilinos",
+      managers: {
+        automatedOps: {
+          title: "Operaciones Automatizadas",
+          description: "Optimice el cobro de alquileres, mantenimiento y flujos de trabajo de documentos."
+        },
+        centralizedControl: {
+          title: "Control Centralizado",
+          description: "Administre toda su cartera de propiedades y comunicaciones con inquilinos desde un solo panel."
+        },
+        reducedRisk: {
+          title: "Riesgo Reducido",
+          description: "Garantice el cumplimiento con identidades verificadas de inquilinos y contratos digitales legalmente sólidos."
+        }
+      },
+      tenants: {
+        effortlessRenting: {
+          title: "Alquiler Sin Esfuerzo",
+          description: "Gestione pagos, documentos y reportes de problemas en un solo lugar."
+        },
+        totalTransparency: {
+          title: "Transparencia Total",
+          description: "Realice un seguimiento claro de los pagos de alquiler, solicitudes de mantenimiento y comunicaciones."
+        },
+        moveInReady: {
+          title: "Listo para Mudarse",
+          description: "Verifique su identidad de forma segura y firme contratos digitalmente para un inicio más rápido."
+        }
+      }
     },
     contractSignature: {
       title: "Firma Digital del Contrato",
