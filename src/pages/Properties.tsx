@@ -65,7 +65,7 @@ export default function Properties() {
   }, [properties, propertyView, debouncedSearch, sortBy]);
 
   const activeProperties = properties.filter((p) => p.status === "active");
-  // const endingTenancyProperties = properties.filter(p => p.status === "ending_tenancy");
+  const endingTenancyProperties = properties.filter((p) => p.status === "ending_tenancy");
   const archivedProperties = properties.filter((p) => p.status === "inactive");
 
   useEffect(() => {
@@ -155,7 +155,7 @@ export default function Properties() {
       <div className="mb-6 space-y-4">
         <ArchiveToggle
           activeCount={activeProperties.length}
-          // endingTenancyCount={endingTenancyProperties.length}
+          endingTenancyCount={endingTenancyProperties.length}
           archivedCount={archivedProperties.length}
           currentView={propertyView}
           onViewChange={setPropertyView}
