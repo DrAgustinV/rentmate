@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,13 +69,13 @@ export const CreateStandardMaintenanceDialog = ({
         },
       });
       
-      toast.success("Standard maintenance template created successfully");
+      toast.success(t('standardMaintenance.templateCreated'));
       onOpenChange(false);
       resetForm();
     },
     onError: (error) => {
       console.error("Error creating standard maintenance template:", error);
-      toast.error("Failed to create template");
+      toast.error(t('standardMaintenance.templateFailed'));
     },
   });
 
@@ -91,7 +91,7 @@ export const CreateStandardMaintenanceDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !type || !category || !description.trim()) {
-      toast.error("Please fill in all required fields");
+      toast.error(t('dialogs.pleaseFillRequired'));
       return;
     }
     createTemplateMutation.mutate();
@@ -101,111 +101,114 @@ export const CreateStandardMaintenanceDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Standard Maintenance Template</DialogTitle>
+          <DialogTitle>{t('standardMaintenance.createTemplate')}</DialogTitle>
+          <DialogDescription>
+            {t('configuration.standardMaintenanceDesc')}
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">
-                Template Title <span className="text-destructive">*</span>
-              </Label>
+              <Label htmlFor="title">{t('standardMaintenance.templateTitle')}</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Annual HVAC Inspection"
+                placeholder={t('standardMaintenance.templateTitlePlaceholder')}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">
-                Description <span className="text-destructive">*</span>
-              </Label>
+              <Label htmlFor="description">{t('standardMaintenance.description')}</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Detailed description of what this maintenance task involves..."
+                placeholder={t('standardMaintenance.descriptionPlaceholder')}
                 rows={4}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">
-                Category <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g., HVAC, Plumbing, Electrical, Safety"
-                required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="type">
-                  Type <span className="text-destructive">*</span>
-                </Label>
-                <Select value={type} onValueChange={setType} required>
-                  <SelectTrigger id="type">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="repair">Repair</SelectItem>
-                    <SelectItem value="inspection">Inspection</SelectItem>
-                    <SelectItem value="cleaning">Cleaning</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="category">{t('standardMaintenance.category')}</Label>
+                <Input
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder={t('standardMaintenance.categoryPlaceholder')}
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
+                <Label htmlFor="type">{t('standardMaintenance.type')}</Label>
+                <Select value={type} onValueChange={setType}>
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder={t('standardMaintenance.selectType')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="maintenance">{t('standardMaintenance.types.maintenance')}</SelectItem>
+                    <SelectItem value="repair">{t('standardMaintenance.types.repair')}</SelectItem>
+                    <SelectItem value="inspection">{t('standardMaintenance.types.inspection')}</SelectItem>
+                    <SelectItem value="cleaning">{t('standardMaintenance.types.cleaning')}</SelectItem>
+                    <SelectItem value="other">{t('standardMaintenance.types.other')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="priority">{t('standardMaintenance.priority')}</Label>
                 <Select value={priority} onValueChange={setPriority}>
                   <SelectTrigger id="priority">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectItem value="low">{t('standardMaintenance.priorities.low')}</SelectItem>
+                    <SelectItem value="medium">{t('standardMaintenance.priorities.medium')}</SelectItem>
+                    <SelectItem value="high">{t('standardMaintenance.priorities.high')}</SelectItem>
+                    <SelectItem value="urgent">{t('standardMaintenance.priorities.urgent')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="frequency">{t('standardMaintenance.suggestedFrequency')}</Label>
+                <Select value={suggestedFrequency} onValueChange={setSuggestedFrequency}>
+                  <SelectTrigger id="frequency">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">{t('standardMaintenance.frequencies.daily')}</SelectItem>
+                    <SelectItem value="weekly">{t('standardMaintenance.frequencies.weekly')}</SelectItem>
+                    <SelectItem value="monthly">{t('standardMaintenance.frequencies.monthly')}</SelectItem>
+                    <SelectItem value="quarterly">{t('standardMaintenance.frequencies.quarterly')}</SelectItem>
+                    <SelectItem value="yearly">{t('standardMaintenance.frequencies.yearly')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="frequency">Suggested Frequency</Label>
-              <Select value={suggestedFrequency} onValueChange={setSuggestedFrequency}>
-                <SelectTrigger id="frequency">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="quarterly">Quarterly</SelectItem>
-                  <SelectItem value="yearly">Yearly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={createTemplateMutation.isPending}>
-              {createTemplateMutation.isPending ? "Creating..." : "Create Template"}
-            </Button>
-          </div>
-        </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={createTemplateMutation.isPending}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={createTemplateMutation.isPending}
+          >
+            {createTemplateMutation.isPending ? t('dialogs.creating') : t('standardMaintenance.createTemplate')}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -1,15 +1,16 @@
 import { useState, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Upload, X, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
+import { cn } from "@/lib/utils";
 
 interface CreatePropertyTemplateDialogProps {
   open: boolean;
@@ -49,6 +50,7 @@ export const CreatePropertyTemplateDialog = ({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const { trackEvent } = useAnalyticsContext();
 
   const { data: currentUser } = useQuery({
@@ -62,7 +64,7 @@ export const CreatePropertyTemplateDialog = ({
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       if (!currentUser) throw new Error("Not authenticated");
-      if (!documentTitle.trim()) throw new Error("Document title is required");
+      if (!documentTitle.trim()) throw new Error(t('dialogs.pleaseEnterTitle'));
 
       const extension = file.name.match(/\.[^.]+$/)?.[0] || "";
       const baseName = file.name.replace(/\.[^.]+$/, "");
@@ -81,7 +83,7 @@ export const CreatePropertyTemplateDialog = ({
 
       const fileType = extension.replace(".", "");
       const { error: dbError } = await supabase.from("property_documents").insert({
-        property_id: currentUser.id, // Using user_id as a placeholder for templates
+        property_id: null, // NULL for global templates
         uploaded_by: currentUser.id,
         document_title: documentTitle.trim(),
         file_name: fileName,
@@ -109,7 +111,7 @@ export const CreatePropertyTemplateDialog = ({
         },
       });
       
-      toast.success("Document template created successfully");
+      toast.success(t('documentTemplates.templateCreated'));
       queryClient.invalidateQueries({ queryKey: ["property-templates"] });
       setSelectedFile(null);
       setDocumentTitle("");
@@ -119,7 +121,7 @@ export const CreatePropertyTemplateDialog = ({
     },
     onError: (error) => {
       console.error("Upload error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to upload template");
+      toast.error(error instanceof Error ? error.message : t('documentTemplates.uploadFailed'));
       setUploadProgress(0);
     },
   });
@@ -130,7 +132,7 @@ export const CreatePropertyTemplateDialog = ({
         file.name.toLowerCase().endsWith(ext)
       );
       if (!hasValidExtension) {
-        toast.error("File type not allowed. Please upload a document file.");
+        toast.error(t('dialogs.fileTypeNotAllowed'));
         return;
       }
     }
@@ -158,11 +160,11 @@ export const CreatePropertyTemplateDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile) {
-      toast.error("Please select a file to upload");
+      toast.error(t('dialogs.pleaseSelectFile'));
       return;
     }
     if (!documentTitle.trim()) {
-      toast.error("Please enter a document title");
+      toast.error(t('dialogs.pleaseEnterTitle'));
       return;
     }
     uploadMutation.mutate(selectedFile);
@@ -172,127 +174,109 @@ export const CreatePropertyTemplateDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Document Template</DialogTitle>
+          <DialogTitle>{t('documentTemplates.createTemplate')}</DialogTitle>
+          <DialogDescription>
+            {t('configuration.documentTemplatesHelper')}
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25"
-            }`}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-          >
-            {selectedFile ? (
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <FileText className="h-8 w-8 text-muted-foreground" />
-                  <div className="text-left">
-                    <p className="font-medium">{selectedFile.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedFile(null)}
-                  disabled={uploadMutation.isPending}
-                  type="button"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <>
-                <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground mb-2">
-                  Drag and drop a file here, or click to select
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Allowed: PDF, DOC, DOCX, ODT, XLS, XLSX, ODS, TXT
-                </p>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="documentTitle">{t('dialogs.templateName')}</Label>
+              <Input
+                id="documentTitle"
+                value={documentTitle}
+                onChange={(e) => setDocumentTitle(e.target.value)}
+                placeholder={t('dialogs.templateNamePlaceholder')}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                {t('dialogs.templateNameHelper')}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">{t('dialogs.descriptionOptional')}</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={t('dialogs.descriptionPlaceholder')}
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('dialogs.selectFile')}</Label>
+              <div
+                className={cn(
+                  "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+                  isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50",
+                  selectedFile && "border-primary bg-primary/5"
+                )}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <input
                   ref={fileInputRef}
                   type="file"
                   className="hidden"
-                  accept={ALLOWED_EXTENSIONS.join(",")}
+                  accept={ALLOWED_EXTENSIONS.join(',')}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleFileSelect(file);
                   }}
                 />
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => fileInputRef.current?.click()}
-                  type="button"
-                >
-                  Select File
-                </Button>
-              </>
+                {selectedFile ? (
+                  <div className="space-y-2">
+                    <p className="font-medium">{selectedFile.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground">
+                      {t('dialogs.dragDropFile')}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t('dialogs.allowedTypes')}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {uploadProgress > 0 && uploadProgress < 100 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>{t('dialogs.uploadProgress')}</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <Progress value={uploadProgress} />
+              </div>
             )}
           </div>
 
-          {selectedFile && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="documentTitle">
-                  Template Name <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="documentTitle"
-                  placeholder="e.g., Standard Lease Agreement, Move-in Checklist"
-                  value={documentTitle}
-                  onChange={(e) => setDocumentTitle(e.target.value)}
-                  disabled={uploadMutation.isPending}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  Give this template a descriptive name that you'll recognize later
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description (Optional)</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Add a description for this template..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  disabled={uploadMutation.isPending}
-                  rows={3}
-                />
-              </div>
-
-              {uploadProgress > 0 && (
-                <div className="space-y-2">
-                  <Label>Upload Progress</Label>
-                  <Progress value={uploadProgress} />
-                </div>
-              )}
-            </>
-          )}
-
-          <div className="flex justify-end gap-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              disabled={uploadMutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={uploadMutation.isPending || !selectedFile}
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              {uploadMutation.isPending ? "Uploading..." : "Create Template"}
-            </Button>
-          </div>
-        </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={uploadMutation.isPending}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={uploadMutation.isPending || !selectedFile}
+          >
+            {uploadMutation.isPending ? t('dialogs.uploading') : t('documentTemplates.createTemplate')}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -458,9 +458,11 @@ export function EditRentAgreementDrawer({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setShowWarning(false)}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
             <AlertDialogAction onClick={handleWarningConfirm}>
-              Continue
+              Continue with Changes
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
