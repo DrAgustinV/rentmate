@@ -1,184 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Property Invitation - {{brandName}}</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
-    <tr>
-      <td align="center" style="padding: 20px 0;">
-        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
-          
-          <!-- Header -->
-          <tr>
-            <td style="background-color: {{primaryColor}}; padding: 48px 24px; text-align: center;">
-              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
-                <tr>
-                  <td style="padding-bottom: 16px;">
-                    <img src="{{logoUrl}}" alt="{{brandName}}" style="max-width: 120px; height: auto; display: block; margin: 0 auto;" />
-                  </td>
-                </tr>
-              </table>
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">{{brandName}}</h1>
-              <p style="margin: 8px 0 0; color: rgba(255, 255, 255, 0.8); font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Professional Property Management</p>
-            </td>
-          </tr>
-          
-          <!-- Property Image -->
-          <tr>
-            <td style="padding: 0;">
-              <img src="{{propertyImageUrl}}" alt="{{propertyTitle}}" style="width: 100%; max-height: 300px; object-fit: cover; display: block;" />
-            </td>
-          </tr>
-          
-          <!-- Content -->
-          <tr>
-            <td style="padding: 32px;">
-              
-              <!-- Greeting -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                <tr>
-                  <td style="padding-bottom: 24px;">
-                    <p style="margin: 0; color: {{accentColor}}; font-size: 20px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Hello!</p>
-                    <p style="margin: 8px 0 0; color: #374151; font-size: 16px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      <strong>{{managerName}}</strong> has invited you to join as a tenant.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Property Card -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f9fafb; border-left: 4px solid {{accentColor}}; border-radius: 8px; margin-bottom: 24px;">
-                <tr>
-                  <td style="padding: 20px;">
-                    <h2 style="margin: 0 0 10px 0; color: #111827; font-size: 20px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">{{propertyTitle}}</h2>
-                    {{propertyAddressBlock}}
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Intro Text -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                <tr>
-                  <td style="padding-bottom: 16px;">
-                    <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      Accept this invitation to access your tenant portal where you can:
-                    </p>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Feature List -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding-left: 0; margin: 16px 0;">
-                <tr>
-                  <td width="20" valign="top" style="color: {{accentColor}}; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
-                  <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                    Access your property dashboard and important documents
-                  </td>
-                </tr>
-                <tr>
-                  <td width="20" valign="top" style="color: {{accentColor}}; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
-                  <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                    Submit and track maintenance requests easily
-                  </td>
-                </tr>
-                <tr>
-                  <td width="20" valign="top" style="color: {{accentColor}}; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
-                  <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                    View scheduled maintenance and property updates
-                  </td>
-                </tr>
-                <tr>
-                  <td width="20" valign="top" style="color: {{accentColor}}; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
-                  <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                    Communicate directly with your property manager
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Post-list Text -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                <tr>
-                  <td style="padding-top: 8px; padding-bottom: 32px;">
-                    <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      Click the button below to accept your invitation and get started.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Bulletproof Button -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                <tr>
-                  <td align="center" style="padding-bottom: 32px;">
-                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
-                      <tr>
-                        <td align="center" style="background-color: {{accentColor}}; border-radius: 6px; mso-padding-alt: 14px 32px;">
-                          <a href="{{invitationLink}}" style="display: inline-block; background-color: {{accentColor}}; color: #ffffff; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 500; text-decoration: none; padding: 14px 32px; border-radius: 6px; mso-padding-alt: 0;">
-                            Accept Invitation
-                          </a>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Expiration Notice -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 4px; margin-bottom: 24px;">
-                <tr>
-                  <td style="padding: 16px;">
-                    <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      ⏰ <strong>Important:</strong> This invitation expires on <strong>{{expirationDate}}</strong>. Please accept it before then.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Fallback Link -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                <tr>
-                  <td style="padding-bottom: 16px;">
-                    <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      If the button doesn't work, copy and paste this link into your browser:<br>
-                      <a href="{{invitationLink}}" style="color: {{accentColor}}; word-break: break-all;">{{invitationLink}}</a>
-                    </p>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Divider -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                <tr>
-                  <td style="border-top: 1px solid #e5e7eb; padding: 24px 0 8px 0;">
-                    <p style="margin: 0; color: #374151; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      Questions? Feel free to contact your property manager or visit our help center.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-              
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #f9fafb; padding: 24px 32px; text-align: center; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 8px 0; color: #111827; font-size: 14px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                {{brandName}}
-              </p>
-              <p style="margin: 8px 0; color: #6b7280; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                Professional Property Management Platform
-              </p>
-            </td>
-          </tr>
-          
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Welcome to RentMate</title>
+  </head>
+  <body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="background-color: #f5f5f5; margin: 0; padding: 0;"
+    >
+      <tr>
+        <td align="center" style="padding: 20px 0;">
+          <table
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="max-width: 600px; background-color: #ffffff; margin: 0 auto;"
+          >
+            <!-- Header -->
+            <tr>
+              <td style="background-color: #2C4240; padding: 48px 24px; text-align: center;">
+                <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                  <tr>
+                    <td style="padding-bottom: 16px;">
+                      <table
+                        cellpadding="0"
+                        cellspacing="0"
+                        border="0"
+                        style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px; mso-padding-alt: 14px 18px;"
+                      >
+                        <tr>
+                          <td style="padding: 14px 18px; text-align: center;">
+                            <span
+                              style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;"
+                              >RM</span
+                            >
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+                <h1
+                  style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                >
+                  RentMate
+                </h1>
+                <p
+                  style="margin: 8px 0 0; color: rgba(255, 255, 255, 0.8); font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                >
+                  Professional Property Management
+                </p>
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style="padding: 32px;">
+                <!-- Greeting -->
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="padding-bottom: 24px;">
+                      <p
+                        style="margin: 0; color: #46A19D; font-size: 20px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                      >
+                        Hi {{managerName}}!
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Intro Text -->
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="padding-bottom: 16px;">
+                      <p
+                        style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                      >
+                        You've been invited to join RentMate, the modern platform that makes property management simple
+                        and efficient.
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding-bottom: 16px;">
+                      <p
+                        style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                      >
+                        With RentMate, you can:
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Feature List with bulletproof bullets -->
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding-left: 0; margin: 16px 0;">
+                  <tr>
+                    <td
+                      width="20"
+                      valign="top"
+                      style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;"
+                    >
+                      •
+                    </td>
+                    <td
+                      style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                    >
+                      Manage tenant applications and communications in one place
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      width="20"
+                      valign="top"
+                      style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;"
+                    >
+                      •
+                    </td>
+                    <td
+                      style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                    >
+                      Track rent payments and automate reminders
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      width="20"
+                      valign="top"
+                      style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;"
+                    >
+                      •
+                    </td>
+                    <td
+                      style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                    >
+                      Schedule maintenance and keep properties in top shape
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      width="20"
+                      valign="top"
+                      style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;"
+                    >
+                      •
+                    </td>
+                    <td
+                      style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                    >
+                      Access analytics and insights for better decisions
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Post-list Text -->
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="padding-top: 8px; padding-bottom: 32px;">
+                      <p
+                        style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                      >
+                        Click the button below to get started and set up your account.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Bulletproof Button -->
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td align="center" style="padding-bottom: 32px;">
+                      <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                        <tr>
+                          <td
+                            align="center"
+                            style="background-color: #46A19D; border-radius: 6px; mso-padding-alt: 14px 32px;"
+                          >
+                            <a
+                              href="#"
+                              style="display: inline-block; background-color: #46A19D; color: #ffffff; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 500; text-decoration: none; padding: 14px 32px; border-radius: 6px; mso-padding-alt: 0;"
+                            >
+                              Get Started with RentMate
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Divider -->
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="border-top: 1px solid #e5e7eb; padding: 24px 0 8px 0;">
+                      <p
+                        style="margin: 0; color: #374151; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                      >
+                        Questions? Feel free to reply to this email or visit our help center.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
+                <p
+                  style="margin: 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                >
+                  © 2024 RentMate. All rights reserved.
+                </p>
+                <p
+                  style="margin: 8px 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;"
+                >
+                  123 Property Lane, Suite 100, San Francisco, CA 94102
+                </p>
+                <p style="margin: 12px 0 8px 0; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                  <a href="#" style="color: #374151; text-decoration: underline;">Unsubscribe</a>
+                  <span style="color: #374151;"> · </span>
+                  <a href="#" style="color: #374151; text-decoration: underline;">Privacy Policy</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>
