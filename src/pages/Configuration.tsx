@@ -163,11 +163,16 @@ export default function Configuration() {
 
         <TabsContent value="maintenance" className="mt-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Standard Maintenance Templates</CardTitle>
-              <CardDescription>
-                Reusable maintenance task templates (Feature coming soon)
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Standard Maintenance Templates</CardTitle>
+                <CardDescription>
+                  Reusable maintenance task templates (Feature coming soon)
+                </CardDescription>
+              </div>
+              <Button disabled>
+                Add Template
+              </Button>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
@@ -179,11 +184,16 @@ export default function Configuration() {
 
         <TabsContent value="templates" className="mt-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Document Templates</CardTitle>
-              <CardDescription>
-                Reusable document templates (Feature coming soon)
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Document Templates</CardTitle>
+                <CardDescription>
+                  Reusable document templates (Feature coming soon)
+                </CardDescription>
+              </div>
+              <Button disabled>
+                Add Template
+              </Button>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
