@@ -171,7 +171,7 @@ export default function Configuration() {
                 </CardDescription>
               </div>
               <Button disabled>
-                Add Template
+                Add Maintenance Task
               </Button>
             </CardHeader>
             <CardContent>
@@ -188,16 +188,16 @@ export default function Configuration() {
               <div>
                 <CardTitle>Document Templates</CardTitle>
                 <CardDescription>
-                  Reusable document templates (Feature coming soon)
+                  Reusable document templates for properties
                 </CardDescription>
               </div>
-              <Button disabled>
+              <Button>
                 Add Template
               </Button>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                This feature will allow you to create document templates that can be copied to properties.
+                Create document templates that can be copied to properties.
               </p>
             </CardContent>
           </Card>
