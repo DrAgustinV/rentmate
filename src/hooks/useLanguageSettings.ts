@@ -12,8 +12,11 @@ export function useLanguageSettings() {
       .eq('is_enabled', true)
       .order('display_order');
     
-    if (!error && data) {
+    if (!error && data && data.length > 0) {
       setEnabledLanguages(data.map(l => l.language_code));
+    } else {
+      // Fallback: Show English and Spanish by default if no settings exist
+      setEnabledLanguages(['en', 'es']);
     }
     setLoading(false);
   };

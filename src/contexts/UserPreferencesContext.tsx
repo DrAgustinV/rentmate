@@ -77,30 +77,34 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
   };
 
   const updatePreferences = async (newPrefs: Partial<UserPreferences>) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
     const updatedPrefs = { ...preferences, ...newPrefs } as UserPreferences;
-
-    // Save to database
-    const { error } = await supabase
-      .from('user_preferences')
-      .upsert({
-        user_id: user.id,
-        theme_mode: updatedPrefs.theme_mode,
-        font_size: updatedPrefs.font_size,
-        date_format: updatedPrefs.date_format,
-        language: updatedPrefs.language,
-        week_start_day: updatedPrefs.week_start_day,
-      }, {
-        onConflict: 'user_id'
-      });
-
-    if (error) throw error;
-
-    // Update state and cache
+    
+    // Always update state and localStorage first
     setPreferences(updatedPrefs);
     localStorage.setItem('user-preferences', JSON.stringify(updatedPrefs));
+    
+    // Try to save to database if authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { error } = await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: user.id,
+          theme_mode: updatedPrefs.theme_mode,
+          font_size: updatedPrefs.font_size,
+          date_format: updatedPrefs.date_format,
+          language: updatedPrefs.language,
+          week_start_day: updatedPrefs.week_start_day,
+        }, {
+          onConflict: 'user_id'
+        });
+      
+      if (error) {
+        console.error('Error saving preferences:', error);
+        // Don't throw - preferences are still saved locally
+      }
+    }
+    // If not authenticated, preferences are only saved in localStorage
   };
 
   useEffect(() => {
