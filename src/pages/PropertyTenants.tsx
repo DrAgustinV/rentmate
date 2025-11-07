@@ -36,6 +36,7 @@ import {
   AlertTriangle,
   Ticket,
   Trash2,
+  Euro,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,9 @@ import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { ContractSignatureManager } from "@/components/ContractSignatureManager";
+import { CreateRentAgreementDrawer } from "@/components/CreateRentAgreementDrawer";
+import { useRentAgreements } from "@/hooks/useRentAgreements";
+import { RentPaymentHistory } from "@/components/payments/RentPaymentHistory";
 
 interface Tenant {
   id: string;
@@ -212,6 +216,9 @@ export default function PropertyTenants() {
     },
     enabled: !!propertyId && userRole?.isManager,
   });
+
+  // Query for rent agreements (for managers)
+  const { data: rentAgreements, isLoading: agreementsLoading } = useRentAgreements(propertyId);
 
   const { data: tenancyHistory } = useQuery({
     queryKey: ["tenancy-history", propertyId],
@@ -674,7 +681,93 @@ export default function PropertyTenants() {
               )}
             </div>
 
-            {/* Section 2: Pending Invitations (Manager Only) */}
+            {/* Section 2: Monthly Rent Agreement (Manager Only, Only with Active Tenant) */}
+            {userRole?.isManager && currentTenant && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-sm">{t("rentAgreements.monthlyRent")}</h3>
+                    {!rentAgreements?.some(ra => ra.tenancy_id === currentTenant.id && ra.is_active) && (
+                      <CreateRentAgreementDrawer
+                        propertyId={propertyId!}
+                        activeTenant={{
+                          id: currentTenant.id,
+                          tenant_id: currentTenant.tenant_id,
+                          profiles: {
+                            first_name: currentTenant.first_name,
+                            last_name: currentTenant.last_name,
+                            email: currentTenant.email,
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
+                  
+                  {agreementsLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-20 w-full" />
+                    </div>
+                  ) : !rentAgreements || rentAgreements.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground space-y-2 border rounded-lg">
+                      <Euro className="h-10 w-10 mx-auto opacity-50" />
+                      <p className="text-sm">{t("rentAgreements.noAgreements")}</p>
+                      <p className="text-xs">{t("rentAgreements.createFirst")}</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {rentAgreements
+                        .filter(agreement => agreement.tenancy_id === currentTenant.id)
+                        .map((agreement) => (
+                          <div key={agreement.id} className="border rounded-lg p-4 space-y-3">
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1">
+                                <p className="font-medium">
+                                  {agreement.tenant.first_name || ''} {agreement.tenant.last_name || ''} {agreement.tenant.email}
+                                </p>
+                                <div className="flex gap-4 text-sm text-muted-foreground">
+                                  <span>{t("rentAgreements.monthlyRent")}: €{(agreement.rent_amount_cents / 100).toFixed(2)}</span>
+                                  <span>{t("rentAgreements.paymentDay")}: {agreement.payment_day}</span>
+                                </div>
+                              </div>
+                              <Badge variant={agreement.is_active ? "default" : "secondary"}>
+                                {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
+                              </Badge>
+                            </div>
+                            {!agreement.tenant_iban && (
+                              <div className="text-sm text-muted-foreground">
+                                {t("rentAgreements.setupPayment")}
+                              </div>
+                            )}
+                            {agreement.tenant_iban && (
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                  <span className="text-muted-foreground">{t("rentAgreements.iban")}: </span>
+                                  <span className="font-mono">{agreement.tenant_iban.replace(/(.{4})/g, '$1 ').trim().slice(0, 20)}...</span>
+                                </div>
+                                <div>
+                                  <span className="text-muted-foreground">{t("rentAgreements.mandateStatus")}: </span>
+                                  <span className="capitalize">{agreement.mandate_status}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      
+                      {/* Payment History */}
+                      {rentAgreements.some(ra => ra.tenancy_id === currentTenant.id) && (
+                        <RentPaymentHistory 
+                          propertyId={propertyId!} 
+                          isManager={true} 
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Section 3: Pending Invitations (Manager Only) */}
             {userRole?.isManager && invitations && invitations.length > 0 && (
               <>
                 <Separator />

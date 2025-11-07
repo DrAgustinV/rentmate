@@ -14,19 +14,14 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Archive, ChevronDown, Upload, Euro, Mail } from "lucide-react";
+import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Archive, ChevronDown, Upload, Mail } from "lucide-react";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { CreateRentAgreementDrawer } from "@/components/CreateRentAgreementDrawer";
-import { TenantIBANForm } from "@/components/TenantIBANForm";
-import { useRentAgreements } from "@/hooks/useRentAgreements";
 import { usePropertyMutations } from "@/hooks/useProperties";
-import { SEPAMandateSignature } from "@/components/payments/SEPAMandateSignature";
-import { RentPaymentHistory } from "@/components/payments/RentPaymentHistory";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -204,8 +199,6 @@ export default function PropertyDetails() {
     enabled: !!propertyId,
   });
 
-  // Query for rent agreements (for managers)
-  const { data: rentAgreements, isLoading: agreementsLoading } = useRentAgreements(propertyId);
 
   // Get property mutations
   const { archiveProperty } = usePropertyMutations();
@@ -605,26 +598,13 @@ export default function PropertyDetails() {
         </Card>
 
         {userRole?.isManager && (
-          <Tabs defaultValue="documents" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="documents">
-                <FileText className="h-4 w-4 mr-2" />
-                {t("properties.propertyTemplates")}
-              </TabsTrigger>
-              <TabsTrigger value="payments">
-                <Euro className="h-4 w-4 mr-2" />
-                {t("rentAgreements.monthlyRent")}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="documents">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>{t("properties.propertyTemplates")}</CardTitle>
-                      <CardDescription>{t("properties.propertyTemplatesDescription")}</CardDescription>
-                    </div>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>{t("properties.propertyTemplates")}</CardTitle>
+                  <CardDescription>{t("properties.propertyTemplatesDescription")}</CardDescription>
+                </div>
                 {userRole?.isManager && (
                   <Button onClick={() => setShowUpload(!showUpload)} variant="outline" size="sm">
                     <UploadIcon className="h-4 w-4 mr-2" />
@@ -776,103 +756,11 @@ export default function PropertyDetails() {
               )}
             </CardContent>
           </Card>
-            </TabsContent>
-
-            <TabsContent value="payments">
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>{t("rentAgreements.monthlyRent")}</CardTitle>
-                      {activeTenant && !rentAgreements?.some(ra => ra.tenancy_id === activeTenant.id && ra.is_active) && (
-                        <CreateRentAgreementDrawer
-                          propertyId={propertyId!}
-                          activeTenant={activeTenant}
-                        />
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {agreementsLoading ? (
-                      <div className="space-y-2">
-                        <Skeleton className="h-20 w-full" />
-                      </div>
-                    ) : !rentAgreements || rentAgreements.length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground space-y-2">
-                        <Euro className="h-12 w-12 mx-auto opacity-50" />
-                        <p>{t("rentAgreements.noAgreements")}</p>
-                        <p className="text-sm">{t("rentAgreements.createFirst")}</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {rentAgreements.map((agreement) => (
-                          <div key={agreement.id} className="border rounded-lg p-4 space-y-3">
-                            <div className="flex items-start justify-between">
-                              <div className="space-y-1">
-                                <p className="font-medium">
-                                  {agreement.tenant.first_name || ''} {agreement.tenant.last_name || ''} {agreement.tenant.email}
-                                </p>
-                                <div className="flex gap-4 text-sm text-muted-foreground">
-                                  <span>{t("rentAgreements.monthlyRent")}: €{(agreement.rent_amount_cents / 100).toFixed(2)}</span>
-                                  <span>{t("rentAgreements.paymentDay")}: {agreement.payment_day}</span>
-                                </div>
-                              </div>
-                              <Badge variant={agreement.is_active ? "default" : "secondary"}>
-                                {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
-                              </Badge>
-                            </div>
-                            {!agreement.tenant_iban && (
-                              <div className="text-sm text-muted-foreground">
-                                {t("rentAgreements.setupPayment")}
-                              </div>
-                            )}
-                            {agreement.tenant_iban && (
-                              <div className="grid grid-cols-2 gap-2 text-sm">
-                                <div>
-                                  <span className="text-muted-foreground">{t("rentAgreements.iban")}: </span>
-                                  <span className="font-mono">{agreement.tenant_iban.replace(/(.{4})/g, '$1 ').trim().slice(0, 20)}...</span>
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">{t("rentAgreements.mandateStatus")}: </span>
-                                  <span className="capitalize">{agreement.mandate_status}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Payment History */}
-                {rentAgreements && rentAgreements.length > 0 && (
-                  <RentPaymentHistory 
-                    propertyId={propertyId!} 
-                    isManager={true} 
-                  />
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
         )}
 
-        {/* Tenancy Documents and Payments Section - Only for Tenants */}
+        {/* Tenancy Documents - Only for Tenants */}
         {!userRole?.isManager && currentUserTenancy && (
-          <Tabs defaultValue="documents" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="documents">
-                <FileText className="h-4 w-4 mr-2" />
-                {t("properties.tenancyDocuments")}
-              </TabsTrigger>
-              <TabsTrigger value="payments">
-                <Euro className="h-4 w-4 mr-2" />
-                {t("rentAgreements.setupPayment")}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="documents">
-              <Card>
+          <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -1023,45 +911,6 @@ export default function PropertyDetails() {
               )}
             </CardContent>
           </Card>
-            </TabsContent>
-
-            <TabsContent value="payments">
-              {rentAgreements && rentAgreements.length > 0 && rentAgreements[0] ? (
-                <div className="space-y-4">
-                  {/* IBAN Form */}
-                  <TenantIBANForm agreement={rentAgreements[0]} />
-                  
-                  {/* SEPA Mandate Signature */}
-                  {rentAgreements[0].tenant_iban && (
-                    <SEPAMandateSignature 
-                      agreement={{
-                        ...rentAgreements[0],
-                        manager_id: property?.manager_id || '',
-                      }}
-                      creditorName={property?.title || ''}
-                      tenantName={`${rentAgreements[0].tenant.first_name || ''} ${rentAgreements[0].tenant.last_name || ''}`.trim()}
-                    />
-                  )}
-
-                  {/* Payment History */}
-                  <RentPaymentHistory 
-                    propertyId={propertyId!} 
-                    isManager={false} 
-                  />
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center py-12 text-muted-foreground space-y-2">
-                      <Euro className="h-12 w-12 mx-auto opacity-50" />
-                      <p>{t("rentAgreements.noAgreements")}</p>
-                      <p className="text-sm">Contact your property manager to set up rent payments.</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-          </Tabs>
         )}
 
         {userRole?.isManager && (
