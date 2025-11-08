@@ -44,6 +44,14 @@ export function PaymentsTab({
   const { t } = useLanguage();
   const isManager = userRole?.isManager || false;
 
+  console.log('[PaymentsTab] Rendering with:', {
+    currentTenant: currentTenant?.id,
+    propertyId,
+    userRole,
+    rentAgreementsCount: rentAgreements?.length,
+    agreementsLoading
+  });
+
   // Show for both managers and tenants
   if (!currentTenant) {
     return (

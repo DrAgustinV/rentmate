@@ -65,11 +65,19 @@ export function useRentAgreements(propertyId?: string) {
   return useQuery({
     queryKey: [RENT_AGREEMENTS_QUERY_KEY, propertyId],
     queryFn: async () => {
-      if (!propertyId) return [];
+      if (!propertyId) {
+        console.log('[useRentAgreements] No propertyId provided');
+        return [];
+      }
 
       // Get current user to determine if they're a tenant
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
+      if (!user) {
+        console.log('[useRentAgreements] No authenticated user');
+        return [];
+      }
+
+      console.log('[useRentAgreements] Fetching for user:', user.id, 'property:', propertyId);
 
       // Build query with filters
       let query = supabase
@@ -93,14 +101,25 @@ export function useRentAgreements(propertyId?: string) {
         .eq('id', propertyId)
         .single();
 
-      if (propertyData && propertyData.manager_id !== user.id) {
+      const isManager = propertyData && propertyData.manager_id === user.id;
+      console.log('[useRentAgreements] User is manager:', isManager);
+
+      if (!isManager) {
         // User is a tenant, not the manager
+        console.log('[useRentAgreements] Filtering by tenant_id:', user.id);
         query = query.eq('tenant_id', user.id);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[useRentAgreements] Query error:', error);
+        throw error;
+      }
+
+      console.log('[useRentAgreements] Query result:', data?.length, 'agreements found');
+      console.log('[useRentAgreements] Data:', JSON.stringify(data, null, 2));
+      
       return data;
     },
     enabled: !!propertyId,
