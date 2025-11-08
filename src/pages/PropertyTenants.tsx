@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layouts/AppLayout";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   AlertDialog,
@@ -52,6 +53,8 @@ import { CreateRentAgreementDrawer } from '@/components/CreateRentAgreementDrawe
 import { EditRentAgreementDrawer } from '@/components/EditRentAgreementDrawer';
 import { useRentAgreements } from '@/hooks/useRentAgreements';
 import { RentPaymentHistory } from '@/components/payments/RentPaymentHistory';
+import { TenantsTab } from '@/components/property-tenants/TenantsTab';
+import { ContractsTab } from '@/components/property-tenants/ContractsTab';
 
 interface Tenant {
   id: string;
@@ -102,10 +105,18 @@ export default function PropertyTenants() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackEvent } = useAnalyticsContext();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Extract navigation state
   const { tenancyId, tenancyStatus, fromRenting } = location.state || {};
   const isReadOnly = tenancyStatus === 'historic';
+
+  // Get active tab from URL or default to 'tenants'
+  const activeTab = searchParams.get('tab') || 'tenants';
+  
+  const setActiveTab = (tab: string) => {
+    setSearchParams({ tab });
+  };
 
   const [email, setEmail] = useState("");
   const [removingTenant, setRemovingTenant] = useState<Tenant | null>(null);
@@ -613,513 +624,188 @@ export default function PropertyTenants() {
           </div>
         )}
 
-        {/* Consolidated Tenants Card */}
+        {/* Tabs Card */}
         <Card>
           <CardHeader>
             <CardTitle>{t("tenants.manageTenants")}</CardTitle>
             <CardDescription>{t("tenants.manageTenantsSections")}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Section 1: Active Tenants */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-sm">
-                {t("tenants.activeTenants")} {activeTenants && activeTenants.length > 0 && `(${activeTenants.length})`}
-              </h3>
-              {activeTenants && activeTenants.length > 0 ? (
-                <div className="space-y-3">
-                  {activeTenants.map((tenant) => (
-                    <div key={tenant.id} className="p-4 border rounded-lg space-y-2">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={cn(
-                                "h-2 w-2 rounded-full",
-                                tenant.tenancy_status === "active" ? "bg-green-500" : "bg-yellow-500"
-                              )}
-                            />
-                            <p className="font-medium">{getTenantName(tenant)}</p>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{tenant.email}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {t("properties.tenancyStarted")}: {formatDate(tenant.started_at)}
-                          </p>
-                          {tenant.notes && (
-                            <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>
-                          )}
-                        </div>
-                         {userRole?.isManager && !isReadOnly && (
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => setEditingTenant(tenant)} disabled={isReadOnly}>
-                              {t("common.edit")}
-                            </Button>
-                            <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)} disabled={isReadOnly}>
-                              <UserMinus className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
-              )}
-              
-              {/* Invite New Tenant - Prominent when no tenants */}
-              {userRole?.isManager && !isReadOnly && !currentTenant && (
-                <Alert className="border-primary/50 bg-primary/5 mt-4">
-                  <Mail className="h-4 w-4 text-primary" />
-                  <AlertTitle className="text-primary">{t("properties.noTenantsYet")}</AlertTitle>
-                  <AlertDescription>
-                    <p className="text-sm mb-3">{t("properties.inviteTenantToGetStarted")}</p>
-                    <Button
-                      variant="default"
-                      onClick={() => setShowInviteForm(true)}
-                      className="w-full"
-                    >
-                      <Mail className="h-4 w-4 mr-2" />
-                      {t("properties.inviteTenantButton")}
-                    </Button>
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              {/* Invite Additional Tenant Button */}
-              {userRole?.isManager && !isReadOnly && currentTenant && (
-                <Button
-                  variant="outline"
-                  onClick={() => setShowInviteForm(!showInviteForm)}
-                  className="w-full mt-3"
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  {showInviteForm ? t("common.cancel") : t("properties.inviteAdditionalTenant")}
-                </Button>
-              )}
-            </div>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="tenants">{t("propertyTenants.tabs.tenants")}</TabsTrigger>
+                <TabsTrigger value="contracts">{t("propertyTenants.tabs.contracts")}</TabsTrigger>
+                <TabsTrigger value="payments">{t("propertyTenants.tabs.payments")}</TabsTrigger>
+                <TabsTrigger value="tickets">{t("propertyTenants.tabs.tickets")}</TabsTrigger>
+              </TabsList>
 
-            {/* Section 2: Monthly Rent Agreement (Manager Only, Only with Active Tenant) */}
-            {userRole?.isManager && currentTenant && (
-              <>
-                <Separator />
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-sm">{t("rentAgreements.monthlyRent")}</h3>
-                    {!rentAgreements?.some(ra => ra.tenancy_id === currentTenant.id && ra.is_active) && (
-                      <CreateRentAgreementDrawer
-                        propertyId={propertyId!}
-                        activeTenant={{
-                          id: currentTenant.id,
-                          tenant_id: currentTenant.tenant_id,
-                          profiles: {
-                            first_name: currentTenant.first_name,
-                            last_name: currentTenant.last_name,
-                            email: currentTenant.email,
-                          }
-                        }}
-                      />
-                    )}
-                  </div>
-                  
-                  {agreementsLoading ? (
-                    <div className="space-y-2">
-                      <Skeleton className="h-20 w-full" />
-                    </div>
-                  ) : !rentAgreements || rentAgreements.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground space-y-2 border rounded-lg">
-                      <Euro className="h-10 w-10 mx-auto opacity-50" />
-                      <p className="text-sm">{t("rentAgreements.noAgreements")}</p>
-                      <p className="text-xs">{t("rentAgreements.createFirst")}</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {rentAgreements
-                        .filter(agreement => agreement.tenancy_id === currentTenant.id)
-                        .map((agreement) => (
-                          <div key={agreement.id} className="border rounded-lg p-4 space-y-3">
-                            <div className="flex items-start justify-between">
-                              <div className="space-y-1">
-                                <p className="font-medium">
-                                  {agreement.tenant.first_name || ''} {agreement.tenant.last_name || ''} {agreement.tenant.email}
-                                </p>
-                                <div className="flex gap-4 text-sm text-muted-foreground">
-                                  <span>{t("rentAgreements.monthlyRent")}: €{(agreement.rent_amount_cents / 100).toFixed(2)}</span>
-                                  <span>{t("rentAgreements.paymentDay")}: {agreement.payment_day}</span>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Badge variant={agreement.is_active ? "default" : "secondary"}>
-                                  {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
-                                </Badge>
-                                <EditRentAgreementDrawer 
-                                  agreement={agreement}
-                                  isContractSigning={!!contractSignatures?.some(sig => sig.tenancy_id === agreement.tenancy_id)}
-                                />
-                              </div>
-                            </div>
-                            {!agreement.tenant_iban && (
-                              <div className="text-sm text-muted-foreground">
-                                {t("rentAgreements.setupPayment")}
-                              </div>
-                            )}
-                            {agreement.tenant_iban && (
-                              <div className="grid grid-cols-2 gap-2 text-sm">
-                                <div>
-                                  <span className="text-muted-foreground">{t("rentAgreements.iban")}: </span>
-                                  <span className="font-mono">{agreement.tenant_iban.replace(/(.{4})/g, '$1 ').trim().slice(0, 20)}...</span>
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">{t("rentAgreements.mandateStatus")}: </span>
-                                  <span className="capitalize">{agreement.mandate_status}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      
-                      {/* Payment History */}
-                      {rentAgreements.some(ra => ra.tenancy_id === currentTenant.id) && (
-                        <RentPaymentHistory 
-                          propertyId={propertyId!} 
-                          isManager={true} 
+              <TabsContent value="tenants" className="mt-6">
+                <TenantsTab
+                  activeTenants={activeTenants}
+                  invitations={invitations}
+                  tenancyHistory={tenancyHistory}
+                  userRole={userRole}
+                  isReadOnly={isReadOnly}
+                  email={email}
+                  setEmail={setEmail}
+                  showInviteForm={showInviteForm}
+                  setShowInviteForm={setShowInviteForm}
+                  setRemovingTenant={setRemovingTenant}
+                  setEditingTenant={setEditingTenant}
+                  setCancellingInvitation={setCancellingInvitation}
+                  onInviteTenant={(email) => inviteMutation.mutate(email)}
+                  invitePending={inviteMutation.isPending}
+                  currentTenant={currentTenant}
+                  propertyCount={propertyCount}
+                  maxPropertiesLimit={maxPropertiesLimit}
+                  tenancyDocsMap={tenancyDocsMap}
+                  expandedTenancyId={expandedTenancyId}
+                  setExpandedTenancyId={setExpandedTenancyId}
+                  loadTenancyDocuments={loadTenancyDocuments}
+                  downloadDocument={downloadDocument}
+                />
+              </TabsContent>
+
+              <TabsContent value="contracts" className="mt-6">
+                <ContractsTab
+                  currentTenant={currentTenant}
+                  propertyId={propertyId!}
+                  tenancyDocuments={tenancyDocuments}
+                  groupedDocuments={groupedDocuments}
+                  userRole={userRole}
+                  isReadOnly={isReadOnly}
+                  uploadDocumentOpen={uploadDocumentOpen}
+                  setUploadDocumentOpen={setUploadDocumentOpen}
+                  copyTemplatesOpen={copyTemplatesOpen}
+                  setCopyTemplatesOpen={setCopyTemplatesOpen}
+                  selectedParentDoc={selectedParentDoc}
+                  setSelectedParentDoc={setSelectedParentDoc}
+                  expandedDocuments={expandedDocuments}
+                  toggleDocumentExpansion={toggleDocumentExpansion}
+                  refetchDocuments={refetchDocuments}
+                  downloadDocument={downloadDocument}
+                  deleteDocumentMutation={deleteDocumentMutation}
+                  onRefreshContract={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
+                />
+              </TabsContent>
+
+              <TabsContent value="payments" className="mt-6">
+                {/* Section: Monthly Rent Agreement (Manager Only, Only with Active Tenant) */}
+                {userRole?.isManager && currentTenant ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-sm">{t("rentAgreements.monthlyRent")}</h3>
+                      {!rentAgreements?.some(ra => ra.tenancy_id === currentTenant.id && ra.is_active) && (
+                        <CreateRentAgreementDrawer
+                          propertyId={propertyId!}
+                          activeTenant={{
+                            id: currentTenant.id,
+                            tenant_id: currentTenant.tenant_id,
+                            profiles: {
+                              first_name: currentTenant.first_name,
+                              last_name: currentTenant.last_name,
+                              email: currentTenant.email,
+                            }
+                          }}
                         />
                       )}
                     </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* Section 3: Pending Invitations (Manager Only) */}
-            {userRole?.isManager && invitations && invitations.length > 0 && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-sm">
-                    {t("dialogs.manageTenants.pendingInvitations")} ({invitations.length})
-                  </h3>
-                  <div className="space-y-2">
-                    {invitations.map((inv) => (
-                      <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{inv.email}</p>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {t("dialogs.manageTenants.expires")}: {formatDate(inv.expires_at)}
-                          </p>
-                        </div>
-                        <Button variant="ghost" size="sm" onClick={() => setCancellingInvitation(inv)}>
-                          <X className="h-4 w-4" />
-                        </Button>
+                    
+                    {agreementsLoading ? (
+                      <div className="space-y-2">
+                        <Skeleton className="h-20 w-full" />
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Section 3: Invite Form (Conditional, Manager Only, Not Read-Only) */}
-            {userRole?.isManager && !isReadOnly && showInviteForm && (
-              <>
-                <Separator />
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t("dialogs.inviteTenant.emailLabel")}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder={t("dialogs.inviteTenant.emailPlaceholder")}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && email.trim()) {
-                          inviteMutation.mutate(email.trim());
-                        }
-                      }}
-                    />
-                    <Button
-                      variant="default"
-                      onClick={() => {
-                        const trimmedEmail = email.trim();
-                        if (trimmedEmail) {
-                          inviteMutation.mutate(trimmedEmail);
-                        }
-                      }}
-                      disabled={inviteMutation.isPending || !email.trim()}
-                    >
-                      <Mail className="h-4 w-4 mr-2" />
-                      {t("dialogs.inviteTenant.send")}
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Section 4: Tenancy Documents */}
-            {currentTenant && (
-              <>
-                <Separator />
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-sm">{t("properties.tenancyDocuments")}</h3>
-                    <div className="flex items-center gap-2">
-                      {isReadOnly && (
-                        <Badge variant="secondary" className="text-xs">
-                          {t("properties.readOnlyAccess")}
-                        </Badge>
-                      )}
-                      {!isReadOnly && !uploadDocumentOpen && !selectedParentDoc && (
-                        <>
-                          {userRole?.isManager && (
-                            <Button variant="outline" size="sm" onClick={() => setCopyTemplatesOpen(true)}>
-                              <Copy className="h-4 w-4 mr-2" />
-                              {t("properties.copyTemplates")}
-                            </Button>
-                          )}
-                          <Button variant="outline" size="sm" onClick={() => setUploadDocumentOpen(true)}>
-                            <Upload className="h-4 w-4 mr-2" />
-                            {t("properties.uploadTenancyDocument")}
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {uploadDocumentOpen && !isReadOnly && !selectedParentDoc && (
-                    <PropertyDocumentUpload
-                      propertyId={propertyId!}
-                      category="tenancy"
-                      tenancyId={currentTenant.id}
-                      onUploadComplete={() => {
-                        refetchDocuments();
-                        setUploadDocumentOpen(false);
-                      }}
-                    />
-                  )}
-
-                  {selectedParentDoc && !isReadOnly && (
-                    <div className="space-y-3">
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-sm font-medium">
-                          {t("properties.propertyDocuments.uploadNewVersion")}: {selectedParentDoc.title}
-                        </p>
+                    ) : !rentAgreements || rentAgreements.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground space-y-2 border rounded-lg">
+                        <Euro className="h-10 w-10 mx-auto opacity-50" />
+                        <p className="text-sm">{t("rentAgreements.noAgreements")}</p>
+                        <p className="text-xs">{t("rentAgreements.createFirst")}</p>
                       </div>
-                      <PropertyDocumentUpload
-                        propertyId={propertyId!}
-                        category="tenancy"
-                        tenancyId={currentTenant.id}
-                        parentDocumentId={selectedParentDoc.id}
-                        parentDocumentTitle={selectedParentDoc.title}
-                        onUploadComplete={() => {
-                          refetchDocuments();
-                          setSelectedParentDoc(null);
-                        }}
-                      />
-                      <Button variant="outline" onClick={() => setSelectedParentDoc(null)}>
-                        {t("common.cancel")}
-                      </Button>
-                    </div>
-                  )}
-
-                  {groupedDocuments && Object.keys(groupedDocuments).length > 0 ? (
-                    <div className="space-y-4">
-                      {Object.entries(groupedDocuments).map(([title, docs]) => {
-                        const latestDoc = docs[0];
-                        const olderVersions = docs.slice(1);
-                        const isExpanded = expandedDocuments.has(title);
-
-                        return (
-                          <div key={title} className="border rounded-lg">
-                            <div className="p-4 space-y-3">
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <h4 className="font-medium truncate">{title}</h4>
-                                    {docs.length > 1 && (
-                                      <Badge variant="secondary" className="text-xs">
-                                        {docs.length} {t("properties.propertyDocuments.versions")}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground space-y-0.5">
-                                    <p>
-                                      v{latestDoc.version} · {formatFileSize(latestDoc.file_size_bytes)} ·{" "}
-                                      {formatDate(latestDoc.created_at)}
-                                    </p>
-                                    {latestDoc.description && <p className="italic">{latestDoc.description}</p>}
+                    ) : (
+                      <div className="space-y-4">
+                        {rentAgreements
+                          .filter(agreement => agreement.tenancy_id === currentTenant.id)
+                          .map((agreement) => (
+                            <div key={agreement.id} className="border rounded-lg p-4 space-y-3">
+                              <div className="flex items-start justify-between">
+                                <div className="space-y-1">
+                                  <p className="font-medium">
+                                    {agreement.tenant.first_name || ''} {agreement.tenant.last_name || ''} {agreement.tenant.email}
+                                  </p>
+                                  <div className="flex gap-4 text-sm text-muted-foreground">
+                                    <span>{t("rentAgreements.monthlyRent")}: €{(agreement.rent_amount_cents / 100).toFixed(2)}</span>
+                                    <span>{t("rentAgreements.paymentDay")}: {agreement.payment_day}</span>
                                   </div>
                                 </div>
-                                <div className="flex gap-2 flex-shrink-0">
-                                  <Button variant="outline" size="sm" onClick={() => downloadDocument(latestDoc)}>
-                                    <Download className="h-3 w-3" />
-                                  </Button>
-                                  {!isReadOnly && (
-                                    <>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setSelectedParentDoc({ id: latestDoc.id, title })}
-                                      >
-                                        <Upload className="h-3 w-3" />
-                                      </Button>
-                                      {userRole?.isManager && (
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => deleteDocumentMutation.mutate(latestDoc.id)}
-                                        >
-                                          <Trash2 className="h-3 w-3" />
-                                        </Button>
-                                      )}
-                                    </>
-                                  )}
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={agreement.is_active ? "default" : "secondary"}>
+                                    {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
+                                  </Badge>
+                                  <EditRentAgreementDrawer 
+                                    agreement={agreement}
+                                    isContractSigning={!!contractSignatures?.some(sig => sig.tenancy_id === agreement.tenancy_id)}
+                                  />
                                 </div>
                               </div>
-
-                              {olderVersions.length > 0 && (
-                                <div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => toggleDocumentExpansion(title)}
-                                    className="w-full justify-between"
-                                  >
-                                    <span className="text-xs">
-                                      {isExpanded ? t("properties.propertyDocuments.previousVersions") : t("properties.propertyDocuments.seeVersions")}
-                                    </span>
-                                    <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
-                                  </Button>
-
-                                  {isExpanded && (
-                                    <PropertyDocumentVersionHistory
-                                      versions={olderVersions}
-                                      onDownload={downloadDocument}
-                                      onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
-                                      formatFileSize={formatFileSize}
-                                      getUploaderName={getUploaderName}
-                                    />
-                                  )}
+                              {!agreement.tenant_iban && (
+                                <div className="text-sm text-muted-foreground">
+                                  {t("rentAgreements.setupPayment")}
+                                </div>
+                              )}
+                              {agreement.tenant_iban && (
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                  <div>
+                                    <span className="text-muted-foreground">{t("rentAgreements.iban")}: </span>
+                                    <span className="font-mono">{agreement.tenant_iban.replace(/(.{4})/g, '$1 ').trim().slice(0, 20)}...</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">{t("rentAgreements.mandateStatus")}: </span>
+                                    <span className="capitalize">{agreement.mandate_status}</span>
+                                  </div>
                                 </div>
                               )}
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{t("properties.noTenancyDocuments")}</p>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* Section 4.5: Digital Contract Signature */}
-            {currentTenant && (
-              <>
-                <Separator />
-                <ContractSignatureManager
-                  tenancyId={currentTenant.id}
-                  propertyId={propertyId!}
-                  isManager={userRole?.isManager || false}
-                  onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
-                />
-              </>
-            )}
-
-          </CardContent>
-        </Card>
-
-        {/* Open Tickets Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("tickets.openTickets")}</CardTitle>
-            <CardDescription>{t("tickets.openTicketsDesc")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">{t("tickets.noOpenTickets")}</p>
-            </div>
-            <Button 
-              variant="outline" 
-              className="w-full mt-4"
-              onClick={() => navigate(`/properties/${propertyId}/tickets`)}
-            >
-              <Ticket className="h-4 w-4 mr-2" />
-              {t("tenants.viewAllTickets")}
-            </Button>
-          </CardContent>
-        </Card>
-
-
-
-        {/* Tenancy History Section (Manager Only) */}
-        {userRole?.isManager && tenancyHistory && tenancyHistory.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("properties.tenancyHistory")}</CardTitle>
-              <CardDescription>{t("properties.pastTenancies")}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {tenancyHistory.map((tenancy) => (
-                <Collapsible
-                  key={tenancy.id}
-                  open={expandedTenancyId === tenancy.id}
-                  onOpenChange={(open) => {
-                    if (open) {
-                      setExpandedTenancyId(tenancy.id);
-                      loadTenancyDocuments(tenancy.id);
-                    } else {
-                      setExpandedTenancyId(null);
-                    }
-                  }}
-                >
-                  <div className="border rounded-lg p-3">
-                    <CollapsibleTrigger className="w-full flex items-center justify-between">
-                      <div className="text-left">
-                        <p className="font-medium">{getTenantName(tenancy)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDate(tenancy.started_at)} -{" "}
-                          {tenancy.ended_at ? formatDate(tenancy.ended_at) : t("properties.active")}
-                        </p>
+                          ))}
+                        
+                        {/* Payment History */}
+                        {rentAgreements.some(ra => ra.tenancy_id === currentTenant.id) && (
+                          <RentPaymentHistory 
+                            propertyId={propertyId!} 
+                            isManager={true} 
+                          />
+                        )}
                       </div>
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform ${expandedTenancyId === tenancy.id ? "rotate-180" : ""}`}
-                      />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2 pt-2 border-t">
-                      {tenancyDocsMap[tenancy.id] ? (
-                        tenancyDocsMap[tenancy.id].length > 0 ? (
-                          <div className="space-y-2">
-                            {tenancyDocsMap[tenancy.id].map((doc) => (
-                              <div key={doc.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium">{doc.document_title}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {formatDate(doc.created_at)} · {(doc.file_size_bytes / 1024).toFixed(2)} KB
-                                  </p>
-                                </div>
-                                <Button variant="ghost" size="sm" onClick={() => downloadDocument(doc)}>
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">{t("properties.noDocuments")}</p>
-                        )
-                      ) : (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <div className="h-4 w-4 border-2 border-muted-foreground/30 border-t-transparent rounded-full animate-spin" />
-                          {t("common.loading")}
-                        </div>
-                      )}
-                    </CollapsibleContent>
+                    )}
                   </div>
-                </Collapsible>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>{t("dialogs.manageTenants.noTenants")}</p>
+                    <p className="text-sm mt-2">{t("properties.inviteTenantToGetStarted")}</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="tickets" className="mt-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-sm">{t("tickets.openTickets")}</h3>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">{t("tickets.noOpenTickets")}</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => navigate(`/properties/${propertyId}/tickets`)}
+                  >
+                    <Ticket className="h-4 w-4 mr-2" />
+                    {t("tenants.viewAllTickets")}
+                  </Button>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Remove Tenant Dialog */}

@@ -835,6 +835,14 @@ export const translations = {
       activityTimeline: "Activity Timeline",
       activityTimelineDesc: "Track all changes and updates",
     },
+    propertyTenants: {
+      tabs: {
+        tenants: "Tenants",
+        contracts: "Contracts",
+        payments: "Payments",
+        tickets: "Tickets",
+      },
+    },
     invitations: {
       title: "Pending Invitations",
       description: "Accept or decline property invitations",
