@@ -515,6 +515,50 @@ export type Database = {
           },
         ]
       }
+      payment_reminders: {
+        Row: {
+          created_at: string
+          email_status: string | null
+          email_subject: string
+          email_to: string
+          error_message: string | null
+          id: string
+          reminder_type: string
+          rent_payment_id: string
+          sent_at: string
+        }
+        Insert: {
+          created_at?: string
+          email_status?: string | null
+          email_subject: string
+          email_to: string
+          error_message?: string | null
+          id?: string
+          reminder_type: string
+          rent_payment_id: string
+          sent_at?: string
+        }
+        Update: {
+          created_at?: string
+          email_status?: string | null
+          email_subject?: string
+          email_to?: string
+          error_message?: string | null
+          id?: string
+          reminder_type?: string
+          rent_payment_id?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminders_rent_payment_id_fkey"
+            columns: ["rent_payment_id"]
+            isOneToOne: false
+            referencedRelation: "rent_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           aml_status: string | null
