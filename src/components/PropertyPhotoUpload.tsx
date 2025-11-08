@@ -130,14 +130,14 @@ export function PropertyPhotoUpload({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col items-center gap-3">
         <div className="relative">
           {previewUrl ? (
             <div className="relative">
               <img 
                 src={previewUrl} 
                 alt="Property" 
-                className="w-24 h-24 rounded-lg object-cover border-2 border-border"
+                className="w-64 h-64 rounded-lg object-cover border-2 border-border"
               />
               {!disabled && (
                 <Button
@@ -152,13 +152,13 @@ export function PropertyPhotoUpload({
               )}
             </div>
           ) : (
-            <div className="w-24 h-24 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/20">
+            <div className="w-64 h-64 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/20">
               <ImageIcon className="h-8 w-8 text-muted-foreground" />
             </div>
           )}
         </div>
         
-        <div className="flex-1">
+        <div className="w-full max-w-xs">
           <Button
             type="button"
             variant="outline"
