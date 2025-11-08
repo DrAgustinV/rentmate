@@ -42,9 +42,10 @@ export function PaymentsTab({
   contractSignatures,
 }: PaymentsTabProps) {
   const { t } = useLanguage();
+  const isManager = userRole?.isManager || false;
 
-  // Only show for managers with active tenant
-  if (!userRole?.isManager || !currentTenant) {
+  // Show for both managers and tenants
+  if (!currentTenant) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <p>{t("dialogs.manageTenants.noTenants")}</p>
@@ -57,7 +58,7 @@ export function PaymentsTab({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-sm">{t("rentAgreements.monthlyRent")}</h3>
-        {!rentAgreements?.some(ra => ra.tenancy_id === currentTenant.id && ra.is_active) && (
+        {isManager && !rentAgreements?.some(ra => ra.tenancy_id === currentTenant.id && ra.is_active) && (
           <CreateRentAgreementDrawer
             propertyId={propertyId}
             activeTenant={{
@@ -103,10 +104,12 @@ export function PaymentsTab({
                     <Badge variant={agreement.is_active ? "default" : "secondary"}>
                       {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
                     </Badge>
-                    <EditRentAgreementDrawer 
-                      agreement={agreement}
-                      isContractSigning={!!contractSignatures?.some(sig => sig.tenancy_id === agreement.tenancy_id)}
-                    />
+                    {isManager && (
+                      <EditRentAgreementDrawer 
+                        agreement={agreement}
+                        isContractSigning={!!contractSignatures?.some(sig => sig.tenancy_id === agreement.tenancy_id)}
+                      />
+                    )}
                   </div>
                 </div>
                 {!agreement.tenant_iban && (
@@ -132,7 +135,7 @@ export function PaymentsTab({
           {/* Payment History - Always show */}
           <RentPaymentHistory 
             propertyId={propertyId} 
-            isManager={true}
+            isManager={isManager}
             hasRentAgreement={rentAgreements.some(ra => ra.tenancy_id === currentTenant.id)}
           />
         </div>
