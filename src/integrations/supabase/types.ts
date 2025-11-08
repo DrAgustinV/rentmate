@@ -987,6 +987,9 @@ export type Database = {
           failure_reason: string | null
           id: string
           manager_id: string
+          manager_reviewed: boolean | null
+          manager_reviewed_at: string | null
+          manager_reviewed_by: string | null
           notes: string | null
           payment_date: string | null
           payment_due_date: string | null
@@ -995,6 +998,8 @@ export type Database = {
           payment_status: string
           processed_at: string | null
           proof_of_payment_url: string | null
+          proof_review_notes: string | null
+          proof_review_status: string | null
           property_id: string
           rent_agreement_id: string
           status: string | null
@@ -1012,6 +1017,9 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           manager_id: string
+          manager_reviewed?: boolean | null
+          manager_reviewed_at?: string | null
+          manager_reviewed_by?: string | null
           notes?: string | null
           payment_date?: string | null
           payment_due_date?: string | null
@@ -1020,6 +1028,8 @@ export type Database = {
           payment_status?: string
           processed_at?: string | null
           proof_of_payment_url?: string | null
+          proof_review_notes?: string | null
+          proof_review_status?: string | null
           property_id: string
           rent_agreement_id: string
           status?: string | null
@@ -1037,6 +1047,9 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           manager_id?: string
+          manager_reviewed?: boolean | null
+          manager_reviewed_at?: string | null
+          manager_reviewed_by?: string | null
           notes?: string | null
           payment_date?: string | null
           payment_due_date?: string | null
@@ -1045,6 +1058,8 @@ export type Database = {
           payment_status?: string
           processed_at?: string | null
           proof_of_payment_url?: string | null
+          proof_review_notes?: string | null
+          proof_review_status?: string | null
           property_id?: string
           rent_agreement_id?: string
           status?: string | null
