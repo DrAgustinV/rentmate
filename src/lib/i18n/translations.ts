@@ -1,4 +1,4 @@
-Translation - correct - deepseek
+// Translation file
 
 export type TranslationKey = string;
 
@@ -564,38 +564,6 @@ export const translations = {
         nextRun: "Next run:",
         noTasks: "No scheduled maintenance tasks yet",
       },
-      configuration: {
-        pageTitle: "Configuration",
-        pageDescription: "Manage your property management settings and defaults",
-        tabs: {
-          maintenance: "Standard Maintenance",
-          templates: "Document Templates",
-          repairShops: "Repair Shops",
-          defaults: "Defaults",
-        },
-        standardMaintenanceTitle: "Standard Maintenance Templates",
-        standardMaintenanceDesc: "Create reusable maintenance task templates that can be applied to any property",
-        addMaintenanceTask: "Add Maintenance Task",
-        documentTemplatesTitle: "Document Templates",
-        documentTemplatesDesc: "Reusable document templates for properties",
-        documentTemplatesHelper: "Create document templates that can be copied to properties. These templates are available across all your properties.",
-        addTemplate: "Add Template",
-        defaultsTitle: "Default Settings",
-        defaultsDescription: "Set default values for new rent agreements",
-        requireKYCTitle: "Require Identity Verification (KYC)",
-        requireKYCDesc: "Require tenants to verify identity before signing contracts",
-        defaultDepositTitle: "Default Security Deposit",
-        defaultDepositPlaceholder: "0",
-        defaultDepositHelper: "Enter the default security deposit amount (e.g., 1000 for €1,000.00)",
-        paymentConfirmTitle: "Monthly Payment Confirmation",
-        paymentConfirmDesc: "Require tenant to confirm monthly rent payments",
-        waterBillTitle: "Water Bill Monthly Check",
-        waterBillDesc: "Require proof of water bill payment each month",
-        electricityBillTitle: "Electricity Bill Monthly Check",
-        electricityBillDesc: "Require proof of electricity bill payment each month",
-        saveDefaults: "Save Defaults",
-        saving: "Saving...",
-      },
       dialogs: {
         creating: "Creating...",
         saving: "Saving...",
@@ -744,6 +712,38 @@ export const translations = {
         notesRequired: "Notes required",
         notesRequiredMessage: "Please describe the work completed",
       },
+    },
+    configuration: {
+      pageTitle: "Configuration",
+      pageDescription: "Manage your property management settings and defaults",
+      tabs: {
+        maintenance: "Standard Maintenance",
+        templates: "Document Templates",
+        repairShops: "Repair Shops",
+        defaults: "Defaults",
+      },
+      standardMaintenanceTitle: "Standard Maintenance Templates",
+      standardMaintenanceDesc: "Create reusable maintenance task templates that can be applied to any property",
+      addMaintenanceTask: "Add Maintenance Task",
+      documentTemplatesTitle: "Document Templates",
+      documentTemplatesDesc: "Reusable document templates for properties",
+      documentTemplatesHelper: "Create document templates that can be copied to properties. These templates are available across all your properties.",
+      addTemplate: "Add Template",
+      defaultsTitle: "Default Settings",
+      defaultsDescription: "Set default values for new rent agreements",
+      requireKYCTitle: "Require Identity Verification (KYC)",
+      requireKYCDesc: "Require tenants to verify identity before signing contracts",
+      defaultDepositTitle: "Default Security Deposit",
+      defaultDepositPlaceholder: "0",
+      defaultDepositHelper: "Enter the default security deposit amount (e.g., 1000 for €1,000.00)",
+      paymentConfirmTitle: "Monthly Payment Confirmation",
+      paymentConfirmDesc: "Require tenant to confirm monthly rent payments",
+      waterBillTitle: "Water Bill Monthly Check",
+      waterBillDesc: "Require proof of water bill payment each month",
+      electricityBillTitle: "Electricity Bill Monthly Check",
+      electricityBillDesc: "Require proof of electricity bill payment each month",
+      saveDefaults: "Save Defaults",
+      saving: "Saving...",
     },
     buttons: {
       tickets: "Tickets",
@@ -2407,7 +2407,7 @@ export const translations = {
       saving: "Guardando...",
     },
   },
-};
+} as const;
 
 export type Language = keyof typeof translations;
 export type Translations = typeof translations.en;
