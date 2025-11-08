@@ -67,7 +67,12 @@ export function useRentAgreements(propertyId?: string) {
     queryFn: async () => {
       if (!propertyId) return [];
 
-      const { data, error } = await supabase
+      // Get current user to determine if they're a tenant
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      // Build query with filters
+      let query = supabase
         .from('rent_agreements')
         .select(`
           *,
@@ -78,8 +83,22 @@ export function useRentAgreements(propertyId?: string) {
             email
           )
         `)
-        .eq('property_id', propertyId)
-        .order('created_at', { ascending: false });
+        .eq('property_id', propertyId);
+
+      // If user is a tenant (not the property manager), filter to only their agreements
+      // This helps with RLS policy joins
+      const { data: propertyData } = await supabase
+        .from('properties')
+        .select('manager_id')
+        .eq('id', propertyId)
+        .single();
+
+      if (propertyData && propertyData.manager_id !== user.id) {
+        // User is a tenant, not the manager
+        query = query.eq('tenant_id', user.id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       return data;
