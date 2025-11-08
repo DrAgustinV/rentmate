@@ -1,3 +1,5 @@
+Translation - correct - deepseek
+
 export type TranslationKey = string;
 
 export const translations = {
@@ -26,40 +28,6 @@ export const translations = {
       optional: "Optional",
       download: "Download",
       archive: "Archive",
-    },
-    landing: {
-      getStarted: "Get Started",
-      signIn: "Sign In",
-      forManagers: "For Property Managers",
-      forTenants: "For Tenants",
-      managers: {
-        automatedOps: {
-          title: "Automated Operations",
-          description: "Streamline rent collection, maintenance, and document workflows."
-        },
-        centralizedControl: {
-          title: "Centralized Control",
-          description: "Manage your entire property portfolio and tenant communications from one dashboard."
-        },
-        reducedRisk: {
-          title: "Reduced Risk",
-          description: "Ensure compliance with verified tenant identities and legally-sound digital contracts."
-        }
-      },
-      tenants: {
-        effortlessRenting: {
-          title: "Effortless Renting",
-          description: "Handle payments, documents, and issue reporting all in one place."
-        },
-        totalTransparency: {
-          title: "Total Transparency",
-          description: "Track rent payments, maintenance requests, and communications clearly."
-        },
-        moveInReady: {
-          title: "Move-In Ready",
-          description: "Securely verify your identity and sign contracts digitally for a faster start."
-        }
-      }
     },
     contractSignature: {
       title: "Digital Contract Signature",
@@ -237,8 +205,7 @@ export const translations = {
         viewDetails: "View Verification Details",
       },
       alerts: {
-        notStarted:
-          "Complete identity verification to increase trust with property managers and access exclusive features.",
+        notStarted: "Complete identity verification to increase trust with property managers and access exclusive features.",
         expiringSoon: "Your verification expires soon. Please renew it to maintain access.",
         expired: "Your verification has expired. Please renew it to continue.",
         rejected: "Your verification was not successful. Please try again or contact support.",
@@ -308,8 +275,7 @@ export const translations = {
       iban: "IBAN",
       ibanDescription: "Your International Bank Account Number",
       sepaConsent: "I authorize SEPA direct debit",
-      sepaConsentDescription:
-        "I authorize the property manager to collect payments from my account via SEPA direct debit",
+      sepaConsentDescription: "I authorize the property manager to collect payments from my account via SEPA direct debit",
       ibanConfigured: "Payment Configured",
       ibanConfiguredDescription: "Your payment details are set up and active",
       mandateStatusLabel: "Mandate Status",
@@ -384,8 +350,7 @@ export const translations = {
       paymentMarkedPaid: "Payment marked as paid",
       viewProof: "View Proof",
       stripeConnect: "Stripe Connect",
-      stripeConnectDescription:
-        "Connect your Stripe account to collect rent payments from tenants via SEPA Direct Debit",
+      stripeConnectDescription: "Connect your Stripe account to collect rent payments from tenants via SEPA Direct Debit",
       notConnected: "Not Connected",
       connected: "Connected",
       pendingOnboarding: "Pending Onboarding",
@@ -613,8 +578,7 @@ export const translations = {
         addMaintenanceTask: "Add Maintenance Task",
         documentTemplatesTitle: "Document Templates",
         documentTemplatesDesc: "Reusable document templates for properties",
-        documentTemplatesHelper:
-          "Create document templates that can be copied to properties. These templates are available across all your properties.",
+        documentTemplatesHelper: "Create document templates that can be copied to properties. These templates are available across all your properties.",
         addTemplate: "Add Template",
         defaultsTitle: "Default Settings",
         defaultsDescription: "Set default values for new rent agreements",
@@ -1301,40 +1265,6 @@ export const translations = {
       download: "Descargar",
       archive: "Archivar",
     },
-    landing: {
-      getStarted: "Comenzar",
-      signIn: "Iniciar Sesión",
-      forManagers: "Para Administradores de Propiedades",
-      forTenants: "Para Inquilinos",
-      managers: {
-        automatedOps: {
-          title: "Operaciones Automatizadas",
-          description: "Optimice el cobro de alquileres, mantenimiento y flujos de trabajo de documentos."
-        },
-        centralizedControl: {
-          title: "Control Centralizado",
-          description: "Administre toda su cartera de propiedades y comunicaciones con inquilinos desde un solo panel."
-        },
-        reducedRisk: {
-          title: "Riesgo Reducido",
-          description: "Garantice el cumplimiento con identidades verificadas de inquilinos y contratos digitales legalmente sólidos."
-        }
-      },
-      tenants: {
-        effortlessRenting: {
-          title: "Alquiler Sin Esfuerzo",
-          description: "Gestione pagos, documentos y reportes de problemas en un solo lugar."
-        },
-        totalTransparency: {
-          title: "Transparencia Total",
-          description: "Realice un seguimiento claro de los pagos de alquiler, solicitudes de mantenimiento y comunicaciones."
-        },
-        moveInReady: {
-          title: "Listo para Mudarse",
-          description: "Verifique su identidad de forma segura y firme contratos digitalmente para un inicio más rápido."
-        }
-      }
-    },
     contractSignature: {
       title: "Firma Digital del Contrato",
       description: "Firma de contratos de alquiler de forma segura con firma electrónica cualificada eIDAS",
@@ -1478,8 +1408,7 @@ export const translations = {
         viewDetails: "Ver Detalles de Verificación",
       },
       alerts: {
-        notStarted:
-          "Completa la verificación de identidad para aumentar la confianza con los administradores de propiedades y acceder a funciones exclusivas.",
+        notStarted: "Completa la verificación de identidad para aumentar la confianza con los administradores de propiedades y acceder a funciones exclusivas.",
         expiringSoon: "Tu verificación expira pronto. Por favor renuévala para mantener el acceso.",
         expired: "Tu verificación ha expirado. Por favor renuévala para continuar.",
         rejected: "Tu verificación no fue exitosa. Por favor intenta de nuevo o contacta a soporte.",
@@ -1530,8 +1459,7 @@ export const translations = {
       accountDetected: "¡Bienvenido de Nuevo!",
       accountDetectedDesc: "¡Encontramos tu cuenta! Inicia sesión para aceptar tu invitación de propiedad.",
       noAccountDetected: "Crea Tu Cuenta",
-      noAccountDetectedDesc:
-        "No encontramos una cuenta con tu correo electrónico. Vamos a crear una para aceptar tu invitación.",
+      noAccountDetectedDesc: "No encontramos una cuenta con tu correo electrónico. Vamos a crear una para aceptar tu invitación.",
       settingUpAccount: "Configuraremos tu cuenta para {email}",
       signInToAccept: "Inicia sesión con {email} para aceptar tu invitación",
     },
@@ -1584,8 +1512,7 @@ export const translations = {
       iban: "IBAN",
       ibanDescription: "Su Número de Cuenta Bancaria Internacional",
       sepaConsent: "Autorizo el débito directo SEPA",
-      sepaConsentDescription:
-        "Autorizo al administrador de la propiedad a cobrar pagos de mi cuenta mediante débito directo SEPA",
+      sepaConsentDescription: "Autorizo al administrador de la propiedad a cobrar pagos de mi cuenta mediante débito directo SEPA",
       ibanConfigured: "Pago Configurado",
       ibanConfiguredDescription: "Sus detalles de pago están configurados y activos",
       mandateStatusLabel: "Estado del Mandato",
@@ -1660,8 +1587,7 @@ export const translations = {
       paymentMarkedPaid: "Pago marcado como pagado",
       viewProof: "Ver Comprobante",
       stripeConnect: "Stripe Connect",
-      stripeConnectDescription:
-        "Conecta tu cuenta de Stripe para cobrar pagos de alquiler de inquilinos mediante Débito Directo SEPA",
+      stripeConnectDescription: "Conecta tu cuenta de Stripe para cobrar pagos de alquiler de inquilinos mediante Débito Directo SEPA",
       notConnected: "No Conectado",
       connected: "Conectado",
       pendingOnboarding: "Integración Pendiente",
@@ -2458,13 +2384,11 @@ export const translations = {
         defaults: "Valores Predeterminados",
       },
       standardMaintenanceTitle: "Plantillas de Mantenimiento Estándar",
-      standardMaintenanceDesc:
-        "Cree plantillas de tareas de mantenimiento reutilizables que se pueden aplicar a cualquier propiedad",
+      standardMaintenanceDesc: "Cree plantillas de tareas de mantenimiento reutilizables que se pueden aplicar a cualquier propiedad",
       addMaintenanceTask: "Agregar Tarea de Mantenimiento",
       documentTemplatesTitle: "Plantillas de Documentos",
       documentTemplatesDesc: "Plantillas de documentos reutilizables para propiedades",
-      documentTemplatesHelper:
-        "Cree plantillas de documentos que se pueden copiar a propiedades. Estas plantillas están disponibles en todas sus propiedades.",
+      documentTemplatesHelper: "Cree plantillas de documentos que se pueden copiar a propiedades. Estas plantillas están disponibles en todas sus propiedades.",
       addTemplate: "Agregar Plantilla",
       defaultsTitle: "Configuración Predeterminada",
       defaultsDescription: "Establecer valores predeterminados para nuevos contratos de alquiler",
