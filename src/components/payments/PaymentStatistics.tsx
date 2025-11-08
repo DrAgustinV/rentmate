@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { DollarSign, Calendar, TrendingUp, Bell } from "lucide-react";
+import { Coins, Calendar, TrendingUp, Bell } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format, differenceInDays } from "date-fns";
 
@@ -59,7 +59,7 @@ export function PaymentStatistics({ payments, hasData }: PaymentStatisticsProps)
 
   const stats = [
     {
-      icon: DollarSign,
+      icon: Coins,
       label: t("payments.statistics.totalPaid"),
       value: hasData ? formatCurrency(totalPaid) : formatCurrency(0),
       subtext: hasData ? `${totalCompletedPayments} ${t("payments.statistics.payments")}` : t("payments.statistics.noData"),
