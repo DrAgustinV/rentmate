@@ -57,6 +57,7 @@ import { TenantsTab } from '@/components/property-tenants/TenantsTab';
 import { ContractsTab } from '@/components/property-tenants/ContractsTab';
 import { PaymentsTab } from '@/components/property-tenants/PaymentsTab';
 import { TicketsTab } from '@/components/property-tenants/TicketsTab';
+import { UtilitiesTab } from '@/components/property-tenants/UtilitiesTab';
 
 interface Tenant {
   id: string;
@@ -634,10 +635,11 @@ export default function PropertyTenants() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="tenants">{t("propertyTenants.tabs.tenants")}</TabsTrigger>
                 <TabsTrigger value="contracts">{t("propertyTenants.tabs.contracts")}</TabsTrigger>
                 <TabsTrigger value="payments">{t("propertyTenants.tabs.payments")}</TabsTrigger>
+                <TabsTrigger value="utilities">{t("propertyTenants.tabs.utilities")}</TabsTrigger>
                 <TabsTrigger value="tickets">{t("propertyTenants.tabs.tickets")}</TabsTrigger>
               </TabsList>
 
@@ -699,6 +701,14 @@ export default function PropertyTenants() {
                   rentAgreements={rentAgreements}
                   agreementsLoading={agreementsLoading}
                   contractSignatures={contractSignatures}
+                />
+              </TabsContent>
+
+              <TabsContent value="utilities" className="mt-6">
+                <UtilitiesTab
+                  currentTenant={currentTenant}
+                  propertyId={propertyId!}
+                  userRole={userRole?.isManager ? 'manager' : 'tenant'}
                 />
               </TabsContent>
 

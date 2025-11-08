@@ -1696,6 +1696,78 @@ export type Database = {
         }
         Relationships: []
       }
+      utility_payments: {
+        Row: {
+          amount_cents: number
+          billing_period_end: string
+          billing_period_start: string
+          created_at: string
+          currency: string
+          custom_utility_name: string | null
+          id: string
+          manager_id: string
+          manager_reviewed_at: string | null
+          manager_reviewed_by: string | null
+          notes: string | null
+          payment_date: string | null
+          payment_due_date: string
+          proof_of_payment_url: string | null
+          proof_review_notes: string | null
+          proof_review_status: string | null
+          property_id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          utility_type: string
+        }
+        Insert: {
+          amount_cents: number
+          billing_period_end: string
+          billing_period_start: string
+          created_at?: string
+          currency?: string
+          custom_utility_name?: string | null
+          id?: string
+          manager_id: string
+          manager_reviewed_at?: string | null
+          manager_reviewed_by?: string | null
+          notes?: string | null
+          payment_date?: string | null
+          payment_due_date: string
+          proof_of_payment_url?: string | null
+          proof_review_notes?: string | null
+          proof_review_status?: string | null
+          property_id: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          utility_type: string
+        }
+        Update: {
+          amount_cents?: number
+          billing_period_end?: string
+          billing_period_start?: string
+          created_at?: string
+          currency?: string
+          custom_utility_name?: string | null
+          id?: string
+          manager_id?: string
+          manager_reviewed_at?: string | null
+          manager_reviewed_by?: string | null
+          notes?: string | null
+          payment_date?: string | null
+          payment_due_date?: string
+          proof_of_payment_url?: string | null
+          proof_review_notes?: string | null
+          proof_review_status?: string | null
+          property_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          utility_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       invitations_safe: {
