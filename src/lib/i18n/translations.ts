@@ -1,4 +1,4 @@
-// Translation file
+Translation - correct - deepseek;
 
 export type TranslationKey = string;
 
@@ -205,7 +205,8 @@ export const translations = {
         viewDetails: "View Verification Details",
       },
       alerts: {
-        notStarted: "Complete identity verification to increase trust with property managers and access exclusive features.",
+        notStarted:
+          "Complete identity verification to increase trust with property managers and access exclusive features.",
         expiringSoon: "Your verification expires soon. Please renew it to maintain access.",
         expired: "Your verification has expired. Please renew it to continue.",
         rejected: "Your verification was not successful. Please try again or contact support.",
@@ -275,7 +276,8 @@ export const translations = {
       iban: "IBAN",
       ibanDescription: "Your International Bank Account Number",
       sepaConsent: "I authorize SEPA direct debit",
-      sepaConsentDescription: "I authorize the property manager to collect payments from my account via SEPA direct debit",
+      sepaConsentDescription:
+        "I authorize the property manager to collect payments from my account via SEPA direct debit",
       ibanConfigured: "Payment Configured",
       ibanConfiguredDescription: "Your payment details are set up and active",
       mandateStatusLabel: "Mandate Status",
@@ -350,7 +352,8 @@ export const translations = {
       paymentMarkedPaid: "Payment marked as paid",
       viewProof: "View Proof",
       stripeConnect: "Stripe Connect",
-      stripeConnectDescription: "Connect your Stripe account to collect rent payments from tenants via SEPA Direct Debit",
+      stripeConnectDescription:
+        "Connect your Stripe account to collect rent payments from tenants via SEPA Direct Debit",
       notConnected: "Not Connected",
       connected: "Connected",
       pendingOnboarding: "Pending Onboarding",
@@ -564,6 +567,39 @@ export const translations = {
         nextRun: "Next run:",
         noTasks: "No scheduled maintenance tasks yet",
       },
+      configuration: {
+        pageTitle: "Configuration",
+        pageDescription: "Manage your property management settings and defaults",
+        tabs: {
+          maintenance: "Standard Maintenance",
+          templates: "Document Templates",
+          repairShops: "Repair Shops",
+          defaults: "Defaults",
+        },
+        standardMaintenanceTitle: "Standard Maintenance Templates",
+        standardMaintenanceDesc: "Create reusable maintenance task templates that can be applied to any property",
+        addMaintenanceTask: "Add Maintenance Task",
+        documentTemplatesTitle: "Document Templates",
+        documentTemplatesDesc: "Reusable document templates for properties",
+        documentTemplatesHelper:
+          "Create document templates that can be copied to properties. These templates are available across all your properties.",
+        addTemplate: "Add Template",
+        defaultsTitle: "Default Settings",
+        defaultsDescription: "Set default values for new rent agreements",
+        requireKYCTitle: "Require Identity Verification (KYC)",
+        requireKYCDesc: "Require tenants to verify identity before signing contracts",
+        defaultDepositTitle: "Default Security Deposit",
+        defaultDepositPlaceholder: "0",
+        defaultDepositHelper: "Enter the default security deposit amount (e.g., 1000 for €1,000.00)",
+        paymentConfirmTitle: "Monthly Payment Confirmation",
+        paymentConfirmDesc: "Require tenant to confirm monthly rent payments",
+        waterBillTitle: "Water Bill Monthly Check",
+        waterBillDesc: "Require proof of water bill payment each month",
+        electricityBillTitle: "Electricity Bill Monthly Check",
+        electricityBillDesc: "Require proof of electricity bill payment each month",
+        saveDefaults: "Save Defaults",
+        saving: "Saving...",
+      },
       dialogs: {
         creating: "Creating...",
         saving: "Saving...",
@@ -712,38 +748,6 @@ export const translations = {
         notesRequired: "Notes required",
         notesRequiredMessage: "Please describe the work completed",
       },
-    },
-    configuration: {
-      pageTitle: "Configuration",
-      pageDescription: "Manage your property management settings and defaults",
-      tabs: {
-        maintenance: "Standard Maintenance",
-        templates: "Document Templates",
-        repairShops: "Repair Shops",
-        defaults: "Defaults",
-      },
-      standardMaintenanceTitle: "Standard Maintenance Templates",
-      standardMaintenanceDesc: "Create reusable maintenance task templates that can be applied to any property",
-      addMaintenanceTask: "Add Maintenance Task",
-      documentTemplatesTitle: "Document Templates",
-      documentTemplatesDesc: "Reusable document templates for properties",
-      documentTemplatesHelper: "Create document templates that can be copied to properties. These templates are available across all your properties.",
-      addTemplate: "Add Template",
-      defaultsTitle: "Default Settings",
-      defaultsDescription: "Set default values for new rent agreements",
-      requireKYCTitle: "Require Identity Verification (KYC)",
-      requireKYCDesc: "Require tenants to verify identity before signing contracts",
-      defaultDepositTitle: "Default Security Deposit",
-      defaultDepositPlaceholder: "0",
-      defaultDepositHelper: "Enter the default security deposit amount (e.g., 1000 for €1,000.00)",
-      paymentConfirmTitle: "Monthly Payment Confirmation",
-      paymentConfirmDesc: "Require tenant to confirm monthly rent payments",
-      waterBillTitle: "Water Bill Monthly Check",
-      waterBillDesc: "Require proof of water bill payment each month",
-      electricityBillTitle: "Electricity Bill Monthly Check",
-      electricityBillDesc: "Require proof of electricity bill payment each month",
-      saveDefaults: "Save Defaults",
-      saving: "Saving...",
     },
     buttons: {
       tickets: "Tickets",
@@ -1408,7 +1412,8 @@ export const translations = {
         viewDetails: "Ver Detalles de Verificación",
       },
       alerts: {
-        notStarted: "Completa la verificación de identidad para aumentar la confianza con los administradores de propiedades y acceder a funciones exclusivas.",
+        notStarted:
+          "Completa la verificación de identidad para aumentar la confianza con los administradores de propiedades y acceder a funciones exclusivas.",
         expiringSoon: "Tu verificación expira pronto. Por favor renuévala para mantener el acceso.",
         expired: "Tu verificación ha expirado. Por favor renuévala para continuar.",
         rejected: "Tu verificación no fue exitosa. Por favor intenta de nuevo o contacta a soporte.",
@@ -1459,7 +1464,8 @@ export const translations = {
       accountDetected: "¡Bienvenido de Nuevo!",
       accountDetectedDesc: "¡Encontramos tu cuenta! Inicia sesión para aceptar tu invitación de propiedad.",
       noAccountDetected: "Crea Tu Cuenta",
-      noAccountDetectedDesc: "No encontramos una cuenta con tu correo electrónico. Vamos a crear una para aceptar tu invitación.",
+      noAccountDetectedDesc:
+        "No encontramos una cuenta con tu correo electrónico. Vamos a crear una para aceptar tu invitación.",
       settingUpAccount: "Configuraremos tu cuenta para {email}",
       signInToAccept: "Inicia sesión con {email} para aceptar tu invitación",
     },
@@ -1512,7 +1518,8 @@ export const translations = {
       iban: "IBAN",
       ibanDescription: "Su Número de Cuenta Bancaria Internacional",
       sepaConsent: "Autorizo el débito directo SEPA",
-      sepaConsentDescription: "Autorizo al administrador de la propiedad a cobrar pagos de mi cuenta mediante débito directo SEPA",
+      sepaConsentDescription:
+        "Autorizo al administrador de la propiedad a cobrar pagos de mi cuenta mediante débito directo SEPA",
       ibanConfigured: "Pago Configurado",
       ibanConfiguredDescription: "Sus detalles de pago están configurados y activos",
       mandateStatusLabel: "Estado del Mandato",
@@ -1587,7 +1594,8 @@ export const translations = {
       paymentMarkedPaid: "Pago marcado como pagado",
       viewProof: "Ver Comprobante",
       stripeConnect: "Stripe Connect",
-      stripeConnectDescription: "Conecta tu cuenta de Stripe para cobrar pagos de alquiler de inquilinos mediante Débito Directo SEPA",
+      stripeConnectDescription:
+        "Conecta tu cuenta de Stripe para cobrar pagos de alquiler de inquilinos mediante Débito Directo SEPA",
       notConnected: "No Conectado",
       connected: "Conectado",
       pendingOnboarding: "Integración Pendiente",
@@ -2384,11 +2392,13 @@ export const translations = {
         defaults: "Valores Predeterminados",
       },
       standardMaintenanceTitle: "Plantillas de Mantenimiento Estándar",
-      standardMaintenanceDesc: "Cree plantillas de tareas de mantenimiento reutilizables que se pueden aplicar a cualquier propiedad",
+      standardMaintenanceDesc:
+        "Cree plantillas de tareas de mantenimiento reutilizables que se pueden aplicar a cualquier propiedad",
       addMaintenanceTask: "Agregar Tarea de Mantenimiento",
       documentTemplatesTitle: "Plantillas de Documentos",
       documentTemplatesDesc: "Plantillas de documentos reutilizables para propiedades",
-      documentTemplatesHelper: "Cree plantillas de documentos que se pueden copiar a propiedades. Estas plantillas están disponibles en todas sus propiedades.",
+      documentTemplatesHelper:
+        "Cree plantillas de documentos que se pueden copiar a propiedades. Estas plantillas están disponibles en todas sus propiedades.",
       addTemplate: "Agregar Plantilla",
       defaultsTitle: "Configuración Predeterminada",
       defaultsDescription: "Establecer valores predeterminados para nuevos contratos de alquiler",
@@ -2407,7 +2417,7 @@ export const translations = {
       saving: "Guardando...",
     },
   },
-} as const;
+};
 
 export type Language = keyof typeof translations;
 export type Translations = typeof translations.en;
