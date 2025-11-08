@@ -395,6 +395,13 @@ export const translations = {
       viewProof: "View Proof",
       tenant: "Tenant",
       amount: "Amount",
+      status: {
+        paid: "Paid",
+        pending: "Pending",
+        proofUploaded: "Proof Uploaded",
+        overdue: "Overdue",
+        failed: "Failed",
+      },
       proofReview: {
         title: "Review Payment Proof",
         uploadedAt: "Uploaded At",
@@ -473,6 +480,7 @@ export const translations = {
       paymentHistoryTitle: "Payment History",
       paymentHistoryDesc: "Previous rent payments",
       uploadProofBtn: "Upload Proof",
+      reuploadProofBtn: "Re-upload Proof",
       reviewProofBtn: "Review Proof",
       markAsPaidBtn: "Mark as Paid",
       markPaidBtn: "Mark Paid",

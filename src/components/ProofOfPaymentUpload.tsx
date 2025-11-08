@@ -34,6 +34,20 @@ export function ProofOfPaymentUpload({
       return;
     }
 
+    // File validation
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/pdf'];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Please upload an image (JPG, PNG, WEBP) or PDF file");
+      return;
+    }
+
+    if (file.size > maxSize) {
+      toast.error("File size must be less than 10MB");
+      return;
+    }
+
     setUploading(true);
     try {
       // Upload to Supabase Storage
@@ -47,13 +61,15 @@ export function ProofOfPaymentUpload({
 
       if (uploadError) throw uploadError;
 
-      // Update payment record
+      // Update payment record with proof_uploaded status
       const { error: updateError } = await supabase
         .from("rent_payments")
         .update({
           proof_of_payment_url: filePath,
+          status: 'proof_uploaded',
           tenant_confirmed: true,
           tenant_confirmed_at: new Date().toISOString(),
+          proof_review_status: 'pending',
           updated_at: new Date().toISOString(),
         })
         .eq("id", paymentId);
@@ -82,12 +98,22 @@ export function ProofOfPaymentUpload({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <Input
-            type="file"
-            accept="image/*,application/pdf"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-            disabled={uploading}
-          />
+          <div className="space-y-2">
+            <Input
+              type="file"
+              accept="image/jpeg,image/png,image/jpg,image/webp,application/pdf"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              disabled={uploading}
+            />
+            <p className="text-xs text-muted-foreground">
+              Accepted formats: JPG, PNG, WEBP, PDF (max 10MB)
+            </p>
+            {file && (
+              <p className="text-sm text-muted-foreground">
+                Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button
               onClick={handleUpload}

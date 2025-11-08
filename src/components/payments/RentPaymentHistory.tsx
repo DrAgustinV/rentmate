@@ -141,28 +141,35 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
         return (
           <Badge variant="default" className="flex items-center gap-1">
             <CheckCircle2 className="h-3 w-3" />
-            Paid
+            {t("payments.status.paid")}
+          </Badge>
+        );
+      case 'proof_uploaded':
+        return (
+          <Badge className="bg-blue-500 hover:bg-blue-600 flex items-center gap-1">
+            <Upload className="h-3 w-3" />
+            {t("payments.status.proofUploaded")}
           </Badge>
         );
       case 'pending':
         return (
           <Badge variant="secondary" className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            Pending
+            {t("payments.status.pending")}
           </Badge>
         );
       case 'overdue':
         return (
           <Badge variant="destructive" className="flex items-center gap-1">
             <AlertTriangle className="h-3 w-3" />
-            Overdue
+            {t("payments.status.overdue")}
           </Badge>
         );
       case 'failed':
         return (
           <Badge variant="destructive" className="flex items-center gap-1">
             <AlertTriangle className="h-3 w-3" />
-            Failed
+            {t("payments.status.failed")}
           </Badge>
         );
       default:
@@ -171,21 +178,21 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
   };
 
   const getProofReviewBadge = (payment: RentPayment) => {
-    if (!payment.proof_of_payment_url) return null;
+    if (!payment.proof_of_payment_url && payment.status !== 'proof_uploaded') return null;
     
     switch (payment.proof_review_status) {
       case "approved":
         return (
-          <Badge className="bg-green-500 gap-1">
+          <Badge className="bg-green-500 hover:bg-green-600 gap-1">
             <CheckCircle2 className="h-3 w-3" />
-            Approved
+            {t("payments.proofReview.approved")}
           </Badge>
         );
       case "rejected":
         return (
           <Badge variant="destructive" className="gap-1">
             <XCircle className="h-3 w-3" />
-            Rejected
+            {t("payments.proofReview.rejected")}
           </Badge>
         );
       case "pending":
@@ -193,7 +200,7 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
         return (
           <Badge variant="outline" className="gap-1">
             <Clock className="h-3 w-3" />
-            Pending Review
+            {t("payments.proofReview.pendingReview")}
           </Badge>
         );
     }
@@ -311,7 +318,7 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                         {getProofReviewBadge(payment)}
                         {isManager && getReminderBadge(payment)}
                       </div>
-                      {!isManager && payment.status === 'pending' && (
+                      {!isManager && (payment.status === 'pending' || payment.proof_review_status === 'rejected') && !payment.proof_of_payment_url && (
                         <Button
                           size="sm"
                           onClick={() => {
@@ -320,10 +327,12 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                           }}
                         >
                           <Upload className="h-4 w-4 mr-2" />
-                          {t("payments.uploadProofBtn")}
+                          {payment.proof_review_status === 'rejected' 
+                            ? t("payments.reuploadProofBtn")
+                            : t("payments.uploadProofBtn")}
                         </Button>
                       )}
-                      {isManager && payment.proof_of_payment_url && !payment.manager_reviewed && (
+                      {isManager && (payment.proof_of_payment_url || payment.status === 'proof_uploaded') && !payment.manager_reviewed && (
                         <Button
                           size="sm"
                           variant="outline"

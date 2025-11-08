@@ -37,20 +37,37 @@ export function PaymentProofReview({
 
   const reviewMutation = useMutation({
     mutationFn: async ({ status }: { status: "approved" | "rejected" }) => {
+      const updates: any = {
+        manager_reviewed: true,
+        manager_reviewed_at: new Date().toISOString(),
+        manager_reviewed_by: (await supabase.auth.getUser()).data.user?.id,
+        proof_review_status: status,
+        proof_review_notes: notes || null,
+      };
+
+      if (status === "approved") {
+        // Approved: mark as paid
+        updates.status = "paid";
+        updates.payment_received_date = new Date().toISOString().split("T")[0];
+      } else {
+        // Rejected: reset to pending and clear proof
+        updates.status = "pending";
+        updates.proof_of_payment_url = null;
+        updates.tenant_confirmed = false;
+        updates.tenant_confirmed_at = null;
+      }
+
       const { error } = await supabase
         .from("rent_payments")
-        .update({
-          manager_reviewed: true,
-          manager_reviewed_at: new Date().toISOString(),
-          manager_reviewed_by: (await supabase.auth.getUser()).data.user?.id,
-          proof_review_status: status,
-          proof_review_notes: notes || null,
-          status: status === "approved" ? "paid" : "pending",
-          payment_received_date: status === "approved" ? new Date().toISOString().split("T")[0] : null,
-        })
+        .update(updates)
         .eq("id", paymentId);
 
       if (error) throw error;
+
+      // If rejected, delete the file from storage
+      if (status === "rejected" && proofUrl) {
+        await supabase.storage.from("payment-proofs").remove([proofUrl]);
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["rent-payments"] });
