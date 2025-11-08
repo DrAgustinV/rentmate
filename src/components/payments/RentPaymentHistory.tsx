@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DollarSign, CheckCircle2, Clock, AlertTriangle, Loader2, Upload, Eye, XCircle, Bell } from 'lucide-react';
+import { DollarSign, CheckCircle2, Clock, AlertTriangle, Loader2, Upload, Eye, XCircle, Bell, FileImage } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, differenceInDays } from 'date-fns';
 import { ProofOfPaymentUpload } from '@/components/ProofOfPaymentUpload';
@@ -241,6 +241,34 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
     return null;
   };
 
+  const getProofThumbnail = (payment: RentPayment) => {
+    if (!payment.proof_of_payment_url) return null;
+
+    const { data } = supabase.storage
+      .from('payment-proofs')
+      .getPublicUrl(payment.proof_of_payment_url);
+
+    const isPdf = payment.proof_of_payment_url.toLowerCase().endsWith('.pdf');
+
+    return (
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <FileImage className="h-3 w-3" />
+        {isPdf ? (
+          <span>PDF</span>
+        ) : (
+          <img 
+            src={data.publicUrl} 
+            alt="Proof thumbnail" 
+            className="h-8 w-8 object-cover rounded border"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        )}
+      </div>
+    );
+  };
+
   const upcomingPayments = payments.filter(p => p.status === 'pending' && new Date(p.payment_due_date) >= new Date());
   const pastPayments = payments.filter(p => p.status !== 'pending' || new Date(p.payment_due_date) < new Date());
 
@@ -311,6 +339,7 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                           {t("payments.reminders.sentOn")} {format(new Date(payment.reminder_sent_at), 'PPP')}
                         </p>
                       )}
+                      {getProofThumbnail(payment)}
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex flex-col gap-1">

@@ -418,6 +418,9 @@ export const translations = {
         rejectedSuccess: "Payment proof rejected",
         reviewError: "Failed to review payment proof",
         imageLoadError: "Failed to load proof image",
+        downloadSuccess: "File downloaded successfully",
+        downloadError: "Failed to download file",
+        zoomImage: "Zoom Image",
       },
       stripeConnect: "Stripe Connect",
       stripeConnectDescription:

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { showToast } from "@/lib/toastUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, Download, ZoomIn, ZoomOut, X } from "lucide-react";
 
 interface PaymentProofReviewProps {
   paymentId: string;
@@ -34,6 +34,8 @@ export function PaymentProofReview({
   const queryClient = useQueryClient();
   const [notes, setNotes] = useState("");
   const [imageError, setImageError] = useState(false);
+  const [imageZoom, setImageZoom] = useState(1);
+  const [showZoomModal, setShowZoomModal] = useState(false);
 
   const reviewMutation = useMutation({
     mutationFn: async ({ status }: { status: "approved" | "rejected" }) => {
@@ -96,12 +98,37 @@ export function PaymentProofReview({
     }).format(cents / 100);
   };
 
-  const getPublicUrl = async () => {
-    const { data } = await supabase.storage
-      .from("payment-proofs")
-      .getPublicUrl(proofUrl);
-    return data.publicUrl;
+  const handleDownload = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("payment-proofs")
+        .download(proofUrl);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = proofUrl.split('/').pop() || 'payment-proof';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast.success({
+        title: t("common.success"),
+        description: t("payments.proofReview.downloadSuccess"),
+      });
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      showToast.error({
+        title: t("common.error"),
+        description: t("payments.proofReview.downloadError"),
+      });
+    }
   };
+
+  const isPdf = proofUrl.toLowerCase().endsWith('.pdf');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -129,9 +156,31 @@ export function PaymentProofReview({
 
           {/* Proof of Payment Image/PDF */}
           <div className="space-y-2">
-            <Label>{t("payments.proofReview.proofDocument")}</Label>
+            <div className="flex items-center justify-between">
+              <Label>{t("payments.proofReview.proofDocument")}</Label>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownload}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {t("common.download")}
+                </Button>
+                {!isPdf && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowZoomModal(true)}
+                  >
+                    <ZoomIn className="h-4 w-4 mr-2" />
+                    {t("payments.proofReview.zoomImage")}
+                  </Button>
+                )}
+              </div>
+            </div>
             <div className="border rounded-lg overflow-hidden bg-background">
-              {proofUrl.toLowerCase().endsWith('.pdf') ? (
+              {isPdf ? (
                 <iframe
                   src={proofUrl}
                   className="w-full h-[400px]"
@@ -143,8 +192,9 @@ export function PaymentProofReview({
                     <img
                       src={proofUrl}
                       alt="Payment Proof"
-                      className="w-full h-auto max-h-[500px] object-contain"
+                      className="w-full h-auto max-h-[500px] object-contain cursor-pointer"
                       onError={() => setImageError(true)}
+                      onClick={() => setShowZoomModal(true)}
                     />
                   ) : (
                     <div className="flex items-center justify-center h-[300px] bg-muted">
@@ -206,6 +256,59 @@ export function PaymentProofReview({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Zoom Modal */}
+      {showZoomModal && !isPdf && (
+        <Dialog open={showZoomModal} onOpenChange={setShowZoomModal}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-0">
+            <div className="relative w-full h-[95vh] bg-black">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-4 right-4 z-10 bg-background/80 hover:bg-background"
+                onClick={() => setShowZoomModal(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+              <div className="absolute top-4 left-4 z-10 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="bg-background/80 hover:bg-background"
+                  onClick={() => setImageZoom(Math.min(imageZoom + 0.5, 5))}
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="bg-background/80 hover:bg-background"
+                  onClick={() => setImageZoom(Math.max(imageZoom - 0.5, 0.5))}
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-background/80 hover:bg-background"
+                  onClick={() => setImageZoom(1)}
+                >
+                  Reset
+                </Button>
+              </div>
+              <div className="w-full h-full overflow-auto flex items-center justify-center p-4">
+                <img
+                  src={proofUrl}
+                  alt="Payment Proof - Zoomed"
+                  className="max-w-none"
+                  style={{ transform: `scale(${imageZoom})`, transformOrigin: 'center' }}
+                  onError={() => setImageError(true)}
+                />
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
-}
+};
