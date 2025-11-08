@@ -129,13 +129,12 @@ export function PaymentsTab({
               </div>
             ))}
           
-          {/* Payment History */}
-          {rentAgreements.some(ra => ra.tenancy_id === currentTenant.id) && (
-            <RentPaymentHistory 
-              propertyId={propertyId} 
-              isManager={true} 
-            />
-          )}
+          {/* Payment History - Always show */}
+          <RentPaymentHistory 
+            propertyId={propertyId} 
+            isManager={true}
+            hasRentAgreement={rentAgreements.some(ra => ra.tenancy_id === currentTenant.id)}
+          />
         </div>
       )}
     </div>
