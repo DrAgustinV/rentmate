@@ -749,6 +749,7 @@ export const translations = {
       },
     },
     configuration: {
+      title: "Configuration",
       pageTitle: "Configuration",
       pageDescription: "Manage your property management settings and defaults",
       tabs: {
@@ -2452,6 +2453,7 @@ export const translations = {
       showActiveOnly: "Mostrar Solo Activos",
     },
     configuration: {
+      title: "Configuración",
       pageTitle: "Configuración",
       pageDescription: "Administre la configuración y valores predeterminados de gestión de propiedades",
       tabs: {
