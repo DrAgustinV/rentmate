@@ -113,85 +113,85 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
           }`,
         }}
       >
-        <CardHeader className="bg-gradient-to-br from-card to-secondary/20 pb-4 relative">
+        <CardHeader className="bg-gradient-to-br from-card to-secondary/20 pb-4 relative p-0">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <div className="flex items-start gap-4">
-            {/* Property Photo */}
-            <div className="flex-shrink-0 relative group/image">
-              {photoUrl ? (
-                <>
-                  <img
-                    src={photoUrl}
-                    alt={property.title}
-                    className="w-48 h-48 rounded-lg object-cover shadow-md border-2 border-border transition-transform duration-300 group-hover/image:scale-105"
-                  />
-                  <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
-                </>
-              ) : (
-                <div className="w-48 h-48 rounded-lg bg-muted/50 flex items-center justify-center border-2 border-dashed border-border transition-colors duration-200 hover:border-primary/50">
-                  <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                </div>
-              )}
-            </div>
+          
+          {/* Property Photo - Full Width at Top */}
+          <div className="relative group/image w-full">
+            {photoUrl ? (
+              <>
+                <img
+                  src={photoUrl}
+                  alt={property.title}
+                  className="w-full aspect-video object-cover rounded-t-lg shadow-sm transition-transform duration-300 group-hover/image:scale-[1.02]"
+                />
+                <div className="absolute inset-0 rounded-t-lg bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
+              </>
+            ) : (
+              <div className="w-full aspect-video rounded-t-lg bg-muted/50 flex items-center justify-center border-b-2 border-dashed border-border transition-colors duration-200 hover:border-primary/50">
+                <ImageIcon className="h-16 w-16 text-muted-foreground" />
+              </div>
+            )}
+          </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-xl mb-2 truncate">{property.title}</CardTitle>
-                  {property.address && (
-                    <CardDescription className="flex items-center gap-1 text-sm">
-                      <MapPin className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">{property.address}</span>
-                    </CardDescription>
-                  )}
-                </div>
-                {loadingStatus ? (
-                  <Skeleton className="h-6 w-16" />
-                ) : (
-                  <Badge variant={statusBadge.variant} className={statusBadge.className}>
-                    {statusBadge.text}
-                  </Badge>
+          {/* Property Details - Below Photo */}
+          <div className="p-6 pb-2">
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-xl mb-2 truncate">{property.title}</CardTitle>
+                {property.address && (
+                  <CardDescription className="flex items-center gap-1 text-sm">
+                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">{property.address}</span>
+                  </CardDescription>
                 )}
               </div>
-
-              {/* Tenant Status */}
-              {!isEndingTenancy && !isArchived && (
-                <div className="mt-3 pt-3 border-t border-border/50">
-                  {loadingStatus ? (
-                    <Skeleton className="h-5 w-32" />
-                  ) : (
-                    tenantStatus && (
-                      <>
-                        {tenantStatus.status === "occupied" && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Users className="h-4 w-4 text-green-600" />
-                            <span className="font-medium text-green-600">
-                              {t("properties.tenant")}: {tenantStatus.tenant_name}
-                            </span>
-                          </div>
-                        )}
-
-                        {tenantStatus.status === "invited" && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Mail className="h-4 w-4 text-orange-600" />
-                            <span className="font-medium text-orange-600">
-                              {t("properties.invited")} ({tenantStatus.pending_invites} {t("properties.pending")})
-                            </span>
-                          </div>
-                        )}
-
-                        {tenantStatus.status === "free" && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Home className="h-4 w-4 text-blue-600" />
-                            <span className="font-medium text-blue-600">{t("properties.freeToRent")}</span>
-                          </div>
-                        )}
-                      </>
-                    )
-                  )}
-                </div>
+              {loadingStatus ? (
+                <Skeleton className="h-6 w-16" />
+              ) : (
+                <Badge variant={statusBadge.variant} className={statusBadge.className}>
+                  {statusBadge.text}
+                </Badge>
               )}
             </div>
+
+            {/* Tenant Status */}
+            {!isEndingTenancy && !isArchived && (
+              <div className="mt-3 pt-3 border-t border-border/50">
+                {loadingStatus ? (
+                  <Skeleton className="h-5 w-32" />
+                ) : (
+                  tenantStatus && (
+                    <>
+                      {tenantStatus.status === "occupied" && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="h-4 w-4 text-green-600" />
+                          <span className="font-medium text-green-600">
+                            {t("properties.tenant")}: {tenantStatus.tenant_name}
+                          </span>
+                        </div>
+                      )}
+
+                      {tenantStatus.status === "invited" && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Mail className="h-4 w-4 text-orange-600" />
+                          <span className="font-medium text-orange-600">
+                            {t("properties.invited")} ({tenantStatus.pending_invites} {t("properties.pending")})
+                          </span>
+                        </div>
+                      )}
+
+                      {tenantStatus.status === "free" && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Home className="h-4 w-4 text-blue-600" />
+                          <span className="font-medium text-blue-600">{t("properties.freeToRent")}</span>
+                        </div>
+                      )}
+                    </>
+                  )
+                )}
+              </div>
+            )}
           </div>
         </CardHeader>
 
