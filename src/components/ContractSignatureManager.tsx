@@ -32,6 +32,7 @@ interface ContractSignature {
   docuseal_audit_log_url: string | null;
   manager_embed_slug: string | null;
   tenant_embed_slug: string | null;
+  qualified_signature_provider: string | null;
 }
 
 
@@ -406,6 +407,7 @@ export const ContractSignatureManager = ({
   const managerSigned = !!signature.manager_signed_at;
   const tenantSigned = !!signature.tenant_signed_at;
   const isDocusealSignature = signature.signing_method === 'docuseal' || signature.docuseal_submission_id;
+  const isQualifiedSignature = signature.signing_method === 'qualified' && signature.qualified_signature_provider;
 
   return (
     <Card>
@@ -434,6 +436,12 @@ export const ContractSignatureManager = ({
               DocuSeal
             </Badge>
           )}
+          {isQualifiedSignature && (
+            <Badge variant="outline" className="ml-2">
+              <Shield className="h-3 w-3 mr-1" />
+              {signature.qualified_signature_provider?.toUpperCase()} Qualified
+            </Badge>
+          )}
           {isCompleted && signature.kyc_enforced && (
             <Badge variant="outline" className="ml-2 text-green-600">
               <Shield className="h-3 w-3 mr-1" />
@@ -450,7 +458,7 @@ export const ContractSignatureManager = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Qualified Signature Flow - Show for qualified signatures */}
-        {signature.signing_method?.startsWith('autofirma') && !isCompleted && showSigningForm && qualifiedProvider && (
+        {signature.signing_method === 'qualified' && !isCompleted && showSigningForm && qualifiedProvider && (
           <QualifiedSignatureFlow
             tenancyId={tenancyId}
             propertyId={propertyId}
@@ -514,7 +522,7 @@ export const ContractSignatureManager = ({
                 <div>{getSignatureMethodBadge(signature.manager_signature_method)}</div>
               </div>
             )}
-            {!managerSigned && isManager && !isDocusealSignature && (
+            {!managerSigned && isManager && !isDocusealSignature && !isQualifiedSignature && (
               <Button 
                 size="sm" 
                 onClick={() => handleMockSign('manager')} 
@@ -532,6 +540,16 @@ export const ContractSignatureManager = ({
               >
                 <FileSignature className="h-4 w-4 mr-2" />
                 Sign Document
+              </Button>
+            )}
+            {!managerSigned && isManager && isQualifiedSignature && !showSigningForm && (
+              <Button 
+                size="sm" 
+                onClick={() => setShowSigningForm(true)} 
+                className="mt-2"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Sign with {signature.qualified_signature_provider?.toUpperCase()}
               </Button>
             )}
           </div>
@@ -556,7 +574,7 @@ export const ContractSignatureManager = ({
                 <div>{getSignatureMethodBadge(signature.tenant_signature_method)}</div>
               </div>
             )}
-            {!tenantSigned && !isManager && !isDocusealSignature && (
+            {!tenantSigned && !isManager && !isDocusealSignature && !isQualifiedSignature && (
               <Button 
                 size="sm" 
                 onClick={() => handleMockSign('tenant')} 
@@ -574,6 +592,16 @@ export const ContractSignatureManager = ({
               >
                 <FileSignature className="h-4 w-4 mr-2" />
                 Sign Document
+              </Button>
+            )}
+            {!tenantSigned && !isManager && isQualifiedSignature && !showSigningForm && (
+              <Button 
+                size="sm" 
+                onClick={() => setShowSigningForm(true)} 
+                className="mt-2"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Sign with {signature.qualified_signature_provider?.toUpperCase()}
               </Button>
             )}
           </div>
