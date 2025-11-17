@@ -9,6 +9,12 @@ verify_jwt = true
 [functions.finalize-docuseal-signature]
 verify_jwt = true
 
+[functions.initiate-qualified-signature]
+verify_jwt = true
+
+[functions.qualified-signature-callback]
+verify_jwt = false
+
 # Edge function security configuration
 [functions.send-tenant-invitation]
 verify_jwt = true  # Requires user authentication to prevent spam

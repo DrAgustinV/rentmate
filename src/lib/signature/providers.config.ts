@@ -1,0 +1,77 @@
+/**
+ * Frontend UI Configuration for Signature Providers
+ */
+
+import { Shield, FileSignature } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+export interface SignatureProviderUIConfig {
+  code: string;
+  name: string;
+  displayName: string;
+  description: string;
+  icon: LucideIcon;
+  installationGuideUrl: string;
+  
+  /**
+   * Render custom installation instructions
+   */
+  renderInstructions?: () => React.ReactNode;
+  
+  /**
+   * Check if provider is installed (browser detection)
+   */
+  checkInstallation?: () => Promise<boolean>;
+}
+
+/**
+ * AutoFirma UI Configuration (Spain)
+ */
+const AutoFirmaUI: SignatureProviderUIConfig = {
+  code: 'autofirma',
+  name: 'AutoFirma',
+  displayName: 'AutoFirma (Qualified Signature)',
+  description: 'Spanish legally-recognized qualified digital signature',
+  icon: Shield,
+  installationGuideUrl: 'https://firmaelectronica.gob.es/Home/Descargas.html',
+  
+  checkInstallation: async () => {
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => resolve(false), 2000);
+      
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = 'autofirma://version';
+      
+      iframe.onload = () => {
+        clearTimeout(timeout);
+        document.body.removeChild(iframe);
+        resolve(true);
+      };
+      
+      iframe.onerror = () => {
+        clearTimeout(timeout);
+        document.body.removeChild(iframe);
+        resolve(false);
+      };
+      
+      document.body.appendChild(iframe);
+    });
+  },
+};
+
+/**
+ * Registry of provider UI configurations
+ */
+export const SIGNATURE_PROVIDER_UI: Record<string, SignatureProviderUIConfig> = {
+  autofirma: AutoFirmaUI,
+  // Add more providers here:
+  // cartaocidadao: CartaoCidadaoUI,
+};
+
+/**
+ * Get UI config for provider
+ */
+export function getProviderUI(code: string): SignatureProviderUIConfig | null {
+  return SIGNATURE_PROVIDER_UI[code] || null;
+}
