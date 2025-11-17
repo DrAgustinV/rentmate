@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DocusealForm } from "@docuseal/react";
+import { QualifiedSignatureFlow } from "@/components/signature/QualifiedSignatureFlow";
 
 interface ContractSignature {
   id: string;
@@ -52,10 +53,12 @@ export const ContractSignatureManager = ({
   const [loading, setLoading] = useState(false);
   const [signature, setSignature] = useState<ContractSignature | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [signingMethod, setSigningMethod] = useState<'mock' | 'docuseal'>('mock');
+  const [signingMethod, setSigningMethod] = useState<'mock' | 'docuseal' | 'qualified'>('mock');
   const [rentAgreement, setRentAgreement] = useState<any>(null);
   const [agreementLoading, setAgreementLoading] = useState(true);
   const [showSigningForm, setShowSigningForm] = useState(false);
+  const [propertyCountry, setPropertyCountry] = useState<string | null>(null);
+  const [qualifiedProvider, setQualifiedProvider] = useState<string | null>(null);
   
 
   const loadSignature = async () => {
@@ -109,8 +112,36 @@ export const ContractSignatureManager = ({
     if (!initialized) {
       loadSignature();
       checkRentAgreement();
+      fetchPropertyCountryAndProvider();
     }
   }, [initialized]);
+
+  const fetchPropertyCountryAndProvider = async () => {
+    try {
+      // Fetch property country
+      const { data: property } = await supabase
+        .from('properties')
+        .select('country')
+        .eq('id', propertyId)
+        .single();
+      
+      setPropertyCountry(property?.country || null);
+
+      // Check if there's a qualified provider for this country
+      if (property?.country) {
+        const { data: provider } = await supabase
+          .from('qualified_signature_providers')
+          .select('provider_code, provider_name')
+          .contains('country_codes', [property.country])
+          .eq('is_active', true)
+          .maybeSingle();
+        
+        setQualifiedProvider(provider?.provider_code || null);
+      }
+    } catch (error) {
+      console.error('Error fetching property country:', error);
+    }
+  };
 
 
   const handleInitiateSignature = async () => {
@@ -119,6 +150,8 @@ export const ContractSignatureManager = ({
       let functionName = 'initiate-contract-signature';
       if (signingMethod === 'docuseal') {
         functionName = 'initiate-docuseal-signature';
+      } else if (signingMethod === 'qualified') {
+        functionName = 'initiate-qualified-signature';
       }
 
       const { data, error } = await supabase.functions.invoke(functionName, {
@@ -261,6 +294,16 @@ export const ContractSignatureManager = ({
   const getSignatureMethodBadge = (method: string | null) => {
     if (!method) return null;
     
+    // Check if it's a qualified signature provider (autofirma, etc.)
+    if (method === 'autofirma' || method.startsWith('qualified_')) {
+      return (
+        <Badge variant="default" className="text-xs bg-primary">
+          <Shield className="h-3 w-3 mr-1" />
+          Qualified Signature
+        </Badge>
+      );
+    }
+    
     if (method === 'certificado_digital') {
       return (
         <Badge variant="outline" className="text-xs">
@@ -298,7 +341,7 @@ export const ContractSignatureManager = ({
               {/* Signing Method Selector */}
               <div className="space-y-3">
                 <Label className="text-base font-semibold">Select Signing Method</Label>
-                <RadioGroup value={signingMethod} onValueChange={(v) => setSigningMethod(v as 'mock' | 'docuseal')}>
+                <RadioGroup value={signingMethod} onValueChange={(v) => setSigningMethod(v as 'mock' | 'docuseal' | 'qualified')}>
                   <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent">
                     <RadioGroupItem value="mock" id="mock" />
                     <Label htmlFor="mock" className="flex-1 cursor-pointer">
@@ -318,6 +361,24 @@ export const ContractSignatureManager = ({
                       </div>
                     </Label>
                   </div>
+
+                  {qualifiedProvider && (
+                    <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent border-primary bg-primary/5">
+                      <RadioGroupItem value="qualified" id="qualified" />
+                      <Label htmlFor="qualified" className="flex-1 cursor-pointer">
+                        <div className="font-medium flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-primary" />
+                          Qualified Signature
+                          <Badge variant="secondary" className="text-xs">
+                            Recommended for {propertyCountry}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Legally-recognized qualified digital signature
+                        </div>
+                      </Label>
+                    </div>
+                  )}
                 </RadioGroup>
               </div>
 
@@ -388,6 +449,20 @@ export const ContractSignatureManager = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Qualified Signature Flow - Show for qualified signatures */}
+        {signature.signing_method?.startsWith('autofirma') && !isCompleted && showSigningForm && qualifiedProvider && (
+          <QualifiedSignatureFlow
+            tenancyId={tenancyId}
+            propertyId={propertyId}
+            providerCode={qualifiedProvider}
+            onComplete={() => {
+              setShowSigningForm(false);
+              loadSignature();
+              onRefresh?.();
+            }}
+          />
+        )}
+
         {/* DocuSeal Form - Show only if current user hasn't signed and form is visible */}
         {isDocusealSignature && !isCompleted && showSigningForm && (
           (() => {

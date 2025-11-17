@@ -226,6 +226,10 @@ export type Database = {
           manager_signature_method: string | null
           manager_signed_at: string | null
           property_id: string
+          qualified_signature_callback_url: string | null
+          qualified_signature_metadata: Json | null
+          qualified_signature_provider: string | null
+          qualified_signature_session_id: string | null
           signed_document_url: string | null
           signing_method: string | null
           tenancy_id: string
@@ -260,6 +264,10 @@ export type Database = {
           manager_signature_method?: string | null
           manager_signed_at?: string | null
           property_id: string
+          qualified_signature_callback_url?: string | null
+          qualified_signature_metadata?: Json | null
+          qualified_signature_provider?: string | null
+          qualified_signature_session_id?: string | null
           signed_document_url?: string | null
           signing_method?: string | null
           tenancy_id: string
@@ -294,6 +302,10 @@ export type Database = {
           manager_signature_method?: string | null
           manager_signed_at?: string | null
           property_id?: string
+          qualified_signature_callback_url?: string | null
+          qualified_signature_metadata?: Json | null
+          qualified_signature_provider?: string | null
+          qualified_signature_session_id?: string | null
           signed_document_url?: string | null
           signing_method?: string | null
           tenancy_id?: string
@@ -854,6 +866,95 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      qualified_signature_logs: {
+        Row: {
+          certificate_info: Json | null
+          contract_signature_id: string | null
+          created_at: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          provider_code: string
+          session_id: string
+          signature_data: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          certificate_info?: Json | null
+          contract_signature_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          provider_code: string
+          session_id: string
+          signature_data?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          certificate_info?: Json | null
+          contract_signature_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          provider_code?: string
+          session_id?: string
+          signature_data?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualified_signature_logs_contract_signature_id_fkey"
+            columns: ["contract_signature_id"]
+            isOneToOne: false
+            referencedRelation: "contract_signatures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualified_signature_providers: {
+        Row: {
+          config: Json | null
+          country_codes: string[]
+          created_at: string
+          id: string
+          installation_url: string | null
+          is_active: boolean
+          protocol_scheme: string
+          provider_code: string
+          provider_name: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json | null
+          country_codes: string[]
+          created_at?: string
+          id?: string
+          installation_url?: string | null
+          is_active?: boolean
+          protocol_scheme: string
+          provider_code: string
+          provider_name: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json | null
+          country_codes?: string[]
+          created_at?: string
+          id?: string
+          installation_url?: string | null
+          is_active?: boolean
+          protocol_scheme?: string
+          provider_code?: string
+          provider_name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       recurring_schedules: {
         Row: {
