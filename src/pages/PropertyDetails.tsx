@@ -22,6 +22,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { usePropertyMutations } from "@/hooks/useProperties";
+import { propertyBaseSchema } from "@/lib/validations/property.schema";
+import { z } from "zod";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -205,7 +207,10 @@ export default function PropertyDetails() {
 
   const updatePropertyMutation = useMutation({
     mutationFn: async (updates: { title: string; address: string; city: string; state_province: string; postal_code: string; country: string; description: string }) => {
-      const { error } = await supabase.from("properties").update(updates).eq("id", propertyId);
+      // Validate data before submission
+      const validatedData = propertyBaseSchema.parse(updates);
+      
+      const { error } = await supabase.from("properties").update(validatedData).eq("id", propertyId);
 
       if (error) throw error;
     },
@@ -217,7 +222,16 @@ export default function PropertyDetails() {
     },
     onError: (error) => {
       console.error("Update error:", error);
-      toast.error(t("properties.updateError"));
+      
+      if (error instanceof z.ZodError) {
+        // Show validation errors
+        error.errors.forEach(err => {
+          const field = err.path.join('.');
+          toast.error(`${field}: ${err.message}`);
+        });
+      } else {
+        toast.error(t("properties.updateError"));
+      }
     },
   });
 
@@ -449,9 +463,14 @@ export default function PropertyDetails() {
                         setTitle(e.target.value);
                         setIsEditing(true);
                       }}
+                      required
+                      className={cn(!title.trim() && isEditing && "border-destructive")}
                     />
                   ) : (
                     <p className="text-sm py-2">{title}</p>
+                  )}
+                  {!title.trim() && isEditing && (
+                    <p className="text-sm text-destructive">{t("properties.titleRequired")}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -588,7 +607,10 @@ export default function PropertyDetails() {
                 >
                   {t("common.cancel")}
                 </Button>
-                <Button onClick={handleSave} disabled={updatePropertyMutation.isPending}>
+                <Button 
+                  onClick={handleSave} 
+                  disabled={updatePropertyMutation.isPending || !title.trim()}
+                >
                   <Save className="h-4 w-4 mr-2" />
                   {t("common.save")}
                 </Button>
