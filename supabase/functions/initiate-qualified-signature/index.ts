@@ -107,7 +107,7 @@ serve(async (req) => {
       .insert({
         tenancy_id: tenancyId,
         property_id: propertyId,
-        signing_method: provider.code,
+        signing_method: 'qualified',
         workflow_status: 'pending',
         qualified_signature_provider: provider.code,
         qualified_signature_session_id: sessionId,
