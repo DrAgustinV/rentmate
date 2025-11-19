@@ -32,6 +32,7 @@ import {
 import { IdentityVerification } from "@/components/IdentityVerification";
 import { SubscriptionManager } from "@/components/SubscriptionManager";
 import { PrivacySettings } from "@/components/PrivacySettings";
+import { ChangePassword } from "@/components/auth/ChangePassword";
 import { useSearchParams } from "react-router-dom";
 
 const languages: { code: Language; label: string; flag: string }[] = [
@@ -362,6 +363,9 @@ export default function Account() {
           <TabsContent value="privacy" className="mt-6 space-y-6">
             {/* Privacy Settings (Consent Management) */}
             <PrivacySettings />
+
+            {/* Change Password */}
+            <ChangePassword />
 
             {/* Data Export */}
             <Card>
