@@ -28,12 +28,8 @@ export function CookieConsent() {
     
     // Try to store in database if authenticated
     const { data: { user } } = await supabase.auth.getUser();
-    if (user && preferences) {
-      await updatePreferences({
-        ...preferences,
-      });
-      
-      // Update user_preferences with consent
+    if (user) {
+      // Update user_preferences
       await supabase
         .from('user_preferences')
         .upsert({
@@ -42,6 +38,20 @@ export function CookieConsent() {
           cookie_consent_given_at: new Date().toISOString(),
         }, {
           onConflict: 'user_id'
+        });
+      
+      // Store in user_consents table for GDPR compliance
+      await supabase
+        .from('user_consents')
+        .upsert({
+          user_id: user.id,
+          consent_type: 'analytics',
+          granted: true,
+          granted_at: new Date().toISOString(),
+          withdrawn_at: null,
+          user_agent: navigator.userAgent.substring(0, 200),
+        }, {
+          onConflict: 'user_id,consent_type'
         });
     }
     
@@ -59,6 +69,7 @@ export function CookieConsent() {
     // Try to store in database if authenticated
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      // Update user_preferences
       await supabase
         .from('user_preferences')
         .upsert({
@@ -67,6 +78,20 @@ export function CookieConsent() {
           cookie_consent_given_at: new Date().toISOString(),
         }, {
           onConflict: 'user_id'
+        });
+      
+      // Store in user_consents table for GDPR compliance
+      await supabase
+        .from('user_consents')
+        .upsert({
+          user_id: user.id,
+          consent_type: 'analytics',
+          granted: false,
+          granted_at: null,
+          withdrawn_at: new Date().toISOString(),
+          user_agent: navigator.userAgent.substring(0, 200),
+        }, {
+          onConflict: 'user_id,consent_type'
         });
     }
     
