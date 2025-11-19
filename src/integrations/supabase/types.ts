@@ -671,6 +671,8 @@ export type Database = {
           aml_status: string | null
           created_at: string
           default_rent_settings: Json | null
+          deletion_requested_at: string | null
+          deletion_scheduled_for: string | null
           email: string
           first_name: string | null
           id: string
@@ -694,6 +696,8 @@ export type Database = {
           aml_status?: string | null
           created_at?: string
           default_rent_settings?: Json | null
+          deletion_requested_at?: string | null
+          deletion_scheduled_for?: string | null
           email: string
           first_name?: string | null
           id: string
@@ -717,6 +721,8 @@ export type Database = {
           aml_status?: string | null
           created_at?: string
           default_rent_settings?: Json | null
+          deletion_requested_at?: string | null
+          deletion_scheduled_for?: string | null
           email?: string
           first_name?: string | null
           id?: string
@@ -2009,6 +2015,8 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          cookie_consent_analytics: boolean | null
+          cookie_consent_given_at: string | null
           created_at: string | null
           date_format: string | null
           font_size: string | null
@@ -2020,6 +2028,8 @@ export type Database = {
           week_start_day: string | null
         }
         Insert: {
+          cookie_consent_analytics?: boolean | null
+          cookie_consent_given_at?: string | null
           created_at?: string | null
           date_format?: string | null
           font_size?: string | null
@@ -2031,6 +2041,8 @@ export type Database = {
           week_start_day?: string | null
         }
         Update: {
+          cookie_consent_analytics?: boolean | null
+          cookie_consent_given_at?: string | null
           created_at?: string | null
           date_format?: string | null
           font_size?: string | null

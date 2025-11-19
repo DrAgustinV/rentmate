@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { UserCircle, Globe, ShieldCheck, Crown } from "lucide-react";
+import { UserCircle, Globe, ShieldCheck, Crown, Download, Trash2, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -19,6 +19,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { IdentityVerification } from "@/components/IdentityVerification";
 import { SubscriptionManager } from "@/components/SubscriptionManager";
 import { useSearchParams } from "react-router-dom";
@@ -37,6 +47,9 @@ export default function Account() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletionScheduled, setDeletionScheduled] = useState<string | null>(null);
   const { t, language, changeLanguage } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
   const defaultTab = searchParams.get("tab") || "profile";
@@ -60,7 +73,7 @@ export default function Account() {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("first_name, last_name")
+        .select("first_name, last_name, deletion_scheduled_for")
         .eq("id", userId)
         .maybeSingle();
 
@@ -69,6 +82,7 @@ export default function Account() {
       if (data) {
         setFirstName(data.first_name || "");
         setLastName(data.last_name || "");
+        setDeletionScheduled(data.deletion_scheduled_for);
       }
       setSelectedLanguage(language);
     } catch (error: any) {
@@ -117,6 +131,97 @@ export default function Account() {
     }
   };
 
+  const handleExportData = async () => {
+    setExporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('export-user-data', {
+        method: 'POST',
+      });
+
+      if (error) throw error;
+
+      // Create downloadable JSON file
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `user-data-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Data Export Complete",
+        description: "Your data has been downloaded successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Export Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleRequestDeletion = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-user-account', {
+        body: { action: 'request' },
+      });
+
+      if (error) throw error;
+
+      setDeletionScheduled(data.deletion_date);
+      setShowDeleteDialog(false);
+
+      toast({
+        title: "Account Deletion Scheduled",
+        description: `Your account will be deleted on ${new Date(data.deletion_date).toLocaleDateString()}. You can cancel this anytime before that date.`,
+        variant: "destructive",
+      });
+
+      if (user) {
+        await fetchProfile(user.id);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Deletion Request Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelDeletion = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('delete-user-account', {
+        body: { action: 'cancel' },
+      });
+
+      if (error) throw error;
+
+      setDeletionScheduled(null);
+
+      toast({
+        title: "Deletion Cancelled",
+        description: "Your account deletion has been cancelled successfully.",
+      });
+
+      if (user) {
+        await fetchProfile(user.id);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Cancellation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <AppLayout>
@@ -141,8 +246,8 @@ export default function Account() {
           <p className="text-muted-foreground mt-1">Manage your account settings and verification</p>
         </div>
 
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue={defaultTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile">
               <UserCircle className="h-4 w-4 mr-2" />
               {t('account.profile')}
@@ -154,6 +259,10 @@ export default function Account() {
             <TabsTrigger value="identity">
               <ShieldCheck className="h-4 w-4 mr-2" />
               {t('account.identity')}
+            </TabsTrigger>
+            <TabsTrigger value="privacy">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Privacy & Data
             </TabsTrigger>
           </TabsList>
 
@@ -242,23 +351,79 @@ export default function Account() {
           </TabsContent>
 
           <TabsContent value="identity" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Identity Verification</CardTitle>
-                <CardDescription>
-                  Verify your identity using KILT Protocol
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <IdentityVerification />
-              </CardContent>
-            </Card>
+            <IdentityVerification />
           </TabsContent>
 
           <TabsContent value="subscription" className="mt-6">
             <SubscriptionManager />
           </TabsContent>
+
+          <TabsContent value="privacy" className="mt-6 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="h-5 w-5" />
+                  Download My Data
+                </CardTitle>
+                <CardDescription>
+                  Export all your personal data in machine-readable format (JSON)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={handleExportData} disabled={exporting}>
+                  <Download className="mr-2 h-4 w-4" />
+                  {exporting ? 'Exporting...' : 'Download My Data'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-destructive/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-destructive">
+                  <Trash2 className="h-5 w-5" />
+                  Delete My Account
+                </CardTitle>
+                <CardDescription>
+                  Permanently delete your account (14-day grace period)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {deletionScheduled ? (
+                  <div className="space-y-3">
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                      <p className="font-semibold text-destructive">Deletion scheduled for {new Date(deletionScheduled).toLocaleDateString()}</p>
+                    </div>
+                    <Button onClick={handleCancelDeletion} variant="outline">
+                      Cancel Deletion
+                    </Button>
+                  </div>
+                ) : (
+                  <Button onClick={() => setShowDeleteDialog(true)} variant="destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete My Account
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
+
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-destructive">Confirm Account Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Your account will be deleted in 14 days. You can cancel anytime before then.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleRequestDeletion} className="bg-destructive">
+                Schedule Deletion
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
