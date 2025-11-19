@@ -2807,6 +2807,53 @@ export const translations = {
       upgradeRequired: "Actualización Requerida",
       upgradeToPro: "Actualizar a Pro",
       viewEnterprise: "Contactar Ventas",
+      
+      // Plan Names
+      freePlan: "Plan Gratuito",
+      proPlan: "Plan Pro",
+      enterprisePlan: "Plan Enterprise",
+      
+      // Billing Terms
+      monthly: "Mensual",
+      annual: "Anual",
+      perMonth: "/mes",
+      perYear: "/año",
+      billedMonthly: "Facturado mensualmente",
+      billedAnnually: "Facturado anualmente",
+      save20: "Ahorra 20%",
+      
+      // Status Fields
+      currentPeriodEnd: "Se renueva el",
+      trialEnd: "Prueba termina el",
+      cancelAtPeriodEnd: "Se cancela el",
+      gracePeriodEndsAt: "Período de gracia termina",
+      
+      // Actions
+      manageSubscription: "Gestionar Suscripción",
+      choosePlan: "Elegir Plan",
+      comingSoon: "Próximamente",
+      contactSales: "Contactar Ventas",
+      
+      // Features
+      features: {
+        maxProperties: "propiedades",
+        maxTenanciesPerProperty: "arrendamientos por propiedad",
+        digitalSignatures: "firmas digitales/año",
+        automatedPayments: "Pagos automatizados",
+        kycVerification: "Verificación KYC",
+        documentTemplates: "Plantillas de documentos",
+        whiteLabeling: "Marca personalizada",
+        apiAccess: "Acceso API",
+        advancedAnalytics: "Análisis avanzado",
+      },
+      
+      // Usage
+      usage: {
+        title: "Uso",
+        signaturesUsed: "Firmas utilizadas",
+        signaturesRemaining: "restantes este año",
+        unlimited: "Ilimitado",
+      },
     },
   },
 };
