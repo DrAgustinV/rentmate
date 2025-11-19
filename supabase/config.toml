@@ -1,5 +1,18 @@
 project_id = "jrjwkpjfgsyrqztuokoo"
 
+# Subscription Management Functions
+[functions.create-subscription-checkout]
+verify_jwt = true  # Requires user authentication
+
+[functions.check-subscription-status]
+verify_jwt = true  # Requires user authentication
+
+[functions.customer-portal-session]
+verify_jwt = true  # Requires user authentication
+
+[functions.stripe-subscription-webhook]
+verify_jwt = false  # Public webhook endpoint from Stripe
+
 [functions.generate-kilt-test-credentials]
 verify_jwt = false
 
