@@ -374,6 +374,39 @@ export type Database = {
         }
         Relationships: []
       }
+      data_retention_audit: {
+        Row: {
+          affected_records: number
+          anonymized_records: number
+          created_at: string
+          deleted_records: number
+          executed_at: string
+          execution_details: Json | null
+          id: string
+          policy_type: string
+        }
+        Insert: {
+          affected_records?: number
+          anonymized_records?: number
+          created_at?: string
+          deleted_records?: number
+          executed_at?: string
+          execution_details?: Json | null
+          id?: string
+          policy_type: string
+        }
+        Update: {
+          affected_records?: number
+          anonymized_records?: number
+          created_at?: string
+          deleted_records?: number
+          executed_at?: string
+          execution_details?: Json | null
+          id?: string
+          policy_type?: string
+        }
+        Relationships: []
+      }
       enterprise_contact_requests: {
         Row: {
           company_name: string | null
@@ -665,6 +698,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      privacy_requests: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          request_details: string | null
+          request_type: string
+          requested_at: string
+          response_details: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          request_details?: string | null
+          request_type: string
+          requested_at?: string
+          response_details?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          request_details?: string | null
+          request_type?: string
+          requested_at?: string
+          response_details?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
