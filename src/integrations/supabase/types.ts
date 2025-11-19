@@ -374,6 +374,101 @@ export type Database = {
         }
         Relationships: []
       }
+      enterprise_contact_requests: {
+        Row: {
+          company_name: string | null
+          contacted_at: string | null
+          contacted_by: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          notes: string | null
+          phone: string | null
+          properties_count: number | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          contacted_at?: string | null
+          contacted_by?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          properties_count?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          contacted_at?: string | null
+          contacted_by?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          properties_count?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enterprise_contact_requests_contacted_by_fkey"
+            columns: ["contacted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enterprise_contact_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grace_period_reminders_sent: {
+        Row: {
+          id: string
+          reminder_day: number
+          sent_at: string
+          user_subscription_id: string
+        }
+        Insert: {
+          id?: string
+          reminder_day: number
+          sent_at?: string
+          user_subscription_id: string
+        }
+        Update: {
+          id?: string
+          reminder_day?: number
+          sent_at?: string
+          user_subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grace_period_reminders_sent_user_subscription_id_fkey"
+            columns: ["user_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           created_at: string
@@ -1410,6 +1505,178 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_history: {
+        Row: {
+          change_reason: string
+          changed_at: string
+          changed_by: string | null
+          from_plan_id: string | null
+          id: string
+          metadata: Json | null
+          to_plan_id: string
+          user_id: string
+        }
+        Insert: {
+          change_reason: string
+          changed_at?: string
+          changed_by?: string | null
+          from_plan_id?: string | null
+          id?: string
+          metadata?: Json | null
+          to_plan_id: string
+          user_id: string
+        }
+        Update: {
+          change_reason?: string
+          changed_at?: string
+          changed_by?: string | null
+          from_plan_id?: string | null
+          id?: string
+          metadata?: Json | null
+          to_plan_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_history_from_plan_id_fkey"
+            columns: ["from_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_history_to_plan_id_fkey"
+            columns: ["to_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          feature_limits: Json
+          grace_period_days: number
+          id: string
+          is_available_for_signup: boolean
+          is_default: boolean
+          name: string
+          overage_price_per_signature_cents: number
+          price_annual_cents: number
+          price_monthly_cents: number
+          slug: string
+          sort_order: number
+          status: Database["public"]["Enums"]["plan_status"]
+          stripe_price_id_annual: string | null
+          stripe_price_id_monthly: string | null
+          stripe_product_id: string | null
+          trial_days: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          feature_limits?: Json
+          grace_period_days?: number
+          id?: string
+          is_available_for_signup?: boolean
+          is_default?: boolean
+          name: string
+          overage_price_per_signature_cents?: number
+          price_annual_cents?: number
+          price_monthly_cents?: number
+          slug: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["plan_status"]
+          stripe_price_id_annual?: string | null
+          stripe_price_id_monthly?: string | null
+          stripe_product_id?: string | null
+          trial_days?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          feature_limits?: Json
+          grace_period_days?: number
+          id?: string
+          is_available_for_signup?: boolean
+          is_default?: boolean
+          name?: string
+          overage_price_per_signature_cents?: number
+          price_annual_cents?: number
+          price_monthly_cents?: number
+          slug?: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["plan_status"]
+          stripe_price_id_annual?: string | null
+          stripe_price_id_monthly?: string | null
+          stripe_product_id?: string | null
+          trial_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_usage: {
+        Row: {
+          created_at: string
+          id: string
+          last_overage_billed_at: string | null
+          overage_signatures_used: number
+          reset_at: string
+          signatures_used: number
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_overage_billed_at?: string | null
+          overage_signatures_used?: number
+          reset_at: string
+          signatures_used?: number
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_overage_billed_at?: string | null
+          overage_signatures_used?: number
+          reset_at?: string
+          signatures_used?: number
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           created_at: string | null
@@ -1797,6 +2064,97 @@ export type Database = {
         }
         Relationships: []
       }
+      user_subscriptions: {
+        Row: {
+          admin_granted_at: string | null
+          admin_granted_by: string | null
+          admin_granted_duration_days: number | null
+          admin_granted_reason: string | null
+          cancel_at_period_end: boolean
+          canceled_at: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          grace_period_ends_at: string | null
+          id: string
+          plan_id: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_type: Database["public"]["Enums"]["subscription_type"]
+          trial_end: string | null
+          trial_start: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_granted_at?: string | null
+          admin_granted_by?: string | null
+          admin_granted_duration_days?: number | null
+          admin_granted_reason?: string | null
+          cancel_at_period_end?: boolean
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          grace_period_ends_at?: string | null
+          id?: string
+          plan_id: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_type?: Database["public"]["Enums"]["subscription_type"]
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_granted_at?: string | null
+          admin_granted_by?: string | null
+          admin_granted_duration_days?: number | null
+          admin_granted_reason?: string | null
+          cancel_at_period_end?: boolean
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          grace_period_ends_at?: string | null
+          id?: string
+          plan_id?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_type?: Database["public"]["Enums"]["subscription_type"]
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_admin_granted_by_fkey"
+            columns: ["admin_granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       utility_payments: {
         Row: {
           amount_cents: number
@@ -1931,6 +2289,10 @@ export type Database = {
         Args: { _file_size_bytes: number; _ticket_id: string }
         Returns: boolean
       }
+      can_use_feature: {
+        Args: { p_feature: string; p_user_id: string }
+        Returns: boolean
+      }
       generate_rent_payments: {
         Args: { p_agreement_id: string; p_months_ahead?: number }
         Returns: number
@@ -1944,6 +2306,7 @@ export type Database = {
           tenant_name: string
         }[]
       }
+      get_user_subscription: { Args: { p_user_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1975,7 +2338,15 @@ export type Database = {
         | "property_inactive"
         | "already_tenant"
         | "cancelled"
+      plan_status: "active" | "inactive" | "archived"
       property_status: "active" | "inactive" | "ending_tenancy"
+      subscription_status:
+        | "active"
+        | "trialing"
+        | "past_due"
+        | "canceled"
+        | "expired"
+      subscription_type: "stripe" | "admin_grant" | "free"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "cancelled"
       ticket_type:
@@ -2130,7 +2501,16 @@ export const Constants = {
         "already_tenant",
         "cancelled",
       ],
+      plan_status: ["active", "inactive", "archived"],
       property_status: ["active", "inactive", "ending_tenancy"],
+      subscription_status: [
+        "active",
+        "trialing",
+        "past_due",
+        "canceled",
+        "expired",
+      ],
+      subscription_type: ["stripe", "admin_grant", "free"],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "resolved", "cancelled"],
       ticket_type: [
