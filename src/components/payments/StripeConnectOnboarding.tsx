@@ -7,11 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, ExternalLink, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradeDialog } from "@/components/UpgradeDialog";
 
 export function StripeConnectOnboarding() {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [isConnecting, setIsConnecting] = useState(false);
+  const { canUseFeature } = useSubscription();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
   // Fetch current manager's Stripe account status
   const { data: stripeAccount, isLoading } = useQuery({
@@ -36,6 +40,12 @@ export function StripeConnectOnboarding() {
   // Connect to Stripe mutation
   const connectMutation = useMutation({
     mutationFn: async () => {
+      // Check subscription access for automated payments
+      if (!canUseFeature('automated_payments')) {
+        setShowUpgradeDialog(true);
+        throw new Error("Automated payments require a Pro or Enterprise plan");
+      }
+
       setIsConnecting(true);
       const { data, error } = await supabase.functions.invoke("create-stripe-connect-account");
 
@@ -174,12 +184,20 @@ export function StripeConnectOnboarding() {
                 {t("payments.connectedOn")}:{" "}
                 {new Date(stripeAccount.onboarding_completed_at).toLocaleDateString()}
               </p>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
 
-        <div className="flex justify-end">{getActionButton()}</div>
-      </CardContent>
-    </Card>
-  );
-}
+          <div className="flex justify-end">{getActionButton()}</div>
+        </CardContent>
+        
+        <UpgradeDialog
+          open={showUpgradeDialog}
+          onOpenChange={setShowUpgradeDialog}
+          feature="Stripe Connect"
+          description="for automated payment collection requires a Pro or Enterprise plan."
+          requiredPlan="pro"
+        />
+      </Card>
+    );
+  }
