@@ -97,10 +97,12 @@ export function AppHeader() {
         { path: "/properties", label: t('properties.title'), icon: Building },
         { path: "/renting", label: t('renting.title'), icon: Handshake },
         { path: "/configuration", label: t('configuration.title'), icon: FolderOpen },
+        { path: "/pricing", label: "Pricing", icon: CreditCard },
       ]
     : [
         // { path: "/dashboard", label: t('header.dashboard'), icon: Home }, // Hidden for now
         { path: "/renting", label: t('renting.title'), icon: Handshake, badge: pendingInvitations },
+        { path: "/pricing", label: "Pricing", icon: CreditCard },
         { path: "/settings", label: t('header.settings'), icon: Settings },
       ];
 

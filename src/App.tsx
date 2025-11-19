@@ -29,6 +29,8 @@ import Configuration from "./pages/Configuration";
 import Profile from "./pages/Profile";
 import Identity from "./pages/Identity";
 import Account from "./pages/Account";
+import Pricing from "./pages/Pricing";
+import RepairShops from "./pages/RepairShops";
 import { queryClient } from "./lib/queryClient";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 
@@ -40,6 +42,7 @@ const App = () => (
         <AnalyticsProvider>
           <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/properties" element={<Properties />} />
