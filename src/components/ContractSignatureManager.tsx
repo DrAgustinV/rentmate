@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DocusealForm } from "@docuseal/react";
 import { QualifiedSignatureFlow } from "@/components/signature/QualifiedSignatureFlow";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradeDialog } from "@/components/UpgradeDialog";
 
 interface ContractSignature {
   id: string;
@@ -51,6 +53,7 @@ export const ContractSignatureManager = ({
 }: ContractSignatureManagerProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { canCreateSignature, isPro, subscription } = useSubscription();
   const [loading, setLoading] = useState(false);
   const [signature, setSignature] = useState<ContractSignature | null>(null);
   const [initialized, setInitialized] = useState(false);
@@ -60,6 +63,7 @@ export const ContractSignatureManager = ({
   const [showSigningForm, setShowSigningForm] = useState(false);
   const [propertyCountry, setPropertyCountry] = useState<string | null>(null);
   const [qualifiedProvider, setQualifiedProvider] = useState<string | null>(null);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   
 
   const loadSignature = async () => {
@@ -638,6 +642,14 @@ export const ContractSignatureManager = ({
           </div>
         )}
       </CardContent>
+      
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        feature="Digital Signatures"
+        description="requires a Pro or Enterprise plan to create legally-binding electronic signatures for contracts."
+        requiredPlan="pro"
+      />
     </Card>
   );
 };

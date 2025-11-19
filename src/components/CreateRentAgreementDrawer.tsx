@@ -37,6 +37,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useRentAgreementMutations } from '@/hooks/useRentAgreements';
+import { useSubscription } from '@/hooks/useSubscription';
+import { UpgradeDialog } from '@/components/UpgradeDialog';
 
 const rentAgreementSchema = z.object({
   tenancy_id: z.string().min(1, 'Please select a tenant'),
@@ -89,6 +91,8 @@ export function CreateRentAgreementDrawer({
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const { createAgreement } = useRentAgreementMutations();
+  const { canUseFeature } = useSubscription();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
   const form = useForm<RentAgreementFormData>({
     resolver: zodResolver(rentAgreementSchema),
@@ -106,6 +110,13 @@ export function CreateRentAgreementDrawer({
   });
 
   const onSubmit = (data: RentAgreementFormData) => {
+    // Check subscription access for automated payments
+    if (!canUseFeature('automated_payments')) {
+      setShowUpgradeDialog(true);
+      setOpen(false);
+      return;
+    }
+
     const agreementData = {
       property_id: propertyId,
       tenancy_id: data.tenancy_id,
@@ -425,6 +436,14 @@ export function CreateRentAgreementDrawer({
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
+      
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        feature="Automated Payments"
+        description="including rent collection and payment tracking require a Pro or Enterprise plan."
+        requiredPlan="pro"
+      />
     </Drawer>
   );
 }
