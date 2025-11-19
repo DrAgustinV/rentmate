@@ -37,7 +37,10 @@ return (
             {t('landing.getStarted')}
             <ArrowRight className="h-5 w-5" />
           </Button>
-          <Button size="lg" variant="outline" onClick={() => navigate("/auth?mode=signin")}>
+          <Button size="lg" variant="outline" onClick={() => navigate("/pricing")}>
+            View Pricing
+          </Button>
+          <Button size="lg" variant="ghost" onClick={() => navigate("/auth?mode=signin")}>
             {t('landing.signIn')}
           </Button>
         </div>

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { UserCircle, Globe, ShieldCheck } from "lucide-react";
+import { UserCircle, Globe, ShieldCheck, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,6 +20,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IdentityVerification } from "@/components/IdentityVerification";
+import { SubscriptionManager } from "@/components/SubscriptionManager";
+import { useSearchParams } from "react-router-dom";
 
 const languages: { code: Language; label: string; flag: string }[] = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
@@ -29,6 +31,7 @@ const languages: { code: Language; label: string; flag: string }[] = [
 export default function Account() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [firstName, setFirstName] = useState("");
@@ -36,6 +39,7 @@ export default function Account() {
   const [saving, setSaving] = useState(false);
   const { t, language, changeLanguage } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
+  const defaultTab = searchParams.get("tab") || "profile";
 
   useEffect(() => {
     const checkUser = async () => {
@@ -138,10 +142,14 @@ export default function Account() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile">
               <UserCircle className="h-4 w-4 mr-2" />
               {t('account.profile')}
+            </TabsTrigger>
+            <TabsTrigger value="subscription">
+              <Crown className="h-4 w-4 mr-2" />
+              {t('subscription.title')}
             </TabsTrigger>
             <TabsTrigger value="identity">
               <ShieldCheck className="h-4 w-4 mr-2" />
@@ -245,6 +253,10 @@ export default function Account() {
                 <IdentityVerification />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="subscription" className="mt-6">
+            <SubscriptionManager />
           </TabsContent>
         </Tabs>
       </div>
