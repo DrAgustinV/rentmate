@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Building, Archive } from "lucide-react";
+import { Plus, Building, Archive, Upload } from "lucide-react";
 import { PropertyCard } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
@@ -136,15 +136,25 @@ export default function Properties() {
             <p className="text-muted-foreground mt-1">{t("properties.description")}</p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <Button
-              variant="default"
-              onClick={() => setIsCreateOpen(true)}
-              disabled={activeProperties.length >= maxPropertiesLimit}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              {t("dashboard.createProperty")}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/import')}
+                className="gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                Bulk Import
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => setIsCreateOpen(true)}
+                disabled={activeProperties.length >= maxPropertiesLimit}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                {t("dashboard.createProperty")}
+              </Button>
+            </div>
             {activeProperties.length >= maxPropertiesLimit && (
               <p className="text-sm text-muted-foreground">Property limit reached ({maxPropertiesLimit} properties)</p>
             )}
