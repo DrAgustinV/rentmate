@@ -1,0 +1,4 @@
+property_title,tenant_email,tenant_first_name,tenant_last_name,tenant_phone,started_at,ended_at,rent_amount,payment_day,currency
+"Sunset Apartments Unit 12A","john.doe@example.com","John","Doe","+49123456789","2024-01-01","","1200.00","1","EUR"
+"Downtown Loft B3","jane.smith@example.com","Jane","Smith","+49987654321","2024-03-15","2025-03-14","950.00","5","EUR"
+"Riverside Villa","bob.wilson@example.com","Bob","Wilson","+49555123456","2024-02-01","","1800.00","1","EUR"

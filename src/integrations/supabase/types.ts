@@ -502,6 +502,59 @@ export type Database = {
           },
         ]
       }
+      import_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_log: Json | null
+          file_name: string | null
+          file_size_bytes: number | null
+          id: string
+          import_type: string
+          manager_id: string
+          processing_time_ms: number | null
+          records_failed: number | null
+          records_processed: number | null
+          records_succeeded: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_log?: Json | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          import_type: string
+          manager_id: string
+          processing_time_ms?: number | null
+          records_failed?: number | null
+          records_processed?: number | null
+          records_succeeded?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_log?: Json | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          import_type?: string
+          manager_id?: string
+          processing_time_ms?: number | null
+          records_failed?: number | null
+          records_processed?: number | null
+          records_succeeded?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_logs_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           created_at: string

@@ -33,6 +33,7 @@ import Identity from "./pages/Identity";
 import Account from "./pages/Account";
 import Pricing from "./pages/Pricing";
 import RepairShops from "./pages/RepairShops";
+import Import from "./pages/Import";
 import { queryClient } from "./lib/queryClient";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/properties" element={<Properties />} />
+          <Route path="/import" element={<Import />} />
           <Route path="/renting" element={<Renting />} />
           <Route path="/configuration" element={<Configuration />} />
           <Route path="/account" element={<Account />} />
