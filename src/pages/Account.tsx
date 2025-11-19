@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { IdentityVerification } from "@/components/IdentityVerification";
 import { SubscriptionManager } from "@/components/SubscriptionManager";
+import { PrivacySettings } from "@/components/PrivacySettings";
 import { useSearchParams } from "react-router-dom";
 
 const languages: { code: Language; label: string; flag: string }[] = [
@@ -359,6 +360,10 @@ export default function Account() {
           </TabsContent>
 
           <TabsContent value="privacy" className="mt-6 space-y-6">
+            {/* Privacy Settings (Consent Management) */}
+            <PrivacySettings />
+
+            {/* Data Export */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

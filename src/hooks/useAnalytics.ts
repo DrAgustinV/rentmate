@@ -38,12 +38,49 @@ const getUserRole = async (userId: string): Promise<string | null> => {
   return data?.role || 'user';
 };
 
+// Check if user has consented to analytics tracking (GDPR compliance)
+const hasAnalyticsConsent = (): boolean => {
+  // Check Do Not Track browser setting first (highest priority)
+  if (navigator.doNotTrack === '1' || (navigator as any).msDoNotTrack === '1') {
+    console.log('[Analytics] Tracking blocked: Do Not Track is enabled');
+    return false;
+  }
+
+  // Check cookie consent from localStorage
+  const consentDecision = localStorage.getItem('cookie-consent-decision');
+  const analyticsConsent = localStorage.getItem('cookie-consent-analytics');
+  
+  const hasConsent = consentDecision === 'accepted' && analyticsConsent === 'true';
+  
+  if (!hasConsent) {
+    console.log('[Analytics] Tracking blocked: No user consent');
+  }
+  
+  return hasConsent;
+};
+
+// Anonymize IP address by masking last octet (IPv4)
+const anonymizeIP = (ip: string): string => {
+  const parts = ip.split('.');
+  if (parts.length === 4) {
+    // IPv4: mask last octet
+    return `${parts[0]}.${parts[1]}.${parts[2]}.0`;
+  }
+  // IPv6 or other: return as-is (could enhance with proper IPv6 anonymization)
+  return ip;
+};
+
 export const useAnalytics = () => {
   const location = useLocation();
   const sessionId = getSessionId();
 
   // Track page view
   const trackPageView = useCallback(async () => {
+    // Check consent before tracking
+    if (!hasAnalyticsConsent()) {
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const deviceType = getDeviceType();
@@ -51,7 +88,7 @@ export const useAnalytics = () => {
       const referrer = document.referrer;
       const pageTitle = document.title;
 
-      // Insert page view and get the ID
+      // Insert page view (without IP initially)
       const { data: pageView, error: insertError } = await supabase
         .from('analytics_page_views')
         .insert({
@@ -62,7 +99,7 @@ export const useAnalytics = () => {
           referrer: referrer || null,
           user_agent: userAgent,
           device_type: deviceType,
-          ip_address: null,
+          ip_address: null, // Will be anonymized and updated later
           country: null,
           region: null,
           city: null,
@@ -71,36 +108,38 @@ export const useAnalytics = () => {
         .single();
 
       if (insertError || !pageView) {
-        console.error('Error inserting page view:', insertError);
+        console.error('[Analytics] Error inserting page view:', insertError);
         return;
       }
 
       // Fetch geolocation in the background (don't await)
+      // The IP address will be anonymized on the server side
       supabase.functions
         .invoke('get-geolocation', {
-          body: { ip: 'auto' }, // Edge function will extract real IP
+          body: { ip: 'auto' }, // Edge function will extract and anonymize IP
         })
         .then(({ data: geoData, error: geoError }) => {
           if (!geoError && geoData) {
-            // Update the page view with geolocation data
+            // Update the page view with anonymized geolocation data
             supabase
               .from('analytics_page_views')
               .update({
+                ip_address: geoData.ip ? anonymizeIP(geoData.ip) : null, // Extra anonymization layer
                 country: geoData.country,
                 region: geoData.region,
                 city: geoData.city,
               })
               .eq('id', pageView.id)
               .then(() => {
-                console.log('Geolocation updated:', geoData);
+                console.log('[Analytics] Geolocation updated (anonymized)');
               });
           }
         })
         .catch((err) => {
-          console.error('Geolocation fetch failed:', err);
+          console.error('[Analytics] Geolocation fetch failed:', err);
         });
     } catch (error) {
-      console.error('Error tracking page view:', error);
+      console.error('[Analytics] Error tracking page view:', error);
     }
   }, [location.pathname, sessionId]);
 
@@ -110,6 +149,11 @@ export const useAnalytics = () => {
     event_category, 
     event_metadata 
   }: AnalyticsEvent) => {
+    // Check consent before tracking
+    if (!hasAnalyticsConsent()) {
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -121,13 +165,20 @@ export const useAnalytics = () => {
         event_metadata: event_metadata || null,
         page_path: location.pathname,
       });
+      
+      console.log('[Analytics] Event tracked:', event_name);
     } catch (error) {
-      console.error('Error tracking event:', error);
+      console.error('[Analytics] Error tracking event:', error);
     }
-  }, [location.pathname, sessionId]);
+  }, [sessionId, location.pathname]);
 
   // Track navigation
   const trackNavigation = useCallback(async (fromPath: string, toPath: string) => {
+    // Check consent before tracking
+    if (!hasAnalyticsConsent()) {
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -136,48 +187,65 @@ export const useAnalytics = () => {
         session_id: sessionId,
         from_path: fromPath,
         to_path: toPath,
-        breadcrumb_trail: null, // Could be enhanced to track full breadcrumb
       });
+      
+      console.log('[Analytics] Navigation tracked:', fromPath, '->', toPath);
     } catch (error) {
-      console.error('Error tracking navigation:', error);
+      console.error('[Analytics] Error tracking navigation:', error);
     }
   }, [sessionId]);
 
-  // Initialize or update session
+  // Initialize session
   const initializeSession = useCallback(async () => {
+    // Check consent before initializing session tracking
+    if (!hasAnalyticsConsent()) {
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const userRole = user ? await getUserRole(user.id) : null;
-
-      // Check if session exists
+      
+      // Check if session already exists
       const { data: existingSession } = await supabase
         .from('analytics_sessions')
         .select('id')
         .eq('session_id', sessionId)
-        .single();
+        .maybeSingle();
 
-      if (!existingSession) {
-        // Create new session
-        await supabase.from('analytics_sessions').insert({
-          session_id: sessionId,
-          user_id: user?.id || null,
-          is_authenticated: !!user,
-          user_role: userRole,
-          subscription_tier: 'free', // TODO: Get from user subscription
-        });
-      } else {
-        // Update existing session
-        await supabase
-          .from('analytics_sessions')
-          .update({
-            user_id: user?.id || null,
-            is_authenticated: !!user,
-            user_role: userRole,
-          })
-          .eq('session_id', sessionId);
+      if (existingSession) {
+        console.log('[Analytics] Session already initialized:', sessionId);
+        return;
       }
+
+      // Get user role if authenticated
+      let userRole = null;
+      let subscriptionTier = null;
+      
+      if (user) {
+        userRole = await getUserRole(user.id);
+
+        // Get subscription tier
+        const { data: subscription } = await supabase
+          .from('user_subscriptions')
+          .select('subscription_type')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        subscriptionTier = subscription?.subscription_type || 'free';
+      }
+
+      await supabase.from('analytics_sessions').insert({
+        session_id: sessionId,
+        user_id: user?.id || null,
+        is_authenticated: !!user,
+        user_role: userRole,
+        subscription_tier: subscriptionTier,
+        started_at: new Date().toISOString(),
+      });
+      
+      console.log('[Analytics] Session initialized:', sessionId);
     } catch (error) {
-      console.error('Error initializing session:', error);
+      console.error('[Analytics] Error initializing session:', error);
     }
   }, [sessionId]);
 
@@ -187,8 +255,8 @@ export const useAnalytics = () => {
   }, [trackPageView]);
 
   return {
-    trackEvent,
     trackPageView,
+    trackEvent,
     trackNavigation,
     initializeSession,
     sessionId,
