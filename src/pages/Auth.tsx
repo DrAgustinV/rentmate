@@ -376,6 +376,18 @@ export default function Auth() {
           )}
         </div>
 
+        {!isSignUp && (
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => navigate('/reset-password')}
+              className="text-sm text-primary hover:underline"
+            >
+              {t('auth.forgotPassword')}
+            </button>
+          </div>
+        )}
+
         <Button type="submit" className="w-full" disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {loading ? t('common.loading') : isSignUp ? t('auth.signUp') : t('auth.signIn')}
@@ -387,7 +399,7 @@ export default function Auth() {
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-primary hover:underline"
           >
-            {isSignUp ? t('auth.alreadyHaveAccount') + ' ' + t('auth.signInHere') : t('auth.dontHaveAccount') + ' ' + t('auth.signUpHere')}
+            {isSignUp ? t('auth.alreadyHaveAccount') + ' ' + t('auth.signInHere') : t('auth.noAccountYet') + ' ' + t('auth.signUpHere')}
           </button>
         </div>
       </form>
