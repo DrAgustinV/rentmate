@@ -63,7 +63,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           accountId: existingAccount.stripe_account_id,
-          onboardingUrl: accountLink.url,
+          url: accountLink.url,
           status: existingAccount.stripe_account_status,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -126,7 +126,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         accountId: account.id,
-        onboardingUrl: accountLink.url,
+        url: accountLink.url,
         status: 'pending',
       }),
       {
