@@ -40,12 +40,6 @@ export function StripeConnectOnboarding() {
   // Connect to Stripe mutation
   const connectMutation = useMutation({
     mutationFn: async () => {
-      // Check subscription access for automated payments
-      if (!canUseFeature('automated_payments_enabled')) {
-        setShowUpgradeDialog(true);
-        throw new Error("Automated payments require a Pro or Enterprise plan");
-      }
-
       setIsConnecting(true);
       const { data, error } = await supabase.functions.invoke("create-stripe-connect-account");
 
@@ -97,9 +91,18 @@ export function StripeConnectOnboarding() {
   };
 
   const getActionButton = () => {
+    const handleConnect = () => {
+      // Check subscription access BEFORE calling mutation
+      if (!canUseFeature('automated_payments_enabled')) {
+        setShowUpgradeDialog(true);
+        return;
+      }
+      connectMutation.mutate();
+    };
+
     if (!stripeAccount) {
       return (
-        <Button onClick={() => connectMutation.mutate()} disabled={isConnecting}>
+        <Button onClick={handleConnect} disabled={isConnecting}>
           {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           <ExternalLink className="mr-2 h-4 w-4" />
           {t("payments.connectStripe")}
@@ -109,7 +112,7 @@ export function StripeConnectOnboarding() {
 
     if (stripeAccount.stripe_account_status === "pending") {
       return (
-        <Button onClick={() => connectMutation.mutate()} disabled={isConnecting} variant="outline">
+        <Button onClick={handleConnect} disabled={isConnecting} variant="outline">
           {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           <ExternalLink className="mr-2 h-4 w-4" />
           {t("payments.completeOnboarding")}
