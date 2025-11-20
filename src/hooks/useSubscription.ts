@@ -2,27 +2,36 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SubscriptionData {
-  subscribed: boolean;
+  plan: string;
   plan_name: string;
-  plan_slug: string;
   status: string;
-  current_period_end: string | null;
+  subscription_type: string;
+  is_trial: boolean;
   trial_end: string | null;
-  cancel_at_period_end: boolean;
+  current_period_end: string | null;
   grace_period_ends_at: string | null;
-  feature_limits: {
-    max_properties: number;
-    max_tenancies_per_property: number;
+  features: {
     digital_signatures_per_year: number;
-    automated_payments: boolean;
-    kyc_verification: boolean;
-    document_templates: boolean;
-    white_labeling: boolean;
-    api_access: boolean;
-    advanced_analytics: boolean;
+    automated_payments_enabled: boolean;
+    kyc_verification_enabled: boolean;
+    document_templates_enabled: boolean;
+    white_labeling_enabled: boolean;
+    api_access_enabled: boolean;
+    advanced_analytics_enabled: boolean;
+    stripe_connect_enabled: boolean;
+    sepa_direct_debit_enabled: boolean;
+    revolut_payments_enabled: boolean;
+    recurring_tasks_enabled: boolean;
+    maintenance_templates_enabled: boolean;
+    repair_shop_directory_enabled: boolean;
+    brand_customization_enabled: boolean;
   };
-  signatures_used: number;
-  signatures_remaining: number;
+  usage: {
+    signatures_used: number;
+    signatures_limit: number;
+    remaining: number;
+    overage: number;
+  };
 }
 
 export function useSubscription() {
@@ -50,9 +59,9 @@ export function useSubscription() {
     refetchOnWindowFocus: true,
   });
 
-  const canUseFeature = (feature: keyof SubscriptionData['feature_limits']): boolean => {
+  const canUseFeature = (feature: keyof SubscriptionData['features']): boolean => {
     if (!data) return false;
-    return data.feature_limits[feature] === true || (typeof data.feature_limits[feature] === 'number' && data.feature_limits[feature] > 0);
+    return data.features[feature] === true || (typeof data.features[feature] === 'number' && data.features[feature] > 0);
   };
 
   const canCreateSignature = (): { allowed: boolean; reason?: string } => {
@@ -60,11 +69,11 @@ export function useSubscription() {
       return { allowed: false, reason: "Loading subscription data..." };
     }
 
-    if (data.plan_slug === 'free') {
+    if (data.plan === 'free') {
       return { allowed: false, reason: "Digital signatures require a Pro or Enterprise plan" };
     }
 
-    if (data.signatures_remaining <= 0) {
+    if (data.usage.remaining <= 0) {
       return { allowed: false, reason: "You've reached your annual signature limit" };
     }
 
@@ -83,8 +92,8 @@ export function useSubscription() {
     canUseFeature,
     canCreateSignature,
     refresh,
-    isPro: data?.plan_slug === 'pro' || data?.plan_slug === 'enterprise',
-    isFree: data?.plan_slug === 'free',
-    isEnterprise: data?.plan_slug === 'enterprise',
+    isPro: data?.plan === 'pro' || data?.plan === 'enterprise',
+    isFree: data?.plan === 'free',
+    isEnterprise: data?.plan === 'enterprise',
   };
 }
