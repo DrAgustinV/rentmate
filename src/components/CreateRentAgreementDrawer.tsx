@@ -111,7 +111,7 @@ export function CreateRentAgreementDrawer({
 
   const onSubmit = (data: RentAgreementFormData) => {
     // Check subscription access for automated payments
-    if (!canUseFeature('automated_payments')) {
+    if (!canUseFeature('automated_payments_enabled')) {
       setShowUpgradeDialog(true);
       setOpen(false);
       return;

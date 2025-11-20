@@ -41,7 +41,7 @@ export function StripeConnectOnboarding() {
   const connectMutation = useMutation({
     mutationFn: async () => {
       // Check subscription access for automated payments
-      if (!canUseFeature('automated_payments')) {
+      if (!canUseFeature('automated_payments_enabled')) {
         setShowUpgradeDialog(true);
         throw new Error("Automated payments require a Pro or Enterprise plan");
       }

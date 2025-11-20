@@ -93,7 +93,7 @@ export default function Pricing() {
   };
 
   const isCurrentPlan = (planSlug: string) => {
-    return subscription?.plan_slug === planSlug;
+    return subscription?.plan === planSlug;
   };
 
   return (

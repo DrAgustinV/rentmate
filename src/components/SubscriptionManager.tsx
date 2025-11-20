@@ -94,12 +94,12 @@ export function SubscriptionManager() {
     );
   }
 
-  const isPro = subscription.plan_slug === "pro";
-  const isEnterprise = subscription.plan_slug === "enterprise";
-  const isFree = subscription.plan_slug === "free";
+  const isPro = subscription.plan === "pro";
+  const isEnterprise = subscription.plan === "enterprise";
+  const isFree = subscription.plan === "free";
   const isActive = subscription.status === "active" || subscription.status === "trialing";
-  const signaturesPercent = subscription.signatures_used && subscription.feature_limits.digital_signatures_per_year
-    ? (subscription.signatures_used / subscription.feature_limits.digital_signatures_per_year) * 100
+  const signaturesPercent = subscription.usage.signatures_used && subscription.features.digital_signatures_per_year
+    ? (subscription.usage.signatures_used / subscription.features.digital_signatures_per_year) * 100
     : 0;
 
   return (
@@ -147,11 +147,11 @@ export function SubscriptionManager() {
             </Alert>
           )}
 
-          {subscription.cancel_at_period_end && subscription.current_period_end && (
+          {subscription.current_period_end && subscription.status === 'canceled' && (
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Subscription cancels on {format(new Date(subscription.current_period_end), "PPP")}
+                Subscription ends on {format(new Date(subscription.current_period_end), "PPP")}
               </AlertDescription>
             </Alert>
           )}
@@ -163,22 +163,15 @@ export function SubscriptionManager() {
               <ul className="space-y-2">
                 <li className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
-                  {subscription.feature_limits.max_properties === 999999
-                    ? "Unlimited"
-                    : subscription.feature_limits.max_properties}{" "}
-                  properties
+                  {subscription.features.digital_signatures_per_year} signatures/year
                 </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  {subscription.feature_limits.digital_signatures_per_year} signatures/year
-                </li>
-                {subscription.feature_limits.automated_payments && (
+                {subscription.features.automated_payments_enabled && (
                   <li className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
                     Automated payments
                   </li>
                 )}
-                {subscription.feature_limits.kyc_verification && (
+                {subscription.features.kyc_verification_enabled && (
                   <li className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
                     KYC verification
@@ -205,13 +198,13 @@ export function SubscriptionManager() {
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-medium">Digital Signatures</p>
                 <p className="text-sm text-muted-foreground">
-                  {subscription.signatures_used} / {subscription.feature_limits.digital_signatures_per_year}
+                  {subscription.usage.signatures_used} / {subscription.features.digital_signatures_per_year}
                 </p>
               </div>
               <Progress value={signaturesPercent} className="h-2" />
-              {subscription.signatures_remaining <= 20 && subscription.feature_limits.digital_signatures_per_year > 0 && (
+              {subscription.usage.remaining <= 20 && subscription.features.digital_signatures_per_year > 0 && (
                 <p className="text-sm text-orange-600 mt-1">
-                  {subscription.signatures_remaining} signatures remaining
+                  {subscription.usage.remaining} signatures remaining
                 </p>
               )}
             </div>
