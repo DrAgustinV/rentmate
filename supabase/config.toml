@@ -1,5 +1,8 @@
 project_id = "jrjwkpjfgsyrqztuokoo"
 
+[functions.collect-rent-payment]
+verify_jwt = false  # Can be called by cron or manually
+
 # Subscription Management Functions
 [functions.create-subscription-checkout]
 verify_jwt = true  # Requires user authentication
