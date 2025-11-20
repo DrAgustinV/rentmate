@@ -57,9 +57,6 @@ verify_jwt = false  # Public webhook endpoint from Stripe
 [functions.generate-sepa-mandate-pdf]
 verify_jwt = true  # Manager/Tenant generates mandate PDF
 
-[functions.generate-sepa-xml]
-verify_jwt = true  # Manager generates SEPA XML for bank
-
 [functions.generate-monthly-payments]
 verify_jwt = false  # Cron job - no user context available
 
