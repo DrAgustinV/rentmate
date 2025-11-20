@@ -133,7 +133,7 @@ export function PaymentsTab({
                     </div>
                     <div>
                       <span className="text-muted-foreground">{t("rentAgreements.mandateStatus")}: </span>
-                      <span className="capitalize">{agreement.mandate_status}</span>
+                      <span className="capitalize">{t(`rentAgreements.mandateStatus.${agreement.mandate_status}`)}</span>
                     </div>
                   </div>
                 )}
