@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FolderOpen, Wrench, FileText, ClipboardList, Settings, Plus } from "lucide-react";
+import { FolderOpen, Wrench, FileText, ClipboardList, Settings, Plus, CreditCard } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { StandardTasksSection } from "@/components/StandardTasksSection";
 import RepairShops from "./RepairShops";
@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CreateStandardMaintenanceDialog } from "@/components/CreateStandardMaintenanceDialog";
 import { CreatePropertyTemplateDialog } from "@/components/CreatePropertyTemplateDialog";
+import { StripeConnectOnboarding } from "@/components/payments/StripeConnectOnboarding";
+import { SEPADirectDebitSettings } from "@/components/payments/SEPADirectDebitSettings";
 
 export default function Configuration() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -141,7 +143,7 @@ export default function Configuration() {
       </div>
 
       <Tabs defaultValue="maintenance" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="maintenance" className="gap-2">
             <ClipboardList className="h-4 w-4" />
             <span className="hidden sm:inline">{t("configuration.tabs.maintenance")}</span>
@@ -156,6 +158,11 @@ export default function Configuration() {
             <Wrench className="h-4 w-4" />
             <span className="hidden sm:inline">{t("configuration.tabs.repairShops")}</span>
             <span className="sm:hidden">Shops</span>
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="gap-2">
+            <CreditCard className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("configuration.tabs.payments")}</span>
+            <span className="sm:hidden">Payments</span>
           </TabsTrigger>
           <TabsTrigger value="defaults" className="gap-2">
             <Settings className="h-4 w-4" />
@@ -208,6 +215,11 @@ export default function Configuration() {
 
         <TabsContent value="repair-shops" className="space-y-4">
           <RepairShops />
+        </TabsContent>
+
+        <TabsContent value="payments" className="space-y-4">
+          <StripeConnectOnboarding />
+          <SEPADirectDebitSettings />
         </TabsContent>
 
         <TabsContent value="defaults" className="space-y-4">
