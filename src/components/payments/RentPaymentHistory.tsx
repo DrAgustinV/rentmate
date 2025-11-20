@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DollarSign, CheckCircle2, Clock, AlertTriangle, Loader2, Upload, Eye, XCircle, FileImage } from 'lucide-react';
+import { DollarSign, CheckCircle2, Clock, AlertTriangle, Loader2, Upload, Eye, XCircle, FileImage, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, differenceInDays } from 'date-fns';
 import { ProofOfPaymentUpload } from '@/components/ProofOfPaymentUpload';
@@ -53,6 +53,7 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewPayment, setReviewPayment] = useState<RentPayment | null>(null);
+  const [retrying, setRetrying] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPayments();
@@ -102,6 +103,28 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
       toast.error(error.message);
     } finally {
       setMarking(null);
+    }
+  };
+
+  const handleRetryPayment = async (paymentId: string) => {
+    setRetrying(paymentId);
+    try {
+      const { data, error } = await supabase.functions.invoke('collect-rent-payment', {
+        body: { payment_id: paymentId },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success('Payment collection initiated successfully');
+        fetchPayments();
+      } else {
+        toast.error(data.message || 'Failed to retry payment');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to retry payment');
+    } finally {
+      setRetrying(null);
     }
   };
 
@@ -326,6 +349,23 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             t("payments.markAsPaidBtn")
+                          )}
+                        </Button>
+                      )}
+                      {isManager && payment.status === 'failed' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRetryPayment(payment.id)}
+                          disabled={retrying === payment.id}
+                        >
+                          {retrying === payment.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Retry Payment
+                            </>
                           )}
                         </Button>
                       )}
