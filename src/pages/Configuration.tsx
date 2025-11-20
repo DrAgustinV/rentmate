@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import { CreateStandardMaintenanceDialog } from "@/components/CreateStandardMaintenanceDialog";
 import { CreatePropertyTemplateDialog } from "@/components/CreatePropertyTemplateDialog";
 import { StripeConnectOnboarding } from "@/components/payments/StripeConnectOnboarding";
-import { SEPADirectDebitSettings } from "@/components/payments/SEPADirectDebitSettings";
 
 export default function Configuration() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -219,7 +218,6 @@ export default function Configuration() {
 
         <TabsContent value="payments" className="space-y-4">
           <StripeConnectOnboarding />
-          <SEPADirectDebitSettings />
         </TabsContent>
 
         <TabsContent value="defaults" className="space-y-4">
