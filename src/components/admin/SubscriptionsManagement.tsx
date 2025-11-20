@@ -20,7 +20,7 @@ export function SubscriptionsManagement() {
         .select(`
           *,
           plan:subscription_plans(name, slug),
-          profile:profiles(email, first_name, last_name)
+          profile:profiles!user_subscriptions_user_id_fkey(email, first_name, last_name)
         `)
         .order("created_at", { ascending: false });
       
