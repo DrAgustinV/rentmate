@@ -55,6 +55,8 @@ serve(async (req) => {
       );
     }
 
+    console.log(`Using provider ${provider.code} for country ${property.country}`);
+
     // Fetch tenancy and tenant details
     const { data: tenancy, error: tenancyError } = await supabase
       .from('property_tenants')
@@ -137,7 +139,69 @@ serve(async (req) => {
         event_type: 'initiated',
       });
 
-    // Generate protocol URL
+    // Handle OpenAPI provider differently (OTP-based flow)
+    if (provider.code === 'openapi') {
+      const { createOpenAPIClient } = await import('../_shared/openapi-client.ts');
+      
+      try {
+        const client = createOpenAPIClient();
+        
+        // Create signature request
+        const signatureResponse = await client.createQESSignature({
+          documentBase64,
+          documentName: `contract-${tenancyId}.pdf`,
+          signatureType: 'pades',
+          callbackUrl,
+          metadata: {
+            tenancyId,
+            propertyId,
+            sessionId,
+          },
+        });
+        
+        console.log('OpenAPI signature created:', signatureResponse.id);
+        
+        // Send OTP to user (via SMS/email)
+        await client.sendOTP(signatureResponse.id, 'both');
+        
+        // Update signature record with OpenAPI-specific fields
+        const { error: updateError } = await supabase
+          .from('contract_signatures')
+          .update({
+            qualified_signature_metadata: {
+              ...signature.qualified_signature_metadata,
+              openapi_signature_id: signatureResponse.id,
+              otp_sent_at: new Date().toISOString(),
+              signature_state: signatureResponse.state,
+            },
+          })
+          .eq('id', signature.id);
+          
+        if (updateError) {
+          console.error('Failed to update signature with OpenAPI ID:', updateError);
+        }
+        
+        // Return session data with OTP prompt
+        return new Response(
+          JSON.stringify({
+            success: true,
+            sessionId,
+            signatureId: signature.id,
+            providerCode: provider.code,
+            providerName: provider.name,
+            openapi_signature_id: signatureResponse.id,
+            requires_otp: true,
+            message: 'OTP sent to your registered contact. Please check SMS/email.',
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (error: any) {
+        console.error('OpenAPI error:', error);
+        throw new Error(`OpenAPI signature failed: ${error.message}`);
+      }
+    }
+
+    // Generate protocol URL for other providers (AutoFirma, etc.)
     const protocolUrl = provider.getProtocolUrl({
       documentBase64,
       sessionId,

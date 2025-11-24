@@ -81,14 +81,64 @@ const AutoFirmaProvider: SignatureProviderConfig = {
 };
 
 /**
+ * OpenAPI.com Provider (EU-wide)
+ * Protocol: REST API with OTP verification
+ * Docs: https://console.openapi.com/apis/esignature/documentation
+ */
+const OpenAPIProvider: SignatureProviderConfig = {
+  code: 'openapi',
+  name: 'OpenAPI.com QES',
+  countries: ['Spain', 'Italy', 'Portugal', 'France', 'Germany', 'Netherlands', 
+              'Belgium', 'Austria', 'Poland', 'Greece'],
+  protocolScheme: 'https://',
+  
+  getProtocolUrl: ({ documentBase64, sessionId, callbackUrl }) => {
+    // OpenAPI uses REST API, not protocol URL
+    // Return a placeholder - actual signing happens via API calls
+    return `https://console.openapi.com/signatures/${sessionId}`;
+  },
+  
+  validateCallback: (payload) => {
+    const { sessionId, signatureId, state, signedDocument, certificateInfo } = payload;
+    
+    if (!sessionId) {
+      return { isValid: false, errorMessage: 'Missing session ID' };
+    }
+    
+    if (state === 'ERROR' || state === 'FAILED') {
+      return { 
+        isValid: false, 
+        errorCode: payload.errorCode,
+        errorMessage: payload.errorMessage || 'Signature failed'
+      };
+    }
+    
+    if (state !== 'DONE') {
+      return { 
+        isValid: false, 
+        errorMessage: `Invalid state: ${state}` 
+      };
+    }
+    
+    if (!signedDocument) {
+      return { isValid: false, errorMessage: 'Missing signed document' };
+    }
+    
+    return {
+      isValid: true,
+      signedDocument,
+      certificateInfo: certificateInfo || {},
+    };
+  },
+};
+
+/**
  * Registry of all available signature providers
  * Add new providers here as they are implemented
  */
 export const SIGNATURE_PROVIDERS: Record<string, SignatureProviderConfig> = {
   autofirma: AutoFirmaProvider,
-  // Add more providers here:
-  // cartaocidadao: CartaoCidadaoProvider,
-  // etc.
+  openapi: OpenAPIProvider,
 };
 
 /**

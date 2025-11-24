@@ -1,5 +1,8 @@
 project_id = "jrjwkpjfgsyrqztuokoo"
 
+[functions.verify-openapi-otp]
+verify_jwt = true
+
 [functions.collect-rent-payment]
 verify_jwt = false  # Can be called by cron or manually
 
