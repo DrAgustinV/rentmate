@@ -16,6 +16,7 @@ import { DocusealForm } from "@docuseal/react";
 import { QualifiedSignatureFlow } from "@/components/signature/QualifiedSignatureFlow";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
+import { getProviderUI } from "@/lib/signature/providers.config";
 
 interface ContractSignature {
   id: string;
@@ -57,12 +58,17 @@ export const ContractSignatureManager = ({
   const [loading, setLoading] = useState(false);
   const [signature, setSignature] = useState<ContractSignature | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [signingMethod, setSigningMethod] = useState<'mock' | 'docuseal' | 'qualified'>('mock');
+  const [signingMethod, setSigningMethod] = useState<string>('mock');
   const [rentAgreement, setRentAgreement] = useState<any>(null);
   const [agreementLoading, setAgreementLoading] = useState(true);
   const [showSigningForm, setShowSigningForm] = useState(false);
   const [propertyCountry, setPropertyCountry] = useState<string | null>(null);
-  const [qualifiedProvider, setQualifiedProvider] = useState<string | null>(null);
+  const [qualifiedProviders, setQualifiedProviders] = useState<Array<{
+    provider_code: string;
+    provider_name: string;
+    protocol_scheme: string;
+    installation_url: string | null;
+  }>>([]);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   
 
@@ -132,16 +138,16 @@ export const ContractSignatureManager = ({
       
       setPropertyCountry(property?.country || null);
 
-      // Check if there's a qualified provider for this country
+      // Fetch ALL qualified providers for this country
       if (property?.country) {
-        const { data: provider } = await supabase
+        const { data: providers } = await supabase
           .from('qualified_signature_providers')
-          .select('provider_code, provider_name')
+          .select('provider_code, provider_name, protocol_scheme, installation_url')
           .contains('country_codes', [property.country])
           .eq('is_active', true)
-          .maybeSingle();
+          .order('provider_name');
         
-        setQualifiedProvider(provider?.provider_code || null);
+        setQualifiedProviders(providers || []);
       }
     } catch (error) {
       console.error('Error fetching property country:', error);
@@ -153,14 +159,21 @@ export const ContractSignatureManager = ({
     setLoading(true);
     try {
       let functionName = 'initiate-contract-signature';
+      let providerCode = null;
+
       if (signingMethod === 'docuseal') {
         functionName = 'initiate-docuseal-signature';
-      } else if (signingMethod === 'qualified') {
+      } else if (signingMethod.startsWith('qualified:')) {
         functionName = 'initiate-qualified-signature';
+        providerCode = signingMethod.split(':')[1]; // Extract 'autofirma' or 'openapi'
       }
 
       const { data, error } = await supabase.functions.invoke(functionName, {
-        body: { tenancyId, propertyId }
+        body: { 
+          tenancyId, 
+          propertyId,
+          ...(providerCode && { providerCode })
+        }
       });
 
       if (error) throw error;
@@ -346,7 +359,7 @@ export const ContractSignatureManager = ({
               {/* Signing Method Selector */}
               <div className="space-y-3">
                 <Label className="text-base font-semibold">Select Signing Method</Label>
-                <RadioGroup value={signingMethod} onValueChange={(v) => setSigningMethod(v as 'mock' | 'docuseal' | 'qualified')}>
+                <RadioGroup value={signingMethod} onValueChange={setSigningMethod}>
                   <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent">
                     <RadioGroupItem value="mock" id="mock" />
                     <Label htmlFor="mock" className="flex-1 cursor-pointer">
@@ -367,23 +380,37 @@ export const ContractSignatureManager = ({
                     </Label>
                   </div>
 
-                  {qualifiedProvider && (
-                    <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent border-primary bg-primary/5">
-                      <RadioGroupItem value="qualified" id="qualified" />
-                      <Label htmlFor="qualified" className="flex-1 cursor-pointer">
-                        <div className="font-medium flex items-center gap-2">
-                          <Shield className="h-4 w-4 text-primary" />
-                          Qualified Signature
-                          <Badge variant="secondary" className="text-xs">
-                            Recommended for {propertyCountry}
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Legally-recognized qualified digital signature
-                        </div>
-                      </Label>
-                    </div>
-                  )}
+                  {/* Show each qualified provider as a separate option */}
+                  {qualifiedProviders.map((provider) => {
+                    const providerUI = getProviderUI(provider.provider_code);
+                    const ProviderIcon = providerUI?.icon || Shield;
+                    
+                    return (
+                      <div 
+                        key={provider.provider_code}
+                        className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent border-primary bg-primary/5"
+                      >
+                        <RadioGroupItem 
+                          value={`qualified:${provider.provider_code}`} 
+                          id={provider.provider_code} 
+                        />
+                        <Label htmlFor={provider.provider_code} className="flex-1 cursor-pointer">
+                          <div className="font-medium flex items-center gap-2">
+                            <ProviderIcon className="h-4 w-4 text-primary" />
+                            {provider.provider_name}
+                            {provider.provider_code === 'openapi' && (
+                              <Badge variant="secondary" className="text-xs">
+                                No installation required
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {providerUI?.description || 'Qualified electronic signature'}
+                          </div>
+                        </Label>
+                      </div>
+                    );
+                  })}
                 </RadioGroup>
               </div>
 
@@ -462,11 +489,11 @@ export const ContractSignatureManager = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Qualified Signature Flow - Show for qualified signatures */}
-        {signature.signing_method === 'qualified' && !isCompleted && showSigningForm && qualifiedProvider && (
+        {signature.signing_method === 'qualified' && !isCompleted && showSigningForm && signature.qualified_signature_provider && (
           <QualifiedSignatureFlow
             tenancyId={tenancyId}
             propertyId={propertyId}
-            providerCode={qualifiedProvider}
+            providerCode={signature.qualified_signature_provider}
             onComplete={() => {
               setShowSigningForm(false);
               loadSignature();
