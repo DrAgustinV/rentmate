@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
         address: '123 Demo Street',
         city: 'Berlin',
         postal_code: '10115',
-        country: 'Germany',
+        country: 'DE',
         description: 'A beautiful modern flat perfect for urban living. Features 2 bedrooms, spacious living room, and fully equipped kitchen.',
       })
       .select()
