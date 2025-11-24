@@ -138,17 +138,17 @@ export const ContractSignatureManager = ({
       
       setPropertyCountry(property?.country || null);
 
-      // Fetch ALL qualified providers for this country
-      if (property?.country) {
-        const { data: providers } = await supabase
-          .from('qualified_signature_providers')
-          .select('provider_code, provider_name, protocol_scheme, installation_url')
-          .contains('country_codes', [property.country])
-          .eq('is_active', true)
-          .order('provider_name');
-        
-        setQualifiedProviders(providers || []);
-      }
+    // Fetch ALL qualified providers for this country (using ISO code)
+    if (property?.country) {
+      const { data: providers } = await supabase
+        .from('qualified_signature_providers')
+        .select('provider_code, provider_name, protocol_scheme, installation_url')
+        .contains('country_codes', [property.country])
+        .eq('is_active', true)
+        .order('provider_name');
+      
+      setQualifiedProviders(providers || []);
+    }
     } catch (error) {
       console.error('Error fetching property country:', error);
     }

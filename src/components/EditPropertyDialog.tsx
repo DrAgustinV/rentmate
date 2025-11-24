@@ -13,6 +13,7 @@ import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQueryClient } from '@tanstack/react-query';
 import { PROPERTIES_QUERY_KEY } from '@/hooks/useProperties';
+import { CountrySelect } from "@/components/ui/country-select";
 
 interface EditPropertyDialogProps {
   open: boolean;
@@ -221,12 +222,10 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
 
             <div className="space-y-2">
               <Label htmlFor="edit-country">Country</Label>
-              <Input
-                id="edit-country"
+              <CountrySelect
                 value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                placeholder="Germany"
-                maxLength={100}
+                onValueChange={setCountry}
+                placeholder="Select country"
               />
             </div>
           </div>

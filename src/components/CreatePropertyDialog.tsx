@@ -11,6 +11,7 @@ import { propertyBaseSchema } from "@/lib/validations";
 import { usePropertyMutations } from "@/hooks/useProperties";
 import { z } from "zod";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
+import { CountrySelect } from "@/components/ui/country-select";
 
 interface CreatePropertyDialogProps {
   open: boolean;
@@ -24,7 +25,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
   const [city, setCity] = useState("");
   const [stateProvince, setStateProvince] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [country, setCountry] = useState("Germany");
+  const [country, setCountry] = useState("DE");
   const [description, setDescription] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -118,7 +119,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
           setCity("");
           setStateProvince("");
           setPostalCode("");
-          setCountry("Germany");
+          setCountry("DE");
           setDescription("");
           setPhotoFile(null);
           setLoading(false);
@@ -279,12 +280,10 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
 
             <div className="space-y-2">
               <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
+              <CountrySelect
                 value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                placeholder="Germany"
-                maxLength={100}
+                onValueChange={setCountry}
+                placeholder="Select country"
               />
             </div>
           </div>
