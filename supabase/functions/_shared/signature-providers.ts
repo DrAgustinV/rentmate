@@ -39,7 +39,7 @@ export interface SignatureProviderConfig {
 const AutoFirmaProvider: SignatureProviderConfig = {
   code: 'autofirma',
   name: 'AutoFirma',
-  countries: ['Spain'],
+  countries: ['ES'],
   protocolScheme: 'autofirma://',
   
   getProtocolUrl: ({ documentBase64, sessionId, callbackUrl }) => {
@@ -88,8 +88,7 @@ const AutoFirmaProvider: SignatureProviderConfig = {
 const OpenAPIProvider: SignatureProviderConfig = {
   code: 'openapi',
   name: 'OpenAPI.com QES',
-  countries: ['Spain', 'Italy', 'Portugal', 'France', 'Germany', 'Netherlands', 
-              'Belgium', 'Austria', 'Poland', 'Greece'],
+  countries: ['ES', 'IT', 'PT', 'FR', 'DE', 'NL', 'BE', 'AT', 'PL', 'GR'],
   protocolScheme: 'https://',
   
   getProtocolUrl: ({ documentBase64, sessionId, callbackUrl }) => {
