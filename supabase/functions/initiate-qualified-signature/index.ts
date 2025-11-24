@@ -26,7 +26,7 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { tenancyId, propertyId } = await req.json();
+    const { tenancyId, propertyId, providerCode: requestedProvider } = await req.json();
 
     // Verify user is property manager
     const { data: property, error: propertyError } = await supabase
@@ -43,8 +43,36 @@ serve(async (req) => {
       throw new Error('Unauthorized: Only property manager can initiate signatures');
     }
 
-    // Get provider for property country
-    const provider = getProviderByCountry(property.country);
+    // Get provider - respect user's choice or auto-select
+    let provider;
+    
+    if (requestedProvider) {
+      // User explicitly chose a provider - fetch from database
+      const { data: providerData } = await supabase
+        .from('qualified_signature_providers')
+        .select('provider_code, provider_name, protocol_scheme, country_codes')
+        .eq('provider_code', requestedProvider)
+        .eq('is_active', true)
+        .single();
+      
+      if (!providerData) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `Provider ${requestedProvider} not found or inactive.`,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+      
+      // Map database record to provider config using registry
+      const { getProviderByCode } = await import('../_shared/signature-providers.ts');
+      provider = getProviderByCode(requestedProvider);
+    } else {
+      // Fallback: auto-select first available provider (backward compatibility)
+      provider = getProviderByCountry(property.country);
+    }
+    
     if (!provider) {
       return new Response(
         JSON.stringify({
