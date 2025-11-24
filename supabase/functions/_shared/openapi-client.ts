@@ -17,8 +17,6 @@ interface CreateSignatureParams {
   documentBase64: string;
   documentName: string;
   signatureType?: 'pades' | 'cades' | 'xades';
-  callbackUrl?: string;
-  metadata?: Record<string, any>;
 }
 
 export class OpenAPIClient {
@@ -35,23 +33,18 @@ export class OpenAPIClient {
    */
   async createQESSignature(params: CreateSignatureParams) {
     const payload = {
-      inputDocument: [{
-        sourceType: 'base64',
-        payload: params.documentBase64,
-        filename: params.documentName,
-      }],
+      name: "rentmate",
+      title: `Contract Signature - ${params.documentName}`,
+      signatureType: params.signatureType || 'cades',
       certificateUsername: this.config.certificateUsername,
       certificatePassword: this.config.certificatePassword,
-      signatureType: params.signatureType || 'pades',
-      title: `Contract Signature - ${params.documentName}`,
-      description: 'Rental agreement signature',
-      callbackUrl: params.callbackUrl,
-      metadata: params.metadata,
+      filename: params.documentName,
+      content: params.documentBase64,
     };
     
     console.log('Creating QES signature with OpenAPI');
     
-    const response = await fetch(`${this.baseUrl}/EU-QES_automatic`, {
+    const response = await fetch(`${this.baseUrl}/signatures`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${this.config.accessToken}`,
