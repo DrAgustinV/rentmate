@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { FileSignature, CheckCircle2, Clock, Shield, Smartphone, AlertCircle, QrCode } from "lucide-react";
+import { FileSignature, CheckCircle2, Clock, Shield, Smartphone, AlertCircle, QrCode, X, Check } from "lucide-react";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -284,6 +284,34 @@ export const ContractSignatureManager = ({
     }
   };
 
+  const handleCancelSignature = async () => {
+    if (!signature?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('contract_signatures')
+        .delete()
+        .eq('id', signature.id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'Signature Cancelled',
+        description: 'You can now select a different signing method',
+      });
+      
+      await loadSignature();
+      onRefresh?.();
+    } catch (error: any) {
+      console.error('Error cancelling signature:', error);
+      toast({
+        title: t('common.error'),
+        description: error.message || 'Failed to cancel signature',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleMockSign = async (role: 'manager' | 'tenant') => {
     if (!signature) return;
     
@@ -501,6 +529,18 @@ export const ContractSignatureManager = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Cancel Signature Button - Only for managers when signature is in progress */}
+        {!isCompleted && isManager && (
+          <Button
+            variant="outline"
+            onClick={handleCancelSignature}
+            className="w-full"
+          >
+            <X className="h-4 w-4 mr-2" />
+            Cancel and Choose Different Method
+          </Button>
+        )}
+
         {/* Qualified Signature Flow - Show for qualified signatures */}
         {signature.signing_method === 'qualified' && !isCompleted && showSigningForm && signature.qualified_signature_provider && (
           <QualifiedSignatureFlow
