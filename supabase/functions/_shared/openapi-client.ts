@@ -4,7 +4,7 @@
  */
 
 const OPENAPI_BASE_URL = 'https://esignature.openapi.com';
-const OPENAPI_SANDBOX_URL = 'https://sandbox-esignature.openapi.com';
+const OPENAPI_SANDBOX_URL = 'https://test.esignature.openapi.com';
 
 interface OpenAPIConfig {
   accessToken: string;
@@ -31,7 +31,7 @@ export class OpenAPIClient {
   }
   
   /**
-   * Create QES signature request with OTP
+   * Create QES signature request with automatic certificate
    */
   async createQESSignature(params: CreateSignatureParams) {
     const payload = {
@@ -51,7 +51,7 @@ export class OpenAPIClient {
     
     console.log('Creating QES signature with OpenAPI');
     
-    const response = await fetch(`${this.baseUrl}/EU-QES_otp`, {
+    const response = await fetch(`${this.baseUrl}/EU-QES_automatic`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${this.config.accessToken}`,
