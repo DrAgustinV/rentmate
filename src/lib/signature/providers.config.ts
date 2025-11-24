@@ -61,10 +61,28 @@ const AutoFirmaUI: SignatureProviderUIConfig = {
 };
 
 /**
+ * OpenAPI UI Configuration (Multiple EU Countries)
+ */
+const OpenAPIUI: SignatureProviderUIConfig = {
+  code: 'openapi',
+  name: 'OpenAPI',
+  displayName: 'OpenAPI QES (EU)',
+  description: 'Web-based qualified electronic signature for 10 EU countries',
+  icon: FileSignature,
+  installationGuideUrl: 'https://openapi.com/',
+  
+  checkInstallation: async () => {
+    // Web-based, always available
+    return true;
+  },
+};
+
+/**
  * Registry of provider UI configurations
  */
 export const SIGNATURE_PROVIDER_UI: Record<string, SignatureProviderUIConfig> = {
   autofirma: AutoFirmaUI,
+  openapi: OpenAPIUI,
   // Add more providers here:
   // cartaocidadao: CartaoCidadaoUI,
 };

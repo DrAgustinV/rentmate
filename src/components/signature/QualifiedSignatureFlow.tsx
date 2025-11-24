@@ -8,6 +8,7 @@ import { getProviderUI } from "@/lib/signature/providers.config";
 import { FileSignature, Clock, AlertCircle, Download, ExternalLink, QrCode } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useToast } from "@/hooks/use-toast";
+import { OpenAPIOTPDialog } from "./OpenAPIOTPDialog";
 
 interface QualifiedSignatureFlowProps {
   tenancyId: string;
@@ -23,9 +24,10 @@ export const QualifiedSignatureFlow = ({
   onComplete,
 }: QualifiedSignatureFlowProps) => {
   const { toast } = useToast();
-  const [status, setStatus] = useState<'checking' | 'not_installed' | 'ready' | 'initiating' | 'waiting'>('checking');
+  const [status, setStatus] = useState<'checking' | 'not_installed' | 'ready' | 'initiating' | 'waiting' | 'otp_required'>('checking');
   const [sessionData, setSessionData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showOTPDialog, setShowOTPDialog] = useState(false);
   
   const providerUI = getProviderUI(providerCode);
 
@@ -54,7 +56,7 @@ export const QualifiedSignatureFlow = ({
 
     try {
       const { data, error } = await supabase.functions.invoke('initiate-qualified-signature', {
-        body: { tenancyId, propertyId }
+        body: { tenancyId, propertyId, providerCode }
       });
 
       if (error) throw error;
@@ -65,18 +67,29 @@ export const QualifiedSignatureFlow = ({
 
       setSessionData(data);
 
-      // Invoke protocol URL to launch native application
-      if (data.protocolUrl) {
-        window.location.href = data.protocolUrl;
+      // Check if OTP is required (OpenAPI flow)
+      if (data.requiresOTP) {
+        setStatus('otp_required');
+        setShowOTPDialog(true);
+        
+        toast({
+          title: "Verification Code Sent",
+          description: "Please check your phone for the verification code",
+        });
+      } else {
+        // Invoke protocol URL to launch native application (AutoFirma flow)
+        if (data.protocolUrl) {
+          window.location.href = data.protocolUrl;
+        }
+
+        setStatus('waiting');
+        startPolling(data.sessionId);
+
+        toast({
+          title: "Signature Initiated",
+          description: `${data.providerName} application should open automatically`,
+        });
       }
-
-      setStatus('waiting');
-      startPolling(data.sessionId);
-
-      toast({
-        title: "Signature Initiated",
-        description: `${data.providerName} application should open automatically`,
-      });
 
     } catch (error: any) {
       console.error('Error initiating signature:', error);
@@ -89,6 +102,15 @@ export const QualifiedSignatureFlow = ({
         variant: "destructive",
       });
     }
+  };
+
+  const handleOTPSuccess = () => {
+    setShowOTPDialog(false);
+    toast({
+      title: "Signature Complete",
+      description: "Document signed successfully",
+    });
+    onComplete();
   };
 
   const startPolling = (sessionId: string) => {
@@ -264,7 +286,32 @@ export const QualifiedSignatureFlow = ({
             </Button>
           </div>
         )}
+
+        {status === 'otp_required' && (
+          <Alert>
+            <Clock className="h-4 w-4" />
+            <AlertDescription>
+              <p className="font-semibold mb-2">Verification Code Sent</p>
+              <p className="text-sm text-muted-foreground">
+                Please enter the 6-digit code sent to your phone to complete the signature.
+              </p>
+            </AlertDescription>
+          </Alert>
+        )}
       </CardContent>
+
+      {showOTPDialog && sessionData && (
+        <OpenAPIOTPDialog
+          open={showOTPDialog}
+          sessionId={sessionData.sessionId}
+          phoneNumber={sessionData.phoneNumber || "your registered phone"}
+          onSuccess={handleOTPSuccess}
+          onCancel={() => {
+            setShowOTPDialog(false);
+            setStatus('ready');
+          }}
+        />
+      )}
     </Card>
   );
 };
