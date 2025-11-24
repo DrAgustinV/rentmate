@@ -178,13 +178,7 @@ serve(async (req) => {
         const signatureResponse = await client.createQESSignature({
           documentBase64,
           documentName: `contract-${tenancyId}.pdf`,
-          signatureType: 'pades',
-          callbackUrl,
-          metadata: {
-            tenancyId,
-            propertyId,
-            sessionId,
-          },
+          signatureType: 'cades',
         });
         
         console.log('OpenAPI signature created:', signatureResponse.id);
