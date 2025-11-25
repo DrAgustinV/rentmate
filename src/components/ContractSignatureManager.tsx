@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { FileSignature, CheckCircle2, Clock, Shield, Smartphone, AlertCircle, QrCode, X, Check } from "lucide-react";
+import { FileSignature, CheckCircle2, Clock, Shield, Smartphone, AlertCircle, QrCode, X, Check, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -17,6 +17,7 @@ import { QualifiedSignatureFlow } from "@/components/signature/QualifiedSignatur
 import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
 import { getProviderUI } from "@/lib/signature/providers.config";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ContractSignature {
   id: string;
@@ -36,6 +37,7 @@ interface ContractSignature {
   manager_embed_slug: string | null;
   tenant_embed_slug: string | null;
   qualified_signature_provider: string | null;
+  source_document_id: string | null;
 }
 
 
@@ -70,6 +72,13 @@ export const ContractSignatureManager = ({
     installation_url: string | null;
   }>>([]);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [tenancyDocuments, setTenancyDocuments] = useState<Array<{
+    id: string;
+    document_title: string;
+    file_name: string;
+  }>>([]);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string>('');
+  const [sourceDocument, setSourceDocument] = useState<{ document_title: string; file_name: string } | null>(null);
   
 
   const loadSignature = async () => {
@@ -84,6 +93,19 @@ export const ContractSignatureManager = ({
 
       if (error) throw error;
       setSignature(data);
+      
+      // Fetch source document info if exists
+      if (data?.source_document_id) {
+        const { data: doc } = await supabase
+          .from('property_documents')
+          .select('document_title, file_name')
+          .eq('id', data.source_document_id)
+          .single();
+        
+        if (doc) {
+          setSourceDocument(doc);
+        }
+      }
       
       // Initialize form visibility based on current user's signature status
       if (data) {
@@ -119,11 +141,28 @@ export const ContractSignatureManager = ({
     }
   };
 
+  const fetchTenancyDocuments = async () => {
+    try {
+      const { data } = await supabase
+        .from('property_documents')
+        .select('id, document_title, file_name')
+        .eq('tenancy_id', tenancyId)
+        .eq('document_category', 'tenancy')
+        .eq('is_latest_version', true)
+        .order('document_title');
+      
+      setTenancyDocuments(data || []);
+    } catch (error) {
+      console.error('Error fetching tenancy documents:', error);
+    }
+  };
+
   useEffect(() => {
     if (!initialized) {
       loadSignature();
       checkRentAgreement();
       fetchPropertyCountryAndProvider();
+      fetchTenancyDocuments();
     }
   }, [initialized]);
 
@@ -184,7 +223,8 @@ export const ContractSignatureManager = ({
         body: { 
           tenancyId, 
           propertyId,
-          ...(providerCode && { providerCode })
+          ...(providerCode && { providerCode }),
+          ...(selectedDocumentId && { documentId: selectedDocumentId })
         }
       });
 
@@ -455,9 +495,54 @@ export const ContractSignatureManager = ({
                 </RadioGroup>
               </div>
 
+              {/* Document Selector - Only shown for qualified signatures */}
+              {signingMethod.startsWith('qualified:') && (
+                <div className="space-y-3">
+                  <Label htmlFor="document-select" className="text-base font-semibold">
+                    Select Document to Sign
+                  </Label>
+                  <Select value={selectedDocumentId} onValueChange={setSelectedDocumentId}>
+                    <SelectTrigger id="document-select" className="w-full">
+                      <SelectValue placeholder="Choose a document..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tenancyDocuments.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          No documents available
+                        </SelectItem>
+                      ) : (
+                        tenancyDocuments.map((doc) => (
+                          <SelectItem key={doc.id} value={doc.id}>
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4" />
+                              <div>
+                                <div className="font-medium">{doc.document_title}</div>
+                                <div className="text-xs text-muted-foreground">{doc.file_name}</div>
+                              </div>
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {signingMethod.startsWith('qualified:') && !selectedDocumentId && (
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Please select a document before initiating the signature
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              )}
+
               <Button 
                 onClick={handleInitiateSignature} 
-                disabled={loading || agreementLoading}
+                disabled={
+                  loading || 
+                  agreementLoading || 
+                  (signingMethod.startsWith('qualified:') && !selectedDocumentId)
+                }
                 className="w-full"
               >
                 <FileSignature className="h-4 w-4 mr-2" />
@@ -527,6 +612,13 @@ export const ContractSignatureManager = ({
             </Badge>
           )}
         </CardDescription>
+        {sourceDocument && (
+          <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+            <FileText className="h-4 w-4" />
+            <span>Document: {sourceDocument.document_title}</span>
+            <Badge variant="outline" className="text-xs">{sourceDocument.file_name}</Badge>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Cancel Signature Button - Only for managers when signature is in progress */}
