@@ -232,6 +232,7 @@ export type Database = {
           qualified_signature_session_id: string | null
           signed_document_url: string | null
           signing_method: string | null
+          source_document_id: string | null
           tenancy_id: string
           tenant_embed_slug: string | null
           tenant_signature_data: Json | null
@@ -270,6 +271,7 @@ export type Database = {
           qualified_signature_session_id?: string | null
           signed_document_url?: string | null
           signing_method?: string | null
+          source_document_id?: string | null
           tenancy_id: string
           tenant_embed_slug?: string | null
           tenant_signature_data?: Json | null
@@ -308,6 +310,7 @@ export type Database = {
           qualified_signature_session_id?: string | null
           signed_document_url?: string | null
           signing_method?: string | null
+          source_document_id?: string | null
           tenancy_id?: string
           tenant_embed_slug?: string | null
           tenant_signature_data?: Json | null
@@ -324,6 +327,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_signatures_source_document_id_fkey"
+            columns: ["source_document_id"]
+            isOneToOne: false
+            referencedRelation: "property_documents"
             referencedColumns: ["id"]
           },
           {

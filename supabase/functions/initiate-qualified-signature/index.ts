@@ -26,7 +26,7 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { tenancyId, propertyId, providerCode: requestedProvider } = await req.json();
+    const { tenancyId, propertyId, providerCode: requestedProvider, documentId } = await req.json();
 
     // Verify user is property manager
     const { data: property, error: propertyError } = await supabase
@@ -85,6 +85,50 @@ serve(async (req) => {
 
     console.log(`Using provider ${provider.code} for country ${property.country}`);
 
+    // Require document selection for qualified signatures
+    if (!documentId) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Please select a document to sign from your tenancy documents.',
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Fetch document record
+    const { data: document, error: docError } = await supabase
+      .from('property_documents')
+      .select('file_path, file_name, file_type')
+      .eq('id', documentId)
+      .eq('tenancy_id', tenancyId)
+      .single();
+
+    if (docError || !document) {
+      throw new Error('Document not found or does not belong to this tenancy');
+    }
+
+    // Download file from storage
+    const { data: fileData, error: storageError } = await supabase.storage
+      .from('property-documents')
+      .download(document.file_path);
+
+    if (storageError || !fileData) {
+      throw new Error('Failed to retrieve document from storage');
+    }
+
+    // Convert to base64
+    const arrayBuffer = await fileData.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    let binary = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+      binary += String.fromCharCode(uint8Array[i]);
+    }
+    const documentBase64 = btoa(binary);
+    const documentName = document.file_name;
+
+    console.log(`Document loaded: ${documentName} (${document.file_type})`);
+
     // Fetch tenancy and tenant details
     const { data: tenancy, error: tenancyError } = await supabase
       .from('property_tenants')
@@ -114,19 +158,6 @@ serve(async (req) => {
       throw new Error('No active rent agreement found');
     }
 
-    // Generate contract PDF (simplified - in production, use proper template)
-    const contractText = `
-      RENTAL AGREEMENT
-      
-      Property: ${propertyId}
-      Tenant: ${tenant?.first_name || ''} ${tenant?.last_name || ''}
-      Rent Amount: ${agreement.rent_amount_cents / 100} ${agreement.currency}
-      Payment Day: ${agreement.payment_day}
-      
-      This is a legally binding contract.
-    `;
-    const documentBase64 = btoa(contractText);
-
     // Generate session ID and callback URL
     const sessionId = crypto.randomUUID();
     const callbackUrl = `${supabaseUrl}/functions/v1/qualified-signature-callback`;
@@ -146,6 +177,7 @@ serve(async (req) => {
           provider_name: provider.name,
           country: property.country,
         },
+        source_document_id: documentId,
         initiated_by: user.id,
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       })
@@ -177,7 +209,7 @@ serve(async (req) => {
         // Create signature request
         const signatureResponse = await client.createQESSignature({
           documentBase64,
-          documentName: `contract-${tenancyId}.pdf`,
+          documentName,
           signatureType: 'cades',
         });
         
