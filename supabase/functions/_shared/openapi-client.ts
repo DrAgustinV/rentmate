@@ -38,6 +38,8 @@ export class OpenAPIClient {
       signatureType: params.signatureType || 'cades',
       certificateUsername: this.config.certificateUsername,
       certificatePassword: this.config.certificatePassword,
+      filename: params.documentName,
+      content: params.documentBase64,
     };
     
     console.log('Creating QES signature with OpenAPI');
