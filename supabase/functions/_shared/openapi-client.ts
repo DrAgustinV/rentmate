@@ -42,9 +42,11 @@ export class OpenAPIClient {
       content: params.documentBase64,
     };
     
+    const url = `${this.baseUrl}/signatures`;
+    console.log('🌐 Calling OpenAPI URL:', url);
     console.log('Creating QES signature with OpenAPI');
     
-    const response = await fetch(`${this.baseUrl}/signatures`, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${this.config.accessToken}`,
@@ -172,7 +174,13 @@ export function createOpenAPIClient(): OpenAPIClient {
   const accessToken = Deno.env.get('OPENAPI_ACCESS_TOKEN');
   const certUsername = Deno.env.get('OPENAPI_CERTIFICATE_USERNAME');
   const certPassword = Deno.env.get('OPENAPI_CERTIFICATE_PASSWORD');
-  const useSandbox = Deno.env.get('OPENAPI_SANDBOX_MODE') === 'true';
+  const sandboxModeRaw = Deno.env.get('OPENAPI_SANDBOX_MODE');
+  const useSandbox = sandboxModeRaw === 'true';
+  
+  console.log('🔧 OpenAPI Config:');
+  console.log('  OPENAPI_SANDBOX_MODE raw value:', JSON.stringify(sandboxModeRaw));
+  console.log('  useSandbox evaluated to:', useSandbox);
+  console.log('  Will use URL:', useSandbox ? OPENAPI_SANDBOX_URL : OPENAPI_BASE_URL);
   
   if (!accessToken || !certUsername || !certPassword) {
     throw new Error('Missing OpenAPI credentials in environment');
