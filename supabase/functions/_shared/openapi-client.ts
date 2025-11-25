@@ -33,18 +33,26 @@ export class OpenAPIClient {
    */
   async createQESSignature(params: CreateSignatureParams) {
     const payload = {
-      name: "rentmate",
-      title: `Contract Signature - ${params.documentName}`,
-      signatureType: params.signatureType || 'cades',
+      inputDocument: [
+        {
+          sourceType: 'base64',
+          payload: params.documentBase64,
+        }
+      ],
       certificateUsername: this.config.certificateUsername,
       certificatePassword: this.config.certificatePassword,
-      filename: params.documentName,
-      content: params.documentBase64,
+      signatureType: params.signatureType || 'cades',
+      title: `Contract Signature - ${params.documentName}`,
+      description: 'Contract signature via RentMate'
     };
     
-    const url = `${this.baseUrl}/signatures`;
+    const url = `${this.baseUrl}/EU-QES_otp`;
     console.log('🌐 Calling OpenAPI URL:', url);
-    console.log('Creating QES signature with OpenAPI');
+    console.log('📋 Payload structure:', {
+      hasInputDocument: !!payload.inputDocument,
+      documentCount: payload.inputDocument.length,
+      signatureType: payload.signatureType
+    });
     
     const response = await fetch(url, {
       method: 'POST',
@@ -69,7 +77,7 @@ export class OpenAPIClient {
    */
   async getSignatureStatus(signatureId: string) {
     const response = await fetch(
-      `${this.baseUrl}/signatures/${signatureId}`,
+      `${this.baseUrl}/EU-QES_otp/${signatureId}`,
       {
         headers: {
           'Authorization': `Bearer ${this.config.accessToken}`,
@@ -89,7 +97,7 @@ export class OpenAPIClient {
    */
   async downloadSignedDocument(signatureId: string): Promise<string> {
     const response = await fetch(
-      `${this.baseUrl}/signatures/${signatureId}/signedDocument`,
+      `${this.baseUrl}/EU-QES_otp/${signatureId}/download`,
       {
         headers: {
           'Authorization': `Bearer ${this.config.accessToken}`,
@@ -119,7 +127,7 @@ export class OpenAPIClient {
     console.log(`Sending OTP for signature ${signatureId} via ${deliveryMethod}`);
     
     const response = await fetch(
-      `${this.baseUrl}/signatures/${signatureId}/otp/send`,
+      `${this.baseUrl}/EU-QES_otp/${signatureId}/otp`,
       {
         method: 'POST',
         headers: {
@@ -146,7 +154,7 @@ export class OpenAPIClient {
     console.log(`Verifying OTP for signature ${signatureId}`);
     
     const response = await fetch(
-      `${this.baseUrl}/signatures/${signatureId}/otp/verify`,
+      `${this.baseUrl}/EU-QES_otp/${signatureId}/otp/verify`,
       {
         method: 'POST',
         headers: {
