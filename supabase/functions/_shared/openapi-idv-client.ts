@@ -47,9 +47,13 @@ export class OpenAPIIDVClient {
 
   constructor(config: OpenAPIIDVConfig) {
     this.config = config;
-    this.baseUrl = config.useSandbox
-      ? 'https://test.esignature.openapi.com'
-      : 'https://esignature.openapi.com';
+    
+    // Read Trust URLs from environment with defaults
+    const productionUrl = Deno.env.get('OPENAPI_TRUST_PRODUCTION_URL') || 'https://trust.openapi.com';
+    const sandboxUrl = Deno.env.get('OPENAPI_TRUST_SANDBOX_URL') || 'https://test.trust.openapi.com';
+    
+    this.baseUrl = config.useSandbox ? sandboxUrl : productionUrl;
+    console.log(`🔧 OpenAPI Trust IDV using: ${this.baseUrl}`);
   }
 
   /**
