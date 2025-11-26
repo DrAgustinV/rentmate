@@ -11,9 +11,11 @@ import { QRCodeSVG } from "qrcode.react";
 import { useKYC, KYCProvider, OpenAPIVerificationLevel } from "@/hooks/useKYC";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isKYCExpiringSoon } from "@/lib/validations/kyc.schema";
+import { useToast } from "@/hooks/use-toast";
 
 export function IdentityVerification() {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const {
     kycProfile,
     loading,
@@ -23,6 +25,7 @@ export function IdentityVerification() {
     canInitiate,
     currentProvider,
     initiateVerification,
+    cancelVerification,
   } = useKYC();
 
   const [selectedProvider, setSelectedProvider] = useState<KYCProvider>('openapi');
@@ -221,30 +224,67 @@ export function IdentityVerification() {
           </div>
         )}
 
-        {/* QR Code for Pending/In Progress */}
-        {isPending && kycProfile?.kyc_qr_code_url && (
+        {/* Pending Verification with Cancel Option */}
+        {isPending && (
           <div className="space-y-4">
             <Alert>
-              <QrCode className="w-4 h-4" />
               <AlertDescription>
-                {currentProvider === 'kilt' 
-                  ? t('kyc.scanQRCode')
-                  : 'Scan the QR code with your smartphone to complete verification'}
+                Verification in progress via {currentProvider === 'kilt' ? 'KILT Protocol' : `OpenAPI IDV (${kycProfile?.kyc_provider?.replace('openapi_', '')})`}
               </AlertDescription>
             </Alert>
-            <div className="flex justify-center p-4 bg-white rounded-lg">
-              <QRCodeSVG 
-                value={kycProfile.kyc_qr_code_url} 
-                size={192}
-                level="H"
-                includeMargin={true}
-              />
-            </div>
-            <p className="text-xs text-center text-muted-foreground">
-              {currentProvider === 'kilt' 
-                ? t('kyc.downloadSporran')
-                : 'Open the link on your mobile device to start the verification process'}
-            </p>
+
+            {kycProfile?.kyc_qr_code_url && (
+              <div className="space-y-4">
+                <Alert>
+                  <QrCode className="w-4 h-4" />
+                  <AlertDescription>
+                    {currentProvider === 'kilt' 
+                      ? t('kyc.scanQRCode')
+                      : 'Scan the QR code with your smartphone to complete verification'}
+                  </AlertDescription>
+                </Alert>
+                <div className="flex justify-center p-4 bg-white rounded-lg">
+                  <QRCodeSVG 
+                    value={kycProfile.kyc_qr_code_url} 
+                    size={192}
+                    level="H"
+                    includeMargin={true}
+                  />
+                </div>
+                <p className="text-xs text-center text-muted-foreground">
+                  {currentProvider === 'kilt' 
+                    ? t('kyc.downloadSporran')
+                    : 'Open the link on your mobile device to start the verification process'}
+                </p>
+              </div>
+            )}
+
+            <Alert>
+              <AlertDescription className="space-y-3">
+                <p className="text-sm">Want to try a different verification method?</p>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      await cancelVerification();
+                      toast({
+                        title: "Verification Cancelled",
+                        description: "You can now choose a different method.",
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to cancel verification. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  className="w-full"
+                >
+                  Cancel & Start New Verification
+                </Button>
+              </AlertDescription>
+            </Alert>
           </div>
         )}
 
