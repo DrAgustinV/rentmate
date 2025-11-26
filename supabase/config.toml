@@ -73,3 +73,13 @@ verify_jwt = false  # Mock webhook endpoint
 # Payment Reminders - Automated Email System
 [functions.send-payment-reminders]
 verify_jwt = false  # Cron job - no user context available
+
+# OpenAPI Identity Verification (IDV) Functions
+[functions.initiate-openapi-kyc]
+verify_jwt = true  # User initiates KYC verification
+
+[functions.verify-openapi-kyc]
+verify_jwt = false  # Public webhook endpoint from OpenAPI
+
+[functions.check-openapi-kyc-status]
+verify_jwt = true  # User checks their KYC status
