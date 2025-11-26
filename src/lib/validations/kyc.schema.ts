@@ -44,11 +44,25 @@ export const KYCWalletDIDSchema = z.string()
   .max(200, 'KILT DID is too long');
 
 /**
+ * KYC Provider Types
+ * Tracks which verification provider was used
+ */
+export const KYCProviderEnum = z.enum([
+  'kilt',
+  'openapi_basic',
+  'openapi_advanced', 
+  'openapi_expert'
+]);
+
+export type KYCProvider = z.infer<typeof KYCProviderEnum>;
+
+/**
  * KYC Profile Data Schema
  * Matches the profiles table KYC columns
  */
 export const KYCProfileSchema = z.object({
   kyc_status: KYCStatusEnum,
+  kyc_provider: z.string().nullable(),
   kyc_credential_id: z.string().nullable(),
   kyc_qr_code_url: z.string().nullable(),
   kyc_wallet_did: z.string().nullable(),

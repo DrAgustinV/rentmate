@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2, Zap, Clock, UserCheck } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { useKiltKYC } from "@/hooks/useKiltKYC";
+import { useKYC, KYCProvider, OpenAPIVerificationLevel } from "@/hooks/useKYC";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isKYCExpiringSoon } from "@/lib/validations/kyc.schema";
 
@@ -17,16 +21,25 @@ export function IdentityVerification() {
     isVerified,
     isPending,
     canInitiate,
+    currentProvider,
     initiateVerification,
-  } = useKiltKYC();
+  } = useKYC();
 
-  const getStatusBadge = (status: string) => {
+  const [selectedProvider, setSelectedProvider] = useState<KYCProvider>('openapi');
+  const [selectedLevel, setSelectedLevel] = useState<OpenAPIVerificationLevel>('basic');
+
+  const getStatusBadge = (status: string, provider?: string) => {
+    // Show provider in badge for verified status
+    const providerLabel = provider?.startsWith('openapi_') 
+      ? provider.replace('openapi_', '').toUpperCase()
+      : provider === 'kilt' ? 'KILT' : '';
+
     switch (status) {
       case "verified":
         return (
           <Badge className="bg-green-500">
             <CheckCircle2 className="w-3 h-3 mr-1" />
-            {t('kyc.status.verified')}
+            {t('kyc.status.verified')} {providerLabel && `(${providerLabel})`}
           </Badge>
         );
       case "pending":
@@ -54,6 +67,10 @@ export function IdentityVerification() {
       default:
         return <Badge variant="secondary">{t('kyc.status.notStarted')}</Badge>;
     }
+  };
+
+  const handleInitiate = async () => {
+    await initiateVerification(selectedProvider, selectedLevel);
   };
 
   if (loading) {
@@ -89,7 +106,7 @@ export function IdentityVerification() {
           {t('kyc.subtitle')}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {/* Status Display */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -100,7 +117,7 @@ export function IdentityVerification() {
                 : t('kyc.notVerified')}
             </p>
           </div>
-          {kycProfile && getStatusBadge(kycProfile.kyc_status)}
+          {kycProfile && getStatusBadge(kycProfile.kyc_status, kycProfile.kyc_provider)}
         </div>
 
         {/* Expiry Alert */}
@@ -122,13 +139,86 @@ export function IdentityVerification() {
           </Alert>
         )}
 
-        {/* Not Started Alert */}
-        {kycProfile?.kyc_status === "not_started" && (
-          <Alert>
-            <AlertDescription>
-              {t('kyc.alerts.notStarted')}
-            </AlertDescription>
-          </Alert>
+        {/* Provider Selection - Only show if can initiate */}
+        {canInitiate && (
+          <div className="space-y-4 pt-4 border-t">
+            <Label className="text-base font-medium">Choose Verification Method</Label>
+            
+            <RadioGroup value={selectedProvider} onValueChange={(value) => setSelectedProvider(value as KYCProvider)}>
+              {/* OpenAPI Option */}
+              <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                <RadioGroupItem value="openapi" id="openapi" className="mt-1" />
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="openapi" className="cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-primary" />
+                      <span className="font-medium">OpenAPI Verification</span>
+                      <Badge variant="outline" className="text-xs">Recommended</Badge>
+                    </div>
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Quick AI-powered verification with your smartphone
+                  </p>
+                  
+                  {selectedProvider === 'openapi' && (
+                    <div className="space-y-2 pt-2">
+                      <Label htmlFor="level" className="text-sm">Verification Level</Label>
+                      <Select value={selectedLevel} onValueChange={(value) => setSelectedLevel(value as OpenAPIVerificationLevel)}>
+                        <SelectTrigger id="level" className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="basic">
+                            <div className="flex items-center gap-2">
+                              <Zap className="w-4 h-4" />
+                              <div>
+                                <div className="font-medium">Basic - ID Scan</div>
+                                <div className="text-xs text-muted-foreground">~3 mins, AI verified</div>
+                              </div>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="advanced">
+                            <div className="flex items-center gap-2">
+                              <UserCheck className="w-4 h-4" />
+                              <div>
+                                <div className="font-medium">Advanced - ID + Face</div>
+                                <div className="text-xs text-muted-foreground">~3 mins, AI verified + face match</div>
+                              </div>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="expert">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4" />
+                              <div>
+                                <div className="font-medium">Expert - Human Review</div>
+                                <div className="text-xs text-muted-foreground">~3 hours, expert verified</div>
+                              </div>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* KILT Option */}
+              <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                <RadioGroupItem value="kilt" id="kilt" className="mt-1" />
+                <div className="flex-1">
+                  <Label htmlFor="kilt" className="cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-primary" />
+                      <span className="font-medium">KILT Protocol</span>
+                    </div>
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Blockchain-based decentralized identity (requires Sporran Wallet)
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
         )}
 
         {/* QR Code for Pending/In Progress */}
@@ -137,7 +227,9 @@ export function IdentityVerification() {
             <Alert>
               <QrCode className="w-4 h-4" />
               <AlertDescription>
-                {t('kyc.scanQRCode')}
+                {currentProvider === 'kilt' 
+                  ? t('kyc.scanQRCode')
+                  : 'Scan the QR code with your smartphone to complete verification'}
               </AlertDescription>
             </Alert>
             <div className="flex justify-center p-4 bg-white rounded-lg">
@@ -149,7 +241,9 @@ export function IdentityVerification() {
               />
             </div>
             <p className="text-xs text-center text-muted-foreground">
-              {t('kyc.downloadSporran')}
+              {currentProvider === 'kilt' 
+                ? t('kyc.downloadSporran')
+                : 'Open the link on your mobile device to start the verification process'}
             </p>
           </div>
         )}
@@ -177,7 +271,7 @@ export function IdentityVerification() {
         {/* Action Button */}
         {canInitiate && (
           <Button 
-            onClick={initiateVerification} 
+            onClick={handleInitiate}
             disabled={initiating}
             className="w-full"
           >
@@ -192,7 +286,8 @@ export function IdentityVerification() {
         {kycProfile?.kyc_wallet_did && (
           <div className="pt-4 border-t">
             <p className="text-xs text-muted-foreground">
-              {t('kyc.walletDID')}: <code className="text-xs">{kycProfile.kyc_wallet_did}</code>
+              {currentProvider === 'kilt' ? t('kyc.walletDID') : 'Document ID'}: 
+              <code className="text-xs ml-1">{kycProfile.kyc_wallet_did}</code>
             </p>
           </div>
         )}
