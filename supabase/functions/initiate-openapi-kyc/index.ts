@@ -39,11 +39,12 @@ Deno.serve(async (req) => {
 
     console.log('📡 Supabase client initialized, attempting auth...');
 
-    // Get authenticated user
+    // Extract JWT token and get authenticated user
+    const token = authHeader.replace('Bearer ', '');
     const {
       data: { user },
       error: userError,
-    } = await supabaseClient.auth.getUser();
+    } = await supabaseClient.auth.getUser(token);
 
     if (userError || !user) {
       console.error('❌ Authentication failed:', userError);
