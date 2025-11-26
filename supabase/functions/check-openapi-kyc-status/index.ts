@@ -16,6 +16,7 @@ Deno.serve(async (req) => {
     // Check for auth header
     const authHeader = req.headers.get('Authorization');
     console.log('🔐 Auth header present:', !!authHeader);
+    console.log('🔐 Auth header starts with Bearer:', authHeader?.startsWith('Bearer '));
     
     if (!authHeader) {
       console.error('❌ No Authorization header provided');
@@ -25,16 +26,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client with auth header
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
+
+    console.log('📡 Supabase client initialized, attempting auth...');
 
     // Get authenticated user
     const {
