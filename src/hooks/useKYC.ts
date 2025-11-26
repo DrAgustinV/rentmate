@@ -21,6 +21,7 @@ interface UseKYCOptions {
   verificationLevel?: OpenAPIVerificationLevel;
   onVerificationComplete?: (profile: KYCProfile) => void;
   onVerificationFailed?: (error: Error) => void;
+  onCancel?: () => void;
 }
 
 interface UseKYCReturn {
@@ -39,6 +40,7 @@ interface UseKYCReturn {
   // Actions
   fetchKYCStatus: () => Promise<void>;
   initiateVerification: (provider?: KYCProvider, level?: OpenAPIVerificationLevel) => Promise<void>;
+  cancelVerification: () => Promise<void>;
   refreshStatus: () => Promise<void>;
 }
 
@@ -73,7 +75,8 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
     provider = 'openapi', 
     verificationLevel = 'basic',
     onVerificationComplete, 
-    onVerificationFailed 
+    onVerificationFailed,
+    onCancel
   } = options;
   
   const [kycProfile, setKycProfile] = useState<KYCProfile | null>(null);
@@ -219,6 +222,60 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
   }, [kycProfile, provider, verificationLevel, toast, t, fetchKYCStatus, onVerificationFailed]);
 
   /**
+   * Cancel ongoing verification and reset to not_started
+   */
+  const cancelVerification = useCallback(async () => {
+    try {
+      setError(null);
+
+      // Get authenticated user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error(t('kyc.errors.notAuthenticated'));
+      }
+
+      // Reset KYC status in database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          kyc_status: 'not_started',
+          kyc_provider: null,
+          kyc_qr_code_url: null,
+          kyc_credential_id: null,
+          kyc_wallet_did: null
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        throw new Error(t('kyc.errors.cancelFailed'));
+      }
+
+      // Refresh status to update UI
+      await fetchKYCStatus();
+      
+      // Call cancel callback
+      if (onCancel) {
+        onCancel();
+      }
+
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(t('kyc.errors.unknownError'));
+      setError(error);
+      
+      console.error('[useKYC] Error canceling verification:', error);
+      
+      toast({
+        title: t('kyc.errors.title'),
+        description: error.message,
+        variant: 'destructive',
+      });
+
+      throw error;
+    }
+  }, [toast, t, fetchKYCStatus, onCancel]);
+
+  /**
    * Refresh KYC status (alias for fetchKYCStatus)
    */
   const refreshStatus = useCallback(async () => {
@@ -258,6 +315,7 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
     // Actions
     fetchKYCStatus,
     initiateVerification,
+    cancelVerification,
     refreshStatus,
   };
 }
