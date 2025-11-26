@@ -3,9 +3,6 @@
  * Docs: https://console.openapi.com/apis/esignature/documentation
  */
 
-const OPENAPI_BASE_URL = 'https://esignature.openapi.com';
-const OPENAPI_SANDBOX_URL = 'https://test.esignature.openapi.com';
-
 interface OpenAPIConfig {
   accessToken: string;
   certificateUsername: string;
@@ -25,7 +22,13 @@ export class OpenAPIClient {
   
   constructor(config: OpenAPIConfig) {
     this.config = config;
-    this.baseUrl = config.useSandbox ? OPENAPI_SANDBOX_URL : OPENAPI_BASE_URL;
+    
+    // Read eSignature URLs from environment with defaults
+    const productionUrl = Deno.env.get('OPENAPI_ESIGNATURE_PRODUCTION_URL') || 'https://esignature.openapi.com';
+    const sandboxUrl = Deno.env.get('OPENAPI_ESIGNATURE_SANDBOX_URL') || 'https://test.esignature.openapi.com';
+    
+    this.baseUrl = config.useSandbox ? sandboxUrl : productionUrl;
+    console.log(`🔧 OpenAPI eSignature using: ${this.baseUrl}`);
   }
   
   /**
@@ -185,10 +188,13 @@ export function createOpenAPIClient(): OpenAPIClient {
   const sandboxModeRaw = Deno.env.get('OPENAPI_SANDBOX_MODE');
   const useSandbox = sandboxModeRaw === 'true';
   
+  const productionUrl = Deno.env.get('OPENAPI_ESIGNATURE_PRODUCTION_URL') || 'https://esignature.openapi.com';
+  const sandboxUrl = Deno.env.get('OPENAPI_ESIGNATURE_SANDBOX_URL') || 'https://test.esignature.openapi.com';
+  
   console.log('🔧 OpenAPI Config:');
   console.log('  OPENAPI_SANDBOX_MODE raw value:', JSON.stringify(sandboxModeRaw));
   console.log('  useSandbox evaluated to:', useSandbox);
-  console.log('  Will use URL:', useSandbox ? OPENAPI_SANDBOX_URL : OPENAPI_BASE_URL);
+  console.log('  Will use URL:', useSandbox ? sandboxUrl : productionUrl);
   
   if (!accessToken || !certUsername || !certPassword) {
     throw new Error('Missing OpenAPI credentials in environment');
