@@ -12,13 +12,18 @@ import {
 } from '@/lib/validations/kyc.schema';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-interface UseKiltKYCOptions {
+export type KYCProvider = 'kilt' | 'openapi';
+export type OpenAPIVerificationLevel = 'basic' | 'advanced' | 'expert';
+
+interface UseKYCOptions {
   autoFetch?: boolean;
+  provider?: KYCProvider;
+  verificationLevel?: OpenAPIVerificationLevel;
   onVerificationComplete?: (profile: KYCProfile) => void;
   onVerificationFailed?: (error: Error) => void;
 }
 
-interface UseKiltKYCReturn {
+interface UseKYCReturn {
   // State
   kycProfile: KYCProfile | null;
   loading: boolean;
@@ -29,20 +34,21 @@ interface UseKiltKYCReturn {
   isVerified: boolean;
   isPending: boolean;
   canInitiate: boolean;
+  currentProvider: KYCProvider | null;
   
   // Actions
   fetchKYCStatus: () => Promise<void>;
-  initiateVerification: () => Promise<void>;
+  initiateVerification: (provider?: KYCProvider, level?: OpenAPIVerificationLevel) => Promise<void>;
   refreshStatus: () => Promise<void>;
 }
 
 /**
- * Custom hook for managing KILT Protocol KYC verification
+ * Custom hook for managing KYC verification (KILT Protocol or OpenAPI IDV)
  * 
  * @example
  * ```tsx
  * function MyComponent() {
- *   const { kycProfile, isVerified, initiateVerification, loading } = useKiltKYC();
+ *   const { kycProfile, isVerified, initiateVerification, loading } = useKYC();
  *   
  *   if (loading) return <Loader />;
  *   
@@ -51,15 +57,24 @@ interface UseKiltKYCReturn {
  *       {isVerified ? (
  *         <Badge>Verified</Badge>
  *       ) : (
- *         <Button onClick={initiateVerification}>Start Verification</Button>
+ *         <>
+ *           <Button onClick={() => initiateVerification('kilt')}>KILT Verification</Button>
+ *           <Button onClick={() => initiateVerification('openapi', 'basic')}>OpenAPI Basic</Button>
+ *         </>
  *       )}
  *     </div>
  *   );
  * }
  * ```
  */
-export function useKiltKYC(options: UseKiltKYCOptions = {}): UseKiltKYCReturn {
-  const { autoFetch = true, onVerificationComplete, onVerificationFailed } = options;
+export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
+  const { 
+    autoFetch = true, 
+    provider = 'openapi', 
+    verificationLevel = 'basic',
+    onVerificationComplete, 
+    onVerificationFailed 
+  } = options;
   
   const [kycProfile, setKycProfile] = useState<KYCProfile | null>(null);
   const [loading, setLoading] = useState(false);
@@ -84,10 +99,10 @@ export function useKiltKYC(options: UseKiltKYCOptions = {}): UseKiltKYCReturn {
         throw new Error(t('kyc.errors.notAuthenticated'));
       }
 
-      // Fetch KYC profile data
+      // Fetch KYC profile data including provider
       const { data, error: fetchError } = await supabase
         .from('profiles')
-        .select('kyc_status, kyc_credential_id, kyc_qr_code_url, kyc_wallet_did, kyc_verified_at, kyc_expires_at')
+        .select('kyc_status, kyc_provider, kyc_credential_id, kyc_qr_code_url, kyc_wallet_did, kyc_verified_at, kyc_expires_at')
         .eq('id', user.id)
         .single();
 
@@ -112,7 +127,7 @@ export function useKiltKYC(options: UseKiltKYCOptions = {}): UseKiltKYCReturn {
       const error = err instanceof Error ? err : new Error(t('kyc.errors.unknownError'));
       setError(error);
       
-      console.error('[useKiltKYC] Error fetching KYC status:', error);
+      console.error('[useKYC] Error fetching KYC status:', error);
       
       toast({
         title: t('kyc.errors.title'),
@@ -130,8 +145,12 @@ export function useKiltKYC(options: UseKiltKYCOptions = {}): UseKiltKYCReturn {
 
   /**
    * Initiate new KYC verification process
+   * Supports both KILT and OpenAPI providers
    */
-  const initiateVerification = useCallback(async () => {
+  const initiateVerification = useCallback(async (
+    selectedProvider: KYCProvider = provider,
+    level: OpenAPIVerificationLevel = verificationLevel
+  ) => {
     try {
       setInitiating(true);
       setError(null);
@@ -141,24 +160,39 @@ export function useKiltKYC(options: UseKiltKYCOptions = {}): UseKiltKYCReturn {
         throw new Error(t('kyc.errors.cannotInitiate'));
       }
 
-      // Call edge function to initiate verification
-      const { data, error: functionError } = await supabase.functions.invoke('initiate-kilt-kyc');
+      let functionData;
+      let functionError;
+
+      // Call appropriate edge function based on provider
+      if (selectedProvider === 'kilt') {
+        const result = await supabase.functions.invoke('initiate-kilt-kyc');
+        functionData = result.data;
+        functionError = result.error;
+      } else {
+        // OpenAPI IDV
+        const result = await supabase.functions.invoke('initiate-openapi-kyc', {
+          body: { level }
+        });
+        functionData = result.data;
+        functionError = result.error;
+      }
 
       if (functionError) {
         throw new Error(t('kyc.errors.initiationFailed'));
       }
 
       // Validate response
-      const validatedResponse = KYCInitiationResponseSchema.parse(data);
+      const validatedResponse = KYCInitiationResponseSchema.parse(functionData);
 
       if (!validatedResponse.success) {
         throw new Error(validatedResponse.error || validatedResponse.message || t('kyc.errors.initiationFailed'));
       }
 
-      // Success - show QR code message
+      // Success - show appropriate message
+      const providerName = selectedProvider === 'kilt' ? 'KILT Protocol' : `OpenAPI (${level})`;
       toast({
         title: t('kyc.success.initiatedTitle'),
-        description: t('kyc.success.initiatedDescription'),
+        description: `${providerName}: ${t('kyc.success.initiatedDescription')}`,
       });
 
       // Refresh status to get QR code
@@ -168,7 +202,7 @@ export function useKiltKYC(options: UseKiltKYCOptions = {}): UseKiltKYCReturn {
       const error = err instanceof Error ? err : new Error(t('kyc.errors.unknownError'));
       setError(error);
       
-      console.error('[useKiltKYC] Error initiating verification:', error);
+      console.error('[useKYC] Error initiating verification:', error);
       
       toast({
         title: t('kyc.errors.initiationTitle'),
@@ -182,7 +216,7 @@ export function useKiltKYC(options: UseKiltKYCOptions = {}): UseKiltKYCReturn {
     } finally {
       setInitiating(false);
     }
-  }, [kycProfile, toast, t, fetchKYCStatus, onVerificationFailed]);
+  }, [kycProfile, provider, verificationLevel, toast, t, fetchKYCStatus, onVerificationFailed]);
 
   /**
    * Refresh KYC status (alias for fetchKYCStatus)
@@ -202,6 +236,11 @@ export function useKiltKYC(options: UseKiltKYCOptions = {}): UseKiltKYCReturn {
   const isVerified = isKYCVerified(kycProfile?.kyc_status);
   const isPending = isKYCPending(kycProfile?.kyc_status);
   const canInitiate = canInitiateKYC(kycProfile?.kyc_status);
+  
+  // Extract current provider from kyc_provider field
+  const currentProvider: KYCProvider | null = kycProfile?.kyc_provider
+    ? (kycProfile.kyc_provider.startsWith('openapi_') ? 'openapi' : 'kilt')
+    : null;
 
   return {
     // State
@@ -214,6 +253,7 @@ export function useKiltKYC(options: UseKiltKYCOptions = {}): UseKiltKYCReturn {
     isVerified,
     isPending,
     canInitiate,
+    currentProvider,
     
     // Actions
     fetchKYCStatus,
