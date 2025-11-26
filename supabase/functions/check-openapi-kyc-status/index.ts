@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { createOpenAPIIDVClient } from "../_shared/openapi-idv-client.ts";
 
 const corsHeaders = {
