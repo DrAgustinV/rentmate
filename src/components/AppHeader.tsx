@@ -100,13 +100,21 @@ export function AppHeader() {
     setMobileMenuOpen(false);
   };
 
+  const handleHomeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      navigate('/');
+    }
+    setMobileMenuOpen(false);
+  };
+
   // Anonymous user navigation
   if (!user) {
     const anonNavLinks = [
-      { path: "/", label: t('header.home'), isAnchor: false },
       { path: "#managers", label: t('header.forManagers'), isAnchor: true },
       { path: "#tenants", label: t('header.forTenants'), isAnchor: true },
-      { path: "/pricing", label: t('header.pricing'), isAnchor: false },
     ];
 
     return (
@@ -122,27 +130,24 @@ export function AppHeader() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
+            <a
+              href="/"
+              onClick={handleHomeClick}
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === '/' ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              {t('header.home')}
+            </a>
             {anonNavLinks.map((link) => (
-              link.isAnchor ? (
-                <a
-                  key={link.path}
-                  href={link.path}
-                  onClick={(e) => handleAnchorClick(e, link.path)}
-                  className="text-sm font-medium transition-colors hover:text-primary text-muted-foreground"
-                >
-                  {link.label}
-                </a>
-              ) : (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(link.path) ? "text-primary" : "text-muted-foreground"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              )
+              <a
+                key={link.path}
+                href={link.path}
+                onClick={(e) => handleAnchorClick(e, link.path)}
+                className="text-sm font-medium transition-colors hover:text-primary text-muted-foreground"
+              >
+                {link.label}
+              </a>
             ))}
           </nav>
 
@@ -173,37 +178,30 @@ export function AppHeader() {
                   <LanguageSwitcher />
                 </div>
                 <div className="flex flex-col gap-2">
+                  <Button
+                    variant={location.pathname === '/' ? "default" : "ghost"}
+                    className="justify-start"
+                    onClick={handleHomeClick}
+                  >
+                    {t('header.home')}
+                  </Button>
                   {anonNavLinks.map((link) => (
-                    link.isAnchor ? (
-                      <Button
-                        key={link.path}
-                        variant="ghost"
-                        className="justify-start"
-                        onClick={() => {
-                          if (location.pathname !== '/') {
-                            navigate('/' + link.path);
-                          } else {
-                            const element = document.querySelector(link.path);
-                            element?.scrollIntoView({ behavior: 'smooth' });
-                          }
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        {link.label}
-                      </Button>
-                    ) : (
-                      <Button
-                        key={link.path}
-                        variant={isActive(link.path) ? "default" : "ghost"}
-                        className="justify-start"
-                        onClick={() => {
-                          navigate(link.path);
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        {link.label}
-                      </Button>
-                    )
+                    <Button
+                      key={link.path}
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={() => {
+                        if (location.pathname !== '/') {
+                          navigate('/' + link.path);
+                        } else {
+                          const element = document.querySelector(link.path);
+                          element?.scrollIntoView({ behavior: 'smooth' });
+                        }
+                        setMobileMenuOpen(false);
+                      }}
+                    >
+                      {link.label}
+                    </Button>
                   ))}
                 </div>
                 <div className="flex flex-col gap-2 pt-4 border-t border-border">
