@@ -66,10 +66,10 @@ Deno.serve(async (req) => {
 
     console.log(`🔐 Initiating OpenAPI KYC for user ${user.id} with level: ${level}`);
 
-    // Get user profile to fetch email
+    // Get user profile to fetch email and name
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('email')
+      .select('email, first_name, last_name')
       .eq('id', user.id)
       .single();
 
@@ -84,17 +84,34 @@ Deno.serve(async (req) => {
     // Create OpenAPI IDV client
     const idvClient = createOpenAPIIDVClient();
 
-    // Build callback URL
+    // Build callback URL (webhook for verification completion)
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const callbackUrl = `${supabaseUrl}/functions/v1/verify-openapi-kyc`;
+    
+    // Build redirect URL (where to send user after verification)
+    const siteUrl = Deno.env.get('SITE_URL') || `${supabaseUrl?.replace('supabase.co', 'lovable.app')}`;
+    const redirectUrl = `${siteUrl}/identity`;
 
-    // Initiate verification
+    // Build user name if available
+    const userName = profile.first_name && profile.last_name 
+      ? `${profile.first_name} ${profile.last_name}`.trim()
+      : undefined;
+
+    console.log('📤 Initiating verification with:');
+    console.log('  - Email:', profile.email);
+    console.log('  - Name:', userName || '(not provided)');
+    console.log('  - Callback URL:', callbackUrl);
+    console.log('  - Redirect URL:', redirectUrl);
+
+    // Initiate verification with correct payload structure
     const verification = await idvClient.initiateVerification({
       level: level as VerificationLevel,
       callbackUrl,
-      metadata: {
+      redirectUrl,
+      userData: {
         userId: user.id,
         email: profile.email,
+        name: userName,
       },
     });
 
@@ -105,7 +122,7 @@ Deno.serve(async (req) => {
         kyc_status: 'pending',
         kyc_provider: `openapi_${level}`,
         kyc_credential_id: verification.id,
-        kyc_qr_code_url: verification.qrCodeUrl,
+        kyc_qr_code_url: verification.verificationUrl,
       })
       .eq('id', user.id);
 
@@ -118,15 +135,17 @@ Deno.serve(async (req) => {
     }
 
     console.log('✅ OpenAPI KYC initiated successfully');
+    console.log('  - Verification ID:', verification.id);
+    console.log('  - Verification URL:', verification.verificationUrl);
 
     return new Response(
       JSON.stringify({
         success: true,
         verificationId: verification.id,
-        qrCodeUrl: verification.qrCodeUrl,
+        qrCodeUrl: verification.verificationUrl,
         verificationUrl: verification.verificationUrl,
         level,
-        message: `Scan the QR code with your smartphone to complete ${level} verification`,
+        message: `Click the link or scan the QR code to complete ${level} verification`,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
