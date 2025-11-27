@@ -253,6 +253,23 @@ export const translations = {
       settingUpAccount: "Setting up account for {email}",
       signInToAccept: "Sign in as {email} to accept",
       passwordRequirements: "Must be at least 8 characters long",
+      backToHome: "Back to Home",
+      valueProps: {
+        title: "Simplify Your Property Management",
+        secure: {
+          title: "Secure Digital Contracts",
+          description: "Sign rental agreements with legally-binding digital signatures and KYC verification.",
+        },
+        automated: {
+          title: "Automated Rent Collection",
+          description: "Set up recurring payments and never chase rent again with SEPA Direct Debit.",
+        },
+        realtime: {
+          title: "Real-Time Updates",
+          description: "Track maintenance requests, payments, and communications in one place.",
+        },
+      },
+      trustBadge: "Trusted by property managers across Europe",
     },
     kyc: {
       title: "Identity Verification",
@@ -1835,6 +1852,23 @@ export const translations = {
       passwordRequirements: "Debe tener al menos 8 caracteres",
       accountDetectedDesc: "¡Encontramos tu cuenta! Inicia sesión para aceptar tu invitación de propiedad.",
       noAccountDetectedDesc: "No encontramos una cuenta con tu correo electrónico. Vamos a crear una para aceptar tu invitación.",
+      backToHome: "Volver al inicio",
+      valueProps: {
+        title: "Simplifica la Gestión de tus Propiedades",
+        secure: {
+          title: "Contratos Digitales Seguros",
+          description: "Firma contratos de alquiler con firmas digitales legalmente vinculantes y verificación KYC.",
+        },
+        automated: {
+          title: "Cobro de Alquiler Automatizado",
+          description: "Configura pagos recurrentes y olvídate de perseguir el alquiler con Débito Directo SEPA.",
+        },
+        realtime: {
+          title: "Actualizaciones en Tiempo Real",
+          description: "Rastrea solicitudes de mantenimiento, pagos y comunicaciones en un solo lugar.",
+        },
+      },
+      trustBadge: "Confiado por gestores de propiedades en toda Europa",
     },
     dashboard: {
       title: "Panel",
