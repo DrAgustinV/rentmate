@@ -51,7 +51,8 @@ export const KYCProviderEnum = z.enum([
   'kilt',
   'openapi_basic',
   'openapi_advanced', 
-  'openapi_expert'
+  'openapi_expert',
+  'didit'
 ]);
 
 export type KYCProvider = z.infer<typeof KYCProviderEnum>;
