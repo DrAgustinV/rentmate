@@ -4,6 +4,8 @@
  * - basic: ID document scan (~3 mins, AI verified)
  * - advanced: ID scan + face capture (~3 mins, AI verified)
  * - expert: ID scan + face + human expert review (~3 hours)
+ * 
+ * API Docs: https://console.openapi.com/apis/trust/documentation
  */
 
 interface OpenAPIIDVConfig {
@@ -16,16 +18,18 @@ export type VerificationLevel = 'basic' | 'advanced' | 'expert';
 interface InitiateVerificationParams {
   level: VerificationLevel;
   callbackUrl: string;
-  metadata?: {
+  redirectUrl?: string;
+  userData: {
     userId: string;
     email: string;
+    name?: string;
   };
 }
 
 interface VerificationResponse {
   id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  qrCodeUrl: string;
+  status: 'pending' | 'pending_redirection' | 'processing' | 'completed' | 'failed';
+  qrCodeUrl?: string;
   verificationUrl: string;
   createdAt: string;
   completedAt?: string;
@@ -58,17 +62,44 @@ export class OpenAPIIDVClient {
 
   /**
    * Initiate identity verification request
-   * Returns QR code URL for mobile scanning
+   * Returns verification URL for user redirect
+   * 
+   * Payload structure per OpenAPI Trust API spec:
+   * {
+   *   email: "user@example.com",
+   *   name: "User Name",
+   *   redirectUrl: "https://app.com/callback",
+   *   callback: {
+   *     url: "https://api.example.com/webhook",
+   *     custom: { userId: "..." }
+   *   }
+   * }
    */
   async initiateVerification(params: InitiateVerificationParams): Promise<VerificationResponse> {
     const endpoint = this.getEndpointForLevel(params.level);
     
-    const payload = {
-      callbackUrl: params.callbackUrl,
-      metadata: params.metadata,
+    // Structure payload per OpenAPI Trust API specification
+    const payload: Record<string, unknown> = {
+      email: params.userData.email,
+      callback: {
+        url: params.callbackUrl,
+        custom: {
+          userId: params.userData.userId,
+        },
+      },
     };
 
-    console.log(`🔍 Initiating ${params.level} IDV verification`);
+    // Add optional fields only if provided
+    if (params.userData.name) {
+      payload.name = params.userData.name;
+    }
+    if (params.redirectUrl) {
+      payload.redirectUrl = params.redirectUrl;
+    }
+
+    console.log(`🔍 Initiating ${params.level} IDV verification for ${params.userData.email}`);
+    console.log('📤 Request payload:', JSON.stringify(payload, null, 2));
+    console.log(`📡 Endpoint: POST ${this.baseUrl}${endpoint}`);
     
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'POST',
@@ -81,14 +112,22 @@ export class OpenAPIIDVClient {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ OpenAPI IDV initiation failed:', errorText);
+      console.error('❌ OpenAPI IDV initiation failed:', response.status, errorText);
       throw new Error(`Failed to initiate verification: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('✅ IDV verification initiated:', data.id);
+    console.log('✅ IDV verification initiated:', JSON.stringify(data, null, 2));
     
-    return data;
+    // Map API response to our interface
+    // API returns: { id, verificationUrl, status: "pending_redirection", ... }
+    return {
+      id: data.id,
+      status: data.status === 'pending_redirection' ? 'pending' : data.status,
+      qrCodeUrl: data.verificationUrl, // Map for backward compatibility with QR code display
+      verificationUrl: data.verificationUrl,
+      createdAt: data.createdAt,
+    };
   }
 
   /**
@@ -112,7 +151,23 @@ export class OpenAPIIDVClient {
       throw new Error(`Failed to get status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    
+    // Map response consistently
+    return {
+      id: data.id,
+      status: data.status === 'pending_redirection' ? 'pending' : data.status,
+      qrCodeUrl: data.verificationUrl,
+      verificationUrl: data.verificationUrl,
+      createdAt: data.createdAt,
+      completedAt: data.updatedAt,
+      result: data.documents?.length > 0 ? {
+        verified: data.state === 'VALID',
+        documentType: data.documents[0]?.type,
+        documentNumber: data.documents[0]?.number,
+        fullName: data.name,
+      } : undefined,
+    };
   }
 
   /**
@@ -149,7 +204,7 @@ export class OpenAPIIDVClient {
       case 'advanced':
         return '/idv-flash-advanced';
       case 'expert':
-        return '/idv-flash-advanced'; // Same endpoint, but expert review is enabled
+        return '/idv-expert'; // Correct endpoint for expert level
       default:
         throw new Error(`Unknown verification level: ${level}`);
     }
