@@ -8,12 +8,13 @@
  * - Simple API (no certificates required)
  */
 
-const DIDIT_API_URL = 'https://api.didit.me';
+const DIDIT_API_URL = 'https://verification.didit.me';
 
 interface DiditSessionRequest {
-  callback_url: string;
+  workflow_id: string; // Required workflow ID
+  callback: string; // Webhook callback URL
   vendor_data?: string; // Custom data (e.g., user_id)
-  workflow_id?: string; // Optional workflow ID for custom flows
+  contact_details?: { email?: string }; // Optional contact details
 }
 
 interface DiditSessionResponse {
@@ -77,13 +78,18 @@ export class DiditClient {
   ): Promise<DiditSessionResponse> {
     console.log('[DiditClient] Creating verification session for user:', userId);
 
+    if (!this.workflowId) {
+      throw new Error('DIDIT_WORKFLOW_ID is required to create a session');
+    }
+
     const requestBody: DiditSessionRequest = {
-      callback_url: callbackUrl,
-      vendor_data: JSON.stringify({ user_id: userId, email }),
+      workflow_id: this.workflowId,
+      callback: callbackUrl,
+      vendor_data: userId,
     };
 
-    if (this.workflowId) {
-      requestBody.workflow_id = this.workflowId;
+    if (email) {
+      requestBody.contact_details = { email };
     }
 
     const response = await fetch(`${DIDIT_API_URL}/v2/session/`, {
