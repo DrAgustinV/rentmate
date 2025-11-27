@@ -164,10 +164,6 @@ export function AppHeader() {
                 <UserCircle className="mr-2 h-4 w-4" />
                 {t('account.profile')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/account")}>
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                {t('account.identity')}
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled>
                 <CreditCard className="mr-2 h-4 w-4" />
