@@ -1722,10 +1722,12 @@ export type Database = {
           created_at: string
           description: string | null
           feature_limits: Json
+          features_display: Json | null
           grace_period_days: number
           id: string
           is_available_for_signup: boolean
           is_default: boolean
+          limitations_display: Json | null
           name: string
           overage_price_per_signature_cents: number
           price_annual_cents: number
@@ -1743,10 +1745,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           feature_limits?: Json
+          features_display?: Json | null
           grace_period_days?: number
           id?: string
           is_available_for_signup?: boolean
           is_default?: boolean
+          limitations_display?: Json | null
           name: string
           overage_price_per_signature_cents?: number
           price_annual_cents?: number
@@ -1764,10 +1768,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           feature_limits?: Json
+          features_display?: Json | null
           grace_period_days?: number
           id?: string
           is_available_for_signup?: boolean
           is_default?: boolean
+          limitations_display?: Json | null
           name?: string
           overage_price_per_signature_cents?: number
           price_annual_cents?: number

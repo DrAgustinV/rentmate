@@ -4,11 +4,27 @@ import { AVAILABLE_LANGUAGES } from '@/lib/i18n/languages.config';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 export function LanguageSettings() {
   const [settings, setSettings] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  // Fetch subscription plans to check translation status
+  const { data: plans } = useQuery({
+    queryKey: ["subscription-plans-translation-check"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscription_plans")
+        .select("id, name, features_display")
+        .eq("status", "active");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const fetchSettings = async () => {
     const { data, error } = await supabase
@@ -29,6 +45,15 @@ export function LanguageSettings() {
     fetchSettings();
   }, []);
 
+  // Calculate plans missing translations for each language
+  const getPlansNeedingTranslation = (langCode: string) => {
+    if (!plans) return 0;
+    return plans.filter(plan => {
+      const features = typeof plan.features_display === 'object' ? plan.features_display : {};
+      return !(features as Record<string, string[]>)[langCode] || (features as Record<string, string[]>)[langCode].length === 0;
+    }).length;
+  };
+
   const toggleLanguage = async (code: string, enabled: boolean) => {
     const { error } = await supabase
       .from('language_settings')
@@ -43,6 +68,19 @@ export function LanguageSettings() {
       });
     } else {
       setSettings(prev => ({ ...prev, [code]: enabled }));
+      
+      // Show warning if enabling a language with missing translations
+      if (enabled) {
+        const missingCount = getPlansNeedingTranslation(code);
+        if (missingCount > 0) {
+          toast({
+            title: "Language enabled",
+            description: `${code.toUpperCase()} is enabled. ${missingCount} subscription plan(s) need translation in Plans tab.`,
+          });
+          return;
+        }
+      }
+      
       toast({
         title: "Language updated",
         description: `${code.toUpperCase()} is now ${enabled ? 'enabled' : 'disabled'}`,
@@ -58,6 +96,10 @@ export function LanguageSettings() {
     );
   }
 
+  // Check if any enabled language has missing translations
+  const enabledLanguages = Object.entries(settings).filter(([_, enabled]) => enabled).map(([code]) => code);
+  const languagesNeedingTranslation = enabledLanguages.filter(code => getPlansNeedingTranslation(code) > 0);
+
   return (
     <div className="space-y-4">
       <div>
@@ -66,6 +108,16 @@ export function LanguageSettings() {
           Control which languages appear in the language switcher. Disabled languages won't be visible to users.
         </p>
       </div>
+
+      {languagesNeedingTranslation.length > 0 && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {languagesNeedingTranslation.length} enabled language(s) have subscription plans without translations ({languagesNeedingTranslation.join(', ').toUpperCase()}). 
+            Go to <strong>Plans</strong> tab to add translations.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Table>
         <TableHeader>
@@ -80,11 +132,14 @@ export function LanguageSettings() {
         <TableBody>
           {AVAILABLE_LANGUAGES.map((lang) => {
             const hasTranslation = ['en', 'es'].includes(lang.code);
+            const plansNeedingTranslation = getPlansNeedingTranslation(lang.code);
+            const isEnabled = settings[lang.code] ?? false;
+            
             return (
               <TableRow key={lang.code}>
                 <TableCell>
                   <Checkbox
-                    checked={settings[lang.code] ?? false}
+                    checked={isEnabled}
                     onCheckedChange={(checked) => 
                       toggleLanguage(lang.code, checked as boolean)
                     }
@@ -101,6 +156,11 @@ export function LanguageSettings() {
                     <span className="text-green-600 dark:text-green-400">✓ Complete</span>
                   ) : (
                     <span className="text-orange-600 dark:text-orange-400">⚠ Pending (uses EN fallback)</span>
+                  )}
+                  {isEnabled && plansNeedingTranslation > 0 && (
+                    <span className="ml-2 text-orange-600 dark:text-orange-400">
+                      ({plansNeedingTranslation} plan{plansNeedingTranslation > 1 ? 's' : ''} need pricing translations)
+                    </span>
                   )}
                 </TableCell>
               </TableRow>

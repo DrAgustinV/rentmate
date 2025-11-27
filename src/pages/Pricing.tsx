@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Sparkles, ArrowRight } from "lucide-react";
+import { Check, Crown, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { AppHeader } from "@/components/AppHeader";
 import { AppFooter } from "@/components/AppFooter";
 import { EnterpriseContactForm } from "@/components/EnterpriseContactForm";
@@ -13,73 +14,10 @@ import { EnterpriseContactForm } from "@/components/EnterpriseContactForm";
 export default function Pricing() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { subscription, isPro, isEnterprise } = useSubscription();
+  const { subscription } = useSubscription();
+  const { plans, isLoading } = useSubscriptionPlans();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("monthly");
   const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
-
-  const plans = [
-    {
-      slug: "free",
-      name: t("subscription.freePlan"),
-      price: { monthly: 0, annual: 0 },
-      description: "Perfect for getting started",
-      features: [
-        "Unlimited properties",
-        "Basic property management",
-        "Tenant invitations",
-        "Maintenance tracking",
-        "Ticket system",
-        "0 digital signatures",
-      ],
-      limitations: [
-        "No automated payments",
-        "No digital signatures",
-        "No KYC verification",
-        "No document templates",
-      ],
-      cta: "Current Plan",
-      available: true,
-      popular: false,
-    },
-    {
-      slug: "pro",
-      name: t("subscription.proPlan"),
-      price: { monthly: 29, annual: 290 },
-      description: "Everything you need to scale",
-      features: [
-        "Unlimited properties",
-        "100 digital signatures/year",
-        "Automated payment collection",
-        "Document templates",
-        "KYC verification",
-        "Priority support",
-        "€2 per additional signature",
-      ],
-      cta: t("subscription.upgradeToPro"),
-      available: false, // Coming Soon
-      popular: true,
-      trial: "14-day free trial",
-    },
-    {
-      slug: "enterprise",
-      name: t("subscription.enterprisePlan"),
-      price: { monthly: null, annual: null },
-      description: "Custom solutions for large operations",
-      features: [
-        "All Pro features",
-        "9999 digital signatures/year",
-        "White-labeling",
-        "API access",
-        "Advanced analytics",
-        "Dedicated account manager",
-        "Custom integrations",
-        "SLA guarantee",
-      ],
-      cta: t("subscription.contactSales"),
-      available: true,
-      popular: false,
-    },
-  ];
 
   const handleSelectPlan = (planSlug: string) => {
     if (planSlug === "enterprise") {
@@ -87,7 +25,6 @@ export default function Pricing() {
     } else if (planSlug === "pro") {
       navigate("/account?tab=subscription");
     } else {
-      // Free plan - already on it
       navigate("/account?tab=subscription");
     }
   };
@@ -95,6 +32,31 @@ export default function Pricing() {
   const isCurrentPlan = (planSlug: string) => {
     return subscription?.plan === planSlug;
   };
+
+  const getPlanIcon = (slug: string) => {
+    if (slug === "enterprise") return <Sparkles className="h-5 w-5 text-primary" />;
+    if (slug === "pro") return <Crown className="h-5 w-5 text-primary" />;
+    return null;
+  };
+
+  const getPlanCTA = (slug: string, isCurrent: boolean, isAvailable: boolean) => {
+    if (isCurrent) return t("subscription.currentPlan") || "Current Plan";
+    if (slug === "enterprise") return t("subscription.contactSales");
+    if (slug === "pro") return t("subscription.upgradeToPro");
+    return t("subscription.currentPlan") || "Current Plan";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <AppHeader />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+        <AppFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -108,7 +70,7 @@ export default function Pricing() {
               {t("subscription.choosePlan")}
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Choose the perfect plan for your property management needs
+              {t("pricing.subtitle") || "Choose the perfect plan for your property management needs"}
             </p>
 
             {/* Billing Toggle */}
@@ -135,29 +97,31 @@ export default function Pricing() {
 
           {/* Plans Grid */}
           <div className="grid md:grid-cols-3 gap-8">
-            {plans.map((plan) => {
+            {plans?.map((plan) => {
               const isCurrent = isCurrentPlan(plan.slug);
-              const price = plan.price[billingPeriod];
+              const priceMonthly = plan.price_monthly_cents / 100;
+              const priceAnnual = plan.price_annual_cents / 100;
+              const price = billingPeriod === "monthly" ? priceMonthly : priceAnnual;
+              const isPopular = plan.slug === "pro";
+              const isEnterprise = plan.slug === "enterprise";
 
               return (
                 <Card
-                  key={plan.slug}
+                  key={plan.id}
                   className={`relative ${
-                    plan.popular
-                      ? "border-primary shadow-lg scale-105"
-                      : ""
+                    isPopular ? "border-primary shadow-lg scale-105" : ""
                   }`}
                 >
-                  {plan.popular && (
+                  {isPopular && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                       <Badge className="gap-1">
                         <Crown className="h-3 w-3" />
-                        Most Popular
+                        {t("pricing.mostPopular") || "Most Popular"}
                       </Badge>
                     </div>
                   )}
 
-                  {!plan.available && plan.slug !== "enterprise" && (
+                  {!plan.is_available_for_signup && !isEnterprise && (
                     <div className="absolute top-4 right-4">
                       <Badge variant="secondary">
                         {t("subscription.comingSoon")}
@@ -167,17 +131,13 @@ export default function Pricing() {
 
                   <CardHeader>
                     <div className="flex items-center gap-2 mb-2">
-                      {plan.slug === "enterprise" ? (
-                        <Sparkles className="h-5 w-5 text-primary" />
-                      ) : plan.slug === "pro" ? (
-                        <Crown className="h-5 w-5 text-primary" />
-                      ) : null}
+                      {getPlanIcon(plan.slug)}
                       <CardTitle>{plan.name}</CardTitle>
                     </div>
                     <CardDescription>{plan.description}</CardDescription>
 
                     <div className="mt-4">
-                      {price !== null ? (
+                      {!isEnterprise ? (
                         <>
                           <div className="flex items-baseline gap-1">
                             <span className="text-4xl font-bold">€{price}</span>
@@ -194,11 +154,13 @@ export default function Pricing() {
                           </p>
                         </>
                       ) : (
-                        <div className="text-2xl font-bold">Custom pricing</div>
+                        <div className="text-2xl font-bold">
+                          {t("pricing.customPricing") || "Custom pricing"}
+                        </div>
                       )}
-                      {plan.trial && (
+                      {plan.trial_days > 0 && plan.slug === "pro" && (
                         <Badge variant="outline" className="mt-2">
-                          {plan.trial}
+                          {plan.trial_days}-{t("pricing.dayFreeTrial") || "day free trial"}
                         </Badge>
                       )}
                     </div>
@@ -206,15 +168,15 @@ export default function Pricing() {
 
                   <CardContent>
                     <ul className="space-y-2">
-                      {plan.features.map((feature, index) => (
+                      {plan.localizedFeatures.map((feature, index) => (
                         <li key={index} className="flex items-start gap-2">
                           <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                           <span className="text-sm">{feature}</span>
                         </li>
                       ))}
-                      {plan.limitations && (
+                      {plan.localizedLimitations.length > 0 && (
                         <>
-                          {plan.limitations.map((limitation, index) => (
+                          {plan.localizedLimitations.map((limitation, index) => (
                             <li key={`limit-${index}`} className="flex items-start gap-2 text-muted-foreground">
                               <span className="text-sm">• {limitation}</span>
                             </li>
@@ -228,14 +190,14 @@ export default function Pricing() {
                     <Button
                       className="w-full"
                       variant={isCurrent ? "outline" : "default"}
-                      disabled={isCurrent || (!plan.available && plan.slug !== "enterprise")}
+                      disabled={isCurrent || (!plan.is_available_for_signup && !isEnterprise)}
                       onClick={() => handleSelectPlan(plan.slug)}
                     >
                       {isCurrent ? (
-                        "Current Plan"
+                        t("subscription.currentPlan") || "Current Plan"
                       ) : (
                         <>
-                          {plan.cta}
+                          {getPlanCTA(plan.slug, isCurrent, plan.is_available_for_signup)}
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </>
                       )}
@@ -248,26 +210,32 @@ export default function Pricing() {
 
           {/* FAQ Section */}
           <div className="mt-16 text-center">
-            <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              {t("pricing.faq") || "Frequently Asked Questions"}
+            </h2>
             <div className="max-w-2xl mx-auto space-y-4 text-left">
               <div className="p-4 bg-muted rounded-lg">
-                <h3 className="font-semibold mb-2">Can I change plans later?</h3>
+                <h3 className="font-semibold mb-2">
+                  {t("pricing.faqChangePlans") || "Can I change plans later?"}
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  Yes, you can upgrade or downgrade your plan at any time. Changes take effect
-                  immediately, and we'll prorate any charges.
+                  {t("pricing.faqChangePlansAnswer") || "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any charges."}
                 </p>
               </div>
               <div className="p-4 bg-muted rounded-lg">
-                <h3 className="font-semibold mb-2">What happens when I exceed my signature limit?</h3>
+                <h3 className="font-semibold mb-2">
+                  {t("pricing.faqSignatureLimit") || "What happens when I exceed my signature limit?"}
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  Additional signatures are billed at €2 per signature. You'll be notified when you
-                  reach 80% of your limit.
+                  {t("pricing.faqSignatureLimitAnswer") || "Additional signatures are billed at €2 per signature. You'll be notified when you reach 80% of your limit."}
                 </p>
               </div>
               <div className="p-4 bg-muted rounded-lg">
-                <h3 className="font-semibold mb-2">Is there a free trial?</h3>
+                <h3 className="font-semibold mb-2">
+                  {t("pricing.faqFreeTrial") || "Is there a free trial?"}
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  Yes! Pro plan includes a 14-day free trial. No credit card required to start.
+                  {t("pricing.faqFreeTrialAnswer") || "Yes! Pro plan includes a 14-day free trial. No credit card required to start."}
                 </p>
               </div>
             </div>
