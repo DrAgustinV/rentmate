@@ -1,11 +1,10 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Home, Users, Shield, ArrowRight, Settings, LayoutDashboard, ShieldCheck, CheckCircle, FileCheck, Key } from "lucide-react";
+import { ArrowRight, Settings, LayoutDashboard, ShieldCheck, CheckCircle, FileCheck, Key } from "lucide-react";
 import heroProperty from "@/assets/hero-property.jpg";
 import { useBrand } from "@/contexts/BrandContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { AppHeader } from "@/components/AppHeader";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -14,10 +13,7 @@ const Index = () => {
 
 return (
   <div className="min-h-screen relative overflow-hidden">
-    {/* Language Switcher - Top Right */}
-    <div className="absolute top-4 right-4 z-50">
-      <LanguageSwitcher />
-    </div>
+    <AppHeader />
     
     {/* Background Image with Overlay */}
     <div
@@ -25,20 +21,20 @@ return (
       style={{ backgroundImage: `url(${heroProperty})` }}
     />
     <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/20" />
-    <div className="container mx-auto px-4 py-16 relative z-10">
+    <div className="container mx-auto px-4 py-16 relative z-10 pt-24">
       <div className="text-center mb-16 animate-fade-in">
         <div className="flex items-center justify-center gap-4 mb-6">
           <img src={logoUrl} alt={logoAlt} className="h-12 w-12 md:h-16 md:w-16" />
           <h1 className="text-5xl md:text-6xl font-bold gradient-text">{brandName}</h1>
         </div>
         <p className="text-xl text-muted-foreground mb-8">{tagline}</p>
-        <div className="flex gap-4 justify-center">
+        <div className="flex gap-4 justify-center flex-wrap">
           <Button size="lg" onClick={() => navigate("/auth?mode=signup")} className="gap-2">
             {t('landing.getStarted')}
             <ArrowRight className="h-5 w-5" />
           </Button>
           <Button size="lg" variant="outline" onClick={() => navigate("/pricing")}>
-            View Pricing
+            {t('header.pricing')}
           </Button>
           <Button size="lg" variant="ghost" onClick={() => navigate("/auth?mode=signin")}>
             {t('landing.signIn')}
@@ -47,7 +43,7 @@ return (
       </div>
 
       {/* For Property Managers */}
-      <div className="text-center mb-8 mt-20">
+      <div id="managers" className="text-center mb-8 mt-20 scroll-mt-24">
         <h2 className="text-3xl font-bold mb-2">{t('landing.forManagers')}</h2>
       </div>
       <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -89,7 +85,7 @@ return (
       </div>
 
       {/* For Tenants */}
-      <div className="text-center mb-8 mt-20">
+      <div id="tenants" className="text-center mb-8 mt-20 scroll-mt-24">
         <h2 className="text-3xl font-bold mb-2">{t('landing.forTenants')}</h2>
       </div>
       <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">

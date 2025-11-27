@@ -131,6 +131,10 @@ export const translations = {
       renting: "Renting",
       myAccount: "My Account",
       menu: "Menu",
+      home: "Home",
+      forManagers: "For Managers",
+      forTenants: "For Tenants",
+      pricing: "Pricing",
     },
     nav: {
       properties: "Properties",
@@ -1646,6 +1650,10 @@ export const translations = {
       renting: "Alquileres",
       myAccount: "Mi Cuenta",
       menu: "Menú",
+      home: "Inicio",
+      forManagers: "Para Propietarios",
+      forTenants: "Para Inquilinos",
+      pricing: "Precios",
     },
     search: {
       placeholder: "Buscar propiedades...",
