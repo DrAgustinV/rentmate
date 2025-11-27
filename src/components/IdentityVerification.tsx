@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2, Zap, Clock, UserCheck } from "lucide-react";
+import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2, Zap, Clock, UserCheck, Gift, ExternalLink } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useKYC, KYCProvider, OpenAPIVerificationLevel } from "@/hooks/useKYC";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -28,12 +28,14 @@ export function IdentityVerification() {
     cancelVerification,
   } = useKYC();
 
-  const [selectedProvider, setSelectedProvider] = useState<KYCProvider>('openapi');
+  const [selectedProvider, setSelectedProvider] = useState<KYCProvider>('didit');
   const [selectedLevel, setSelectedLevel] = useState<OpenAPIVerificationLevel>('basic');
 
   const getStatusBadge = (status: string, provider?: string) => {
     // Show provider in badge for verified status
-    const providerLabel = provider?.startsWith('openapi_') 
+    const providerLabel = provider === 'didit' 
+      ? 'Didit'
+      : provider?.startsWith('openapi_') 
       ? provider.replace('openapi_', '').toUpperCase()
       : provider === 'kilt' ? 'KILT' : '';
 
@@ -148,6 +150,27 @@ export function IdentityVerification() {
             <Label className="text-base font-medium">Choose Verification Method</Label>
             
             <RadioGroup value={selectedProvider} onValueChange={(value) => setSelectedProvider(value as KYCProvider)}>
+              {/* Didit Option - FREE & Recommended */}
+              <div className="flex items-start space-x-3 p-4 border-2 border-primary/50 rounded-lg hover:bg-muted/50 cursor-pointer bg-primary/5">
+                <RadioGroupItem value="didit" id="didit" className="mt-1" />
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="didit" className="cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <Gift className="w-4 h-4 text-green-600" />
+                      <span className="font-medium">Didit.me Verification</span>
+                      <Badge className="bg-green-500 text-white text-xs">FREE</Badge>
+                      <Badge variant="outline" className="text-xs">Recommended</Badge>
+                    </div>
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Free ID verification with AI-powered document scanning • 190+ countries supported
+                  </p>
+                  <p className="text-xs text-green-600 font-medium">
+                    ✓ Unlimited free verifications • No credit card required
+                  </p>
+                </div>
+              </div>
+
               {/* OpenAPI Option */}
               <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer">
                 <RadioGroupItem value="openapi" id="openapi" className="mt-1" />
@@ -156,11 +179,10 @@ export function IdentityVerification() {
                     <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4 text-primary" />
                       <span className="font-medium">OpenAPI Verification</span>
-                      <Badge variant="outline" className="text-xs">Recommended</Badge>
                     </div>
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    Quick AI-powered verification with your smartphone
+                    Advanced verification with multiple levels (EU focused)
                   </p>
                   
                   {selectedProvider === 'openapi' && (
@@ -229,7 +251,13 @@ export function IdentityVerification() {
           <div className="space-y-4">
             <Alert>
               <AlertDescription>
-                Verification in progress via {currentProvider === 'kilt' ? 'KILT Protocol' : `OpenAPI IDV (${kycProfile?.kyc_provider?.replace('openapi_', '')})`}
+                Verification in progress via {
+                  currentProvider === 'kilt' 
+                    ? 'KILT Protocol' 
+                    : currentProvider === 'didit'
+                    ? 'Didit.me'
+                    : `OpenAPI IDV (${kycProfile?.kyc_provider?.replace('openapi_', '')})`
+                }
               </AlertDescription>
             </Alert>
 
@@ -240,9 +268,23 @@ export function IdentityVerification() {
                   <AlertDescription>
                     {currentProvider === 'kilt' 
                       ? t('kyc.scanQRCode')
+                      : currentProvider === 'didit'
+                      ? 'Click the button below or scan the QR code to verify your identity'
                       : 'Scan the QR code with your smartphone to complete verification'}
                   </AlertDescription>
                 </Alert>
+                
+                {/* Direct link button for Didit */}
+                {currentProvider === 'didit' && (
+                  <Button 
+                    className="w-full" 
+                    onClick={() => window.open(kycProfile.kyc_qr_code_url!, '_blank')}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Open Verification Page
+                  </Button>
+                )}
+                
                 <div className="flex justify-center p-4 bg-white rounded-lg">
                   <QRCodeSVG 
                     value={kycProfile.kyc_qr_code_url} 
@@ -254,6 +296,8 @@ export function IdentityVerification() {
                 <p className="text-xs text-center text-muted-foreground">
                   {currentProvider === 'kilt' 
                     ? t('kyc.downloadSporran')
+                    : currentProvider === 'didit'
+                    ? 'Or scan with your phone camera to verify on mobile'
                     : 'Open the link on your mobile device to start the verification process'}
                 </p>
               </div>

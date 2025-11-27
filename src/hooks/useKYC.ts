@@ -12,7 +12,7 @@ import {
 } from '@/lib/validations/kyc.schema';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-export type KYCProvider = 'kilt' | 'openapi';
+export type KYCProvider = 'kilt' | 'openapi' | 'didit';
 export type OpenAPIVerificationLevel = 'basic' | 'advanced' | 'expert';
 
 interface UseKYCOptions {
@@ -72,7 +72,7 @@ interface UseKYCReturn {
 export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
   const { 
     autoFetch = true, 
-    provider = 'openapi', 
+    provider = 'didit', // Default to Didit (free)
     verificationLevel = 'basic',
     onVerificationComplete, 
     onVerificationFailed,
@@ -171,6 +171,11 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
         const result = await supabase.functions.invoke('initiate-kilt-kyc');
         functionData = result.data;
         functionError = result.error;
+      } else if (selectedProvider === 'didit') {
+        // Didit.me (FREE)
+        const result = await supabase.functions.invoke('initiate-didit-kyc');
+        functionData = result.data;
+        functionError = result.error;
       } else {
         // OpenAPI IDV
         const result = await supabase.functions.invoke('initiate-openapi-kyc', {
@@ -192,7 +197,11 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       }
 
       // Success - show appropriate message
-      const providerName = selectedProvider === 'kilt' ? 'KILT Protocol' : `OpenAPI (${level})`;
+      const providerName = selectedProvider === 'kilt' 
+        ? 'KILT Protocol' 
+        : selectedProvider === 'didit'
+        ? 'Didit.me'
+        : `OpenAPI (${level})`;
       toast({
         title: t('kyc.success.initiatedTitle'),
         description: `${providerName}: ${t('kyc.success.initiatedDescription')}`,
@@ -296,7 +305,11 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
   
   // Extract current provider from kyc_provider field
   const currentProvider: KYCProvider | null = kycProfile?.kyc_provider
-    ? (kycProfile.kyc_provider.startsWith('openapi_') ? 'openapi' : 'kilt')
+    ? (kycProfile.kyc_provider === 'didit' 
+        ? 'didit' 
+        : kycProfile.kyc_provider.startsWith('openapi_') 
+        ? 'openapi' 
+        : 'kilt')
     : null;
 
   return {

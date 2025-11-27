@@ -83,3 +83,10 @@ verify_jwt = false  # Public webhook endpoint from OpenAPI
 
 [functions.check-openapi-kyc-status]
 verify_jwt = true  # User checks their KYC status
+
+# Didit.me Identity Verification Functions
+[functions.initiate-didit-kyc]
+verify_jwt = true  # User initiates Didit KYC verification
+
+[functions.verify-didit-kyc]
+verify_jwt = false  # Public webhook endpoint from Didit
