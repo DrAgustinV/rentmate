@@ -70,7 +70,7 @@ export default function Pricing() {
               {t("subscription.choosePlan")}
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              {t("pricing.subtitle") || "Choose the perfect plan for your property management needs"}
+              {t("pricing.subtitle")}
             </p>
 
             {/* Billing Toggle */}
@@ -116,12 +116,12 @@ export default function Pricing() {
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                       <Badge className="gap-1">
                         <Crown className="h-3 w-3" />
-                        {t("pricing.mostPopular") || "Most Popular"}
+                        {t("pricing.mostPopular")}
                       </Badge>
                     </div>
                   )}
 
-                  {!plan.is_available_for_signup && !isEnterprise && (
+                  {!plan.is_available_for_signup && (
                     <div className="absolute top-4 right-4">
                       <Badge variant="secondary">
                         {t("subscription.comingSoon")}
@@ -155,12 +155,12 @@ export default function Pricing() {
                         </>
                       ) : (
                         <div className="text-2xl font-bold">
-                          {t("pricing.customPricing") || "Custom pricing"}
+                          {t("pricing.customPricing")}
                         </div>
                       )}
                       {plan.trial_days > 0 && plan.slug === "pro" && (
                         <Badge variant="outline" className="mt-2">
-                          {plan.trial_days}-{t("pricing.dayFreeTrial") || "day free trial"}
+                          {plan.trial_days}-{t("pricing.dayFreeTrial")}
                         </Badge>
                       )}
                     </div>
@@ -211,31 +211,31 @@ export default function Pricing() {
           {/* FAQ Section */}
           <div className="mt-16 text-center">
             <h2 className="text-2xl font-bold mb-4">
-              {t("pricing.faq") || "Frequently Asked Questions"}
+              {t("pricing.faq")}
             </h2>
             <div className="max-w-2xl mx-auto space-y-4 text-left">
               <div className="p-4 bg-muted rounded-lg">
                 <h3 className="font-semibold mb-2">
-                  {t("pricing.faqChangePlans") || "Can I change plans later?"}
+                  {t("pricing.faqChangePlans")}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {t("pricing.faqChangePlansAnswer") || "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any charges."}
+                  {t("pricing.faqChangePlansAnswer")}
                 </p>
               </div>
               <div className="p-4 bg-muted rounded-lg">
                 <h3 className="font-semibold mb-2">
-                  {t("pricing.faqSignatureLimit") || "What happens when I exceed my signature limit?"}
+                  {t("pricing.faqSignatureLimit")}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {t("pricing.faqSignatureLimitAnswer") || "Additional signatures are billed at €2 per signature. You'll be notified when you reach 80% of your limit."}
+                  {t("pricing.faqSignatureLimitAnswer")}
                 </p>
               </div>
               <div className="p-4 bg-muted rounded-lg">
                 <h3 className="font-semibold mb-2">
-                  {t("pricing.faqFreeTrial") || "Is there a free trial?"}
+                  {t("pricing.faqFreeTrial")}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {t("pricing.faqFreeTrialAnswer") || "Yes! Pro plan includes a 14-day free trial. No credit card required to start."}
+                  {t("pricing.faqFreeTrialAnswer")}
                 </p>
               </div>
             </div>
