@@ -817,6 +817,7 @@ export type Database = {
           id_document_country: string | null
           id_document_type: string | null
           kyc_credential_id: string | null
+          kyc_data: Json | null
           kyc_expires_at: string | null
           kyc_provider: string | null
           kyc_qr_code_url: string | null
@@ -843,6 +844,7 @@ export type Database = {
           id_document_country?: string | null
           id_document_type?: string | null
           kyc_credential_id?: string | null
+          kyc_data?: Json | null
           kyc_expires_at?: string | null
           kyc_provider?: string | null
           kyc_qr_code_url?: string | null
@@ -869,6 +871,7 @@ export type Database = {
           id_document_country?: string | null
           id_document_type?: string | null
           kyc_credential_id?: string | null
+          kyc_data?: Json | null
           kyc_expires_at?: string | null
           kyc_provider?: string | null
           kyc_qr_code_url?: string | null

@@ -28,7 +28,7 @@ export default function Identity() {
             Identity Verification
           </h1>
           <p className="text-muted-foreground mt-1">
-            Verify your identity using KILT Protocol
+            Verify your identity securely using our trusted verification partners
           </p>
         </div>
 

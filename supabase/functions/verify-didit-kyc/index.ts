@@ -124,10 +124,24 @@ Deno.serve(async (req) => {
         updateData.kyc_wallet_did = walletDid;
       }
 
-      // Store extracted data if available
+      // Store extracted KYC data in kyc_data JSONB column
       if (payload.extracted_data) {
-        console.log('[verify-didit-kyc] Extracted data:', JSON.stringify(payload.extracted_data));
-        // Could store in a separate column if needed
+        console.log('[verify-didit-kyc] Storing extracted data:', JSON.stringify(payload.extracted_data));
+        updateData.kyc_data = {
+          provider: 'didit',
+          extracted_at: new Date().toISOString(),
+          first_name: payload.extracted_data.first_name || null,
+          last_name: payload.extracted_data.last_name || null,
+          full_name: payload.extracted_data.full_name || null,
+          date_of_birth: payload.extracted_data.date_of_birth || null,
+          document_type: payload.extracted_data.document_type || null,
+          document_number: payload.extracted_data.document_number || null,
+          document_country: payload.extracted_data.document_country || null,
+          address: payload.extracted_data.address || null,
+          nationality: payload.extracted_data.nationality || null,
+          gender: payload.extracted_data.gender || null,
+          raw_data: payload.extracted_data, // Store full payload for reference
+        };
       }
     }
 
