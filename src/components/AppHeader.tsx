@@ -18,7 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck, Building, Handshake, FolderOpen, CreditCard } from "lucide-react";
+import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck, Building, Handshake, FolderOpen } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -97,12 +97,10 @@ export function AppHeader() {
         { path: "/properties", label: t('properties.title'), icon: Building },
         { path: "/renting", label: t('renting.title'), icon: Handshake },
         { path: "/configuration", label: t('configuration.title'), icon: FolderOpen },
-        { path: "/pricing", label: "Pricing", icon: CreditCard },
       ]
     : [
         // { path: "/dashboard", label: t('header.dashboard'), icon: Home }, // Hidden for now
         { path: "/renting", label: t('renting.title'), icon: Handshake, badge: pendingInvitations },
-        { path: "/pricing", label: "Pricing", icon: CreditCard },
         { path: "/settings", label: t('header.settings'), icon: Settings },
       ];
 
@@ -163,11 +161,6 @@ export function AppHeader() {
               <DropdownMenuItem onClick={() => navigate("/account")}>
                 <UserCircle className="mr-2 h-4 w-4" />
                 {t('account.profile')}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem disabled>
-                <CreditCard className="mr-2 h-4 w-4" />
-                {t('account.plansCredits')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
