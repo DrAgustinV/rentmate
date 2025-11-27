@@ -5,6 +5,7 @@ import heroProperty from "@/assets/hero-property.jpg";
 import { useBrand } from "@/contexts/BrandContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AppHeader } from "@/components/AppHeader";
+import { AppFooter } from "@/components/AppFooter";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const Index = () => {
   const { t } = useLanguage();
 
 return (
-  <div className="min-h-screen relative overflow-hidden">
+  <div className="min-h-screen flex flex-col">
     <AppHeader />
     
     {/* Background Image with Overlay */}
@@ -129,6 +130,8 @@ return (
         </div>
       </div>
     </div>
+    
+    <AppFooter />
   </div>
   );
 };
