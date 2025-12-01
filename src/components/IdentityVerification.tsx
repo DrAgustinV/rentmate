@@ -163,10 +163,10 @@ export function IdentityVerification() {
                     </div>
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    Free ID verification with AI-powered document scanning • 190+ countries supported
+                    ID verification with AI-powered document scanning • 190+ countries supported
                   </p>
                   <p className="text-xs text-green-600 font-medium">
-                    ✓ Unlimited free verifications • No credit card required
+                    ✓ Fast and easy. Use your ID, passport or driving licence.
                   </p>
                 </div>
               </div>
@@ -234,7 +234,7 @@ export function IdentityVerification() {
                   <Label htmlFor="kilt" className="cursor-pointer">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-primary" />
-                      <span className="font-medium">KILT Protocol</span>
+                      <span className="font-medium">KILT Protocol Identification</span>
                     </div>
                   </Label>
                   <p className="text-xs text-muted-foreground mt-1">
