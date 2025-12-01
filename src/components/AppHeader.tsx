@@ -235,17 +235,15 @@ export function AppHeader() {
     );
   }
 
-  // Authenticated user navigation
-  const navLinks = isManager
-    ? [
-        { path: "/properties", label: t('properties.title'), icon: Building },
-        { path: "/renting", label: t('renting.title'), icon: Handshake },
-        { path: "/configuration", label: t('configuration.title'), icon: FolderOpen },
-      ]
-    : [
-        { path: "/renting", label: t('renting.title'), icon: Handshake, badge: pendingInvitations },
-        { path: "/settings", label: t('header.settings'), icon: Settings },
-      ];
+  // Authenticated user navigation - show Properties for ALL users
+  const navLinks = [
+    { path: "/properties", label: t('properties.title'), icon: Building },
+    { path: "/renting", label: t('renting.title'), icon: Handshake, badge: !isManager ? pendingInvitations : undefined },
+  ];
+  
+  if (isManager) {
+    navLinks.push({ path: "/configuration", label: t('configuration.title'), icon: FolderOpen });
+  }
 
   if (isAdmin) {
     navLinks.push({ path: "/admin", label: t('header.admin'), icon: ShieldCheck });

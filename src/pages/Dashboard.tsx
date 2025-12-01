@@ -108,6 +108,9 @@ export default function Dashboard() {
         navigate("/renting", { replace: true });
         return;
       }
+      
+      // New user with no properties/tenancies - redirect to properties page
+      navigate("/properties", { replace: true });
     };
 
     checkUser();
