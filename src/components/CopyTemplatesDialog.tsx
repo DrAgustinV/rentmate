@@ -26,17 +26,20 @@ function normalizeFilePath(filePath: string): string {
   return filePath;
 }
 
-// Check if a file exists in storage
+// Check if a file exists in storage using createSignedUrl (more reliable than list)
 async function checkFileExists(filePath: string): Promise<boolean> {
   const normalizedPath = normalizeFilePath(filePath);
+  
+  // createSignedUrl fails if file doesn't exist, making it a reliable existence check
   const { data, error } = await supabase.storage
     .from("property-documents")
-    .list(normalizedPath.split('/').slice(0, -1).join('/'), {
-      search: normalizedPath.split('/').pop(),
-    });
+    .createSignedUrl(normalizedPath, 60);
   
-  if (error) return false;
-  return data && data.length > 0;
+  if (error) {
+    console.log('File check failed for:', normalizedPath, error.message);
+    return false;
+  }
+  return !!data?.signedUrl;
 }
 
 export function CopyTemplatesDialog({ 
