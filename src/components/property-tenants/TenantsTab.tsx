@@ -175,7 +175,7 @@ export function TenantsTab({
         )}
         
         {/* Invite New Tenant - Prominent when no tenants */}
-        {userRole?.isManager && !isReadOnly && !currentTenant && (
+        {userRole?.isManager && !isReadOnly && !currentTenant && !showInviteForm && (
           <Alert className="border-primary/50 bg-primary/5 mt-4">
             <Mail className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary">{t("properties.noTenantsYet")}</AlertTitle>
@@ -238,34 +238,47 @@ export function TenantsTab({
       {userRole?.isManager && !isReadOnly && showInviteForm && (
         <>
           <Separator />
-          <div className="space-y-2">
-            <Label htmlFor="email">{t("dialogs.inviteTenant.emailLabel")}</Label>
-            <div className="flex gap-2">
-              <Input
-                id="email"
-                type="email"
-                placeholder={t("dialogs.inviteTenant.emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && email.trim()) {
-                    onInviteTenant(email.trim());
-                  }
-                }}
-              />
-              <Button
-                variant="default"
-                onClick={() => {
-                  const trimmedEmail = email.trim();
-                  if (trimmedEmail) {
-                    onInviteTenant(trimmedEmail);
-                  }
-                }}
-                disabled={invitePending || !email.trim()}
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                {t("dialogs.inviteTenant.send")}
-              </Button>
+          <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+            <h3 className="text-lg font-semibold">{t("properties.inviteTenantButton")}</h3>
+            <div className="space-y-2">
+              <Label htmlFor="email">{t("dialogs.inviteTenant.emailLabel")}</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder={t("dialogs.inviteTenant.emailPlaceholder")}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && email.trim()) {
+                      onInviteTenant(email.trim());
+                    }
+                  }}
+                />
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    const trimmedEmail = email.trim();
+                    if (trimmedEmail) {
+                      onInviteTenant(trimmedEmail);
+                    }
+                  }}
+                  disabled={invitePending || !email.trim()}
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  {t("dialogs.inviteTenant.send")}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowInviteForm(false);
+                    setEmail('');
+                  }}
+                  disabled={invitePending}
+                >
+                  {t("common.cancel")}
+                </Button>
+              </div>
             </div>
           </div>
         </>
