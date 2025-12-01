@@ -397,12 +397,12 @@ export const ContractSignatureManager = ({
   const getSignatureMethodBadge = (method: string | null) => {
     if (!method) return null;
     
-    // Check if it's a qualified signature provider (autofirma, etc.)
-    if (method === 'autofirma' || method.startsWith('qualified_')) {
+    // Check if it's a qualified signature provider (autofirma, yousign, etc.)
+    if (method === 'autofirma' || method === 'yousign' || method.startsWith('qualified_')) {
       return (
         <Badge variant="default" className="text-xs bg-primary">
           <Shield className="h-3 w-3 mr-1" />
-          Qualified Signature
+          {method === 'yousign' ? 'YouSign' : 'Qualified Signature'}
         </Badge>
       );
     }
