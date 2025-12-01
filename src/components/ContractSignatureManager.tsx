@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -72,13 +73,24 @@ export const ContractSignatureManager = ({
     installation_url: string | null;
   }>>([]);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-  const [tenancyDocuments, setTenancyDocuments] = useState<Array<{
-    id: string;
-    document_title: string;
-    file_name: string;
-  }>>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string>('');
   const [sourceDocument, setSourceDocument] = useState<{ document_title: string; file_name: string } | null>(null);
+
+  // Use React Query for tenancy documents - shares query key with CopyTemplatesDialog
+  const { data: tenancyDocuments = [] } = useQuery({
+    queryKey: ["tenancy-documents", tenancyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('property_documents')
+        .select('id, document_title, file_name')
+        .eq('tenancy_id', tenancyId)
+        .eq('document_category', 'tenancy')
+        .eq('is_latest_version', true)
+        .order('document_title');
+      return data || [];
+    },
+    enabled: !!tenancyId,
+  });
   
 
   const loadSignature = async () => {
@@ -141,28 +153,11 @@ export const ContractSignatureManager = ({
     }
   };
 
-  const fetchTenancyDocuments = async () => {
-    try {
-      const { data } = await supabase
-        .from('property_documents')
-        .select('id, document_title, file_name')
-        .eq('tenancy_id', tenancyId)
-        .eq('document_category', 'tenancy')
-        .eq('is_latest_version', true)
-        .order('document_title');
-      
-      setTenancyDocuments(data || []);
-    } catch (error) {
-      console.error('Error fetching tenancy documents:', error);
-    }
-  };
-
   useEffect(() => {
     if (!initialized) {
       loadSignature();
       checkRentAgreement();
       fetchPropertyCountryAndProvider();
-      fetchTenancyDocuments();
     }
   }, [initialized]);
 
