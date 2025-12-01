@@ -98,7 +98,14 @@ export function CopyTemplatesDialog({
           }
 
           // Create new document record
-          const { error: dbError } = await supabase.from("property_documents").insert({
+          console.log('Inserting tenancy document:', {
+            property_id: propertyId,
+            tenancy_id: tenancyId,
+            document_title: template.document_title,
+            document_category: "tenancy",
+          });
+          
+          const { data: insertedDoc, error: dbError } = await supabase.from("property_documents").insert({
             property_id: propertyId,
             tenancy_id: tenancyId,
             uploaded_by: currentUser.id,
@@ -112,10 +119,13 @@ export function CopyTemplatesDialog({
             description: template.description,
             version: 1,
             is_latest_version: true,
-          });
+          }).select();
 
           if (dbError) {
+            console.error('DB insert error:', dbError);
             errors.push(`Failed to save "${template.document_title}": ${dbError.message}`);
+          } else {
+            console.log('Document inserted successfully:', insertedDoc);
           }
         } catch (err) {
           errors.push(`Error processing "${template.document_title}": ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -127,11 +137,15 @@ export function CopyTemplatesDialog({
       }
     },
     onSuccess: () => {
+      console.log('Templates copied successfully to tenancy:', tenancyId);
       toast({
         title: t('common.success'),
         description: t('properties.templatesCopied'),
       });
       setSelectedTemplateIds([]);
+      // Invalidate with specific tenancyId to ensure ContractSignatureManager refreshes
+      queryClient.invalidateQueries({ queryKey: ["tenancy-documents", tenancyId] });
+      // Also invalidate the general key for any other listeners
       queryClient.invalidateQueries({ queryKey: ["tenancy-documents"] });
       onOpenChange(false);
     },
