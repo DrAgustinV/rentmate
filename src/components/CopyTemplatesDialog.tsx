@@ -27,7 +27,7 @@ export function CopyTemplatesDialog({
   const queryClient = useQueryClient();
   const [selectedTemplateIds, setSelectedTemplateIds] = useState<string[]>([]);
 
-  const { data: templates, isLoading } = useQuery({
+  const { data: templates, isLoading, isError, error: queryError, refetch } = useQuery({
     queryKey: ["property-templates", propertyId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -38,12 +38,16 @@ export function CopyTemplatesDialog({
         .eq("is_latest_version", true)
         .is("tenancy_id", null);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching property templates:', error);
+        throw error;
+      }
       
       console.log('Property templates found:', data?.length || 0, data);
       return data || [];
     },
     enabled: open,
+    staleTime: 0, // Always refetch when dialog opens
   });
 
   const { data: currentUser } = useQuery({
@@ -58,46 +62,67 @@ export function CopyTemplatesDialog({
     mutationFn: async (templateIds: string[]) => {
       if (!currentUser) throw new Error("Not authenticated");
 
+      const errors: string[] = [];
+      
       for (const templateId of templateIds) {
         const template = templates?.find(t => t.id === templateId);
-        if (!template) continue;
+        if (!template) {
+          errors.push(`Template not found: ${templateId}`);
+          continue;
+        }
 
-        // Download the file
-        const { data: fileData, error: downloadError } = await supabase.storage
-          .from("property-documents")
-          .download(template.file_path);
+        try {
+          // Download the file
+          const { data: fileData, error: downloadError } = await supabase.storage
+            .from("property-documents")
+            .download(template.file_path);
 
-        if (downloadError) throw downloadError;
+          if (downloadError) {
+            errors.push(`Failed to download "${template.document_title}": ${downloadError.message}`);
+            continue;
+          }
 
-        // Create new file path for tenancy
-        const extension = template.file_name.match(/\.[^.]+$/)?.[0] || "";
-        const newFilePath = `${propertyId}/tenancy_${tenancyId}/${crypto.randomUUID()}${extension}`;
+          // Create new file path for tenancy
+          const extension = template.file_name.match(/\.[^.]+$/)?.[0] || "";
+          const newFilePath = `${propertyId}/tenancy_${tenancyId}/${crypto.randomUUID()}${extension}`;
 
-        // Upload to new path
-        const { error: uploadError } = await supabase.storage
-          .from("property-documents")
-          .upload(newFilePath, fileData);
+          // Upload to new path
+          const { error: uploadError } = await supabase.storage
+            .from("property-documents")
+            .upload(newFilePath, fileData);
 
-        if (uploadError) throw uploadError;
+          if (uploadError) {
+            errors.push(`Failed to upload "${template.document_title}": ${uploadError.message}`);
+            continue;
+          }
 
-        // Create new document record
-        const { error: dbError } = await supabase.from("property_documents").insert({
-          property_id: propertyId,
-          tenancy_id: tenancyId,
-          uploaded_by: currentUser.id,
-          document_title: template.document_title,
-          file_name: template.file_name,
-          file_path: newFilePath,
-          file_type: template.file_type,
-          file_size_bytes: template.file_size_bytes,
-          mime_type: template.mime_type,
-          document_category: "tenancy",
-          description: template.description,
-          version: 1,
-          is_latest_version: true,
-        });
+          // Create new document record
+          const { error: dbError } = await supabase.from("property_documents").insert({
+            property_id: propertyId,
+            tenancy_id: tenancyId,
+            uploaded_by: currentUser.id,
+            document_title: template.document_title,
+            file_name: template.file_name,
+            file_path: newFilePath,
+            file_type: template.file_type,
+            file_size_bytes: template.file_size_bytes,
+            mime_type: template.mime_type,
+            document_category: "tenancy",
+            description: template.description,
+            version: 1,
+            is_latest_version: true,
+          });
 
-        if (dbError) throw dbError;
+          if (dbError) {
+            errors.push(`Failed to save "${template.document_title}": ${dbError.message}`);
+          }
+        } catch (err) {
+          errors.push(`Error processing "${template.document_title}": ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+      }
+      
+      if (errors.length > 0) {
+        throw new Error(errors.join('\n'));
       }
     },
     onSuccess: () => {
@@ -146,6 +171,15 @@ export function CopyTemplatesDialog({
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : isError ? (
+          <div className="text-center py-8 space-y-3">
+            <p className="text-destructive">
+              {t('common.error')}: {queryError?.message || 'Failed to load templates'}
+            </p>
+            <Button variant="outline" onClick={() => refetch()}>
+              {t('common.retry') || 'Retry'}
+            </Button>
           </div>
         ) : templates && templates.length > 0 ? (
           <div className="space-y-4">
