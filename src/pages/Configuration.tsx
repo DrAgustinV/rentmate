@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CreateStandardMaintenanceDialog } from "@/components/CreateStandardMaintenanceDialog";
 import { CreatePropertyTemplateDialog } from "@/components/CreatePropertyTemplateDialog";
+import { GlobalTemplatesList } from "@/components/GlobalTemplatesList";
 import { StripeConnectOnboarding } from "@/components/payments/StripeConnectOnboarding";
 
 export default function Configuration() {
@@ -192,23 +193,21 @@ export default function Configuration() {
 
         <TabsContent value="templates" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>{t('configuration.documentTemplatesTitle')}</CardTitle>
-              <CardDescription>
-                {t('configuration.documentTemplatesDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {t('configuration.documentTemplatesHelper')}
-              </p>
-            </CardContent>
-            <CardFooter>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>{t('configuration.documentTemplatesTitle')}</CardTitle>
+                <CardDescription>
+                  {t('configuration.documentTemplatesDesc')}
+                </CardDescription>
+              </div>
               <Button onClick={() => setCreateTemplateOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 {t('configuration.addTemplate')}
               </Button>
-            </CardFooter>
+            </CardHeader>
+            <CardContent>
+              <GlobalTemplatesList />
+            </CardContent>
           </Card>
         </TabsContent>
 
