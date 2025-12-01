@@ -76,8 +76,8 @@ export default function Auth() {
       }
       
       if (session) {
-        console.log('Already authenticated, redirecting to dashboard');
-        navigate("/dashboard");
+        console.log('Already authenticated, redirecting to properties');
+        navigate("/properties");
       }
     };
     
@@ -94,8 +94,8 @@ export default function Auth() {
           console.log('Signed in with invitation token, redirecting to invitations');
           navigate(`/invitations?token=${storedToken}`);
         } else {
-          console.log('Signed in, redirecting to dashboard');
-          navigate("/dashboard");
+          console.log('Signed in, redirecting to properties');
+          navigate("/properties");
         }
       }
     });
@@ -141,7 +141,7 @@ export default function Auth() {
         lastName: isSignUp ? lastName : undefined,
       });
 
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      const redirectUrl = `${window.location.origin}/properties`;
 
       if (isSignUp) {
         const { data, error } = await supabase.auth.signUp({

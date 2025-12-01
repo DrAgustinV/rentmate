@@ -1,5 +1,12 @@
 project_id = "jrjwkpjfgsyrqztuokoo"
 
+[auth.hook.send_email]
+enabled = true
+uri = "pg-functions://postgres/supabase_functions_invoker/send-auth-email"
+
+[functions.send-auth-email]
+verify_jwt = false
+
 [functions.verify-openapi-otp]
 verify_jwt = true
 

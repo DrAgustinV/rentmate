@@ -329,7 +329,7 @@ async function sendUpcomingReminder(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "RentMate <onboarding@resend.dev>",
+        from: "RentMate <noreply@rentmate.me>",
         to: [tenantInfo.email],
         subject,
         html,
@@ -492,7 +492,7 @@ async function sendOverdueReminder(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "RentMate <onboarding@resend.dev>",
+        from: "RentMate <noreply@rentmate.me>",
         to: [tenantInfo.email],
         subject,
         html,
