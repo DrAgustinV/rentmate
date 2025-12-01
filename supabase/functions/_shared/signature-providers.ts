@@ -132,12 +132,78 @@ const OpenAPIProvider: SignatureProviderConfig = {
 };
 
 /**
+ * YouSign Provider (EU-wide)
+ * Protocol: REST API with email-based signing
+ * Docs: https://developers.yousign.com/
+ */
+const YouSignProvider: SignatureProviderConfig = {
+  code: 'yousign',
+  name: 'YouSign',
+  countries: ['ES', 'FR', 'DE', 'IT', 'PT', 'NL', 'BE', 'AT', 'LU', 'IE', 'GB', 'CH'],
+  protocolScheme: 'https://',
+  
+  getProtocolUrl: ({ documentBase64, sessionId, callbackUrl }) => {
+    // YouSign uses REST API with email-based signing, not protocol URLs
+    return `https://app.yousign.com/signatures/${sessionId}`;
+  },
+  
+  validateCallback: (payload) => {
+    const { sessionId, event_name, data } = payload;
+    
+    if (!sessionId && !data?.signature_request?.id) {
+      return { isValid: false, errorMessage: 'Missing session/request ID' };
+    }
+    
+    if (event_name === 'signature_request.declined') {
+      return { 
+        isValid: false, 
+        errorCode: 'DECLINED',
+        errorMessage: 'Signature request was declined'
+      };
+    }
+    
+    if (event_name === 'signature_request.expired') {
+      return { 
+        isValid: false, 
+        errorCode: 'EXPIRED',
+        errorMessage: 'Signature request expired'
+      };
+    }
+    
+    if (event_name === 'signature_request.done') {
+      return {
+        isValid: true,
+        signedDocument: data?.signed_document_url,
+        certificateInfo: {
+          provider: 'yousign',
+          completed_at: new Date().toISOString(),
+        },
+      };
+    }
+    
+    // For signer.done events
+    if (event_name === 'signer.done') {
+      return {
+        isValid: true,
+        certificateInfo: {
+          signer_id: data?.signer?.id,
+          email: data?.signer?.info?.email,
+        },
+      };
+    }
+    
+    return { isValid: false, errorMessage: `Unknown event: ${event_name}` };
+  },
+};
+
+/**
  * Registry of all available signature providers
  * Add new providers here as they are implemented
  */
 export const SIGNATURE_PROVIDERS: Record<string, SignatureProviderConfig> = {
   autofirma: AutoFirmaProvider,
   openapi: OpenAPIProvider,
+  yousign: YouSignProvider,
 };
 
 /**

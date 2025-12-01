@@ -78,13 +78,29 @@ const OpenAPIUI: SignatureProviderUIConfig = {
 };
 
 /**
+ * YouSign UI Configuration (EU-wide)
+ */
+const YouSignUI: SignatureProviderUIConfig = {
+  code: 'yousign',
+  name: 'YouSign',
+  displayName: 'YouSign (EU)',
+  description: 'Professional e-signature platform for EU contracts with email-based signing',
+  icon: FileSignature,
+  installationGuideUrl: 'https://yousign.com/',
+  
+  checkInstallation: async () => {
+    // Web-based, always available
+    return true;
+  },
+};
+
+/**
  * Registry of provider UI configurations
  */
 export const SIGNATURE_PROVIDER_UI: Record<string, SignatureProviderUIConfig> = {
   autofirma: AutoFirmaUI,
   openapi: OpenAPIUI,
-  // Add more providers here:
-  // cartaocidadao: CartaoCidadaoUI,
+  yousign: YouSignUI,
 };
 
 /**

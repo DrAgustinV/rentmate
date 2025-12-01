@@ -215,15 +215,20 @@ export const ContractSignatureManager = ({
       if (signingMethod === 'docuseal') {
         functionName = 'initiate-docuseal-signature';
       } else if (signingMethod.startsWith('qualified:')) {
-        functionName = 'initiate-qualified-signature';
-        providerCode = signingMethod.split(':')[1]; // Extract 'autofirma' or 'openapi'
+        providerCode = signingMethod.split(':')[1];
+        // YouSign has its own dedicated function
+        if (providerCode === 'yousign') {
+          functionName = 'initiate-yousign-signature';
+        } else {
+          functionName = 'initiate-qualified-signature';
+        }
       }
 
       const { data, error } = await supabase.functions.invoke(functionName, {
         body: { 
           tenancyId, 
           propertyId,
-          ...(providerCode && { providerCode }),
+          ...(providerCode && providerCode !== 'yousign' && { providerCode }),
           ...(selectedDocumentId && { documentId: selectedDocumentId })
         }
       });
