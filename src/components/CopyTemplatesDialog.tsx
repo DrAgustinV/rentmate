@@ -6,14 +6,37 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Copy } from "lucide-react";
+import { Loader2, Copy, AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Badge } from "@/components/ui/badge";
 
 interface CopyTemplatesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   propertyId: string;
   tenancyId: string;
+}
+
+// Normalize file path - strip bucket prefix if present
+function normalizeFilePath(filePath: string): string {
+  // Remove 'property-documents/' prefix if it exists (incorrect legacy format)
+  if (filePath.startsWith('property-documents/')) {
+    return filePath.replace('property-documents/', '');
+  }
+  return filePath;
+}
+
+// Check if a file exists in storage
+async function checkFileExists(filePath: string): Promise<boolean> {
+  const normalizedPath = normalizeFilePath(filePath);
+  const { data, error } = await supabase.storage
+    .from("property-documents")
+    .list(normalizedPath.split('/').slice(0, -1).join('/'), {
+      search: normalizedPath.split('/').pop(),
+    });
+  
+  if (error) return false;
+  return data && data.length > 0;
 }
 
 export function CopyTemplatesDialog({ 
@@ -27,7 +50,7 @@ export function CopyTemplatesDialog({
   const queryClient = useQueryClient();
   const [selectedTemplateIds, setSelectedTemplateIds] = useState<string[]>([]);
 
-  const { data: templates, isLoading, isError, error: queryError, refetch } = useQuery({
+  const { data: templatesData, isLoading, isError, error: queryError, refetch } = useQuery({
     queryKey: ["property-templates", propertyId],
     queryFn: async () => {
       // Fetch both property-specific templates AND global templates (property_id IS NULL)
@@ -45,11 +68,24 @@ export function CopyTemplatesDialog({
       }
       
       console.log('Property templates found:', data?.length || 0, data);
-      return data || [];
+      
+      // Check file existence for each template
+      const templatesWithStatus = await Promise.all(
+        (data || []).map(async (template) => {
+          const fileExists = await checkFileExists(template.file_path);
+          return { ...template, fileExists };
+        })
+      );
+      
+      return templatesWithStatus;
     },
     enabled: open,
     staleTime: 0, // Always refetch when dialog opens
   });
+
+  const templates = templatesData || [];
+  const validTemplates = templates.filter(t => t.fileExists);
+  const invalidTemplates = templates.filter(t => !t.fileExists);
 
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
@@ -64,6 +100,7 @@ export function CopyTemplatesDialog({
       if (!currentUser) throw new Error("Not authenticated");
 
       const errors: string[] = [];
+      const successCount = { count: 0 };
       
       for (const templateId of templateIds) {
         const template = templates?.find(t => t.id === templateId);
@@ -72,14 +109,30 @@ export function CopyTemplatesDialog({
           continue;
         }
 
+        // Skip templates without files
+        if (!template.fileExists) {
+          errors.push(`"${template.document_title}" has no file in storage (ghost record)`);
+          continue;
+        }
+
         try {
+          // Normalize the file path before download
+          const downloadPath = normalizeFilePath(template.file_path);
+          console.log('Downloading file from path:', downloadPath);
+
           // Download the file
           const { data: fileData, error: downloadError } = await supabase.storage
             .from("property-documents")
-            .download(template.file_path);
+            .download(downloadPath);
 
           if (downloadError) {
+            console.error('Download error:', downloadError);
             errors.push(`Failed to download "${template.document_title}": ${downloadError.message}`);
+            continue;
+          }
+
+          if (!fileData) {
+            errors.push(`"${template.document_title}" file is empty or not found`);
             continue;
           }
 
@@ -126,26 +179,37 @@ export function CopyTemplatesDialog({
             errors.push(`Failed to save "${template.document_title}": ${dbError.message}`);
           } else {
             console.log('Document inserted successfully:', insertedDoc);
+            successCount.count++;
           }
         } catch (err) {
           errors.push(`Error processing "${template.document_title}": ${err instanceof Error ? err.message : 'Unknown error'}`);
         }
       }
       
-      if (errors.length > 0) {
+      if (errors.length > 0 && successCount.count === 0) {
         throw new Error(errors.join('\n'));
       }
+      
+      return { successCount: successCount.count, errors };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       console.log('Templates copied successfully to tenancy:', tenancyId);
-      toast({
-        title: t('common.success'),
-        description: t('properties.templatesCopied'),
-      });
+      
+      if (result.errors && result.errors.length > 0) {
+        toast({
+          title: `${result.successCount} template(s) copied`,
+          description: `Some templates failed: ${result.errors.join(', ')}`,
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: t('common.success'),
+          description: t('properties.templatesCopied'),
+        });
+      }
+      
       setSelectedTemplateIds([]);
-      // Invalidate with specific tenancyId to ensure ContractSignatureManager refreshes
       queryClient.invalidateQueries({ queryKey: ["tenancy-documents", tenancyId] });
-      // Also invalidate the general key for any other listeners
       queryClient.invalidateQueries({ queryKey: ["tenancy-documents"] });
       onOpenChange(false);
     },
@@ -160,6 +224,10 @@ export function CopyTemplatesDialog({
   });
 
   const handleToggleTemplate = (templateId: string) => {
+    // Only allow selecting templates with valid files
+    const template = templates.find(t => t.id === templateId);
+    if (!template?.fileExists) return;
+    
     setSelectedTemplateIds(prev =>
       prev.includes(templateId)
         ? prev.filter(id => id !== templateId)
@@ -198,21 +266,49 @@ export function CopyTemplatesDialog({
           </div>
         ) : templates && templates.length > 0 ? (
           <div className="space-y-4">
+            {invalidTemplates.length > 0 && (
+              <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
+                <div className="flex items-center gap-2 text-warning text-sm">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>{invalidTemplates.length} template(s) have missing files and cannot be copied</span>
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {templates.map((template) => (
-                <div key={template.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                <div 
+                  key={template.id} 
+                  className={`flex items-center space-x-3 p-3 border rounded-lg ${
+                    !template.fileExists ? 'opacity-50 bg-muted/50' : ''
+                  }`}
+                >
                   <Checkbox
                     id={template.id}
                     checked={selectedTemplateIds.includes(template.id)}
                     onCheckedChange={() => handleToggleTemplate(template.id)}
+                    disabled={!template.fileExists}
                   />
-                  <Label htmlFor={template.id} className="flex-1 cursor-pointer">
-                    <div>
+                  <Label 
+                    htmlFor={template.id} 
+                    className={`flex-1 ${template.fileExists ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                  >
+                    <div className="flex items-center gap-2">
                       <p className="font-medium">{template.document_title}</p>
-                      {template.description && (
-                        <p className="text-sm text-muted-foreground">{template.description}</p>
+                      {!template.fileExists && (
+                        <Badge variant="outline" className="text-xs text-warning border-warning">
+                          File missing
+                        </Badge>
+                      )}
+                      {template.property_id === null && (
+                        <Badge variant="secondary" className="text-xs">
+                          Global
+                        </Badge>
                       )}
                     </div>
+                    {template.description && (
+                      <p className="text-sm text-muted-foreground">{template.description}</p>
+                    )}
                   </Label>
                 </div>
               ))}
