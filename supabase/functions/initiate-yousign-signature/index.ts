@@ -118,7 +118,7 @@ serve(async (req) => {
       name: `${document.document_title} - ${property.title}`,
       delivery_mode: 'email',
       external_id: tenancyId,
-      expiration_date: expirationDate.toISOString(),
+      expiration_date: expirationDate.toISOString().split('T')[0],
     });
 
     console.log('YouSign signature request created:', signatureRequest.id);
