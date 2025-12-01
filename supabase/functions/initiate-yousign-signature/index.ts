@@ -201,7 +201,8 @@ serve(async (req) => {
       .insert({
         tenancy_id: tenancyId,
         property_id: propertyId,
-        signing_method: 'yousign',
+        signing_method_provider: 'yousign',
+        signature_method: 'AES',
         workflow_status: 'pending',
         qualified_signature_provider: 'yousign',
         qualified_signature_session_id: signatureRequest.id,

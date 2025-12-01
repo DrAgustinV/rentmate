@@ -230,8 +230,9 @@ export type Database = {
           qualified_signature_metadata: Json | null
           qualified_signature_provider: string | null
           qualified_signature_session_id: string | null
+          signature_method: string | null
           signed_document_url: string | null
-          signing_method: string | null
+          signing_method_provider: string | null
           source_document_id: string | null
           tenancy_id: string
           tenant_embed_slug: string | null
@@ -269,8 +270,9 @@ export type Database = {
           qualified_signature_metadata?: Json | null
           qualified_signature_provider?: string | null
           qualified_signature_session_id?: string | null
+          signature_method?: string | null
           signed_document_url?: string | null
-          signing_method?: string | null
+          signing_method_provider?: string | null
           source_document_id?: string | null
           tenancy_id: string
           tenant_embed_slug?: string | null
@@ -308,8 +310,9 @@ export type Database = {
           qualified_signature_metadata?: Json | null
           qualified_signature_provider?: string | null
           qualified_signature_session_id?: string | null
+          signature_method?: string | null
           signed_document_url?: string | null
-          signing_method?: string | null
+          signing_method_provider?: string | null
           source_document_id?: string | null
           tenancy_id?: string
           tenant_embed_slug?: string | null
