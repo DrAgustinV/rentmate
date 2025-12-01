@@ -30,13 +30,14 @@ export function CopyTemplatesDialog({
   const { data: templates, isLoading, isError, error: queryError, refetch } = useQuery({
     queryKey: ["property-templates", propertyId],
     queryFn: async () => {
+      // Fetch both property-specific templates AND global templates (property_id IS NULL)
       const { data, error } = await supabase
         .from("property_documents")
         .select("*")
-        .eq("property_id", propertyId)
         .eq("document_category", "property")
         .eq("is_latest_version", true)
-        .is("tenancy_id", null);
+        .is("tenancy_id", null)
+        .or(`property_id.eq.${propertyId},property_id.is.null`);
 
       if (error) {
         console.error('Error fetching property templates:', error);
@@ -226,8 +227,8 @@ export function CopyTemplatesDialog({
               {t('properties.noTemplatesAvailable')}
             </p>
             <p className="text-sm text-muted-foreground">
-              To create property templates, go to the "Documents" tab and upload documents 
-              without selecting a tenant. These will become reusable templates.
+              {t('properties.createTemplatesInConfiguration') || 
+                'To create document templates, go to Configuration → Templates and upload your contract templates. They will be available here for all properties.'}
             </p>
           </div>
         )}
