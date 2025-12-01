@@ -979,7 +979,7 @@ export type Database = {
           is_latest_version: boolean | null
           mime_type: string
           parent_document_id: string | null
-          property_id: string
+          property_id: string | null
           tenancy_id: string | null
           updated_at: string | null
           uploaded_by: string
@@ -998,7 +998,7 @@ export type Database = {
           is_latest_version?: boolean | null
           mime_type: string
           parent_document_id?: string | null
-          property_id: string
+          property_id?: string | null
           tenancy_id?: string | null
           updated_at?: string | null
           uploaded_by: string
@@ -1017,7 +1017,7 @@ export type Database = {
           is_latest_version?: boolean | null
           mime_type?: string
           parent_document_id?: string | null
-          property_id?: string
+          property_id?: string | null
           tenancy_id?: string | null
           updated_at?: string | null
           uploaded_by?: string
