@@ -21,9 +21,23 @@ serve(async (req) => {
 
     console.log('[Mock Mode] Received signature webhook:', { signatureId, signerRole, signatureMethod });
 
-    if (!signatureId || !signerRole || !signatureMethod) {
+    if (!signatureId || !signerRole) {
       throw new Error('Missing required fields');
     }
+
+    // Map old signature methods to new SAS/AES/QES format
+    const normalizeSignatureMethod = (method: string | undefined): string => {
+      if (!method) return 'SAS';
+      const upperMethod = method.toUpperCase();
+      if (['SAS', 'AES', 'QES'].includes(upperMethod)) return upperMethod;
+      // Map legacy values
+      if (['certificado_digital', 'clave', 'mock'].includes(method.toLowerCase())) return 'SAS';
+      if (['electronic_signature', 'docuseal'].includes(method.toLowerCase())) return 'AES';
+      if (method.toLowerCase() === 'qualified_signature') return 'QES';
+      return 'SAS'; // Default to SAS
+    };
+
+    const normalizedMethod = normalizeSignatureMethod(signatureMethod);
 
     // Get current signature
     const { data: signature, error: fetchError } = await supabaseAdmin
@@ -43,12 +57,12 @@ serve(async (req) => {
     // Update based on signer role
     if (signerRole === 'manager') {
       updateData.manager_signed_at = now;
-      updateData.manager_signature_method = signatureMethod;
+      updateData.manager_signature_method = normalizedMethod;
       updateData.manager_signature_ip = ipAddress || '127.0.0.1';
       eventType = 'manager_signed';
     } else if (signerRole === 'tenant') {
       updateData.tenant_signed_at = now;
-      updateData.tenant_signature_method = signatureMethod;
+      updateData.tenant_signature_method = normalizedMethod;
       updateData.tenant_signature_ip = ipAddress || '127.0.0.1';
       eventType = 'tenant_signed';
     }

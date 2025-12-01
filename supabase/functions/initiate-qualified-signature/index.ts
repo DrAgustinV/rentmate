@@ -162,13 +162,23 @@ serve(async (req) => {
     const sessionId = crypto.randomUUID();
     const callbackUrl = `${supabaseUrl}/functions/v1/qualified-signature-callback`;
 
+    // Determine signature method based on provider
+    const getSignatureMethod = (providerCode: string): string => {
+      switch (providerCode) {
+        case 'yousign': return 'AES';
+        case 'openapi': return 'QES'; // OpenAPI supports QES
+        default: return 'SAS';
+      }
+    };
+
     // Create signature record
     const { data: signature, error: signatureError } = await supabase
       .from('contract_signatures')
       .insert({
         tenancy_id: tenancyId,
         property_id: propertyId,
-        signing_method: 'qualified',
+        signing_method_provider: provider.code,
+        signature_method: getSignatureMethod(provider.code),
         workflow_status: 'pending',
         qualified_signature_provider: provider.code,
         qualified_signature_session_id: sessionId,

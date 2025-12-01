@@ -23,7 +23,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface ContractSignature {
   id: string;
   workflow_status: string;
-  signing_method: string | null;
+  signing_method_provider: string | null;
+  signature_method: string | null;
   manager_signed_at: string | null;
   manager_signature_method: string | null;
   tenant_signed_at: string | null;
@@ -357,14 +358,14 @@ export const ContractSignatureManager = ({
     
     setLoading(true);
     try {
-      const methods = ['certificado_digital', 'clave'];
-      const randomMethod = methods[Math.floor(Math.random() * methods.length)];
+      // Use SAS (Simple Advanced Signature) for mock signatures
+      const signatureMethod = 'SAS';
 
       const { data, error } = await supabase.functions.invoke('handle-signature-webhook', {
         body: {
           signatureId: signature.id,
           signerRole: role,
-          signatureMethod: randomMethod,
+          signatureMethod,
           ipAddress: '127.0.0.1',
         }
       });
@@ -392,33 +393,32 @@ export const ContractSignatureManager = ({
   const getSignatureMethodBadge = (method: string | null) => {
     if (!method) return null;
     
-    // Check if it's a qualified signature provider (autofirma, yousign, etc.)
-    if (method === 'autofirma' || method === 'yousign' || method.startsWith('qualified_')) {
-      return (
-        <Badge variant="default" className="text-xs bg-primary">
-          <Shield className="h-3 w-3 mr-1" />
-          {method === 'yousign' ? 'YouSign' : 'Qualified Signature'}
-        </Badge>
-      );
+    // Handle SAS/AES/QES signature methods
+    switch (method) {
+      case 'QES':
+        return (
+          <Badge variant="default" className="text-xs bg-primary">
+            <Shield className="h-3 w-3 mr-1" />
+            Qualified (QES)
+          </Badge>
+        );
+      case 'AES':
+        return (
+          <Badge variant="outline" className="text-xs border-primary text-primary">
+            <Shield className="h-3 w-3 mr-1" />
+            Advanced (AES)
+          </Badge>
+        );
+      case 'SAS':
+        return (
+          <Badge variant="outline" className="text-xs">
+            <FileSignature className="h-3 w-3 mr-1" />
+            Simple (SAS)
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline" className="text-xs">{method}</Badge>;
     }
-    
-    if (method === 'certificado_digital') {
-      return (
-        <Badge variant="outline" className="text-xs">
-          <Shield className="h-3 w-3 mr-1" />
-          {t('contractSignature.methods.certificadoDigital')}
-        </Badge>
-      );
-    }
-    if (method === 'clave') {
-      return (
-        <Badge variant="outline" className="text-xs">
-          <Smartphone className="h-3 w-3 mr-1" />
-          {t('contractSignature.methods.clave')}
-        </Badge>
-      );
-    }
-    return <Badge variant="outline" className="text-xs">{method}</Badge>;
   };
 
   if (!signature) {
@@ -563,8 +563,8 @@ export const ContractSignatureManager = ({
   const isCompleted = signature.workflow_status === 'completed';
   const managerSigned = !!signature.manager_signed_at;
   const tenantSigned = !!signature.tenant_signed_at;
-  const isDocusealSignature = signature.signing_method === 'docuseal' || signature.docuseal_submission_id;
-  const isQualifiedSignature = signature.signing_method === 'qualified' && signature.qualified_signature_provider;
+  const isDocusealSignature = signature.signing_method_provider === 'docuseal' || signature.docuseal_submission_id;
+  const isQualifiedSignature = ['openapi', 'yousign'].includes(signature.signing_method_provider || '');
 
   return (
     <Card>
@@ -596,7 +596,7 @@ export const ContractSignatureManager = ({
           {isQualifiedSignature && (
             <Badge variant="outline" className="ml-2">
               <Shield className="h-3 w-3 mr-1" />
-              {signature.qualified_signature_provider?.toUpperCase()} Qualified
+              {signature.signing_method_provider?.toUpperCase()} ({signature.signature_method})
             </Badge>
           )}
           {isCompleted && signature.kyc_enforced && (
@@ -634,11 +634,11 @@ export const ContractSignatureManager = ({
         )}
 
         {/* Qualified Signature Flow - Show for qualified signatures */}
-        {signature.signing_method === 'qualified' && !isCompleted && showSigningForm && signature.qualified_signature_provider && (
+        {isQualifiedSignature && !isCompleted && showSigningForm && (
           <QualifiedSignatureFlow
             tenancyId={tenancyId}
             propertyId={propertyId}
-            providerCode={signature.qualified_signature_provider}
+            providerCode={signature.signing_method_provider || 'yousign'}
             onComplete={() => {
               setShowSigningForm(false);
               loadSignature();
@@ -725,7 +725,7 @@ export const ContractSignatureManager = ({
                 className="mt-2"
               >
                 <Shield className="h-4 w-4 mr-2" />
-                Sign with {signature.qualified_signature_provider?.toUpperCase()}
+                Sign with {signature.signing_method_provider?.toUpperCase()}
               </Button>
             )}
           </div>
@@ -777,7 +777,7 @@ export const ContractSignatureManager = ({
                 className="mt-2"
               >
                 <Shield className="h-4 w-4 mr-2" />
-                Sign with {signature.qualified_signature_provider?.toUpperCase()}
+                Sign with {signature.signing_method_provider?.toUpperCase()}
               </Button>
             )}
           </div>

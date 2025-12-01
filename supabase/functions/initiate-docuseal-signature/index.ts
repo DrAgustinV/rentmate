@@ -148,14 +148,15 @@ serve(async (req) => {
       .from('contract_signatures')
       .select('id')
       .eq('tenancy_id', tenancyId)
-      .eq('signing_method', 'docuseal')
+      .eq('signing_method_provider', 'docuseal')
       .single();
 
     const signatureData = {
       tenancy_id: tenancyId,
       property_id: tenancy.properties.id,
       initiated_by: userId,
-      signing_method: 'docuseal',
+      signing_method_provider: 'docuseal',
+      signature_method: 'SAS',
       workflow_status: 'pending',
       docuseal_template_id: templateId,
       docuseal_submission_id: docusealData[0]?.submission_id,

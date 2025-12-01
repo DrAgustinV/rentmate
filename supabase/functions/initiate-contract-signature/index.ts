@@ -92,6 +92,8 @@ Deno.serve(async (req) => {
       .insert({
         tenancy_id: tenancyId,
         property_id: propertyId,
+        signing_method_provider: 'mock',
+        signature_method: 'SAS',
         workflow_id: `MOCK_${Date.now()}`, // Mock workflow ID
         workflow_status: 'in_progress',
         initiated_by: user.id,
