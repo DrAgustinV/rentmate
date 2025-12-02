@@ -275,6 +275,11 @@ export class YouSignClient {
   static async verifyWebhookSignature(payload: string, signature: string, secret: string): Promise<boolean> {
     try {
       // YouSign uses HMAC-SHA256 for webhook signatures
+      // The signature header includes a 'sha256=' prefix that must be stripped
+      const cleanSignature = signature.startsWith('sha256=') 
+        ? signature.slice(7) 
+        : signature;
+      
       const encoder = new TextEncoder();
       const key = encoder.encode(secret);
       const data = encoder.encode(payload);
@@ -292,7 +297,7 @@ export class YouSignClient {
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
       
-      return computedSignature === signature;
+      return computedSignature === cleanSignature;
     } catch {
       return false;
     }
