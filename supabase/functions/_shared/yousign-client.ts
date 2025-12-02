@@ -138,22 +138,14 @@ export class YouSignClient {
     external_id?: string;
     timezone?: string;
     expiration_date?: string;
-    webhook_url?: string;
   }): Promise<YouSignSignatureRequest> {
-    const body: Record<string, any> = {
+    return this.request<YouSignSignatureRequest>('POST', '/signature_requests', {
       name: params.name,
       delivery_mode: params.delivery_mode || 'email',
       external_id: params.external_id,
       timezone: params.timezone || 'Europe/Madrid',
       expiration_date: params.expiration_date,
-    };
-
-    // Add webhook subscription if URL provided
-    if (params.webhook_url) {
-      body.webhook_url = params.webhook_url;
-    }
-
-    return this.request<YouSignSignatureRequest>('POST', '/signature_requests', body);
+    });
   }
 
   /**
