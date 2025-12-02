@@ -794,10 +794,33 @@ export const ContractSignatureManager = ({
                   {t('contractSignature.signedOn')}: {format(new Date(signature.completed_at!), 'PPP')}
                 </div>
               </div>
-              <Button size="sm" variant="outline" asChild>
-                <a href={signature.signed_document_url} target="_blank" rel="noopener noreferrer">
-                  {t('common.download')}
-                </a>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={async () => {
+                  // Extract path from URL if it's a full URL, or use as-is if it's just a path
+                  let storagePath = signature.signed_document_url!;
+                  if (storagePath.includes('/qualified-contracts/')) {
+                    storagePath = storagePath.split('/qualified-contracts/')[1];
+                  }
+                  
+                  const { data, error } = await supabase.storage
+                    .from('qualified-contracts')
+                    .createSignedUrl(storagePath, 3600); // 1 hour expiry
+                  
+                  if (error || !data?.signedUrl) {
+                    toast({
+                      title: t('common.error'),
+                      description: 'Failed to generate download link',
+                      variant: 'destructive',
+                    });
+                    return;
+                  }
+                  
+                  window.open(data.signedUrl, '_blank');
+                }}
+              >
+                {t('common.download')}
               </Button>
             </div>
           </>
