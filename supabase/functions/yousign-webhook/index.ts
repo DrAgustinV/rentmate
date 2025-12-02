@@ -146,10 +146,8 @@ serve(async (req) => {
             console.error('Error uploading signed document:', uploadError);
           }
 
-          // Get public URL
-          const { data: urlData } = supabase.storage
-            .from('qualified-contracts')
-            .getPublicUrl(signedPath);
+          // Store the storage path (not public URL - bucket is private)
+          // Frontend will use createSignedUrl() for secure downloads
 
           // Update signature record
           await supabase
@@ -157,7 +155,7 @@ serve(async (req) => {
             .update({
               workflow_status: 'completed',
               completed_at: new Date().toISOString(),
-              signed_document_url: urlData?.publicUrl,
+              signed_document_url: signedPath,  // Store path, not URL
               qualified_signature_metadata: {
                 ...metadata,
                 status: 'done',
