@@ -114,11 +114,15 @@ serve(async (req) => {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 30); // 30 days to sign
 
+    // Configure webhook URL for signature events
+    const webhookUrl = `${supabaseUrl}/functions/v1/yousign-webhook`;
+
     const signatureRequest = await yousignClient.createSignatureRequest({
       name: `${document.document_title} - ${property.title}`,
       delivery_mode: 'email',
       external_id: tenancyId,
       expiration_date: expirationDate.toISOString().split('T')[0],
+      webhook_url: webhookUrl,
     });
 
     console.log('YouSign signature request created:', signatureRequest.id);
