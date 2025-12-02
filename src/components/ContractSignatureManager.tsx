@@ -798,6 +798,9 @@ export const ContractSignatureManager = ({
                 size="sm" 
                 variant="outline"
                 onClick={async () => {
+                  // Open window immediately to preserve user gesture (prevents popup block)
+                  const newWindow = window.open('', '_blank');
+                  
                   // Extract path from URL if it's a full URL, or use as-is if it's just a path
                   let storagePath = signature.signed_document_url!;
                   if (storagePath.includes('/qualified-contracts/')) {
@@ -809,6 +812,7 @@ export const ContractSignatureManager = ({
                     .createSignedUrl(storagePath, 3600); // 1 hour expiry
                   
                   if (error || !data?.signedUrl) {
+                    newWindow?.close(); // Close the blank window on error
                     toast({
                       title: t('common.error'),
                       description: 'Failed to generate download link',
@@ -817,7 +821,10 @@ export const ContractSignatureManager = ({
                     return;
                   }
                   
-                  window.open(data.signedUrl, '_blank');
+                  // Navigate the already-open window to the signed URL
+                  if (newWindow) {
+                    newWindow.location.href = data.signedUrl;
+                  }
                 }}
               >
                 {t('common.download')}
