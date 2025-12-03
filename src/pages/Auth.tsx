@@ -403,13 +403,13 @@ export default function Auth() {
 
         {!isSignUp && (
           <div className="text-right">
-            <button
+            <Button
               type="button"
+              variant="link"
               onClick={() => navigate('/reset-password')}
-              className="text-sm text-primary hover:underline"
             >
               {t('auth.forgotPassword')}
-            </button>
+            </Button>
           </div>
         )}
 
@@ -419,13 +419,15 @@ export default function Auth() {
         </Button>
 
         <div className="text-center text-sm">
-          <button
+          <Button
             type="button"
+            variant="link"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-primary hover:underline"
           >
-            {isSignUp ? t('auth.alreadyHaveAccount') + ' ' + t('auth.signInHere') : t('auth.noAccountYet') + ' ' + t('auth.signUpHere')}
-          </button>
+            {isSignUp
+              ? t('auth.alreadyHaveAccount') + ' ' + t('auth.signInHere')
+              : t('auth.noAccountYet') + ' ' + t('auth.signUpHere')}
+          </Button>
         </div>
       </form>
     </AuthLayout>

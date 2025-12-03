@@ -81,7 +81,7 @@ export function PropertiesTable() {
               <TableCell>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => navigate(`/properties/${property.id}/tickets`)}
                 >
                   <ExternalLink className="h-4 w-4" />
