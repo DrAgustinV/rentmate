@@ -111,7 +111,7 @@ export function PreviewStep({ rows, onBack, onContinue }: PreviewStepProps) {
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <h3 className="font-medium">
-                      {row.title || row.property_title || `Row ${row._rowNumber}`}
+                      {row.title || row.property_title || (row as any).company_name || `Row ${row._rowNumber}`}
                     </h3>
                     <Badge variant="outline" className="text-xs">
                       Row {row._rowNumber}
