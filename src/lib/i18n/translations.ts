@@ -2140,10 +2140,9 @@ export const translations = {
        updateSuccess: "Propiedad actualizada exitosamente",
        updateError: "Error al actualizar propiedad",
        validationError: "Por favor verifica los errores en el formulario",
-       documentUploaded: "Documento subido exitosamente",
-       documentUploadFailed: "Error al subir documento",
-     }
-      titleRequired: "El título de la propiedad es obligatorio",
+        documentUploaded: "Documento subido exitosamente",
+        documentUploadFailed: "Error al subir documento",
+        titleRequired: "El título de la propiedad es obligatorio",
       photo: "Foto",
       streetAddress: "Dirección...",
       city: "Ciudad",
