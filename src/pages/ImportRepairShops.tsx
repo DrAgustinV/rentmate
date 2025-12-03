@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card } from '@/components/ui/card';
 import { UploadRepairShopsStep } from '@/components/import/UploadRepairShopsStep';
@@ -9,6 +10,15 @@ import { parseCSV, ParsedRow } from '@/lib/import/csvParser';
 import { useToast } from '@/hooks/use-toast';
 import { repairShopBaseSchema } from '@/lib/validations/repair-shop.schema';
 import { useRepairShopImport, RepairShopImportRecord } from '@/hooks/useRepairShopImport';
+import { Button } from '@/components/ui/button';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 type Step = 'upload' | 'preview' | 'processing' | 'results';
 
@@ -33,6 +43,7 @@ export default function ImportRepairShops() {
 
   const { toast } = useToast();
   const importMutation = useRepairShopImport();
+  const navigate = useNavigate();
 
   const handleFileSelect = async (selectedFile: File) => {
     setFile(selectedFile);
@@ -153,6 +164,33 @@ export default function ImportRepairShops() {
     <AppLayout>
       <div className="container max-w-4xl mx-auto py-8">
         <Card className="p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <Breadcrumb className="mb-1">
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link to="/repair-shops">Repair shops</Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>Bulk import</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+              <h1 className="text-2xl font-semibold leading-none tracking-tight">
+                Bulk import repair shops
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Upload the CSV template to quickly add multiple repair contacts.
+              </p>
+            </div>
+            <Button variant="outline" onClick={() => navigate('/repair-shops')}>
+              Back to repair shops
+            </Button>
+          </div>
+
           {step === 'upload' && <UploadRepairShopsStep onFileSelect={handleFileSelect} />}
 
           {step === 'preview' && (
