@@ -283,7 +283,6 @@ export function AppHeader() {
 
         {/* User Menu (Desktop) */}
         <div className="hidden md:flex items-center gap-2">
-          <LanguageSwitcher />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
@@ -327,9 +326,6 @@ export function AppHeader() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <UserCircle className="h-4 w-4" />
                 <span className="truncate">{user.email}</span>
-              </div>
-              <div className="mb-4">
-                <LanguageSwitcher />
               </div>
               <div className="flex flex-col gap-2">
                 {navLinks.map((link) => (
