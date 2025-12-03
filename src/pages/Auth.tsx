@@ -38,6 +38,26 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    const sendWelcomeEmail = async () => {
+      try {
+        const storageKey = "rentmate_welcome_email_sent";
+        if (localStorage.getItem(storageKey) === "true") {
+          return;
+        }
+
+        const { error } = await supabase.functions.invoke("send-welcome-email");
+
+        if (error) {
+          console.error("Error sending welcome email:", error);
+          return;
+        }
+
+        localStorage.setItem(storageKey, "true");
+      } catch (error) {
+        console.error("Unexpected error sending welcome email:", error);
+      }
+    };
+
     const checkAuthAndToken = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -97,6 +117,11 @@ export default function Auth() {
           console.log('Signed in, redirecting to properties');
           navigate("/properties");
         }
+
+        // Trigger branded welcome email after first successful login
+        setTimeout(() => {
+          void sendWelcomeEmail();
+        }, 0);
       }
     });
 
