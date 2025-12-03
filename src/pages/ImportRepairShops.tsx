@@ -170,7 +170,7 @@ export default function ImportRepairShops() {
                 <BreadcrumbList>
                   <BreadcrumbItem>
                     <BreadcrumbLink asChild>
-                      <Link to="/repair-shops">Repair shops</Link>
+                      <Link to="/configuration?tab=repair-shops">Repair shops</Link>
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />
@@ -186,9 +186,12 @@ export default function ImportRepairShops() {
                 Upload the CSV template to quickly add multiple repair contacts.
               </p>
             </div>
-              <Button variant="outline" onClick={() => navigate('/repair-shops')}>
-                Cancel
-              </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/configuration?tab=repair-shops")}
+            >
+              Cancel
+            </Button>
           </div>
 
           {step === 'upload' && <UploadRepairShopsStep onFileSelect={handleFileSelect} />}
