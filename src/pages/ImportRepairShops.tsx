@@ -186,9 +186,9 @@ export default function ImportRepairShops() {
                 Upload the CSV template to quickly add multiple repair contacts.
               </p>
             </div>
-            <Button variant="outline" onClick={() => navigate('/repair-shops')}>
-              Back to repair shops
-            </Button>
+              <Button variant="outline" onClick={() => navigate('/repair-shops')}>
+                Cancel
+              </Button>
           </div>
 
           {step === 'upload' && <UploadRepairShopsStep onFileSelect={handleFileSelect} />}
