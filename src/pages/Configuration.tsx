@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FolderOpen, Wrench, FileText, ClipboardList, Settings, Plus, CreditCard } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { StandardTasksSection } from "@/components/StandardTasksSection";
-import RepairShops from "./RepairShops";
+import { RepairShopsSection } from "@/components/RepairShopsSection";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -18,6 +18,8 @@ import { CreatePropertyTemplateDialog } from "@/components/CreatePropertyTemplat
 import { GlobalTemplatesList } from "@/components/GlobalTemplatesList";
 import { StripeConnectOnboarding } from "@/components/payments/StripeConnectOnboarding";
 
+type ConfigTab = "maintenance" | "templates" | "repair-shops" | "payments" | "defaults";
+
 export default function Configuration() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,9 @@ export default function Configuration() {
   const [createTemplateOpen, setCreateTemplateOpen] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as ConfigTab) || "maintenance";
+  const [activeTab, setActiveTab] = useState<ConfigTab>(initialTab);
 
   // Default settings state
   const [defaultRequireKYC, setDefaultRequireKYC] = useState(false);
@@ -35,6 +40,14 @@ export default function Configuration() {
   const [defaultRequireElectricityBill, setDefaultRequireElectricityBill] = useState(false);
 
   useEffect(() => {
+    const tab = searchParams.get("tab") as ConfigTab | null;
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams, activeTab]);
+
+  useEffect(() => {
+
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -142,7 +155,23 @@ export default function Configuration() {
         <p className="text-muted-foreground mt-1">{t("configuration.pageDescription")}</p>
       </div>
 
-      <Tabs defaultValue="maintenance" className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          const tab = value as ConfigTab;
+          setActiveTab(tab);
+
+          const params = new URLSearchParams(searchParams);
+          if (tab === "maintenance") {
+            params.delete("tab");
+          } else {
+            params.set("tab", tab);
+          }
+          setSearchParams(params, { replace: true });
+        }}
+        className="w-full"
+      >
+
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="maintenance" className="gap-2">
             <ClipboardList className="h-4 w-4" />
@@ -212,7 +241,7 @@ export default function Configuration() {
         </TabsContent>
 
         <TabsContent value="repair-shops" className="space-y-4">
-          <RepairShops />
+          <RepairShopsSection />
         </TabsContent>
 
         <TabsContent value="payments" className="space-y-4">

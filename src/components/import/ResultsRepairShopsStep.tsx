@@ -94,10 +94,14 @@ export function ResultsRepairShopsStep({ summary, onStartNew }: ResultsRepairSho
         <Button variant="outline" onClick={onStartNew} className="flex-1">
           Import More
         </Button>
-        <Button onClick={() => navigate('/repair-shops')} className="flex-1">
+        <Button
+          onClick={() => navigate("/configuration?tab=repair-shops")}
+          className="flex-1"
+        >
           View Repair Shops
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
+
       </div>
     </div>
   );
