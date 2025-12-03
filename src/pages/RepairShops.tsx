@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useRepairShops } from "@/hooks/useRepairShops";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CreateRepairShopDrawer } from "@/components/CreateRepairShopDrawer";
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 
 export default function RepairShops() {
+  const navigate = useNavigate();
   const { repairShops, isLoading } = useRepairShops();
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,7 +58,12 @@ export default function RepairShops() {
           <h2 className="text-2xl font-bold">{t('repairShops.title')}</h2>
           <p className="text-muted-foreground">{t('repairShops.description')}</p>
         </div>
-        <CreateRepairShopDrawer />
+        <div className="flex gap-2 justify-end">
+          <Button variant="outline" onClick={() => navigate('/repair-shops/import')}>
+            Bulk import
+          </Button>
+          <CreateRepairShopDrawer />
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">

@@ -1,0 +1,3 @@
+company_name,phone,email,contact_person,address,city,postal_code,specializations,license_number,notes
+Acme Plumbing,+34911222333,info@acmeplumbing.com,John Doe,Main St 123,Madrid,28001,"plumbing;heating",LIC-12345,24/7 emergency service
+Better Repairs,+34944555666,support@betterrepairs.com,Jane Smith,Second Ave 45,Barcelona,08001,"electrical;appliances",,Specialized in apartment maintenance

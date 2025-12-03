@@ -34,6 +34,7 @@ import Account from "./pages/Account";
 import Pricing from "./pages/Pricing";
 import RepairShops from "./pages/RepairShops";
 import Import from "./pages/Import";
+import ImportRepairShops from "./pages/ImportRepairShops";
 import { queryClient } from "./lib/queryClient";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 
@@ -45,14 +46,16 @@ const App = () => (
       <BrowserRouter>
         <AnalyticsProvider>
           <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/properties" element={<Properties />} />
-          <Route path="/import" element={<Import />} />
-          <Route path="/renting" element={<Renting />} />
+           <Route path="/" element={<Index />} />
+           <Route path="/pricing" element={<Pricing />} />
+           <Route path="/auth" element={<Auth />} />
+           <Route path="/reset-password" element={<ResetPassword />} />
+           <Route path="/dashboard" element={<Dashboard />} />
+           <Route path="/properties" element={<Properties />} />
+           <Route path="/import" element={<Import />} />
+           <Route path="/repair-shops" element={<RepairShops />} />
+           <Route path="/repair-shops/import" element={<ImportRepairShops />} />
+           <Route path="/renting" element={<Renting />} />
           <Route path="/configuration" element={<Configuration />} />
           <Route path="/account" element={<Account />} />
           <Route path="/profile" element={<Navigate to="/account" replace />} />
