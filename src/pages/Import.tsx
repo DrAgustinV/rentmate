@@ -188,7 +188,7 @@ export default function Import() {
               </p>
             </div>
             <Button variant="outline" onClick={() => navigate('/properties')}>
-              Back to properties
+              Cancel
             </Button>
           </div>
 
