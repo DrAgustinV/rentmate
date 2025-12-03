@@ -18,9 +18,16 @@ export default tseslint.config(
       "react-refresh": reactRefresh,
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "@typescript-eslint/no-unused-vars": "off",
-    },
+       ...reactHooks.configs.recommended.rules,
+       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+       "@typescript-eslint/no-unused-vars": "off",
+       "no-restricted-syntax": [
+         "warn",
+         {
+           selector: "CallExpression[callee.object.name='toast'][arguments.0.type='Literal']",
+           message: "Use translations (t()) for toast messages instead of hard-coded strings.",
+         },
+       ],
+     },
   },
 );
