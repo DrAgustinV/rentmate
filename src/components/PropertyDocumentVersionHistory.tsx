@@ -57,11 +57,11 @@ export default function PropertyDocumentVersionHistory({
               </div>
             </div>
             <div className="flex gap-2 flex-shrink-0">
-              <Button variant="outline" size="sm" onClick={() => onDownload(version)}>
+              <Button variant="outline" size="icon" onClick={() => onDownload(version)}>
                 <Download className="h-3 w-3" />
               </Button>
               {onDelete && (
-                <Button variant="ghost" size="sm" onClick={() => onDelete(version)}>
+                <Button variant="destructive" size="icon" onClick={() => onDelete(version)}>
                   <Trash2 className="h-3 w-3" />
                 </Button>
               )}
