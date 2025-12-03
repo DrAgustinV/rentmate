@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card } from '@/components/ui/card';
 import { UploadStep } from '@/components/import/UploadStep';
@@ -9,6 +10,15 @@ import { parseCSV, detectImportType, groupByProperty, ParsedRow } from '@/lib/im
 import { validateImport } from '@/lib/import/validators';
 import { useImportMutation } from '@/hooks/useImport';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 type Step = 'upload' | 'preview' | 'processing' | 'results';
 
@@ -21,6 +31,7 @@ export default function Import() {
   
   const { toast } = useToast();
   const importMutation = useImportMutation();
+  const navigate = useNavigate();
 
   const handleFileSelect = async (selectedFile: File) => {
     setFile(selectedFile);
@@ -154,6 +165,33 @@ export default function Import() {
     <AppLayout>
       <div className="container max-w-4xl mx-auto py-8">
         <Card className="p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <Breadcrumb className="mb-1">
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link to="/properties">Properties</Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>Bulk import</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+              <h1 className="text-2xl font-semibold leading-none tracking-tight">
+                Bulk import properties &amp; tenants
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Use our CSV templates to quickly add properties and tenants.
+              </p>
+            </div>
+            <Button variant="outline" onClick={() => navigate('/properties')}>
+              Back to properties
+            </Button>
+          </div>
+
           {step === 'upload' && (
             <UploadStep
               onFileSelect={handleFileSelect}
@@ -161,7 +199,7 @@ export default function Import() {
               setImportType={setImportType}
             />
           )}
-          
+
           {step === 'preview' && (
             <PreviewStep
               rows={parsedRows}
@@ -169,19 +207,13 @@ export default function Import() {
               onContinue={handleContinue}
             />
           )}
-          
+
           {step === 'processing' && (
-            <ProcessingStep
-              totalRecords={parsedRows.length}
-              onComplete={() => {}}
-            />
+            <ProcessingStep totalRecords={parsedRows.length} onComplete={() => {}} />
           )}
-          
+
           {step === 'results' && importSummary && (
-            <ResultsStep
-              summary={importSummary}
-              onStartNew={handleStartNew}
-            />
+            <ResultsStep summary={importSummary} onStartNew={handleStartNew} />
           )}
         </Card>
       </div>
