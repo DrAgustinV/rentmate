@@ -157,16 +157,16 @@ export function IdentityVerification() {
                   <Label htmlFor="didit" className="cursor-pointer">
                     <div className="flex items-center gap-2">
                       <Gift className="w-4 h-4 text-green-600" />
-                      <span className="font-medium">Didit.me Verification</span>
-                      <Badge className="bg-green-500 text-white text-xs">FREE</Badge>
+                      <span className="font-medium">Full Identity Verification</span>
+                      <Badge className="bg-green-500 text-white text-xs">Get Your Verified Badge</Badge>
                       <Badge variant="outline" className="text-xs">Recommended</Badge>
                     </div>
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    ID verification with AI-powered document scanning • 190+ countries supported
+                    ID verification with AI-powered document scanning
                   </p>
                   <p className="text-xs text-green-600 font-medium">
-                    ✓ Fast and easy. Use your ID, passport or driving licence.
+                    ✓ Fast and easy. Use your ID, passport or resident card.
                   </p>
                 </div>
               </div>
