@@ -171,61 +171,6 @@ export function IdentityVerification() {
                 </div>
               </div>
 
-              {/* OpenAPI Option */}
-              <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer">
-                <RadioGroupItem value="openapi" id="openapi" className="mt-1" />
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="openapi" className="cursor-pointer">
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-primary" />
-                      <span className="font-medium">OpenAPI Verification</span>
-                    </div>
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Advanced verification with multiple levels (EU focused)
-                  </p>
-                  
-                  {selectedProvider === 'openapi' && (
-                    <div className="space-y-2 pt-2">
-                      <Label htmlFor="level" className="text-sm">Verification Level</Label>
-                      <Select value={selectedLevel} onValueChange={(value) => setSelectedLevel(value as OpenAPIVerificationLevel)}>
-                        <SelectTrigger id="level" className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="basic">
-                            <div className="flex items-center gap-2">
-                              <Zap className="w-4 h-4" />
-                              <div>
-                                <div className="font-medium">Basic - ID Scan</div>
-                                <div className="text-xs text-muted-foreground">~3 mins, AI verified</div>
-                              </div>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="advanced">
-                            <div className="flex items-center gap-2">
-                              <UserCheck className="w-4 h-4" />
-                              <div>
-                                <div className="font-medium">Advanced - ID + Face</div>
-                                <div className="text-xs text-muted-foreground">~3 mins, AI verified + face match</div>
-                              </div>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="expert">
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4" />
-                              <div>
-                                <div className="font-medium">Expert - Human Review</div>
-                                <div className="text-xs text-muted-foreground">~3 hours, expert verified</div>
-                              </div>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </div>
-              </div>
 
               {/* KILT Option */}
               <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer">
