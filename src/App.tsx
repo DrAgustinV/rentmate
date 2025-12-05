@@ -26,7 +26,7 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 import Properties from "./pages/Properties";
-import Renting from "./pages/Renting";
+import Rentals from "./pages/Rentals";
 import Configuration from "./pages/Configuration";
 import Profile from "./pages/Profile";
 import Identity from "./pages/Identity";
@@ -55,12 +55,13 @@ const App = () => (
            <Route path="/import" element={<Import />} />
            <Route path="/repair-shops" element={<RepairShops />} />
            <Route path="/repair-shops/import" element={<ImportRepairShops />} />
-           <Route path="/renting" element={<Renting />} />
+           <Route path="/rentals" element={<Rentals />} />
+           <Route path="/renting" element={<Navigate to="/rentals" replace />} />
           <Route path="/configuration" element={<Configuration />} />
           <Route path="/account" element={<Account />} />
           <Route path="/profile" element={<Navigate to="/account" replace />} />
           <Route path="/identity" element={<Navigate to="/account" replace />} />
-          <Route path="/invitations" element={<Navigate to="/renting" replace />} />
+          <Route path="/invitations" element={<Navigate to="/rentals" replace />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/kilt-setup" element={<KiltSetup />} />
           <Route path="/admin" element={<Admin />} />

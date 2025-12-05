@@ -238,7 +238,7 @@ export function AppHeader() {
   // Authenticated user navigation - show Properties for ALL users
   const navLinks = [
     { path: "/properties", label: t('properties.title'), icon: Building },
-    { path: "/renting", label: t('renting.title'), icon: Handshake, badge: !isManager ? pendingInvitations : undefined },
+    { path: "/rentals", label: t('rentals.title'), icon: Handshake, badge: !isManager ? pendingInvitations : undefined },
   ];
   
   if (isManager) {

@@ -111,7 +111,7 @@ export default function PropertyTenants() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Extract navigation state
-  const { tenancyId, tenancyStatus, fromRenting } = location.state || {};
+  const { tenancyId, tenancyStatus, fromRentals } = location.state || {};
   const isReadOnly = tenancyStatus === 'historic';
 
   // Get active tab from URL or default to 'tenants'
@@ -586,10 +586,10 @@ export default function PropertyTenants() {
       <div className="space-y-6">
         {/* Back Button */}
         <div className="flex items-center gap-4">
-          {fromRenting ? (
-            <Button variant="ghost" size="sm" onClick={() => navigate('/renting')}>
+          {fromRentals ? (
+            <Button variant="ghost" size="sm" onClick={() => navigate('/rentals')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              {t("renting.backToRenting")}
+              {t("rentals.backToRentals")}
             </Button>
           ) : (
             <Button variant="ghost" size="sm" onClick={() => navigate(`/properties/${propertyId}/details`)}>
