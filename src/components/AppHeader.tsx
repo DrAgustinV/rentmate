@@ -100,6 +100,22 @@ export function AppHeader() {
     setMobileMenuOpen(false);
   };
 
+  // Logo Pill Component - Shared between anonymous and authenticated
+  const LogoPill = ({ linkTo }: { linkTo: string }) => (
+    <Link to={linkTo} className="flex items-center">
+      <div className="flex items-center gap-2 bg-white/90 rounded-full px-3 py-1.5 shadow-sm">
+        {/* Circular RE monogram */}
+        <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center">
+          <span className="text-white font-bold text-sm">RE</span>
+        </div>
+        {/* Brand name */}
+        <span className="text-teal-600 font-bold text-lg tracking-tight">
+          {brandName}
+        </span>
+      </div>
+    </Link>
+  );
+
   // Anonymous user navigation
   if (!user) {
     const anonNavLinks = [
@@ -110,15 +126,10 @@ export function AppHeader() {
     ];
 
     return (
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full bg-teal-500">
         <div className="container flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logoUrl} alt={logoAlt} className="h-8 w-8" />
-            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {brandName}
-            </div>
-          </Link>
+          {/* Logo Pill */}
+          <LogoPill linkTo="/" />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
@@ -128,7 +139,7 @@ export function AppHeader() {
                   key={link.path}
                   href={link.path}
                   onClick={(e) => handleAnchorClick(e, link.path)}
-                  className="text-sm font-medium transition-colors hover:text-primary text-muted-foreground"
+                  className="text-sm font-medium transition-colors hover:text-white/80 text-white/90"
                 >
                   {link.label}
                 </a>
@@ -136,8 +147,8 @@ export function AppHeader() {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(link.path) ? "text-primary" : "text-muted-foreground"
+                  className={`text-sm font-medium transition-colors hover:text-white/80 ${
+                    isActive(link.path) ? "text-white" : "text-white/90"
                   }`}
                 >
                   {link.label}
@@ -149,10 +160,19 @@ export function AppHeader() {
           {/* Auth Buttons (Desktop) */}
           <div className="hidden md:flex items-center gap-2">
             <LanguageSwitcher />
-            <Button variant="ghost" size="sm" onClick={() => navigate("/auth?mode=signin")}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate("/auth?mode=signin")}
+              className="text-white hover:text-white hover:bg-white/20"
+            >
               {t('landing.signIn')}
             </Button>
-            <Button size="sm" onClick={() => navigate("/auth?mode=signup")}>
+            <Button 
+              size="sm" 
+              onClick={() => navigate("/auth?mode=signup")}
+              className="bg-white text-teal-600 hover:bg-white/90"
+            >
               {t('landing.getStarted')}
             </Button>
           </div>
@@ -160,7 +180,7 @@ export function AppHeader() {
           {/* Mobile Menu */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="sm" aria-label={t('header.menu')}>
+              <Button variant="ghost" size="sm" aria-label={t('header.menu')} className="text-white hover:bg-white/20">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -250,15 +270,10 @@ export function AppHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full bg-teal-500">
       <div className="container flex h-16 items-center justify-between">
-        {/* Logo */}
-        <Link to={isManager ? "/properties" : "/dashboard"} className="flex items-center gap-2">
-          <img src={logoUrl} alt={logoAlt} className="h-8 w-8" />
-          <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            {brandName}
-          </div>
-        </Link>
+        {/* Logo Pill */}
+        <LogoPill linkTo={isManager ? "/properties" : "/dashboard"} />
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
@@ -266,8 +281,8 @@ export function AppHeader() {
             <Link
               key={link.path}
               to={link.path}
-              className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-                isActive(link.path) ? "text-primary" : "text-muted-foreground"
+              className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-white/80 ${
+                isActive(link.path) ? "text-white" : "text-white/90"
               }`}
             >
               <link.icon className="h-4 w-4" />
@@ -288,7 +303,7 @@ export function AppHeader() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="gap-2"
+                className="gap-2 text-white hover:text-white hover:bg-white/20"
                 aria-label={t('header.myAccount')}
               >
                 <UserCircle className="h-5 w-5" />
@@ -314,7 +329,7 @@ export function AppHeader() {
         {/* Mobile Menu */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="sm" aria-label={t('header.menu')}>
+            <Button variant="ghost" size="sm" aria-label={t('header.menu')} className="text-white hover:bg-white/20">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
