@@ -2,7 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Building, Archive, Upload } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Building, Archive, Upload, Banknote, Zap, Ticket, Wrench } from "lucide-react";
 import { PropertyCard, PropertyStatusIndicators } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
@@ -11,6 +12,17 @@ import { AppLayout } from "@/components/layouts/AppLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProperties } from "@/hooks/useProperties";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 export default function Properties() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -19,6 +31,7 @@ export default function Properties() {
   const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "alphabetical">("newest");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [statusIndicators, setStatusIndicators] = useState<Record<string, PropertyStatusIndicators>>({});
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -140,6 +153,74 @@ export default function Properties() {
     fetchPropertyLimit();
   }, []);
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "active":
+        return "default";
+      case "ending_tenancy":
+        return "secondary";
+      case "inactive":
+        return "outline";
+      default:
+        return "outline";
+    }
+  };
+
+  const StatusIndicatorsCell = ({ indicators }: { indicators?: PropertyStatusIndicators }) => (
+    <TooltipProvider>
+      <div className="flex items-center gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Banknote className={cn(
+              "h-3.5 w-3.5 cursor-help transition-colors",
+              !indicators?.rent_has_data ? "text-muted-foreground/40" :
+              indicators.rent_overdue ? "text-red-500" : "text-green-500"
+            )} />
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            {t('properties.rentPayments')}
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Zap className={cn(
+              "h-3.5 w-3.5 cursor-help transition-colors",
+              !indicators?.utility_has_data ? "text-muted-foreground/40" :
+              indicators.utility_overdue ? "text-red-500" : "text-green-500"
+            )} />
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            {t('properties.utilityPayments')}
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Ticket className={cn(
+              "h-3.5 w-3.5 cursor-help transition-colors",
+              !indicators?.tickets_has_data ? "text-muted-foreground/40" :
+              indicators.tickets_open ? "text-yellow-500" : "text-green-500"
+            )} />
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            {t('properties.openTickets')}
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Wrench className={cn(
+              "h-3.5 w-3.5 cursor-help transition-colors",
+              !indicators?.maintenance_has_data ? "text-muted-foreground/40" :
+              indicators.maintenance_overdue ? "text-red-500" : "text-green-500"
+            )} />
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            {t('properties.maintenanceTasks')}
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
+  );
+
   if (isLoading) {
     return (
       <AppLayout>
@@ -206,6 +287,8 @@ export default function Properties() {
           onSearchChange={setSearchTerm}
           sortBy={sortBy}
           onSortChange={setSortBy}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
         />
       </div>
 
@@ -233,7 +316,7 @@ export default function Properties() {
                   : t("dashboard.noArchivedProperties")}
           </p>
         </div>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAndSortedProperties.map((property) => (
             <PropertyCard 
@@ -244,6 +327,46 @@ export default function Properties() {
               statusIndicators={statusIndicators[property.id]}
             />
           ))}
+        </div>
+      ) : (
+        <div className="border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('properties.propertyTitle')}</TableHead>
+                <TableHead className="hidden md:table-cell">{t('properties.address')}</TableHead>
+                <TableHead>{t('properties.status')}</TableHead>
+                <TableHead className="hidden sm:table-cell">{t('search.status')}</TableHead>
+                <TableHead className="hidden lg:table-cell">{t('properties.created')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAndSortedProperties.map((property) => (
+                <TableRow 
+                  key={property.id} 
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => navigate(`/properties/${property.id}/tenants`)}
+                >
+                  <TableCell className="font-medium">{property.title}</TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground">
+                    {property.address ? `${property.address}, ${property.city || ''}` : '-'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusBadgeVariant(property.status)}>
+                      {property.status === 'active' ? t('dashboard.active') : 
+                       property.status === 'ending_tenancy' ? 'Ending' : t('dashboard.archived')}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <StatusIndicatorsCell indicators={statusIndicators[property.id]} />
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell text-muted-foreground">
+                    {format(new Date(property.created_at), 'MMM d, yyyy')}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
 

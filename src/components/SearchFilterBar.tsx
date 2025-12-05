@@ -6,14 +6,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, LayoutGrid, List } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SearchFilterBarProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   sortBy: 'newest' | 'oldest' | 'alphabetical';
   onSortChange: (value: 'newest' | 'oldest' | 'alphabetical') => void;
+  viewMode?: 'grid' | 'list';
+  onViewModeChange?: (value: 'grid' | 'list') => void;
 }
 
 export function SearchFilterBar({
@@ -21,6 +25,8 @@ export function SearchFilterBar({
   onSearchChange,
   sortBy,
   onSortChange,
+  viewMode,
+  onViewModeChange,
 }: SearchFilterBarProps) {
   const { t } = useLanguage();
 
@@ -36,16 +42,51 @@ export function SearchFilterBar({
           className="pl-10"
         />
       </div>
-      <Select value={sortBy} onValueChange={(value: any) => onSortChange(value)}>
-        <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder={t('search.sortBy')} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="newest">{t('search.newest')}</SelectItem>
-          <SelectItem value="oldest">{t('search.oldest')}</SelectItem>
-          <SelectItem value="alphabetical">{t('search.alphabetical')}</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="flex gap-2">
+        <Select value={sortBy} onValueChange={(value: any) => onSortChange(value)}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder={t('search.sortBy')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">{t('search.newest')}</SelectItem>
+            <SelectItem value="oldest">{t('search.oldest')}</SelectItem>
+            <SelectItem value="alphabetical">{t('search.alphabetical')}</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        {viewMode !== undefined && onViewModeChange && (
+          <TooltipProvider>
+            <div className="flex border rounded-md">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="icon"
+                    onClick={() => onViewModeChange('grid')}
+                    className="rounded-r-none"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('search.gridView')}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="icon"
+                    onClick={() => onViewModeChange('list')}
+                    className="rounded-l-none"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('search.listView')}</TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
+        )}
+      </div>
     </div>
   );
 }
