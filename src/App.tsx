@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CookieConsent } from "@/components/CookieConsent";
@@ -37,6 +37,12 @@ import ImportRepairShops from "./pages/ImportRepairShops";
 import { queryClient } from "./lib/queryClient";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 
+// Redirect component for legacy route
+function PropertyDetailsRedirect() {
+  const { propertyId } = useParams();
+  return <Navigate to={`/properties/${propertyId}/tenants?tab=overview`} replace />;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -67,7 +73,7 @@ const App = () => (
           {/* Property Hub - unified property management */}
           <Route path="/properties/:propertyId/tenants" element={<PropertyTenants />} />
           {/* Legacy route redirects to Property Hub */}
-          <Route path="/properties/:propertyId/details" element={<Navigate to="../tenants?tab=overview" replace />} />
+          <Route path="/properties/:propertyId/details" element={<PropertyDetailsRedirect />} />
           <Route path="/properties/:propertyId/tickets" element={<PropertyTickets />} />
           <Route path="/properties/:propertyId/maintenance" element={<PropertyMaintenance />} />
           <Route path="/properties/:propertyId/tickets/:ticketId" element={<TicketDetail />} />
