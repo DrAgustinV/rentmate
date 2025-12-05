@@ -72,9 +72,10 @@ export default function Properties() {
   // Fetch status indicators in batch for all properties
   useEffect(() => {
     const fetchStatusIndicators = async () => {
-      if (properties.length === 0) return;
+      const propertyList = propertiesData?.properties;
+      if (!propertyList || propertyList.length === 0) return;
       
-      const propertyIds = properties.map(p => p.id);
+      const propertyIds = propertyList.map(p => p.id);
       const { data, error } = await supabase.rpc('get_properties_status_indicators', { 
         p_property_ids: propertyIds 
       });
@@ -94,7 +95,7 @@ export default function Properties() {
     };
 
     fetchStatusIndicators();
-  }, [properties]);
+  }, [propertiesData]);
 
   useEffect(() => {
     const checkUser = async () => {
