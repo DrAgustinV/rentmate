@@ -72,11 +72,11 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
       // Create property first without photo
       createProperty.mutate({
         title: data.title,
-        address: data.address || null,
-        city: data.city || null,
-        state_province: data.state_province || null,
-        postal_code: data.postal_code || null,
-        country: data.country || null,
+        address: data.address,
+        city: data.city,
+        state_province: data.state_province,
+        postal_code: data.postal_code,
+        country: data.country,
         description: data.description || null,
         images: [],
         manager_id: user.id,
@@ -232,35 +232,38 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Street Address</Label>
+            <Label htmlFor="address">Street Address *</Label>
             <Input
               id="address"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="123 Ocean Drive"
+              required
               maxLength={200}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
+              <Label htmlFor="city">City *</Label>
               <Input
                 id="city"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Berlin"
+                required
                 maxLength={100}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="state">State/Province</Label>
+              <Label htmlFor="state">State/Province *</Label>
               <Input
                 id="state"
                 value={stateProvince}
                 onChange={(e) => setStateProvince(e.target.value)}
                 placeholder="Berlin"
+                required
                 maxLength={100}
               />
             </div>
@@ -268,18 +271,19 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="postal">Postal Code</Label>
+              <Label htmlFor="postal">Postal Code *</Label>
               <Input
                 id="postal"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
                 placeholder="10115"
+                required
                 maxLength={20}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
+              <Label htmlFor="country">Country *</Label>
               <CountrySelect
                 value={country}
                 onValueChange={setCountry}

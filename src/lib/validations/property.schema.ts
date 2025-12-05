@@ -7,24 +7,24 @@ export const propertyBaseSchema = z.object({
     .max(100, "Title must be less than 100 characters"),
   address: z.string()
     .trim()
-    .max(200, "Address must be less than 200 characters")
-    .optional(),
+    .min(1, "Address is required")
+    .max(200, "Address must be less than 200 characters"),
   city: z.string()
     .trim()
-    .max(100, "City must be less than 100 characters")
-    .optional(),
+    .min(1, "City is required")
+    .max(100, "City must be less than 100 characters"),
   state_province: z.string()
     .trim()
-    .max(100, "State/Province must be less than 100 characters")
-    .optional(),
+    .min(1, "State/Province is required")
+    .max(100, "State/Province must be less than 100 characters"),
   postal_code: z.string()
     .trim()
-    .max(20, "Postal code must be less than 20 characters")
-    .optional(),
+    .min(1, "Postal code is required")
+    .max(20, "Postal code must be less than 20 characters"),
   country: z.string()
     .trim()
-    .max(100, "Country must be less than 100 characters")
-    .optional(),
+    .min(1, "Country is required")
+    .max(100, "Country must be less than 100 characters"),
   description: z.string()
     .trim()
     .max(1000, "Description must be less than 1000 characters")

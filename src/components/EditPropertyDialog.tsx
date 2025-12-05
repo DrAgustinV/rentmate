@@ -90,11 +90,11 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
         .from("properties")
         .update({
           title: data.title,
-          address: data.address || null,
-          city: data.city || null,
-          state_province: data.state_province || null,
-          postal_code: data.postal_code || null,
-          country: data.country || null,
+          address: data.address,
+          city: data.city,
+          state_province: data.state_province,
+          postal_code: data.postal_code,
+          country: data.country,
           description: data.description || null,
           images: photoUrl ? [photoUrl] : [],
           last_modified_by: user.id,
@@ -175,34 +175,37 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-address">Street Address</Label>
+            <Label htmlFor="edit-address">Street Address *</Label>
             <Input
               id="edit-address"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder={t('dialogs.createProperty.addressPlaceholder')}
+              required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-city">City</Label>
+              <Label htmlFor="edit-city">City *</Label>
               <Input
                 id="edit-city"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Berlin"
+                required
                 maxLength={100}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-state">State/Province</Label>
+              <Label htmlFor="edit-state">State/Province *</Label>
               <Input
                 id="edit-state"
                 value={stateProvince}
                 onChange={(e) => setStateProvince(e.target.value)}
                 placeholder="Berlin"
+                required
                 maxLength={100}
               />
             </div>
@@ -210,18 +213,19 @@ export function EditPropertyDialog({ open, onOpenChange, property, onSuccess }: 
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-postal">Postal Code</Label>
+              <Label htmlFor="edit-postal">Postal Code *</Label>
               <Input
                 id="edit-postal"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
                 placeholder="10115"
+                required
                 maxLength={20}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-country">Country</Label>
+              <Label htmlFor="edit-country">Country *</Label>
               <CountrySelect
                 value={country}
                 onValueChange={setCountry}
