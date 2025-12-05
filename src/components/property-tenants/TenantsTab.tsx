@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Download,
   AlertTriangle,
+  Eye,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
@@ -75,6 +76,7 @@ interface TenantsTabProps {
   setExpandedTenancyId: (id: string | null) => void;
   loadTenancyDocuments: (tenancyId: string) => Promise<void>;
   downloadDocument: (doc: TenancyDocument) => Promise<void>;
+  openDocument?: (doc: TenancyDocument) => Promise<void>;
 }
 
 export function TenantsTab({
@@ -100,6 +102,7 @@ export function TenantsTab({
   setExpandedTenancyId,
   loadTenancyDocuments,
   downloadDocument,
+  openDocument,
 }: TenantsTabProps) {
   const { t } = useLanguage();
 
@@ -329,9 +332,16 @@ export function TenantsTab({
                                     {formatDate(doc.created_at)} · {(doc.file_size_bytes / 1024).toFixed(2)} KB
                                   </p>
                                 </div>
-                                <Button variant="ghost" size="sm" onClick={() => downloadDocument(doc)}>
-                                  <Download className="h-4 w-4" />
-                                </Button>
+                                <div className="flex gap-1">
+                                  {openDocument && (
+                                    <Button variant="outline" size="sm" onClick={() => openDocument(doc)} title={t("common.open")}>
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                  <Button variant="ghost" size="sm" onClick={() => downloadDocument(doc)} title={t("common.download")}>
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                             ))}
                           </div>

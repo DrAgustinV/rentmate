@@ -560,6 +560,40 @@ export default function PropertyTenants() {
     }
   };
 
+  const VIEWABLE_EXTENSIONS = ['.pdf', '.txt', '.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'];
+
+  const openDocument = async (doc: TenancyDocument) => {
+    const extension = doc.file_name.toLowerCase().substring(doc.file_name.lastIndexOf('.'));
+    const isViewable = VIEWABLE_EXTENSIONS.includes(extension);
+    
+    if (isViewable) {
+      // Open window synchronously to preserve user gesture (prevent popup blocker)
+      const newWindow = window.open('', '_blank');
+      
+      try {
+        const { data, error } = await supabase.storage
+          .from("property-documents")
+          .createSignedUrl(doc.file_path, 3600); // 1 hour expiry
+        
+        if (error || !data?.signedUrl) {
+          newWindow?.close();
+          toast({ title: t("properties.openError"), variant: "destructive" });
+          return;
+        }
+        
+        if (newWindow) {
+          newWindow.location.href = data.signedUrl;
+        }
+      } catch (error: any) {
+        newWindow?.close();
+        toast({ title: t("properties.openError"), description: error.message, variant: "destructive" });
+      }
+    } else {
+      // Non-viewable files: use download behavior
+      downloadDocument(doc);
+    }
+  };
+
   if (propertyLoading) {
     return (
       <AppLayout>
@@ -667,6 +701,7 @@ export default function PropertyTenants() {
                   setExpandedTenancyId={setExpandedTenancyId}
                   loadTenancyDocuments={loadTenancyDocuments}
                   downloadDocument={downloadDocument}
+                  openDocument={openDocument}
                 />
               </TabsContent>
 
@@ -688,6 +723,7 @@ export default function PropertyTenants() {
                   toggleDocumentExpansion={toggleDocumentExpansion}
                   refetchDocuments={refetchDocuments}
                   downloadDocument={downloadDocument}
+                  openDocument={openDocument}
                   deleteDocumentMutation={deleteDocumentMutation}
                   onRefreshContract={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
                 />
