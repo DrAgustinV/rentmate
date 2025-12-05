@@ -105,7 +105,7 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
         {readOnly && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>{t("renting.cannotEditArchived")}</AlertDescription>
+            <AlertDescription>{t("rentals.cannotEditArchived")}</AlertDescription>
           </Alert>
         )}
 

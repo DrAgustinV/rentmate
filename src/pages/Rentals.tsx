@@ -38,7 +38,7 @@ interface Invitation {
   property_title: string;
 }
 
-export default function Renting() {
+export default function Rentals() {
   const [userId, setUserId] = useState<string | null>(null);
   const [isManager, setIsManager] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -305,7 +305,7 @@ export default function Renting() {
       case "ending_tenancy":
         return <Badge variant="secondary">{t("properties.endingTenancy")}</Badge>;
       case "historic":
-        return <Badge variant="outline">{t("renting.archived")}</Badge>;
+        return <Badge variant="outline">{t("rentals.archived")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -342,9 +342,9 @@ export default function Renting() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Handshake className="h-8 w-8 text-primary" />
-          {t("renting.title")}
+          {t("rentals.title")}
         </h1>
-        <p className="text-muted-foreground mt-1">{t("renting.description")}</p>
+        <p className="text-muted-foreground mt-1">{t("rentals.description")}</p>
       </div>
 
       {/* Status Tabs */}
@@ -392,14 +392,14 @@ export default function Renting() {
           <CardContent className="py-16 text-center">
             <Handshake className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">
-              {currentView === "active" && (isManager ? t("renting.noActiveTenancies") : t("renting.noActiveRentings"))}
-              {currentView === "ending_tenancy" && t("renting.noEndingTenancies")}
-              {currentView === "archived" && t("renting.noArchivedTenancies")}
+              {currentView === "active" && (isManager ? t("rentals.noActiveTenancies") : t("rentals.noActiveRentals"))}
+              {currentView === "ending_tenancy" && t("rentals.noEndingTenancies")}
+              {currentView === "archived" && t("rentals.noArchivedTenancies")}
             </h3>
             <p className="text-muted-foreground">
-              {currentView === "active" && (isManager ? t("renting.noActiveTenanciesDesc") : t("renting.noActiveRentingsDesc"))}
-              {currentView === "ending_tenancy" && t("renting.noEndingTenanciesDesc")}
-              {currentView === "archived" && t("renting.noArchivedTenanciesDesc")}
+              {currentView === "active" && (isManager ? t("rentals.noActiveTenanciesDesc") : t("rentals.noActiveRentalsDesc"))}
+              {currentView === "ending_tenancy" && t("rentals.noEndingTenanciesDesc")}
+              {currentView === "archived" && t("rentals.noArchivedTenanciesDesc")}
             </p>
           </CardContent>
         </Card>
@@ -413,7 +413,7 @@ export default function Renting() {
                 state: {
                   tenancyId: tenancy.id,
                   tenancyStatus: tenancy.tenancy_status,
-                  fromRenting: true
+                  fromRentals: true
                 }
               })}
             >

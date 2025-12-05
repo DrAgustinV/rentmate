@@ -105,7 +105,7 @@ export default function Dashboard() {
         .limit(1);
       
       if (tenancies && tenancies.length > 0) {
-        navigate("/renting", { replace: true });
+        navigate("/rentals", { replace: true });
         return;
       }
       
@@ -168,7 +168,7 @@ export default function Dashboard() {
           <p className="text-3xl font-bold">{activeProperties.length}</p>
         </div>
         <div className="p-6 border rounded-lg">
-          <h3 className="font-semibold mb-2">Rentings</h3>
+          <h3 className="font-semibold mb-2">Rentals</h3>
           <p className="text-3xl font-bold">{tenantProperties.length}</p>
         </div>
         <div className="p-6 border rounded-lg">

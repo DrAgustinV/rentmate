@@ -20,7 +20,7 @@ export function Breadcrumbs() {
   
   const breadcrumbMap: Record<string, string> = {
     'properties': 'Properties',
-    'renting': 'Renting',
+    'rentals': 'Rentals',
     'configuration': 'Configuration',
     'profile': 'Profile',
     'identity': 'Identity Verification',
