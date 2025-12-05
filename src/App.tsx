@@ -7,7 +7,6 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
-import PropertyDetails from "./pages/PropertyDetails";
 import PropertyTenants from "./pages/PropertyTenants";
 import PropertyTickets from "./pages/PropertyTickets";
 import PropertyMaintenance from "./pages/PropertyMaintenance";
@@ -65,8 +64,10 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/kilt-setup" element={<KiltSetup />} />
           <Route path="/admin" element={<Admin />} />
-          <Route path="/properties/:propertyId/details" element={<PropertyDetails />} />
+          {/* Property Hub - unified property management */}
           <Route path="/properties/:propertyId/tenants" element={<PropertyTenants />} />
+          {/* Legacy route redirects to Property Hub */}
+          <Route path="/properties/:propertyId/details" element={<Navigate to="../tenants?tab=overview" replace />} />
           <Route path="/properties/:propertyId/tickets" element={<PropertyTickets />} />
           <Route path="/properties/:propertyId/maintenance" element={<PropertyMaintenance />} />
           <Route path="/properties/:propertyId/tickets/:ticketId" element={<TicketDetail />} />

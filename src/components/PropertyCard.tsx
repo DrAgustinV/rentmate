@@ -100,7 +100,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
     <>
       <Card
         className="overflow-hidden hover-lift group animate-fade-in min-h-[420px] cursor-pointer transition-all duration-200 hover:shadow-lg"
-        onClick={() => navigate(`/properties/${property.id}/details`)}
+        onClick={() => navigate(`/properties/${property.id}/tenants?tab=overview`)}
         style={{
           borderTop: `3px solid ${
             property.status === "active"
@@ -268,7 +268,7 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
               size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/properties/${property.id}/tenants`);
+                navigate(`/properties/${property.id}/tenants?tab=tenants`);
               }}
               className="w-full gap-2"
               aria-label={`${t("properties.inviteTenant")} ${property.title}`}
