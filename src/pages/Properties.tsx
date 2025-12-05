@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Plus, Building, Archive, Upload } from "lucide-react";
-import { PropertyCard } from "@/components/PropertyCard";
+import { PropertyCard, PropertyStatusIndicators } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
@@ -19,6 +19,7 @@ export default function Properties() {
   const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "alphabetical">("newest");
+  const [statusIndicators, setStatusIndicators] = useState<Record<string, PropertyStatusIndicators>>({});
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -67,6 +68,33 @@ export default function Properties() {
   const activeProperties = properties.filter((p) => p.status === "active");
   const endingTenancyProperties = properties.filter((p) => p.status === "ending_tenancy");
   const archivedProperties = properties.filter((p) => p.status === "inactive");
+
+  // Fetch status indicators in batch for all properties
+  useEffect(() => {
+    const fetchStatusIndicators = async () => {
+      if (properties.length === 0) return;
+      
+      const propertyIds = properties.map(p => p.id);
+      const { data, error } = await supabase.rpc('get_properties_status_indicators', { 
+        p_property_ids: propertyIds 
+      });
+      
+      if (error) {
+        console.error('Error fetching status indicators:', error);
+        return;
+      }
+      
+      if (data) {
+        const indicatorsMap: Record<string, PropertyStatusIndicators> = {};
+        data.forEach((row: PropertyStatusIndicators) => {
+          indicatorsMap[row.property_id] = row;
+        });
+        setStatusIndicators(indicatorsMap);
+      }
+    };
+
+    fetchStatusIndicators();
+  }, [properties]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -207,7 +235,13 @@ export default function Properties() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAndSortedProperties.map((property) => (
-            <PropertyCard key={property.id} property={property} isManager={true} onUpdate={() => {}} />
+            <PropertyCard 
+              key={property.id} 
+              property={property} 
+              isManager={true} 
+              onUpdate={() => {}} 
+              statusIndicators={statusIndicators[property.id]}
+            />
           ))}
         </div>
       )}

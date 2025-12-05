@@ -2501,6 +2501,20 @@ export type Database = {
         Args: { p_agreement_id: string; p_months_ahead?: number }
         Returns: number
       }
+      get_properties_status_indicators: {
+        Args: { p_property_ids: string[] }
+        Returns: {
+          maintenance_has_data: boolean
+          maintenance_overdue: boolean
+          property_id: string
+          rent_has_data: boolean
+          rent_overdue: boolean
+          tickets_has_data: boolean
+          tickets_open: boolean
+          utility_has_data: boolean
+          utility_overdue: boolean
+        }[]
+      }
       get_property_tenant_status: {
         Args: { p_property_id: string }
         Returns: {

@@ -2,20 +2,35 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MapPin, Edit, Mail, Archive, Users, Home, Image as ImageIcon, Eye, Ticket, Wrench } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
+import { cn } from "@/lib/utils";
+
+export interface PropertyStatusIndicators {
+  property_id: string;
+  rent_overdue: boolean;
+  rent_has_data: boolean;
+  utility_overdue: boolean;
+  utility_has_data: boolean;
+  tickets_open: boolean;
+  tickets_has_data: boolean;
+  maintenance_overdue: boolean;
+  maintenance_has_data: boolean;
+}
 
 interface PropertyCardProps {
   property: any;
   isManager: boolean;
   onUpdate: () => void;
+  statusIndicators?: PropertyStatusIndicators;
 }
 
-export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProps) {
+export function PropertyCard({ property, isManager, onUpdate, statusIndicators }: PropertyCardProps) {
   const { t } = useLanguage();
   const [tenantStatus, setTenantStatus] = useState<{
     status: "occupied" | "invited" | "free";
@@ -189,6 +204,69 @@ export function PropertyCard({ property, isManager, onUpdate }: PropertyCardProp
                       )}
                     </>
                   )
+                )}
+
+                {/* Status Indicators - 4 colored dots */}
+                {isManager && statusIndicators && (
+                  <TooltipProvider>
+                    <div className="flex items-center gap-2 mt-3">
+                      {/* Rent */}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className={cn(
+                            "w-2.5 h-2.5 rounded-full cursor-help transition-colors",
+                            !statusIndicators.rent_has_data ? "bg-muted-foreground/30" :
+                            statusIndicators.rent_overdue ? "bg-red-500" : "bg-green-500"
+                          )} />
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {t("properties.rentPayments")}
+                        </TooltipContent>
+                      </Tooltip>
+
+                      {/* Utilities */}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className={cn(
+                            "w-2.5 h-2.5 rounded-full cursor-help transition-colors",
+                            !statusIndicators.utility_has_data ? "bg-muted-foreground/30" :
+                            statusIndicators.utility_overdue ? "bg-red-500" : "bg-green-500"
+                          )} />
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {t("properties.utilityPayments")}
+                        </TooltipContent>
+                      </Tooltip>
+
+                      {/* Tickets */}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className={cn(
+                            "w-2.5 h-2.5 rounded-full cursor-help transition-colors",
+                            !statusIndicators.tickets_has_data ? "bg-muted-foreground/30" :
+                            statusIndicators.tickets_open ? "bg-yellow-500" : "bg-green-500"
+                          )} />
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {t("properties.tickets")}
+                        </TooltipContent>
+                      </Tooltip>
+
+                      {/* Maintenance */}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className={cn(
+                            "w-2.5 h-2.5 rounded-full cursor-help transition-colors",
+                            !statusIndicators.maintenance_has_data ? "bg-muted-foreground/30" :
+                            statusIndicators.maintenance_overdue ? "bg-red-500" : "bg-green-500"
+                          )} />
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {t("properties.scheduledMaintenance")}
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TooltipProvider>
                 )}
               </div>
             )}
