@@ -118,6 +118,9 @@ export const translations = {
       newest: "Newest first",
       oldest: "Oldest first",
       alphabetical: "A-Z",
+      gridView: "Grid view",
+      listView: "List view",
+      status: "Status",
     },
     header: {
       dashboard: "Dashboard",
@@ -1697,6 +1700,9 @@ export const translations = {
       newest: "Más recientes primero",
       oldest: "Más antiguos primero",
       alphabetical: "A-Z",
+      gridView: "Vista de cuadrícula",
+      listView: "Vista de lista",
+      status: "Estado",
     },
     nav: {
       properties: "Propiedades",
