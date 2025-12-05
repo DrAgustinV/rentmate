@@ -58,6 +58,8 @@ import { ContractsTab } from '@/components/property-tenants/ContractsTab';
 import { PaymentsTab } from '@/components/property-tenants/PaymentsTab';
 import { TicketsTab } from '@/components/property-tenants/TicketsTab';
 import { UtilitiesTab } from '@/components/property-tenants/UtilitiesTab';
+import { OverviewTab } from '@/components/property-hub/OverviewTab';
+import { DocumentsTab } from '@/components/property-hub/DocumentsTab';
 
 interface Tenant {
   id: string;
@@ -114,12 +116,36 @@ export default function PropertyTenants() {
   const { tenancyId, tenancyStatus, fromRentals } = location.state || {};
   const isReadOnly = tenancyStatus === 'historic';
 
-  // Get active tab from URL or default to 'tenants'
-  const activeTab = searchParams.get('tab') || 'tenants';
+  // Get active tab from URL or default to 'overview'
+  const activeTab = searchParams.get('tab') || 'overview';
   
   const setActiveTab = (tab: string) => {
     setSearchParams({ tab });
   };
+
+  // Query for active tenant with profile info (for Overview tab)
+  const { data: activeTenantWithProfile } = useQuery({
+    queryKey: ["active-tenant-profile", propertyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("property_tenants")
+        .select(`
+          *,
+          profiles!property_tenants_tenant_id_fkey (
+            first_name,
+            last_name,
+            email
+          )
+        `)
+        .eq("property_id", propertyId)
+        .eq("tenancy_status", "active")
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!propertyId,
+  });
 
   const [email, setEmail] = useState("");
   const [removingTenant, setRemovingTenant] = useState<Tenant | null>(null);
@@ -626,14 +652,14 @@ export default function PropertyTenants() {
               {t("rentals.backToRentals")}
             </Button>
           ) : (
-            <Button variant="ghost" size="sm" onClick={() => navigate(`/properties/${propertyId}/details`)}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/properties')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t("common.back")}
             </Button>
           )}
           <div>
             <h1 className="text-3xl font-bold">{property.title}</h1>
-            <p className="text-muted-foreground">{t("properties.tenantManagement")}</p>
+            <p className="text-muted-foreground">{t("propertyHub.subtitle")}</p>
           </div>
         </div>
 
@@ -664,18 +690,29 @@ export default function PropertyTenants() {
         {/* Tabs Card */}
         <Card>
           <CardHeader>
-            <CardTitle>{t("tenants.manageTenants")}</CardTitle>
-            <CardDescription>{t("tenants.manageTenantsSections")}</CardDescription>
+            <CardTitle>{t("propertyHub.title")}</CardTitle>
+            <CardDescription>{t("propertyHub.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-7">
+                <TabsTrigger value="overview">{t("propertyHub.overview")}</TabsTrigger>
                 <TabsTrigger value="tenants">{t("propertyTenants.tabs.tenants")}</TabsTrigger>
                 <TabsTrigger value="contracts">{t("propertyTenants.tabs.contracts")}</TabsTrigger>
                 <TabsTrigger value="payments">{t("propertyTenants.tabs.payments")}</TabsTrigger>
                 <TabsTrigger value="utilities">{t("propertyTenants.tabs.utilities")}</TabsTrigger>
                 <TabsTrigger value="tickets">{t("propertyTenants.tabs.tickets")}</TabsTrigger>
+                <TabsTrigger value="documents">{t("propertyHub.documents")}</TabsTrigger>
               </TabsList>
+
+              <TabsContent value="overview" className="mt-6">
+                <OverviewTab
+                  property={property}
+                  propertyId={propertyId!}
+                  userRole={userRole}
+                  activeTenant={activeTenantWithProfile}
+                />
+              </TabsContent>
 
               <TabsContent value="tenants" className="mt-6">
                 <TenantsTab
@@ -750,6 +787,13 @@ export default function PropertyTenants() {
 
               <TabsContent value="tickets" className="mt-6">
                 <TicketsTab propertyId={propertyId!} />
+              </TabsContent>
+
+              <TabsContent value="documents" className="mt-6">
+                <DocumentsTab
+                  propertyId={propertyId!}
+                  userRole={userRole}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>

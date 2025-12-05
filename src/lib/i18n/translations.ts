@@ -183,6 +183,14 @@ export const translations = {
       noArchivedTenancies: "No Archived Tenancies",
       noArchivedTenanciesDesc: "You don't have any archived tenancies",
       cannotEditArchived: "Archived tenancies cannot be edited",
+      managerNoRentalsHint: "This page shows properties where you are a tenant. To manage your properties, visit the Properties page.",
+    },
+    propertyHub: {
+      title: "Property Hub",
+      subtitle: "Manage all aspects of this property",
+      description: "Overview, tenants, contracts, payments, and documents",
+      overview: "Overview",
+      documents: "Templates",
     },
     profile: {
       title: "Profile",
@@ -1734,7 +1742,15 @@ export const translations = {
        noArchivedTenanciesDesc: "No tienes arrendamientos archivados",
        cannotEditArchived: "Los arrendamientos archivados no se pueden editar",
        invitationAccepted: "Invitación aceptada",
+       managerNoRentalsHint: "Esta página muestra propiedades donde eres inquilino. Para gestionar tus propiedades, visita la página de Propiedades.",
      },
+    propertyHub: {
+      title: "Centro de Propiedad",
+      subtitle: "Gestiona todos los aspectos de esta propiedad",
+      description: "Resumen, inquilinos, contratos, pagos y documentos",
+      overview: "Resumen",
+      documents: "Plantillas",
+    },
     profile: {
       title: "Perfil",
       description: "Gestionar tu información personal",

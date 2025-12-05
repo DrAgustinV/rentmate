@@ -80,81 +80,18 @@ export default function Rentals() {
   const fetchData = async (uid: string, email: string, isManagerParam: boolean) => {
     setLoading(true);
     try {
+      // Always fetch tenancies for both managers and tenants
       if (isManagerParam) {
-        await fetchManagerTenancies(uid);
+        // For managers, fetch their tenancies as tenants (if any)
+        await fetchTenantTenancies(uid);
       } else {
         await fetchTenantTenancies(uid);
-        await fetchTenantInvitations(email);
       }
+      // Always fetch invitations for the user's email
+      await fetchTenantInvitations(email);
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchManagerTenancies = async (managerId: string) => {
-    // Fetch ALL tenancies (no status filter)
-    const { data, error } = await supabase
-      .from("property_tenants")
-      .select(`
-        id,
-        property_id,
-        tenant_id,
-        tenancy_status,
-        started_at,
-        ended_at,
-        properties!inner (
-          title,
-          address,
-          manager_id
-        ),
-        profiles!property_tenants_tenant_id_fkey (
-          first_name,
-          last_name,
-          email
-        )
-      `)
-      .eq("properties.manager_id", managerId);
-
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-
-    const tenanciesWithDetails = await Promise.all((data || []).map(async (t: any) => {
-      const { data: agreement } = await supabase
-        .from("rent_agreements")
-        .select("rent_amount_cents, currency, start_date, end_date")
-        .eq("property_id", t.property_id)
-        .eq("tenant_id", t.tenant_id)
-        .maybeSingle();
-
-      const { data: lastPayment } = await supabase
-        .from("rent_payments")
-        .select("status")
-        .eq("property_id", t.property_id)
-        .eq("tenant_id", t.tenant_id)
-        .order("payment_due_date", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      return {
-        id: t.id,
-        property_id: t.property_id,
-        tenant_id: t.tenant_id,
-        property_title: t.properties?.title || "",
-        property_address: t.properties?.address || "",
-        tenant_name: `${t.profiles?.first_name || ""} ${t.profiles?.last_name || ""}`.trim() || t.profiles?.email || "",
-        tenant_email: t.profiles?.email || "",
-        rent_amount_cents: agreement?.rent_amount_cents || 0,
-        currency: agreement?.currency || "eur",
-        contract_start: agreement?.start_date || null,
-        contract_end: agreement?.end_date || null,
-        tenancy_status: t.tenancy_status,
-        last_payment_status: lastPayment?.status || null,
-      };
-    }));
-
-    setTenancies(tenanciesWithDetails);
   };
 
   const fetchTenantTenancies = async (tenantId: string) => {
@@ -392,15 +329,20 @@ export default function Rentals() {
           <CardContent className="py-16 text-center">
             <Handshake className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">
-              {currentView === "active" && (isManager ? t("rentals.noActiveTenancies") : t("rentals.noActiveRentals"))}
+              {currentView === "active" && t("rentals.noActiveRentals")}
               {currentView === "ending_tenancy" && t("rentals.noEndingTenancies")}
               {currentView === "archived" && t("rentals.noArchivedTenancies")}
             </h3>
-            <p className="text-muted-foreground">
-              {currentView === "active" && (isManager ? t("rentals.noActiveTenanciesDesc") : t("rentals.noActiveRentalsDesc"))}
+            <p className="text-muted-foreground mb-4">
+              {currentView === "active" && t("rentals.noActiveRentalsDesc")}
               {currentView === "ending_tenancy" && t("rentals.noEndingTenanciesDesc")}
               {currentView === "archived" && t("rentals.noArchivedTenanciesDesc")}
             </p>
+            {isManager && currentView === "active" && (
+              <p className="text-sm text-muted-foreground">
+                {t("rentals.managerNoRentalsHint")}
+              </p>
+            )}
           </CardContent>
         </Card>
       ) : (
