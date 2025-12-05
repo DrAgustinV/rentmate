@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Archive, ChevronDown, Upload, Mail } from "lucide-react";
+import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Archive, ChevronDown, Upload, Mail, Pencil } from "lucide-react";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
@@ -424,8 +424,18 @@ export default function PropertyDetails() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t("properties.propertyInformation")}</CardTitle>
-            <CardDescription>{t("properties.editPropertyDescription")}</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>{t("properties.propertyInformation")}</CardTitle>
+                <CardDescription>{t("properties.editPropertyDescription")}</CardDescription>
+              </div>
+              {userRole?.isManager && !isEditing && (
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  {t("common.edit")}
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -459,10 +469,8 @@ export default function PropertyDetails() {
                     <Input
                       id="title"
                       value={title}
-                      onChange={(e) => {
-                        setTitle(e.target.value);
-                        setIsEditing(true);
-                      }}
+                      onChange={(e) => setTitle(e.target.value)}
+                      disabled={!isEditing}
                       required
                       className={cn(!title.trim() && isEditing && "border-destructive")}
                     />
@@ -479,10 +487,8 @@ export default function PropertyDetails() {
                     <Input
                       id="address"
                       value={address}
-                      onChange={(e) => {
-                        setAddress(e.target.value);
-                        setIsEditing(true);
-                      }}
+                      onChange={(e) => setAddress(e.target.value)}
+                      disabled={!isEditing}
                       placeholder={t("properties.streetAddress")}
                     />
                   ) : (
@@ -496,10 +502,8 @@ export default function PropertyDetails() {
                       <Input
                         id="city"
                         value={city}
-                        onChange={(e) => {
-                          setCity(e.target.value);
-                          setIsEditing(true);
-                        }}
+                        onChange={(e) => setCity(e.target.value)}
+                        disabled={!isEditing}
                         placeholder={t("properties.cityPlaceholder")}
                       />
                     ) : (
@@ -512,10 +516,8 @@ export default function PropertyDetails() {
                       <Input
                         id="state"
                         value={stateProvince}
-                        onChange={(e) => {
-                          setStateProvince(e.target.value);
-                          setIsEditing(true);
-                        }}
+                        onChange={(e) => setStateProvince(e.target.value)}
+                        disabled={!isEditing}
                         placeholder={t("properties.statePlaceholder")}
                       />
                     ) : (
@@ -530,10 +532,8 @@ export default function PropertyDetails() {
                       <Input
                         id="postalCode"
                         value={postalCode}
-                        onChange={(e) => {
-                          setPostalCode(e.target.value);
-                          setIsEditing(true);
-                        }}
+                        onChange={(e) => setPostalCode(e.target.value)}
+                        disabled={!isEditing}
                         placeholder={t("properties.postalCodePlaceholder")}
                       />
                     ) : (
@@ -546,10 +546,8 @@ export default function PropertyDetails() {
                       <Input
                         id="country"
                         value={country}
-                        onChange={(e) => {
-                          setCountry(e.target.value);
-                          setIsEditing(true);
-                        }}
+                        onChange={(e) => setCountry(e.target.value)}
+                        disabled={!isEditing}
                         placeholder={t("properties.countryPlaceholder")}
                       />
                     ) : (
@@ -575,13 +573,11 @@ export default function PropertyDetails() {
             <div className="space-y-2">
               <Label htmlFor="description">{t("properties.description")}</Label>
               {userRole?.isManager ? (
-                <Textarea
+              <Textarea
                   id="description"
                   value={description}
-                  onChange={(e) => {
-                    setDescription(e.target.value);
-                    setIsEditing(true);
-                  }}
+                  onChange={(e) => setDescription(e.target.value)}
+                  disabled={!isEditing}
                   rows={4}
                   placeholder={t("properties.descriptionPlaceholder")}
                 />
