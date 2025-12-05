@@ -40,7 +40,7 @@ import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 // Redirect component for legacy route
 function PropertyDetailsRedirect() {
   const { propertyId } = useParams();
-  return <Navigate to={`/properties/${propertyId}/tenants?tab=overview`} replace />;
+  return <Navigate to={`/properties/${propertyId}/tenants`} replace />;
 }
 
 const App = () => (
