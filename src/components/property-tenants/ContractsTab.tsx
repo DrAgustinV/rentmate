@@ -8,6 +8,7 @@ import {
   Download,
   ChevronDown,
   Trash2,
+  Eye,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
@@ -59,6 +60,7 @@ interface ContractsTabProps {
   toggleDocumentExpansion: (title: string) => void;
   refetchDocuments: () => void;
   downloadDocument: (doc: TenancyDocument) => Promise<void>;
+  openDocument: (doc: TenancyDocument) => Promise<void>;
   deleteDocumentMutation: { mutate: (id: string) => void };
   onRefreshContract: () => void;
 }
@@ -80,6 +82,7 @@ export function ContractsTab({
   toggleDocumentExpansion,
   refetchDocuments,
   downloadDocument,
+  openDocument,
   deleteDocumentMutation,
   onRefreshContract,
 }: ContractsTabProps) {
@@ -205,8 +208,11 @@ export function ContractsTab({
                           {latestDoc.description && <p className="italic">{latestDoc.description}</p>}
                         </div>
                       </div>
-                      <div className="flex gap-2 flex-shrink-0">
-                        <Button variant="outline" size="sm" onClick={() => downloadDocument(latestDoc)}>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <Button variant="outline" size="sm" onClick={() => openDocument(latestDoc)} title={t("common.open")}>
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => downloadDocument(latestDoc)} title={t("common.download")}>
                           <Download className="h-3 w-3" />
                         </Button>
                         {!isReadOnly && (
@@ -250,6 +256,7 @@ export function ContractsTab({
                           <PropertyDocumentVersionHistory
                             versions={olderVersions}
                             onDownload={downloadDocument}
+                            onOpen={openDocument}
                             onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
                             formatFileSize={formatFileSize}
                             getUploaderName={getUploaderName}

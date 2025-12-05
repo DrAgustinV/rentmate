@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Trash2, Eye } from "lucide-react";
 import { formatDateTime } from "@/lib/dateUtils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface VersionDocument {
   id: string;
@@ -17,6 +18,7 @@ interface VersionDocument {
 interface PropertyDocumentVersionHistoryProps {
   versions: VersionDocument[];
   onDownload: (doc: VersionDocument) => void;
+  onOpen?: (doc: VersionDocument) => void;
   onDelete?: (doc: VersionDocument) => void;
   formatFileSize: (bytes: number) => string;
   getUploaderName: (doc: VersionDocument) => string;
@@ -25,10 +27,12 @@ interface PropertyDocumentVersionHistoryProps {
 export default function PropertyDocumentVersionHistory({
   versions,
   onDownload,
+  onOpen,
   onDelete,
   formatFileSize,
   getUploaderName,
 }: PropertyDocumentVersionHistoryProps) {
+  const { t } = useLanguage();
   if (versions.length === 0) return null;
 
   return (
@@ -56,8 +60,13 @@ export default function PropertyDocumentVersionHistory({
                 {version.description && <p className="italic">{version.description}</p>}
               </div>
             </div>
-            <div className="flex gap-2 flex-shrink-0">
-              <Button variant="outline" size="icon" onClick={() => onDownload(version)}>
+            <div className="flex gap-1 flex-shrink-0">
+              {onOpen && (
+                <Button variant="outline" size="icon" onClick={() => onOpen(version)} title={t("common.open")}>
+                  <Eye className="h-3 w-3" />
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" onClick={() => onDownload(version)} title={t("common.download")}>
                 <Download className="h-3 w-3" />
               </Button>
               {onDelete && (

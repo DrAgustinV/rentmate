@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Archive, ChevronDown, Upload, Mail, Pencil } from "lucide-react";
+import { Save, ArrowLeft, FileText, Download, Trash2, Upload as UploadIcon, Archive, ChevronDown, Upload, Mail, Pencil, Eye } from "lucide-react";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
@@ -304,6 +304,35 @@ export default function PropertyDetails() {
       setPropertyPhotoUrl(undefined);
     }
   }, [property?.images]);
+
+  const VIEWABLE_EXTENSIONS = ['.pdf', '.txt', '.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'];
+
+  const handleOpenDocument = async (doc: any) => {
+    const extension = doc.file_name.toLowerCase().substring(doc.file_name.lastIndexOf('.'));
+    const isViewable = VIEWABLE_EXTENSIONS.includes(extension);
+    
+    if (isViewable) {
+      // Open window synchronously to preserve user gesture (prevent popup blocker)
+      const newWindow = window.open('', '_blank');
+      
+      const { data, error } = await supabase.storage
+        .from("property-documents")
+        .createSignedUrl(doc.file_path, 3600); // 1 hour expiry
+      
+      if (error || !data?.signedUrl) {
+        newWindow?.close();
+        toast.error(t("properties.openError"));
+        return;
+      }
+      
+      if (newWindow) {
+        newWindow.location.href = data.signedUrl;
+      }
+    } else {
+      // Non-viewable files: use download behavior
+      handleDownloadDocument(doc);
+    }
+  };
 
   const handleDownloadDocument = async (doc: any) => {
     const { data, error } = await supabase.storage.from("property-documents").download(doc.file_path);
@@ -711,8 +740,11 @@ export default function PropertyDetails() {
                             </div>
 
                             {/* Action buttons */}
-                            <div className="flex gap-2 flex-shrink-0">
-                              <Button variant="outline" size="sm" onClick={() => handleDownloadDocument(latestDoc)}>
+                            <div className="flex gap-1 flex-shrink-0">
+                              <Button variant="outline" size="sm" onClick={() => handleOpenDocument(latestDoc)} title={t("common.open")}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDownloadDocument(latestDoc)} title={t("common.download")}>
                                 <Download className="h-4 w-4" />
                               </Button>
                               {userRole?.isManager && (
@@ -758,6 +790,7 @@ export default function PropertyDetails() {
                                   <PropertyDocumentVersionHistory
                                     versions={olderVersions}
                                     onDownload={handleDownloadDocument}
+                                    onOpen={handleOpenDocument}
                                     onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
                                     formatFileSize={formatFileSize}
                                     getUploaderName={getUploaderName}
@@ -878,8 +911,11 @@ export default function PropertyDetails() {
                             </div>
 
                             {/* Action buttons */}
-                            <div className="flex gap-2 flex-shrink-0">
-                              <Button variant="outline" size="sm" onClick={() => handleDownloadDocument(latestDoc)}>
+                            <div className="flex gap-1 flex-shrink-0">
+                              <Button variant="outline" size="sm" onClick={() => handleOpenDocument(latestDoc)} title={t("common.open")}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDownloadDocument(latestDoc)} title={t("common.download")}>
                                 <Download className="h-4 w-4" />
                               </Button>
                               <Button
@@ -914,6 +950,7 @@ export default function PropertyDetails() {
                                   <PropertyDocumentVersionHistory
                                     versions={olderVersions}
                                     onDownload={handleDownloadDocument}
+                                    onOpen={handleOpenDocument}
                                     formatFileSize={formatFileSize}
                                     getUploaderName={getUploaderName}
                                   />
