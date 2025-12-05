@@ -7,6 +7,7 @@ interface BrandSettings {
   logo_url: string | null;
   primary_color: string;
   accent_color: string;
+  header_background_color: string;
 }
 
 export function useBrandSettings() {
