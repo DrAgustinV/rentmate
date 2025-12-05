@@ -59,7 +59,7 @@ import { PaymentsTab } from '@/components/property-tenants/PaymentsTab';
 import { TicketsTab } from '@/components/property-tenants/TicketsTab';
 import { UtilitiesTab } from '@/components/property-tenants/UtilitiesTab';
 import { OverviewTab } from '@/components/property-hub/OverviewTab';
-import { DocumentsTab } from '@/components/property-hub/DocumentsTab';
+
 
 interface Tenant {
   id: string;
@@ -702,7 +702,6 @@ export default function PropertyTenants() {
                 <TabsTrigger value="payments">{t("propertyTenants.tabs.payments")}</TabsTrigger>
                 <TabsTrigger value="utilities">{t("propertyTenants.tabs.utilities")}</TabsTrigger>
                 <TabsTrigger value="tickets">{t("propertyTenants.tabs.tickets")}</TabsTrigger>
-                <TabsTrigger value="documents">{t("propertyHub.documents")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="mt-6">
@@ -789,12 +788,6 @@ export default function PropertyTenants() {
                 <TicketsTab propertyId={propertyId!} />
               </TabsContent>
 
-              <TabsContent value="documents" className="mt-6">
-                <DocumentsTab
-                  propertyId={propertyId!}
-                  userRole={userRole}
-                />
-              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
