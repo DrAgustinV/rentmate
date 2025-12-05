@@ -206,8 +206,8 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
                   )
                 )}
 
-                {/* Status Indicators - 4 colored dots */}
-                {isManager && statusIndicators && (
+                {/* Status Indicators - 4 colored dots (always visible for managers) */}
+                {isManager && (
                   <TooltipProvider>
                     <div className="flex items-center gap-2 mt-3">
                       {/* Rent */}
@@ -215,7 +215,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
                         <TooltipTrigger asChild>
                           <div className={cn(
                             "w-2.5 h-2.5 rounded-full cursor-help transition-colors",
-                            !statusIndicators.rent_has_data ? "bg-muted-foreground/30" :
+                            !statusIndicators?.rent_has_data ? "bg-muted-foreground/30" :
                             statusIndicators.rent_overdue ? "bg-red-500" : "bg-green-500"
                           )} />
                         </TooltipTrigger>
@@ -229,7 +229,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
                         <TooltipTrigger asChild>
                           <div className={cn(
                             "w-2.5 h-2.5 rounded-full cursor-help transition-colors",
-                            !statusIndicators.utility_has_data ? "bg-muted-foreground/30" :
+                            !statusIndicators?.utility_has_data ? "bg-muted-foreground/30" :
                             statusIndicators.utility_overdue ? "bg-red-500" : "bg-green-500"
                           )} />
                         </TooltipTrigger>
@@ -243,7 +243,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
                         <TooltipTrigger asChild>
                           <div className={cn(
                             "w-2.5 h-2.5 rounded-full cursor-help transition-colors",
-                            !statusIndicators.tickets_has_data ? "bg-muted-foreground/30" :
+                            !statusIndicators?.tickets_has_data ? "bg-muted-foreground/30" :
                             statusIndicators.tickets_open ? "bg-yellow-500" : "bg-green-500"
                           )} />
                         </TooltipTrigger>
@@ -257,7 +257,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
                         <TooltipTrigger asChild>
                           <div className={cn(
                             "w-2.5 h-2.5 rounded-full cursor-help transition-colors",
-                            !statusIndicators.maintenance_has_data ? "bg-muted-foreground/30" :
+                            !statusIndicators?.maintenance_has_data ? "bg-muted-foreground/30" :
                             statusIndicators.maintenance_overdue ? "bg-red-500" : "bg-green-500"
                           )} />
                         </TooltipTrigger>
