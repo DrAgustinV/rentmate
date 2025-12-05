@@ -13,6 +13,7 @@ interface BrandSettings {
   logo_url: string | null;
   primary_color: string;
   accent_color: string;
+  header_background_color: string;
   custom_domain: string | null;
 }
 
@@ -24,6 +25,7 @@ export function BrandSettings() {
   const [customDomain, setCustomDomain] = useState("");
   const [primaryColor, setPrimaryColor] = useState("");
   const [accentColor, setAccentColor] = useState("");
+  const [headerBackgroundColor, setHeaderBackgroundColor] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -57,6 +59,7 @@ export function BrandSettings() {
       setCustomDomain(data.custom_domain || "");
       setPrimaryColor(data.primary_color);
       setAccentColor(data.accent_color);
+      setHeaderBackgroundColor(data.header_background_color || "173 77% 40%");
       if (data.logo_url) {
         setLogoPreview(data.logo_url);
       }
@@ -148,8 +151,9 @@ export function BrandSettings() {
     const hslRegex = /^\d{1,3}\s+\d{1,3}%\s+\d{1,3}%$/;
     console.log("Primary color:", primaryColor, "Valid:", hslRegex.test(primaryColor));
     console.log("Accent color:", accentColor, "Valid:", hslRegex.test(accentColor));
+    console.log("Header background:", headerBackgroundColor, "Valid:", hslRegex.test(headerBackgroundColor));
     
-    if (!hslRegex.test(primaryColor) || !hslRegex.test(accentColor)) {
+    if (!hslRegex.test(primaryColor) || !hslRegex.test(accentColor) || !hslRegex.test(headerBackgroundColor)) {
       toast({
         title: "Invalid color format",
         description: "Colors must be in HSL format (e.g., '221 83% 53%')",
@@ -181,6 +185,7 @@ export function BrandSettings() {
         logo_url: logoUrl,
         primary_color: primaryColor,
         accent_color: accentColor,
+        header_background_color: headerBackgroundColor,
         updated_by: user?.id,
         updated_at: new Date().toISOString(),
       };
@@ -318,6 +323,26 @@ export function BrandSettings() {
             Format: H S% L% (e.g., "199 89% 48%")
           </p>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="headerBackgroundColor">
+          <Palette className="inline h-4 w-4 mr-1" />
+          Header Background Color (HSL)
+        </Label>
+        <Input
+          id="headerBackgroundColor"
+          value={headerBackgroundColor}
+          onChange={(e) => setHeaderBackgroundColor(e.target.value)}
+          placeholder="173 77% 40%"
+        />
+        <div
+          className="h-10 rounded border"
+          style={{ backgroundColor: `hsl(${headerBackgroundColor})` }}
+        />
+        <p className="text-xs text-muted-foreground">
+          Format: H S% L% (e.g., "173 77% 40%" for teal). This sets the header navigation background.
+        </p>
       </div>
 
       <Button

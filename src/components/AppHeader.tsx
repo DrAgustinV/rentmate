@@ -105,11 +105,17 @@ export function AppHeader() {
     <Link to={linkTo} className="flex items-center">
       <div className="flex items-center gap-2 bg-white/90 rounded-full px-3 py-1.5 shadow-sm">
         {/* Circular RE monogram */}
-        <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center">
+        <div 
+          className="w-8 h-8 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: 'hsl(var(--header-background))' }}
+        >
           <span className="text-white font-bold text-sm">RE</span>
         </div>
         {/* Brand name */}
-        <span className="text-teal-600 font-bold text-lg tracking-tight">
+        <span 
+          className="font-bold text-lg tracking-tight"
+          style={{ color: 'hsl(var(--header-background))' }}
+        >
           {brandName}
         </span>
       </div>
@@ -126,7 +132,7 @@ export function AppHeader() {
     ];
 
     return (
-      <header className="sticky top-0 z-50 w-full bg-teal-500">
+      <header className="sticky top-0 z-50 w-full" style={{ backgroundColor: 'hsl(var(--header-background))' }}>
         <div className="container flex h-16 items-center justify-between">
           {/* Logo Pill */}
           <LogoPill linkTo="/" />
@@ -171,7 +177,8 @@ export function AppHeader() {
             <Button 
               size="sm" 
               onClick={() => navigate("/auth?mode=signup")}
-              className="bg-white text-teal-600 hover:bg-white/90"
+              className="bg-white hover:bg-white/90"
+              style={{ color: 'hsl(var(--header-background))' }}
             >
               {t('landing.getStarted')}
             </Button>
@@ -270,7 +277,7 @@ export function AppHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-teal-500">
+    <header className="sticky top-0 z-50 w-full" style={{ backgroundColor: 'hsl(var(--header-background))' }}>
       <div className="container flex h-16 items-center justify-between">
         {/* Logo Pill */}
         <LogoPill linkTo={isManager ? "/properties" : "/dashboard"} />
