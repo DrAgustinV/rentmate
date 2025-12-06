@@ -104,7 +104,7 @@ export function AppHeader() {
   const LogoPill = ({ linkTo }: { linkTo: string }) => (
     <Link to={linkTo} className="flex items-center">
       <div className="flex items-center gap-2 bg-white/90 rounded-full px-3 py-1.5 shadow-sm">
-        {/* Circular RE monogram */}
+        {/* Circular RM monogram */}
         <div 
           className="w-8 h-8 rounded-full flex items-center justify-center"
           style={{ backgroundColor: 'hsl(var(--header-background))' }}
