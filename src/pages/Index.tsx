@@ -13,38 +13,46 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { useRef } from "react";
+import { useBrandSettings, type CarouselItem as CarouselItemType } from "@/hooks/useBrandSettings";
+
+// Default fallback carousel items
+const defaultCarouselItems: CarouselItemType[] = [
+  {
+    image_url: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&auto=format&fit=crop",
+    title: { en: "Automated Rent Collection", es: "Cobro Automático de Alquiler" },
+    description: { en: "Collect rent automatically via SEPA Direct Debit", es: "Cobra el alquiler automáticamente mediante SEPA Direct Debit" },
+  },
+  {
+    image_url: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&auto=format&fit=crop",
+    title: { en: "Digital Contracts", es: "Contratos Digitales" },
+    description: { en: "Sign contracts digitally with legal validity", es: "Firma contratos digitalmente con validez legal" },
+  },
+  {
+    image_url: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&auto=format&fit=crop",
+    title: { en: "Smart Maintenance", es: "Mantenimiento Inteligente" },
+    description: { en: "Track and schedule property maintenance tasks", es: "Gestiona y programa tareas de mantenimiento" },
+  },
+  {
+    image_url: "https://images.unsplash.com/photo-1633265486064-086b219458ec?w=800&auto=format&fit=crop",
+    title: { en: "Verified Tenants", es: "Inquilinos Verificados" },
+    description: { en: "KYC verification for trusted tenancies", es: "Verificación KYC para arrendamientos de confianza" },
+  },
+];
 
 const Index = () => {
   const navigate = useNavigate();
   const { tagline } = useBrand();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const { settings } = useBrandSettings();
   
   const autoplayPlugin = useRef(
     Autoplay({ delay: 4000, stopOnInteraction: false })
   );
 
-  const carouselItems = [
-    {
-      image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&auto=format&fit=crop",
-      title: t('landing.carousel.rent.title'),
-      description: t('landing.carousel.rent.description'),
-    },
-    {
-      image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&auto=format&fit=crop",
-      title: t('landing.carousel.contracts.title'),
-      description: t('landing.carousel.contracts.description'),
-    },
-    {
-      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&auto=format&fit=crop",
-      title: t('landing.carousel.maintenance.title'),
-      description: t('landing.carousel.maintenance.description'),
-    },
-    {
-      image: "https://images.unsplash.com/photo-1633265486064-086b219458ec?w=800&auto=format&fit=crop",
-      title: t('landing.carousel.verification.title'),
-      description: t('landing.carousel.verification.description'),
-    },
-  ];
+  // Use database carousel items with fallback to defaults
+  const carouselItems = (settings?.carousel_items && settings.carousel_items.length > 0)
+    ? settings.carousel_items
+    : defaultCarouselItems;
 
 return (
   <div className="min-h-screen flex flex-col">
@@ -85,23 +93,28 @@ return (
           className="w-full"
         >
           <CarouselContent className="-ml-4">
-            {carouselItems.map((item, index) => (
-              <CarouselItem key={index} className="pl-4 basis-full">
-                <div className="bg-card/90 backdrop-blur-sm border border-border rounded-xl overflow-hidden shadow-card hover-lift">
-                  <div className="h-48 md:h-64 overflow-hidden">
-                    <img 
-                      src={item.image} 
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                    />
+            {carouselItems.map((item, index) => {
+              const title = item.title[language] || item.title['en'] || '';
+              const description = item.description[language] || item.description['en'] || '';
+              
+              return (
+                <CarouselItem key={index} className="pl-4 basis-full">
+                  <div className="bg-card/90 backdrop-blur-sm border border-border rounded-xl overflow-hidden shadow-card hover-lift">
+                    <div className="h-48 md:h-64 overflow-hidden">
+                      <img 
+                        src={item.image_url} 
+                        alt={title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-6 md:p-8 text-center">
+                      <h3 className="text-xl md:text-2xl font-semibold mb-3">{title}</h3>
+                      <p className="text-muted-foreground">{description}</p>
+                    </div>
                   </div>
-                  <div className="p-6 md:p-8 text-center">
-                    <h3 className="text-xl md:text-2xl font-semibold mb-3">{item.title}</h3>
-                    <p className="text-muted-foreground">{item.description}</p>
-                  </div>
-                </div>
-              </CarouselItem>
-            ))}
+                </CarouselItem>
+              );
+            })}
           </CarouselContent>
         </Carousel>
       </div>

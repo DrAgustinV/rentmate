@@ -6,6 +6,15 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Palette } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { CarouselItemsManager } from "./CarouselItemsManager";
+import { Separator } from "@/components/ui/separator";
+import { Json } from "@/integrations/supabase/types";
+
+interface CarouselItem {
+  image_url: string;
+  title: Record<string, string>;
+  description: Record<string, string>;
+}
 
 interface BrandSettings {
   id: string;
@@ -16,6 +25,20 @@ interface BrandSettings {
   header_background_color: string;
   header_background_opacity: number;
   custom_domain: string | null;
+  carousel_items: CarouselItem[] | null;
+}
+
+function parseCarouselItems(data: Json | null): CarouselItem[] {
+  if (!data || !Array.isArray(data)) return [];
+  try {
+    return data.map((item: any) => ({
+      image_url: item.image_url || "",
+      title: item.title || {},
+      description: item.description || {},
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export function BrandSettings() {
@@ -30,6 +53,7 @@ export function BrandSettings() {
   const [headerBackgroundOpacity, setHeaderBackgroundOpacity] = useState(100);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [carouselItems, setCarouselItems] = useState<CarouselItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -56,7 +80,20 @@ export function BrandSettings() {
     }
 
     if (data) {
-      setSettings(data);
+      const parsedCarousel = parseCarouselItems(data.carousel_items);
+      const parsedSettings: BrandSettings = {
+        id: data.id,
+        brand_name: data.brand_name,
+        logo_url: data.logo_url,
+        primary_color: data.primary_color,
+        accent_color: data.accent_color,
+        header_background_color: data.header_background_color,
+        header_background_opacity: data.header_background_opacity,
+        custom_domain: data.custom_domain,
+        carousel_items: parsedCarousel,
+      };
+      
+      setSettings(parsedSettings);
       setBrandName(data.brand_name);
       setCustomDomain(data.custom_domain || "");
       setPrimaryColor(data.primary_color);
@@ -66,6 +103,7 @@ export function BrandSettings() {
       if (data.logo_url) {
         setLogoPreview(data.logo_url);
       }
+      setCarouselItems(parsedCarousel);
     }
     setLoading(false);
   };
@@ -386,6 +424,17 @@ export function BrandSettings() {
           <strong>Note:</strong> Changes will be applied instantly across the application for all users via real-time updates.
         </p>
       </div>
+
+      <Separator className="my-8" />
+
+      {/* Carousel Items Manager */}
+      {settings?.id && (
+        <CarouselItemsManager
+          items={carouselItems}
+          onUpdate={setCarouselItems}
+          settingsId={settings.id}
+        />
+      )}
     </div>
   );
 }
