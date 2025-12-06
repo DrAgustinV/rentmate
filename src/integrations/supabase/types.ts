@@ -176,6 +176,7 @@ export type Database = {
           brand_name: string
           custom_domain: string | null
           header_background_color: string
+          header_background_opacity: number
           id: string
           logo_url: string | null
           primary_color: string
@@ -187,6 +188,7 @@ export type Database = {
           brand_name?: string
           custom_domain?: string | null
           header_background_color?: string
+          header_background_opacity?: number
           id?: string
           logo_url?: string | null
           primary_color?: string
@@ -198,6 +200,7 @@ export type Database = {
           brand_name?: string
           custom_domain?: string | null
           header_background_color?: string
+          header_background_opacity?: number
           id?: string
           logo_url?: string | null
           primary_color?: string

@@ -8,6 +8,7 @@ interface BrandSettings {
   primary_color: string;
   accent_color: string;
   header_background_color: string;
+  header_background_opacity: number;
 }
 
 export function useBrandSettings() {

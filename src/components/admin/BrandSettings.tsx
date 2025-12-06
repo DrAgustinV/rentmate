@@ -14,6 +14,7 @@ interface BrandSettings {
   primary_color: string;
   accent_color: string;
   header_background_color: string;
+  header_background_opacity: number;
   custom_domain: string | null;
 }
 
@@ -26,6 +27,7 @@ export function BrandSettings() {
   const [primaryColor, setPrimaryColor] = useState("");
   const [accentColor, setAccentColor] = useState("");
   const [headerBackgroundColor, setHeaderBackgroundColor] = useState("");
+  const [headerBackgroundOpacity, setHeaderBackgroundOpacity] = useState(100);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,6 +62,7 @@ export function BrandSettings() {
       setPrimaryColor(data.primary_color);
       setAccentColor(data.accent_color);
       setHeaderBackgroundColor(data.header_background_color || "173 77% 40%");
+      setHeaderBackgroundOpacity(data.header_background_opacity ?? 100);
       if (data.logo_url) {
         setLogoPreview(data.logo_url);
       }
@@ -186,6 +189,7 @@ export function BrandSettings() {
         primary_color: primaryColor,
         accent_color: accentColor,
         header_background_color: headerBackgroundColor,
+        header_background_opacity: headerBackgroundOpacity,
         updated_by: user?.id,
         updated_at: new Date().toISOString(),
       };
@@ -330,18 +334,32 @@ export function BrandSettings() {
           <Palette className="inline h-4 w-4 mr-1" />
           Header Background Color (HSL)
         </Label>
-        <Input
-          id="headerBackgroundColor"
-          value={headerBackgroundColor}
-          onChange={(e) => setHeaderBackgroundColor(e.target.value)}
-          placeholder="173 77% 40%"
-        />
+        <div className="flex gap-3 items-center">
+          <Input
+            id="headerBackgroundColor"
+            value={headerBackgroundColor}
+            onChange={(e) => setHeaderBackgroundColor(e.target.value)}
+            placeholder="173 77% 40%"
+            className="flex-1"
+          />
+          <div className="flex items-center gap-2 shrink-0">
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              value={headerBackgroundOpacity}
+              onChange={(e) => setHeaderBackgroundOpacity(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
+              className="w-20"
+            />
+            <span className="text-sm text-muted-foreground">%</span>
+          </div>
+        </div>
         <div
           className="h-10 rounded border"
-          style={{ backgroundColor: `hsl(${headerBackgroundColor})` }}
+          style={{ backgroundColor: `hsla(${headerBackgroundColor}, ${headerBackgroundOpacity / 100})` }}
         />
         <p className="text-xs text-muted-foreground">
-          Format: H S% L% (e.g., "173 77% 40%" for teal). This sets the header navigation background.
+          Format: H S% L% (e.g., "173 77% 40%" for teal). Opacity: 0-100%. This sets the header navigation background.
         </p>
       </div>
 

@@ -132,7 +132,7 @@ export function AppHeader() {
     ];
 
     return (
-      <header className="sticky top-0 z-50 w-full" style={{ backgroundColor: 'hsl(var(--header-background))' }}>
+      <header className="sticky top-0 z-50 w-full" style={{ backgroundColor: 'hsla(var(--header-background), var(--header-background-opacity))' }}>
         <div className="container flex h-16 items-center justify-between">
           {/* Logo Pill */}
           <LogoPill linkTo="/" />
@@ -277,7 +277,7 @@ export function AppHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full" style={{ backgroundColor: 'hsl(var(--header-background))' }}>
+    <header className="sticky top-0 z-50 w-full" style={{ backgroundColor: 'hsla(var(--header-background), var(--header-background-opacity))' }}>
       <div className="container flex h-16 items-center justify-between">
         {/* Logo Pill */}
         <LogoPill linkTo={isManager ? "/properties" : "/dashboard"} />
