@@ -6,7 +6,7 @@ import { BRAND_CONFIG } from "@/config/brand.config";
 export function AppFooter() {
   const currentYear = new Date().getFullYear();
   const { t } = useLanguage();
-  const { brandName, tagline, email, logoUrl, logoAlt } = useBrand();
+  const { brandName, tagline, email } = useBrand();
 
   return (
     <footer className="border-t border-border bg-muted/30 mt-auto">
@@ -14,11 +14,8 @@ export function AppFooter() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand Section */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-1">
-              <img src={logoUrl} alt={logoAlt} className="h-6 w-6" />
-              <div className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                {brandName}
-              </div>
+            <div className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              {brandName}
             </div>
             <p className="text-sm text-muted-foreground">
               {tagline}
