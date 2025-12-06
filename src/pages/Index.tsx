@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Settings, LayoutDashboard, ShieldCheck, CheckCircle, FileCheck, Key, Banknote, FileSignature, Wrench, UserCheck } from "lucide-react";
+import { ArrowRight, Settings, LayoutDashboard, ShieldCheck, CheckCircle, FileCheck, Key } from "lucide-react";
 import heroProperty from "@/assets/hero-property.jpg";
 import { useBrand } from "@/contexts/BrandContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,27 +20,27 @@ const Index = () => {
   const { t } = useLanguage();
   
   const autoplayPlugin = useRef(
-    Autoplay({ delay: 3000, stopOnInteraction: false })
+    Autoplay({ delay: 4000, stopOnInteraction: false })
   );
 
   const carouselItems = [
     {
-      icon: Banknote,
+      image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&auto=format&fit=crop",
       title: t('landing.carousel.rent.title'),
       description: t('landing.carousel.rent.description'),
     },
     {
-      icon: FileSignature,
+      image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&auto=format&fit=crop",
       title: t('landing.carousel.contracts.title'),
       description: t('landing.carousel.contracts.description'),
     },
     {
-      icon: Wrench,
+      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&auto=format&fit=crop",
       title: t('landing.carousel.maintenance.title'),
       description: t('landing.carousel.maintenance.description'),
     },
     {
-      icon: UserCheck,
+      image: "https://images.unsplash.com/photo-1633265486064-086b219458ec?w=800&auto=format&fit=crop",
       title: t('landing.carousel.verification.title'),
       description: t('landing.carousel.verification.description'),
     },
@@ -75,24 +75,30 @@ return (
       </div>
 
       {/* Feature Carousel */}
-      <div className="max-w-4xl mx-auto mb-20">
+      <div className="max-w-3xl mx-auto mb-20">
         <Carousel
           plugins={[autoplayPlugin.current]}
           opts={{
-            align: "start",
+            align: "center",
             loop: true,
           }}
           className="w-full"
         >
-          <CarouselContent className="-ml-2 md:-ml-4">
+          <CarouselContent className="-ml-4">
             {carouselItems.map((item, index) => (
-              <CarouselItem key={index} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
-                <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6 h-full shadow-card hover-lift">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <item.icon className="h-6 w-6 text-primary" />
+              <CarouselItem key={index} className="pl-4 basis-full">
+                <div className="bg-card/90 backdrop-blur-sm border border-border rounded-xl overflow-hidden shadow-card hover-lift">
+                  <div className="h-48 md:h-64 overflow-hidden">
+                    <img 
+                      src={item.image} 
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                  <div className="p-6 md:p-8 text-center">
+                    <h3 className="text-xl md:text-2xl font-semibold mb-3">{item.title}</h3>
+                    <p className="text-muted-foreground">{item.description}</p>
+                  </div>
                 </div>
               </CarouselItem>
             ))}
