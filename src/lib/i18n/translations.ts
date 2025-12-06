@@ -306,6 +306,9 @@ export const translations = {
     kyc: {
       title: "Identity Verification",
       subtitle: "Verify your identity using KILT Protocol blockchain credentials",
+      subtitleNotVerified: "Verify your identity securely using your government-issued ID",
+      subtitleVerified: "Your identity has been verified",
+      subtitlePending: "Your verification is in progress",
       status: {
         notStarted: "Not Started",
         pending: "Pending",
@@ -1805,6 +1808,9 @@ export const translations = {
     kyc: {
       title: "Verificación de Identidad",
       subtitle: "Verifica tu identidad usando credenciales blockchain del Protocolo KILT",
+      subtitleNotVerified: "Verifica tu identidad de forma segura utilizando tu documento de identidad oficial",
+      subtitleVerified: "Tu identidad ha sido verificada",
+      subtitlePending: "Tu verificación está en proceso",
       status: {
         notStarted: "No Iniciado",
         pending: "Pendiente",

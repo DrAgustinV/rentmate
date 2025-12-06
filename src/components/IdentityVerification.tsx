@@ -12,6 +12,12 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { isKYCExpiringSoon } from "@/lib/validations/kyc.schema";
 import { useToast } from "@/hooks/use-toast";
 
+// Helper function to mask document ID for security
+const maskDocumentId = (id: string | null) => {
+  if (!id || id.length <= 4) return id || '';
+  return '****' + id.slice(-4);
+};
+
 export function IdentityVerification() {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -33,11 +39,11 @@ export function IdentityVerification() {
   const [selectedLevel, setSelectedLevel] = useState<OpenAPIVerificationLevel>('basic');
 
   const getStatusBadge = (status: string, provider?: string) => {
-    // Show provider in badge for verified status
+    // Show provider in badge for verified status - use "Government ID" for didit
     const providerLabel = provider === 'didit' 
-      ? 'Didit'
+      ? 'Government ID'
       : provider?.startsWith('openapi_') 
-      ? provider.replace('openapi_', '').toUpperCase()
+      ? 'Government ID'
       : provider === 'kilt' ? 'KILT' : '';
 
     switch (status) {
@@ -79,6 +85,13 @@ export function IdentityVerification() {
     await initiateVerification(selectedProvider, selectedLevel);
   };
 
+  // Dynamic subtitle based on verification status
+  const getSubtitle = () => {
+    if (isVerified) return t('kyc.subtitleVerified');
+    if (isPending) return t('kyc.subtitlePending');
+    return t('kyc.subtitleNotVerified');
+  };
+
   if (loading) {
     return (
       <Card>
@@ -109,7 +122,7 @@ export function IdentityVerification() {
           {t('kyc.title')}
         </CardTitle>
         <CardDescription>
-          {t('kyc.subtitle')}
+          {getSubtitle()}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -151,7 +164,7 @@ export function IdentityVerification() {
             <Label className="text-base font-medium">Choose Verification Method</Label>
             
             <RadioGroup value={selectedProvider} onValueChange={(value) => setSelectedProvider(value as KYCProvider)}>
-              {/* Didit Option - FREE & Recommended */}
+              {/* Government ID Option - FREE & Recommended */}
               <div className="flex items-start space-x-3 p-4 border-2 border-primary/50 rounded-lg hover:bg-muted/50 cursor-pointer bg-primary/5">
                 <RadioGroupItem value="didit" id="didit" className="mt-1" />
                 <div className="flex-1 space-y-2">
@@ -201,8 +214,8 @@ export function IdentityVerification() {
                   currentProvider === 'kilt' 
                     ? 'KILT Protocol' 
                     : currentProvider === 'didit'
-                    ? 'Didit.me'
-                    : `OpenAPI IDV (${kycProfile?.kyc_provider?.replace('openapi_', '')})`
+                    ? 'Government ID verification'
+                    : `Government ID verification (${kycProfile?.kyc_provider?.replace('openapi_', '')})`
                 }
               </AlertDescription>
             </Alert>
@@ -220,7 +233,7 @@ export function IdentityVerification() {
                   </AlertDescription>
                 </Alert>
                 
-                {/* Direct link button for Didit */}
+                {/* Direct link button for Government ID verification */}
                 {currentProvider === 'didit' && (
                   <Button 
                     className="w-full" 
@@ -249,7 +262,7 @@ export function IdentityVerification() {
               </div>
             )}
 
-            {/* Check Status Button for Didit */}
+            {/* Check Status Button for Government ID verification */}
             {currentProvider === 'didit' && (
               <Button
                 variant="outline"
@@ -334,12 +347,12 @@ export function IdentityVerification() {
           </Button>
         )}
 
-        {/* Wallet DID Display */}
+        {/* Document ID Display - Masked for security */}
         {kycProfile?.kyc_wallet_did && (
           <div className="pt-4 border-t">
             <p className="text-xs text-muted-foreground">
               {currentProvider === 'kilt' ? t('kyc.walletDID') : 'Document ID'}: 
-              <code className="text-xs ml-1">{kycProfile.kyc_wallet_did}</code>
+              <code className="text-xs ml-1">{maskDocumentId(kycProfile.kyc_wallet_did)}</code>
             </p>
           </div>
         )}
