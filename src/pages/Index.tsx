@@ -63,18 +63,15 @@ return (
           {t('landing.headline')}
         </h1>
         <p className="text-xl text-muted-foreground mb-8">{tagline}</p>
-        <div className="flex gap-4 justify-center flex-wrap">
-          <Button size="lg" onClick={() => navigate("/auth?mode=signup")} className="gap-2">
-            {t('landing.getStarted')}
-            <ArrowRight className="h-5 w-5" />
-          </Button>
-          <Button size="lg" variant="outline" onClick={() => navigate("/pricing")}>
-            {t('header.pricing')}
-          </Button>
-          <Button size="lg" variant="ghost" onClick={() => navigate("/auth?mode=signin")}>
-            {t('landing.signIn')}
-          </Button>
-        </div>
+            <div className="flex gap-4 justify-center flex-wrap">
+              <Button size="lg" variant="outline" onClick={() => navigate("/auth?mode=signin")}>
+                {t('landing.signIn')}
+              </Button>
+              <Button size="lg" onClick={() => navigate("/auth?mode=signup")} className="gap-2">
+                {t('landing.getStarted')}
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            </div>
       </div>
 
       {/* Feature Carousel */}
