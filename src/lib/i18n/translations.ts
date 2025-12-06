@@ -41,8 +41,27 @@ export const translations = {
     landing: {
       getStarted: "Get Started",
       signIn: "Sign In",
+      headline: "Simplify Property Management",
       forManagers: "For Property Managers",
       forTenants: "For Tenants",
+      carousel: {
+        rent: {
+          title: "Automated Rent",
+          description: "Collect rent automatically, never chase payments",
+        },
+        contracts: {
+          title: "Digital Contracts",
+          description: "Sign legally-binding contracts online",
+        },
+        maintenance: {
+          title: "Smart Maintenance",
+          description: "Track and resolve issues faster",
+        },
+        verification: {
+          title: "Verified Tenants",
+          description: "KYC-verified identities for peace of mind",
+        },
+      },
       managers: {
         automatedOps: {
           title: "Automated Operations",
@@ -1602,8 +1621,27 @@ export const translations = {
     landing: {
       getStarted: "Comenzar",
       signIn: "Iniciar Sesión",
+      headline: "Simplifica la Gestión de Propiedades",
       forManagers: "Para Administradores de Propiedades",
       forTenants: "Para Inquilinos",
+      carousel: {
+        rent: {
+          title: "Alquiler Automatizado",
+          description: "Cobra el alquiler automáticamente, sin perseguir pagos",
+        },
+        contracts: {
+          title: "Contratos Digitales",
+          description: "Firma contratos legalmente vinculantes en línea",
+        },
+        maintenance: {
+          title: "Mantenimiento Inteligente",
+          description: "Rastrea y resuelve incidencias más rápido",
+        },
+        verification: {
+          title: "Inquilinos Verificados",
+          description: "Identidades verificadas con KYC para tu tranquilidad",
+        },
+      },
       managers: {
         automatedOps: {
           title: "Operaciones Automatizadas",
