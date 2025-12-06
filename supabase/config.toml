@@ -98,6 +98,9 @@ verify_jwt = true  # User initiates Didit KYC verification
 [functions.verify-didit-kyc]
 verify_jwt = false  # Public webhook endpoint from Didit
 
+[functions.check-didit-kyc-status]
+verify_jwt = true  # User checks their Didit KYC status
+
 # YouSign e-Signature Functions
 [functions.initiate-yousign-signature]
 verify_jwt = true  # Manager initiates YouSign signature

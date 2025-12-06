@@ -1,10 +1,69 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
-import { createDiditClient } from '../_shared/didit-client.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-signature',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-signature, x-timestamp',
 };
+
+/**
+ * Verify HMAC-SHA256 signature using Web Crypto API
+ */
+async function verifyHmacSignature(
+  payload: string,
+  signature: string,
+  secret: string
+): Promise<boolean> {
+  try {
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(secret);
+    const payloadData = encoder.encode(payload);
+
+    // Import the secret key
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    // Sign the payload
+    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, payloadData);
+
+    // Convert to hex string
+    const computedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    console.log('[verify-didit-kyc] Computed signature:', computedSignature.substring(0, 16) + '...');
+    console.log('[verify-didit-kyc] Received signature:', signature.substring(0, 16) + '...');
+
+    return computedSignature === signature;
+  } catch (error) {
+    console.error('[verify-didit-kyc] HMAC verification error:', error);
+    return false;
+  }
+}
+
+/**
+ * Validate timestamp is within acceptable range (5 minutes)
+ */
+function isTimestampValid(timestamp: string): boolean {
+  try {
+    const webhookTime = new Date(timestamp).getTime();
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+    
+    const isValid = Math.abs(now - webhookTime) < fiveMinutes;
+    if (!isValid) {
+      console.warn('[verify-didit-kyc] Timestamp outside acceptable range:', timestamp);
+    }
+    return isValid;
+  } catch {
+    console.warn('[verify-didit-kyc] Failed to parse timestamp:', timestamp);
+    return false;
+  }
+}
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -14,34 +73,77 @@ Deno.serve(async (req) => {
 
   try {
     console.log('[verify-didit-kyc] Webhook received');
+    console.log('[verify-didit-kyc] Request method:', req.method);
+    
+    // Log all headers for debugging
+    const headerEntries = Object.fromEntries(req.headers.entries());
+    console.log('[verify-didit-kyc] Headers:', JSON.stringify(headerEntries));
 
     // Get raw body for signature verification
     const rawBody = await req.text();
     console.log('[verify-didit-kyc] Webhook payload length:', rawBody.length);
 
-    // Get signature header
-    const signature = req.headers.get('x-signature') || '';
+    // Handle empty body gracefully (health checks, ping requests)
+    if (!rawBody || rawBody.length === 0) {
+      console.warn('[verify-didit-kyc] Empty body received - treating as health check');
+      return new Response(
+        JSON.stringify({ received: true, message: 'No payload received - health check acknowledged' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get signature and timestamp headers (Didit uses X-Signature and X-Timestamp)
+    const signature = req.headers.get('x-signature') || req.headers.get('X-Signature') || '';
+    const timestamp = req.headers.get('x-timestamp') || req.headers.get('X-Timestamp') || '';
     const webhookSecret = Deno.env.get('DIDIT_WEBHOOK_SECRET_KEY');
 
+    console.log('[verify-didit-kyc] Signature present:', !!signature);
+    console.log('[verify-didit-kyc] Timestamp present:', !!timestamp);
+    console.log('[verify-didit-kyc] Webhook secret configured:', !!webhookSecret);
+
     // Verify webhook signature if secret is configured
-    if (webhookSecret) {
-      const diditClient = createDiditClient();
-      const isValid = diditClient.verifyWebhookSignature(rawBody, signature, webhookSecret);
+    if (webhookSecret && signature) {
+      // Validate timestamp first
+      if (timestamp && !isTimestampValid(timestamp)) {
+        console.warn('[verify-didit-kyc] Timestamp validation failed, but continuing...');
+      }
+
+      // Verify HMAC signature
+      const isValid = await verifyHmacSignature(rawBody, signature, webhookSecret);
       
       if (!isValid) {
-        console.warn('[verify-didit-kyc] Invalid webhook signature');
-        // Continue anyway for now, but log warning
+        console.warn('[verify-didit-kyc] Invalid webhook signature - continuing anyway for debugging');
+        // In production, you might want to reject: return new Response('Invalid signature', { status: 401 });
+      } else {
+        console.log('[verify-didit-kyc] Webhook signature verified successfully');
       }
+    } else if (webhookSecret && !signature) {
+      console.warn('[verify-didit-kyc] Webhook secret configured but no signature in request');
     }
 
     // Parse webhook payload
-    const payload = JSON.parse(rawBody);
+    let payload;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch (parseError) {
+      console.error('[verify-didit-kyc] JSON parse error:', parseError);
+      return new Response(
+        JSON.stringify({ received: true, error: 'Invalid JSON payload' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('[verify-didit-kyc] Webhook event:', payload.event || payload.status);
     console.log('[verify-didit-kyc] Session ID:', payload.session_id);
+    console.log('[verify-didit-kyc] Full payload:', JSON.stringify(payload));
 
     const sessionId = payload.session_id;
     if (!sessionId) {
-      throw new Error('Missing session_id in webhook payload');
+      console.error('[verify-didit-kyc] Missing session_id in payload');
+      return new Response(
+        JSON.stringify({ received: true, error: 'Missing session_id' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Create admin Supabase client

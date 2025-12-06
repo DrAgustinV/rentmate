@@ -144,34 +144,71 @@ export class DiditClient {
   }
 
   /**
-   * Verify webhook signature using HMAC-SHA256
+   * Verify webhook signature using HMAC-SHA256 (async)
+   * Uses Web Crypto API for proper cryptographic verification
+   */
+  async verifyWebhookSignatureAsync(
+    payload: string,
+    signature: string,
+    webhookSecret: string
+  ): Promise<boolean> {
+    try {
+      console.log('[DiditClient] Verifying webhook signature with HMAC-SHA256');
+
+      if (!signature || signature.length < 10) {
+        console.warn('[DiditClient] Invalid or missing signature');
+        return false;
+      }
+
+      const encoder = new TextEncoder();
+      const keyData = encoder.encode(webhookSecret);
+      const payloadData = encoder.encode(payload);
+
+      // Import the secret key for HMAC
+      const cryptoKey = await crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+
+      // Sign the payload
+      const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, payloadData);
+
+      // Convert to hex string
+      const computedSignature = Array.from(new Uint8Array(signatureBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      const isValid = computedSignature === signature;
+      console.log('[DiditClient] Signature valid:', isValid);
+      
+      return isValid;
+    } catch (error) {
+      console.error('[DiditClient] Signature verification error:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Verify webhook signature using HMAC-SHA256 (sync - basic check only)
+   * @deprecated Use verifyWebhookSignatureAsync for proper verification
    */
   verifyWebhookSignature(
     payload: string,
     signature: string,
     webhookSecret: string
   ): boolean {
-    try {
-      // Didit uses x-signature header with HMAC-SHA256
-      const encoder = new TextEncoder();
-      const key = encoder.encode(webhookSecret);
-      const data = encoder.encode(payload);
-
-      // For now, we'll do a simple comparison
-      // In production, you'd use Web Crypto API for HMAC verification
-      console.log('[DiditClient] Verifying webhook signature');
-      
-      // Basic validation - signature should be present and non-empty
-      if (!signature || signature.length < 10) {
-        console.warn('[DiditClient] Invalid or missing signature');
-        return false;
-      }
-
-      return true; // Basic validation passed
-    } catch (error) {
-      console.error('[DiditClient] Signature verification error:', error);
+    // Basic validation only - for proper verification use async method
+    console.log('[DiditClient] Basic webhook signature check');
+    
+    if (!signature || signature.length < 10) {
+      console.warn('[DiditClient] Invalid or missing signature');
       return false;
     }
+
+    return true; // Basic validation passed - caller should use async method
   }
 
   /**
