@@ -61,14 +61,20 @@ export type KYCProvider = z.infer<typeof KYCProviderEnum>;
  * KYC Profile Data Schema
  * Matches the profiles table KYC columns
  */
+// Flexible datetime validation that accepts both ISO 8601 and Postgres timestamp formats
+const flexibleDatetime = z.string().refine(
+  (val) => !isNaN(Date.parse(val)),
+  { message: 'Invalid date format' }
+).nullable();
+
 export const KYCProfileSchema = z.object({
   kyc_status: KYCStatusEnum,
   kyc_provider: z.string().nullable(),
   kyc_credential_id: z.string().nullable(),
   kyc_qr_code_url: z.string().nullable(),
   kyc_wallet_did: z.string().nullable(),
-  kyc_verified_at: z.string().datetime().nullable(),
-  kyc_expires_at: z.string().datetime().nullable(),
+  kyc_verified_at: flexibleDatetime,
+  kyc_expires_at: flexibleDatetime,
 });
 
 export type KYCProfile = z.infer<typeof KYCProfileSchema>;
