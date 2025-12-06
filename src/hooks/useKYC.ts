@@ -29,6 +29,7 @@ interface UseKYCReturn {
   kycProfile: KYCProfile | null;
   loading: boolean;
   initiating: boolean;
+  checkingStatus: boolean;
   error: Error | null;
   
   // Computed values
@@ -42,6 +43,7 @@ interface UseKYCReturn {
   initiateVerification: (provider?: KYCProvider, level?: OpenAPIVerificationLevel) => Promise<void>;
   cancelVerification: () => Promise<void>;
   refreshStatus: () => Promise<void>;
+  checkDiditStatus: () => Promise<void>;
 }
 
 /**
@@ -82,6 +84,7 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
   const [kycProfile, setKycProfile] = useState<KYCProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [initiating, setInitiating] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   
   const { toast } = useToast();
@@ -291,6 +294,60 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
     await fetchKYCStatus();
   }, [fetchKYCStatus]);
 
+  /**
+   * Check Didit verification status by polling the Didit API
+   * Useful as a fallback when webhooks fail
+   */
+  const checkDiditStatus = useCallback(async () => {
+    try {
+      setCheckingStatus(true);
+      setError(null);
+
+      console.log('[useKYC] Checking Didit status...');
+
+      const { data, error: functionError } = await supabase.functions.invoke('check-didit-kyc-status');
+
+      if (functionError) {
+        throw new Error('Failed to check status');
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Status check failed');
+      }
+
+      console.log('[useKYC] Didit status check result:', data);
+
+      if (data.updated) {
+        toast({
+          title: 'Status Updated',
+          description: `Your verification status has been updated to: ${data.status}`,
+        });
+      } else {
+        toast({
+          title: 'Status Checked',
+          description: `Current status: ${data.status}. No changes detected.`,
+        });
+      }
+
+      // Refresh the profile to get updated data
+      await fetchKYCStatus();
+
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Unknown error');
+      setError(error);
+      
+      console.error('[useKYC] Error checking Didit status:', error);
+      
+      toast({
+        title: 'Status Check Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setCheckingStatus(false);
+    }
+  }, [toast, fetchKYCStatus]);
+
   // Auto-fetch on mount if enabled
   useEffect(() => {
     if (autoFetch) {
@@ -317,6 +374,7 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
     kycProfile,
     loading,
     initiating,
+    checkingStatus,
     error,
     
     // Computed
@@ -330,5 +388,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
     initiateVerification,
     cancelVerification,
     refreshStatus,
+    checkDiditStatus,
   };
 }

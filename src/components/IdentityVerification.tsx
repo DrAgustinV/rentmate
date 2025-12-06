@@ -4,9 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2, Zap, Clock, UserCheck, Gift, ExternalLink } from "lucide-react";
+import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2, Gift, ExternalLink, RefreshCw } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useKYC, KYCProvider, OpenAPIVerificationLevel } from "@/hooks/useKYC";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,12 +19,14 @@ export function IdentityVerification() {
     kycProfile,
     loading,
     initiating,
+    checkingStatus,
     isVerified,
     isPending,
     canInitiate,
     currentProvider,
     initiateVerification,
     cancelVerification,
+    checkDiditStatus,
   } = useKYC();
 
   const [selectedProvider, setSelectedProvider] = useState<KYCProvider>('didit');
@@ -246,6 +247,28 @@ export function IdentityVerification() {
                     : 'Open the link on your mobile device to start the verification process'}
                 </p>
               </div>
+            )}
+
+            {/* Check Status Button for Didit */}
+            {currentProvider === 'didit' && (
+              <Button
+                variant="outline"
+                onClick={checkDiditStatus}
+                disabled={checkingStatus}
+                className="w-full"
+              >
+                {checkingStatus ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Checking Status...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Check Verification Status
+                  </>
+                )}
+              </Button>
             )}
 
             <Alert>
