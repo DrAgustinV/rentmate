@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
+
+export interface CarouselItem {
+  image_url: string;
+  title: Record<string, string>;
+  description: Record<string, string>;
+}
 
 interface BrandSettings {
   id: string;
@@ -9,6 +16,20 @@ interface BrandSettings {
   accent_color: string;
   header_background_color: string;
   header_background_opacity: number;
+  carousel_items: CarouselItem[] | null;
+}
+
+function parseCarouselItems(data: Json | null): CarouselItem[] | null {
+  if (!data || !Array.isArray(data)) return null;
+  try {
+    return data.map((item: any) => ({
+      image_url: item.image_url || "",
+      title: item.title || {},
+      description: item.description || {},
+    }));
+  } catch {
+    return null;
+  }
 }
 
 export function useBrandSettings() {
@@ -47,7 +68,19 @@ export function useBrandSettings() {
         .single();
 
       if (error) throw error;
-      setSettings(data);
+      
+      const parsedSettings: BrandSettings = {
+        id: data.id,
+        brand_name: data.brand_name,
+        logo_url: data.logo_url,
+        primary_color: data.primary_color,
+        accent_color: data.accent_color,
+        header_background_color: data.header_background_color,
+        header_background_opacity: data.header_background_opacity,
+        carousel_items: parseCarouselItems(data.carousel_items),
+      };
+      
+      setSettings(parsedSettings);
     } catch (error) {
       console.error("Error fetching brand settings:", error);
     } finally {

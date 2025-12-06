@@ -174,6 +174,7 @@ export type Database = {
         Row: {
           accent_color: string
           brand_name: string
+          carousel_items: Json | null
           custom_domain: string | null
           header_background_color: string
           header_background_opacity: number
@@ -186,6 +187,7 @@ export type Database = {
         Insert: {
           accent_color?: string
           brand_name?: string
+          carousel_items?: Json | null
           custom_domain?: string | null
           header_background_color?: string
           header_background_opacity?: number
@@ -198,6 +200,7 @@ export type Database = {
         Update: {
           accent_color?: string
           brand_name?: string
+          carousel_items?: Json | null
           custom_domain?: string | null
           header_background_color?: string
           header_background_opacity?: number
