@@ -18,7 +18,8 @@ export function BrandProvider({ children }: BrandProviderProps) {
         const root = document.documentElement;
         root.style.setProperty("--primary", settings.primary_color);
         root.style.setProperty("--accent", settings.accent_color);
-        root.style.setProperty("--header-background", settings.header_background_color);
+    root.style.setProperty("--header-background", settings.header_background_color);
+    root.style.setProperty("--header-background-opacity", String(settings.header_background_opacity / 100));
         
         // Update gradient that uses primary and accent
         const gradient = `linear-gradient(135deg, hsl(${settings.primary_color}), hsl(${settings.accent_color}))`;
