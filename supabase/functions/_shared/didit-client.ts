@@ -26,9 +26,9 @@ interface DiditSessionResponse {
 
 interface DiditSessionDecision {
   session_id: string;
-  status: 'created' | 'pending' | 'approved' | 'declined' | 'expired' | 'abandoned';
+  status: string; // Didit returns capitalized: 'Created', 'Pending', 'Approved', 'Declined', 'Expired', 'Abandoned'
   decision?: {
-    result: 'approved' | 'declined' | 'pending';
+    result: string;
     reason?: string;
   };
   extracted_data?: {
@@ -39,6 +39,17 @@ interface DiditSessionDecision {
     document_number?: string;
     country?: string;
     expiry_date?: string;
+  };
+  // Didit also returns id_verification object with similar fields
+  id_verification?: {
+    first_name?: string;
+    last_name?: string;
+    date_of_birth?: string;
+    document_type?: string;
+    document_number?: string;
+    country?: string;
+    expiry_date?: string;
+    nationality?: string;
   };
   vendor_data?: string;
 }

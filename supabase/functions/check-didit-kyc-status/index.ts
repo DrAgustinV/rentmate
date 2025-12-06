@@ -97,15 +97,22 @@ Deno.serve(async (req) => {
 
     console.log('[check-didit-kyc-status] Didit decision:', JSON.stringify(decision));
 
-    // Map Didit status to our KYC status
+    // Map Didit status to our KYC status (normalize to lowercase for comparison)
     let newKycStatus = profile.kyc_status;
     let walletDid: string | null = null;
+    
+    // Didit returns capitalized status like 'Approved', 'Declined', etc.
+    const normalizedStatus = decision.status?.toLowerCase() || '';
+    console.log('[check-didit-kyc-status] Raw status:', decision.status, '-> normalized:', normalizedStatus);
 
-    switch (decision.status) {
+    // Extract data from either extracted_data or id_verification (Didit uses both)
+    const extractedData = decision.extracted_data || decision.id_verification || {};
+
+    switch (normalizedStatus) {
       case 'approved':
         newKycStatus = 'verified';
-        if (decision.extracted_data?.document_number) {
-          walletDid = decision.extracted_data.document_number;
+        if (extractedData.document_number) {
+          walletDid = extractedData.document_number;
         }
         console.log('[check-didit-kyc-status] Status: APPROVED');
         break;
@@ -154,18 +161,18 @@ Deno.serve(async (req) => {
           updateData.kyc_wallet_did = walletDid;
         }
 
-        // Store extracted KYC data
-        if (decision.extracted_data) {
+        // Store extracted KYC data (from either extracted_data or id_verification)
+        if (extractedData && Object.keys(extractedData).length > 0) {
           updateData.kyc_data = {
             provider: 'didit',
             extracted_at: new Date().toISOString(),
-            first_name: decision.extracted_data.first_name || null,
-            last_name: decision.extracted_data.last_name || null,
-            date_of_birth: decision.extracted_data.date_of_birth || null,
-            document_type: decision.extracted_data.document_type || null,
-            document_number: decision.extracted_data.document_number || null,
-            country: decision.extracted_data.country || null,
-            expiry_date: decision.extracted_data.expiry_date || null,
+            first_name: extractedData.first_name || null,
+            last_name: extractedData.last_name || null,
+            date_of_birth: extractedData.date_of_birth || null,
+            document_type: extractedData.document_type || null,
+            document_number: extractedData.document_number || null,
+            country: extractedData.country || null,
+            expiry_date: extractedData.expiry_date || null,
           };
         }
       }
