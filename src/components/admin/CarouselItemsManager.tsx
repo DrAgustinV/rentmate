@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Upload, GripVertical, Image } from "lucide-react";
 import { useLanguageSettings } from "@/hooks/useLanguageSettings";
@@ -222,40 +223,44 @@ export function CarouselItemsManager({ items, onUpdate, settingsId }: CarouselIt
               </div>
             </div>
 
-            {/* Multi-language Title and Description */}
-            {enabledLanguages.map((langCode) => (
-              <div key={langCode} className="space-y-3 border-t pt-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium uppercase bg-muted px-2 py-1 rounded">
+            {/* Multi-language Title and Description - Tabbed */}
+            <Tabs defaultValue={enabledLanguages[0] || "en"} className="border-t pt-3">
+              <TabsList className="mb-3">
+                {enabledLanguages.map((langCode) => (
+                  <TabsTrigger key={langCode} value={langCode} className="uppercase text-xs">
                     {langCode}
-                  </span>
-                  <span className="text-sm text-muted-foreground">{languageNames[langCode] || langCode}</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Title</Label>
-                    <Input
-                      value={item.title[langCode] || ""}
-                      onChange={(e) =>
-                        handleTextChange(index, "title", langCode, e.target.value)
-                      }
-                      placeholder={`Title in ${languageNames[langCode] || langCode}`}
-                    />
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              
+              {enabledLanguages.map((langCode) => (
+                <TabsContent key={langCode} value={langCode} className="mt-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Title ({languageNames[langCode]})</Label>
+                      <Input
+                        value={item.title[langCode] || ""}
+                        onChange={(e) =>
+                          handleTextChange(index, "title", langCode, e.target.value)
+                        }
+                        placeholder={`Title in ${languageNames[langCode] || langCode}`}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Description ({languageNames[langCode]})</Label>
+                      <Textarea
+                        value={item.description[langCode] || ""}
+                        onChange={(e) =>
+                          handleTextChange(index, "description", langCode, e.target.value)
+                        }
+                        placeholder={`Description in ${languageNames[langCode] || langCode}`}
+                        rows={2}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Description</Label>
-                    <Textarea
-                      value={item.description[langCode] || ""}
-                      onChange={(e) =>
-                        handleTextChange(index, "description", langCode, e.target.value)
-                      }
-                      placeholder={`Description in ${languageNames[langCode] || langCode}`}
-                      rows={2}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
+                </TabsContent>
+              ))}
+            </Tabs>
           </div>
         ))}
       </div>
