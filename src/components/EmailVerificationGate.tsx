@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -42,47 +42,62 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
     location.pathname === route || location.pathname.startsWith(route + "/")
   );
 
+  // Fetch verification status from profile
+  const fetchVerificationStatus = useCallback(async (uid: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("email_verified")
+        .eq("id", uid)
+        .single();
+
+      if (error) {
+        console.error("Error fetching profile:", error);
+        setEmailVerified(false);
+      } else {
+        setEmailVerified(profile?.email_verified ?? false);
+      }
+    } catch (error) {
+      console.error("Error checking verification status:", error);
+      setEmailVerified(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const checkVerificationStatus = async () => {
+    let mounted = true;
+
+    const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
+        if (!mounted) return;
+
         if (!session?.user) {
-          // Not logged in - let it pass through (auth will handle redirect)
+          // Not logged in - allow through (auth pages will handle)
+          setEmailVerified(true);
           setLoading(false);
-          setEmailVerified(true); // Allow through, auth pages will handle
           return;
         }
 
         setUserId(session.user.id);
         setUserEmail(session.user.email || "");
 
-        // Check profile for email_verified status
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("email_verified")
-          .eq("id", session.user.id)
-          .single();
-
-        if (error) {
-          console.error("Error fetching profile:", error);
-          // If profile doesn't exist yet, assume not verified
-          setEmailVerified(false);
-        } else {
-          setEmailVerified(profile?.email_verified ?? false);
-        }
+        // Fetch verification status
+        await fetchVerificationStatus(session.user.id);
       } catch (error) {
-        console.error("Error checking verification status:", error);
-        setEmailVerified(false);
+        console.error("Error checking session:", error);
+        if (mounted) setEmailVerified(false);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
-    checkVerificationStatus();
+    checkSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      
       if (event === "SIGNED_OUT") {
         setEmailVerified(null);
         setUserId(null);
@@ -91,55 +106,56 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
         setUserId(session.user.id);
         setUserEmail(session.user.email || "");
         
-        // Re-check verification status
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("email_verified")
-          .eq("id", session.user.id)
-          .single();
-          
-        setEmailVerified(profile?.email_verified ?? false);
+        // Defer profile fetch to avoid auth deadlock
+        setTimeout(() => {
+          if (mounted) {
+            fetchVerificationStatus(session.user.id);
+          }
+        }, 0);
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [fetchVerificationStatus]);
 
   // Auto-send verification email on first load if not verified
   useEffect(() => {
+    if (loading || isPublicRoute || emailVerified !== false || !userId || verificationSent) {
+      return;
+    }
+
     const sendInitialVerification = async () => {
-      if (emailVerified === false && userId && !verificationSent && !isPublicRoute) {
-        // Check if we've already sent in this session
-        const sentKey = `verification_sent_${userId}`;
-        if (sessionStorage.getItem(sentKey)) {
-          setVerificationSent(true);
+      // Check if we've already sent in this session
+      const sentKey = `verification_sent_${userId}`;
+      if (sessionStorage.getItem(sentKey)) {
+        setVerificationSent(true);
+        return;
+      }
+
+      try {
+        setSendingVerification(true);
+        const { data, error } = await supabase.functions.invoke("send-email-verification");
+        
+        if (error) throw error;
+        
+        if (data?.already_verified) {
+          setEmailVerified(true);
           return;
         }
 
-        try {
-          setSendingVerification(true);
-          const { data, error } = await supabase.functions.invoke("send-email-verification");
-          
-          if (error) throw error;
-          
-          if (data?.already_verified) {
-            setEmailVerified(true);
-            return;
-          }
-
-          sessionStorage.setItem(sentKey, "true");
-          setVerificationSent(true);
-        } catch (error) {
-          console.error("Error sending initial verification:", error);
-        } finally {
-          setSendingVerification(false);
-        }
+        sessionStorage.setItem(sentKey, "true");
+        setVerificationSent(true);
+      } catch (error) {
+        console.error("Error sending initial verification:", error);
+      } finally {
+        setSendingVerification(false);
       }
     };
 
-    if (!loading) {
-      sendInitialVerification();
-    }
+    sendInitialVerification();
   }, [emailVerified, userId, loading, verificationSent, isPublicRoute]);
 
   const handleResendVerification = async () => {
@@ -198,6 +214,11 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
     }
   };
 
+  // Public routes always allowed - no loading state needed
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -205,11 +226,6 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  }
-
-  // Public routes always allowed
-  if (isPublicRoute) {
-    return <>{children}</>;
   }
 
   // Verified users can proceed
