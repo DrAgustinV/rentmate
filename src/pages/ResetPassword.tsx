@@ -25,7 +25,7 @@ const passwordSchema = z.object({
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [mode, setMode] = useState<"request" | "reset">("request");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,7 +64,7 @@ export default function ResetPassword() {
     
     // Rate limiting check
     if (rateLimitRemaining <= 0) {
-      showToast.error("Too many requests. Please try again in 1 hour.");
+      showToast.error(t('auth.rateLimitExceeded'));
       return;
     }
 
@@ -78,8 +78,9 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      // Call our custom edge function instead of Supabase's built-in method
+      const { error } = await supabase.functions.invoke('send-password-reset-email', {
+        body: { email, language },
       });
 
       if (error) throw error;
@@ -89,7 +90,7 @@ export default function ResetPassword() {
       showToast.success(t('auth.resetLinkSent'));
     } catch (error: any) {
       console.error('Reset password error:', error);
-      // Don't reveal if email exists for security
+      // Don't reveal if email exists for security - still show success
       setEmailSent(true);
       showToast.success(t('auth.resetLinkSent'));
     } finally {
@@ -225,7 +226,7 @@ export default function ResetPassword() {
             <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/20 rounded-md">
               <AlertCircle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
               <p className="text-sm text-warning">
-                Requests remaining: {rateLimitRemaining}/3 per hour
+                {t('auth.requestsRemaining')}: {rateLimitRemaining}/3
               </p>
             </div>
           )}
