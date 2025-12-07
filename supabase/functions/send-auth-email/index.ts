@@ -1,9 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 interface AuthEmailPayload {
   user: {
@@ -24,22 +21,6 @@ const handler = async (req: Request): Promise<Response> => {
     
     console.log("Auth email hook triggered:", payload.email_data.email_action_type);
 
-    // Create Supabase admin client to fetch brand settings
-    const supabaseAdmin = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
-    // Fetch brand name from brand_settings
-    const { data: brandData } = await supabaseAdmin
-      .from("brand_settings")
-      .select("brand_name")
-      .single();
-
-    const brandName = brandData?.brand_name || "RentMate";
-
     const { user, email_data } = payload;
     const actionType = email_data.email_action_type;
     
@@ -51,23 +32,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     switch (actionType) {
       case "signup":
-        subject = `Confirm your ${brandName} account`;
-        html = getSignupEmailTemplate(confirmationUrl, brandName);
+        subject = "Confirm your RentMate account";
+        html = getSignupEmailTemplate(confirmationUrl);
         break;
       
       case "recovery":
-        subject = `Reset your ${brandName} password`;
-        html = getRecoveryEmailTemplate(confirmationUrl, brandName);
+        subject = "Reset your RentMate password";
+        html = getRecoveryEmailTemplate(confirmationUrl);
         break;
       
       case "magiclink":
-        subject = `Your ${brandName} magic link`;
-        html = getMagicLinkEmailTemplate(confirmationUrl, brandName);
+        subject = "Your RentMate magic link";
+        html = getMagicLinkEmailTemplate(confirmationUrl);
         break;
       
       default:
-        subject = `${brandName} notification`;
-        html = getDefaultEmailTemplate(confirmationUrl, actionType, brandName);
+        subject = "RentMate notification";
+        html = getDefaultEmailTemplate(confirmationUrl, actionType);
     }
 
     // Send email using Resend API
@@ -78,7 +59,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `${brandName} <noreply@rentmate.me>`,
+        from: "RentMate <noreply@rentmate.me>",
         to: [user.email],
         subject,
         html,
@@ -110,65 +91,15 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-function getEmailHeader(brandName: string): string {
-  return `<!-- Header -->
-          <tr>
-            <td style="background-color: #2C4240; padding: 32px 24px; text-align: center;">
-              <!-- White pill container with circular RE and brand name inline -->
-              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #FFFFFF; border-radius: 999px;">
-                <tr>
-                  <td style="padding: 8px 20px 8px 8px;">
-                    <table cellpadding="0" cellspacing="0" border="0">
-                      <tr>
-                        <!-- Circular RE monogram -->
-                        <td style="vertical-align: middle;">
-                          <table cellpadding="0" cellspacing="0" border="0" style="background-color: #2C4240; border-radius: 50%; width: 40px; height: 40px;">
-                            <tr>
-                              <td style="text-align: center; vertical-align: middle; width: 40px; height: 40px;">
-                                <span style="color: #FFFFFF; font-size: 14px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RE</span>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                        <!-- Brand name -->
-                        <td style="padding-left: 10px; vertical-align: middle;">
-                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${brandName}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>`;
-}
-
-function getEmailFooter(brandName: string): string {
+function getEmailWrapper(title: string, content: string): string {
   const currentYear = new Date().getFullYear();
-  return `<!-- Footer -->
-          <tr>
-            <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
-              <p style="margin: 0 0 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                Best regards,<br>The ${brandName} Team
-              </p>
-              <p style="margin: 8px 0; color: #2C4240; font-size: 12px; opacity: 0.8; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                This is an automated email. Please do not reply.
-              </p>
-              <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                © ${currentYear} ${brandName}. All rights reserved.
-              </p>
-            </td>
-          </tr>`;
-}
-
-function getEmailWrapper(title: string, content: string, brandName: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>${title} - ${brandName}</title>
+  <title>${title} - RentMate</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
@@ -176,7 +107,26 @@ function getEmailWrapper(title: string, content: string, brandName: string): str
       <td align="center" style="padding: 20px 0;">
         <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
           
-          ${getEmailHeader(brandName)}
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #2C4240; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px;">
+                      <tr>
+                        <td style="padding: 14px 18px; text-align: center;">
+                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Professional Property Management</p>
+            </td>
+          </tr>
           
           <!-- Content -->
           <tr>
@@ -185,7 +135,20 @@ function getEmailWrapper(title: string, content: string, brandName: string): str
             </td>
           </tr>
           
-          ${getEmailFooter(brandName)}
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
+              <p style="margin: 0 0 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                Best regards,<br>The RentMate Team
+              </p>
+              <p style="margin: 8px 0; color: #2C4240; font-size: 12px; opacity: 0.8; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                This is an automated email. Please do not reply.
+              </p>
+              <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                © ${currentYear} RentMate. All rights reserved.
+              </p>
+            </td>
+          </tr>
           
         </table>
       </td>
@@ -195,13 +158,13 @@ function getEmailWrapper(title: string, content: string, brandName: string): str
 </html>`;
 }
 
-function getSignupEmailTemplate(confirmationUrl: string, brandName: string): string {
+function getSignupEmailTemplate(confirmationUrl: string): string {
   const content = `
     <!-- Title -->
     <table cellpadding="0" cellspacing="0" border="0" width="100%">
       <tr>
         <td style="padding-bottom: 24px;">
-          <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Welcome to ${brandName}!</h2>
+          <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Welcome to RentMate!</h2>
         </td>
       </tr>
     </table>
@@ -216,7 +179,7 @@ function getSignupEmailTemplate(confirmationUrl: string, brandName: string): str
       <tr>
         <td style="padding-bottom: 24px;">
           <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-            Thank you for signing up for ${brandName}! We're excited to have you on board. Please confirm your email address by clicking the button below:
+            Thank you for signing up for RentMate! We're excited to have you on board. Please confirm your email address by clicking the button below:
           </p>
         </td>
       </tr>
@@ -290,10 +253,10 @@ function getSignupEmailTemplate(confirmationUrl: string, brandName: string): str
     </table>
   `;
   
-  return getEmailWrapper("Welcome", content, brandName);
+  return getEmailWrapper("Welcome", content);
 }
 
-function getRecoveryEmailTemplate(resetUrl: string, brandName: string): string {
+function getRecoveryEmailTemplate(resetUrl: string): string {
   const content = `
     <!-- Title -->
     <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -314,7 +277,7 @@ function getRecoveryEmailTemplate(resetUrl: string, brandName: string): string {
       <tr>
         <td style="padding-bottom: 24px;">
           <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-            We received a request to reset your ${brandName} password. Click the button below to create a new password:
+            We received a request to reset your RentMate password. Click the button below to create a new password:
           </p>
         </td>
       </tr>
@@ -372,10 +335,10 @@ function getRecoveryEmailTemplate(resetUrl: string, brandName: string): string {
     </table>
   `;
   
-  return getEmailWrapper("Reset Password", content, brandName);
+  return getEmailWrapper("Reset Password", content);
 }
 
-function getMagicLinkEmailTemplate(magicUrl: string, brandName: string): string {
+function getMagicLinkEmailTemplate(magicUrl: string): string {
   const content = `
     <!-- Title -->
     <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -396,7 +359,7 @@ function getMagicLinkEmailTemplate(magicUrl: string, brandName: string): string 
       <tr>
         <td style="padding-bottom: 24px;">
           <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-            Click the button below to instantly sign in to your ${brandName} account:
+            Click the button below to instantly sign in to your RentMate account:
           </p>
         </td>
       </tr>
@@ -410,7 +373,7 @@ function getMagicLinkEmailTemplate(magicUrl: string, brandName: string): string 
             <tr>
               <td align="center" style="background-color: #46A19D; border-radius: 6px;">
                 <a href="${magicUrl}" style="display: inline-block; background-color: #46A19D; color: #ffffff; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px;">
-                  Sign In to ${brandName}
+                  Sign In to RentMate
                 </a>
               </td>
             </tr>
@@ -443,10 +406,10 @@ function getMagicLinkEmailTemplate(magicUrl: string, brandName: string): string 
     </table>
   `;
   
-  return getEmailWrapper("Magic Link", content, brandName);
+  return getEmailWrapper("Magic Link", content);
 }
 
-function getDefaultEmailTemplate(actionUrl: string, actionType: string, brandName: string): string {
+function getDefaultEmailTemplate(actionUrl: string, actionType: string): string {
   const content = `
     <!-- Title -->
     <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -503,7 +466,7 @@ function getDefaultEmailTemplate(actionUrl: string, actionType: string, brandNam
     </table>
   `;
   
-  return getEmailWrapper("Action Required", content, brandName);
+  return getEmailWrapper("Notification", content);
 }
 
 serve(handler);

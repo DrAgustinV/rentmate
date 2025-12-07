@@ -4,7 +4,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -73,22 +72,6 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create admin client to fetch brand settings
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
-    // Fetch brand name from brand_settings
-    const { data: brandData } = await supabaseAdmin
-      .from("brand_settings")
-      .select("brand_name")
-      .single();
-
-    const brandName = brandData?.brand_name || "RentMate";
-
     console.log("Sending welcome email for user:", user.id, user.email);
 
     const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -98,10 +81,10 @@ serve(async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `${brandName} <noreply@rentmate.me>`,
+        from: "RentMate <noreply@rentmate.me>",
         to: [user.email],
-        subject: `Welcome to ${brandName}`,
-        html: getWelcomeEmailTemplate(brandName),
+        subject: "Welcome to RentMate",
+        html: getWelcomeEmailTemplate(),
       }),
     });
 
@@ -145,40 +128,7 @@ serve(async (req: Request): Promise<Response> => {
   }
 });
 
-function getEmailHeader(brandName: string): string {
-  return `<!-- Header -->
-          <tr>
-            <td style="background-color: #2C4240; padding: 32px 24px; text-align: center;">
-              <!-- White pill container with circular RE and brand name inline -->
-              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #FFFFFF; border-radius: 999px;">
-                <tr>
-                  <td style="padding: 8px 20px 8px 8px;">
-                    <table cellpadding="0" cellspacing="0" border="0">
-                      <tr>
-                        <!-- Circular RE monogram -->
-                        <td style="vertical-align: middle;">
-                          <table cellpadding="0" cellspacing="0" border="0" style="background-color: #2C4240; border-radius: 50%; width: 40px; height: 40px;">
-                            <tr>
-                              <td style="text-align: center; vertical-align: middle; width: 40px; height: 40px;">
-                                <span style="color: #FFFFFF; font-size: 14px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RE</span>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                        <!-- Brand name -->
-                        <td style="padding-left: 10px; vertical-align: middle;">
-                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${brandName}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>`;
-}
-
-function getWelcomeEmailTemplate(brandName: string): string {
+function getWelcomeEmailTemplate(): string {
   const currentYear = new Date().getFullYear();
   return `<!DOCTYPE html>
 <html lang="en">
@@ -186,7 +136,7 @@ function getWelcomeEmailTemplate(brandName: string): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Welcome to ${brandName}</title>
+  <title>Welcome to RentMate</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
@@ -194,7 +144,26 @@ function getWelcomeEmailTemplate(brandName: string): string {
       <td align="center" style="padding: 20px 0;">
         <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
           
-          ${getEmailHeader(brandName)}
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #2C4240; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px;">
+                      <tr>
+                        <td style="padding: 14px 18px; text-align: center;">
+                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Professional Property Management</p>
+            </td>
+          </tr>
           
           <!-- Content -->
           <tr>
@@ -204,7 +173,7 @@ function getWelcomeEmailTemplate(brandName: string): string {
               <table cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td style="padding-bottom: 24px;">
-                    <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Welcome to ${brandName}!</h2>
+                    <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Welcome to RentMate!</h2>
                   </td>
                 </tr>
               </table>
@@ -230,7 +199,7 @@ function getWelcomeEmailTemplate(brandName: string): string {
                 <tr>
                   <td style="padding-bottom: 16px;">
                     <p style="margin: 0; color: #374151; font-size: 16px; font-weight: 600; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      With ${brandName} you can:
+                      With RentMate you can:
                     </p>
                   </td>
                 </tr>
@@ -293,13 +262,13 @@ function getWelcomeEmailTemplate(brandName: string): string {
           <tr>
             <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
               <p style="margin: 0 0 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                Best regards,<br>The ${brandName} Team
+                Best regards,<br>The RentMate Team
               </p>
               <p style="margin: 8px 0; color: #2C4240; font-size: 12px; opacity: 0.8; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
                 This is an automated email. Please do not reply.
               </p>
               <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                © ${currentYear} ${brandName}. All rights reserved.
+                © ${currentYear} RentMate. All rights reserved.
               </p>
             </td>
           </tr>

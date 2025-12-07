@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.74.0';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
@@ -22,50 +22,15 @@ interface InvitationEmailRequest {
   projectId: string;
 }
 
-// Email header with circular inline logo - dynamic brand name
-function getEmailHeader(brandName: string): string {
-  return `<!-- Header -->
-          <tr>
-            <td style="background-color: #2C4240; padding: 32px 24px; text-align: center;">
-              <!-- White pill container with circular RE and brand name inline -->
-              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #FFFFFF; border-radius: 999px;">
-                <tr>
-                  <td style="padding: 8px 20px 8px 8px;">
-                    <table cellpadding="0" cellspacing="0" border="0">
-                      <tr>
-                        <!-- Circular RE monogram -->
-                        <td style="vertical-align: middle;">
-                          <table cellpadding="0" cellspacing="0" border="0" style="background-color: #2C4240; border-radius: 50%; width: 40px; height: 40px;">
-                            <tr>
-                              <td style="text-align: center; vertical-align: middle; width: 40px; height: 40px;">
-                                <span style="color: #FFFFFF; font-size: 14px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RE</span>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                        <!-- Brand name -->
-                        <td style="padding-left: 10px; vertical-align: middle;">
-                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${brandName}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>`;
-}
-
-// Generate email template for English
-function getEnglishTemplate(brandName: string): string {
-  const currentYear = new Date().getFullYear();
-  return `<!DOCTYPE html>
+// Email templates embedded as constants
+const EMAIL_TEMPLATES = {
+  en: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Tenant Invitation - ${brandName}</title>
+  <title>Tenant Invitation - RentMate</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
@@ -73,7 +38,26 @@ function getEnglishTemplate(brandName: string): string {
       <td align="center" style="padding: 20px 0;">
         <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
           
-          ${getEmailHeader(brandName)}
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #136e6a; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px; mso-padding-alt: 14px 18px;">
+         <tr>
+           <td style="padding: 14px 18px; text-align: center;">
+             <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+           </td>
+         </tr>
+       </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Professional Property Management</p>
+            </td>
+          </tr>
           
           <!-- Content -->
           <tr>
@@ -88,14 +72,18 @@ function getEnglishTemplate(brandName: string): string {
                 </tr>
               </table>
               
-              <!-- Property Details -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 24px;">
-                <tr>
-                  <td>
-                    <h2 style="margin: 0 0 8px 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">{{propertyTitle}}</h2>
-                  </td>
-                </tr>
-              </table>
+              
+    <!-- Property Details -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 24px;">
+      
+      <tr>
+        <td>
+          <h2 style="margin: 0 0 8px 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">{{propertyTitle}}</h2>
+          
+          <p style="margin: 0; color: #6B7280; font-size: 15px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">123 Main St, San Francisco, CA 94102</p>
+        </td>
+      </tr>
+    </table>
               
               <!-- Intro Text -->
               <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -109,13 +97,13 @@ function getEnglishTemplate(brandName: string): string {
                 <tr>
                   <td style="padding-bottom: 16px;">
                     <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      With ${brandName}, you can:
+                      With RentMate, you can:
                     </p>
                   </td>
                 </tr>
               </table>
               
-              <!-- Feature List -->
+              <!-- Feature List with bulletproof bullets -->
               <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding-left: 0; margin: 16px 0;">
                 <tr>
                   <td width="20" valign="top" style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
@@ -143,16 +131,16 @@ function getEnglishTemplate(brandName: string): string {
                 </tr>
               </table>
               
-              <!-- Expiration Warning -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                <tr>
-                  <td style="padding: 16px; background-color: #FEF3C7; border-left: 4px solid #F59E0B; border-radius: 4px; margin-bottom: 24px;">
-                    <p style="margin: 0; color: #92400E; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      <strong>Please respond by {{expirationDate}}</strong> - This invitation will expire after this date.
-                    </p>
-                  </td>
-                </tr>
-              </table>
+              
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding: 16px; background-color: #FEF3C7; border-left: 4px solid #F59E0B; border-radius: 4px; margin-bottom: 24px;">
+          <p style="margin: 0; color: #92400E; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            <strong>Please respond by {{expirationDate}}</strong> - This invitation will expire after this date.
+          </p>
+        </td>
+      </tr>
+    </table>
               
               <!-- Post-list Text -->
               <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -165,14 +153,14 @@ function getEnglishTemplate(brandName: string): string {
                 </tr>
               </table>
               
-              <!-- Button -->
+              <!-- Bulletproof Button -->
               <table cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td align="center" style="padding-bottom: 32px;">
                     <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
                       <tr>
-                        <td align="center" style="background-color: #46A19D; border-radius: 6px;">
-                          <a href="{{invitationLink}}" style="display: inline-block; background-color: #46A19D; color: #ffffff; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px;">
+                        <td align="center" style="background-color: #46A19D; border-radius: 6px; mso-padding-alt: 14px 32px;">
+                          <a href="{{invitationLink}}" style="display: inline-block; background-color: #46A19D; color: #2C4240; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 500; text-decoration: none; padding: 14px 32px; border-radius: 6px; mso-padding-alt: 0;">
                             Accept Invitation
                           </a>
                         </td>
@@ -200,7 +188,7 @@ function getEnglishTemplate(brandName: string): string {
           <tr>
             <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
               <p style="margin: 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                © ${currentYear} ${brandName}. All rights reserved.
+                © 2024 RentMate. All rights reserved.
               </p>
               <p style="margin: 12px 0 8px 0; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
                 <a href="#" style="color: #2C4240; opacity: 0.8; text-decoration: underline;">Unsubscribe</a>
@@ -215,19 +203,14 @@ function getEnglishTemplate(brandName: string): string {
     </tr>
   </table>
 </body>
-</html>`;
-}
-
-// Generate email template for Spanish
-function getSpanishTemplate(brandName: string): string {
-  const currentYear = new Date().getFullYear();
-  return `<!DOCTYPE html>
+</html>`,
+  es: `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Invitación de Inquilino - ${brandName}</title>
+  <title>Invitación de Inquilino - RentMate</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
@@ -235,7 +218,26 @@ function getSpanishTemplate(brandName: string): string {
       <td align="center" style="padding: 20px 0;">
         <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
           
-          ${getEmailHeader(brandName)}
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #136e6a; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px; mso-padding-alt: 14px 18px;">
+         <tr>
+           <td style="padding: 14px 18px; text-align: center;">
+             <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+           </td>
+         </tr>
+       </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Gestión Profesional de Propiedades</p>
+            </td>
+          </tr>
           
           <!-- Content -->
           <tr>
@@ -250,14 +252,18 @@ function getSpanishTemplate(brandName: string): string {
                 </tr>
               </table>
               
-              <!-- Property Details -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 24px;">
-                <tr>
-                  <td>
-                    <h2 style="margin: 0 0 8px 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">{{propertyTitle}}</h2>
-                  </td>
-                </tr>
-              </table>
+              
+    <!-- Property Details -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 24px;">
+      
+      <tr>
+        <td>
+          <h2 style="margin: 0 0 8px 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">{{propertyTitle}}</h2>
+          
+          <p style="margin: 0; color: #6B7280; font-size: 15px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">123 Main St, San Francisco, CA 94102</p>
+        </td>
+      </tr>
+    </table>
               
               <!-- Intro Text -->
               <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -271,13 +277,13 @@ function getSpanishTemplate(brandName: string): string {
                 <tr>
                   <td style="padding-bottom: 16px;">
                     <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      Con ${brandName}, puedes:
+                      Con RentMate, puedes:
                     </p>
                   </td>
                 </tr>
               </table>
               
-              <!-- Feature List -->
+              <!-- Feature List with bulletproof bullets -->
               <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding-left: 0; margin: 16px 0;">
                 <tr>
                   <td width="20" valign="top" style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
@@ -305,16 +311,16 @@ function getSpanishTemplate(brandName: string): string {
                 </tr>
               </table>
               
-              <!-- Expiration Warning -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                <tr>
-                  <td style="padding: 16px; background-color: #FEF3C7; border-left: 4px solid #F59E0B; border-radius: 4px; margin-bottom: 24px;">
-                    <p style="margin: 0; color: #92400E; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      <strong>Por favor responde antes del {{expirationDate}}</strong> - Esta invitación caducará después de esta fecha.
-                    </p>
-                  </td>
-                </tr>
-              </table>
+              
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding: 16px; background-color: #FEF3C7; border-left: 4px solid #F59E0B; border-radius: 4px; margin-bottom: 24px;">
+          <p style="margin: 0; color: #92400E; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            <strong>Por favor responde antes del {{expirationDate}}</strong> - Esta invitación caducará después de esta fecha.
+          </p>
+        </td>
+      </tr>
+    </table>
               
               <!-- Post-list Text -->
               <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -327,14 +333,14 @@ function getSpanishTemplate(brandName: string): string {
                 </tr>
               </table>
               
-              <!-- Button -->
+              <!-- Bulletproof Button -->
               <table cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td align="center" style="padding-bottom: 32px;">
                     <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
                       <tr>
-                        <td align="center" style="background-color: #46A19D; border-radius: 6px;">
-                          <a href="{{invitationLink}}" style="display: inline-block; background-color: #46A19D; color: #ffffff; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px;">
+                        <td align="center" style="background-color: #46A19D; border-radius: 6px; mso-padding-alt: 14px 32px;">
+                          <a href="{{invitationLink}}" style="display: inline-block; background-color: #46A19D; color: #2C4240; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 500; text-decoration: none; padding: 14px 32px; border-radius: 6px; mso-padding-alt: 0;">
                             Aceptar Invitación
                           </a>
                         </td>
@@ -362,7 +368,7 @@ function getSpanishTemplate(brandName: string): string {
           <tr>
             <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
               <p style="margin: 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                © ${currentYear} ${brandName}. Todos los derechos reservados.
+                © 2024 RentMate. Todos los derechos reservados.
               </p>
               <p style="margin: 12px 0 8px 0; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
                 <a href="#" style="color: #2C4240; opacity: 0.8; text-decoration: underline;">Darse de baja</a>
@@ -377,8 +383,14 @@ function getSpanishTemplate(brandName: string): string {
     </tr>
   </table>
 </body>
-</html>`;
+</html>`
+};
+
+// Helper function to get template by language
+function getTemplate(language: string): string {
+  return language === 'es' ? EMAIL_TEMPLATES.es : EMAIL_TEMPLATES.en;
 }
+
 
 // Helper function to escape HTML to prevent XSS injection
 function escapeHtml(unsafe: string): string {
@@ -407,14 +419,13 @@ function substituteVariables(template: string, variables: Record<string, string>
 const getEmailContent = async (data: InvitationEmailRequest) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
   
-  // Fetch brand settings including custom domain and brand name
+  // Fetch custom domain for invitation link
   const { data: brandSettings } = await supabase
     .from('brand_settings')
-    .select('custom_domain, brand_name')
+    .select('custom_domain')
     .single();
 
   const customDomain = brandSettings?.custom_domain;
-  const brandName = brandSettings?.brand_name || "RentMate";
 
   // Use custom domain if set, otherwise fallback to lovableproject domain
   const appUrl = customDomain 
@@ -428,7 +439,6 @@ const getEmailContent = async (data: InvitationEmailRequest) => {
     token: data.token,
     projectId: data.projectId,
     customDomain,
-    brandName,
     invitationLink,
   });
 
@@ -438,7 +448,7 @@ const getEmailContent = async (data: InvitationEmailRequest) => {
     { year: "numeric", month: "long", day: "numeric" }
   );
 
-  // Prepare variables for substitution
+  // Prepare variables for substitution (only the 4 variables in the template)
   const variables = {
     managerName: data.managerName,
     propertyTitle: data.propertyTitle,
@@ -446,13 +456,13 @@ const getEmailContent = async (data: InvitationEmailRequest) => {
     expirationDate: expirationDate,
   };
 
-  // Get template based on language with dynamic brand name
-  const template = data.language === 'es' ? getSpanishTemplate(brandName) : getEnglishTemplate(brandName);
+  // Get template based on language
+  const template = getTemplate(data.language || 'en');
   
   // Substitute variables
   const html = substituteVariables(template, variables);
 
-  // Subject lines with dynamic brand name
+  // Subject lines
   const subjects = {
     en: `You're Invited to Join ${data.propertyTitle}`,
     es: `Invitación para unirse a ${data.propertyTitle}`,
@@ -461,7 +471,6 @@ const getEmailContent = async (data: InvitationEmailRequest) => {
   return {
     subject: subjects[data.language as 'en' | 'es'] || subjects.en,
     html,
-    brandName,
   };
 };
 
@@ -487,7 +496,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `${emailContent.brandName} <send@rentmate.me>`,
+        from: "RentMate <send@rentmate.me>",
         to: [data.email],
         subject: emailContent.subject,
         html: emailContent.html,

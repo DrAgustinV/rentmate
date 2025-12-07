@@ -42,42 +42,8 @@ interface ManagerInfo {
   last_name: string;
 }
 
-// Email header with circular inline logo
-function getEmailHeader(brandName: string): string {
-  return `<!-- Header -->
-          <tr>
-            <td style="background-color: #2C4240; padding: 32px 24px; text-align: center;">
-              <!-- White pill container with circular RE and brand name inline -->
-              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #FFFFFF; border-radius: 999px;">
-                <tr>
-                  <td style="padding: 8px 20px 8px 8px;">
-                    <table cellpadding="0" cellspacing="0" border="0">
-                      <tr>
-                        <!-- Circular RE monogram -->
-                        <td style="vertical-align: middle;">
-                          <table cellpadding="0" cellspacing="0" border="0" style="background-color: #2C4240; border-radius: 50%; width: 40px; height: 40px;">
-                            <tr>
-                              <td style="text-align: center; vertical-align: middle; width: 40px; height: 40px;">
-                                <span style="color: #FFFFFF; font-size: 14px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RE</span>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                        <!-- Brand name -->
-                        <td style="padding-left: 10px; vertical-align: middle;">
-                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${brandName}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>`;
-}
-
 // Email template wrapper with standardized branding
-function getEmailWrapper(title: string, content: string, managerName: string, brandName: string): string {
+function getEmailWrapper(title: string, headerBgColor: string, content: string, managerName: string): string {
   const currentYear = new Date().getFullYear();
   return `<!DOCTYPE html>
 <html lang="en">
@@ -85,7 +51,7 @@ function getEmailWrapper(title: string, content: string, managerName: string, br
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>${title} - ${brandName}</title>
+  <title>${title} - RentMate</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
@@ -93,7 +59,26 @@ function getEmailWrapper(title: string, content: string, managerName: string, br
       <td align="center" style="padding: 20px 0;">
         <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
           
-          ${getEmailHeader(brandName)}
+          <!-- Header -->
+          <tr>
+            <td style="background-color: ${headerBgColor}; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px;">
+                      <tr>
+                        <td style="padding: 14px 18px; text-align: center;">
+                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Professional Property Management</p>
+            </td>
+          </tr>
           
           <!-- Content -->
           <tr>
@@ -112,7 +97,7 @@ function getEmailWrapper(title: string, content: string, managerName: string, br
                 This is an automated reminder. Please do not reply to this email.
               </p>
               <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                © ${currentYear} ${brandName}. All rights reserved.
+                © ${currentYear} RentMate. All rights reserved.
               </p>
             </td>
           </tr>
@@ -134,14 +119,6 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     console.log("Starting payment reminder process...");
-
-    // Fetch brand name from brand_settings
-    const { data: brandData } = await supabase
-      .from("brand_settings")
-      .select("brand_name")
-      .single();
-
-    const brandName = brandData?.brand_name || "RentMate";
 
     // Fetch system settings
     const { data: settings, error: settingsError } = await supabase
@@ -234,7 +211,7 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
-        const emailResult = await sendUpcomingReminder(supabase, payment, brandName);
+        const emailResult = await sendUpcomingReminder(supabase, payment);
         if (emailResult.success) {
           emailsSent++;
         } else {
@@ -268,7 +245,7 @@ const handler = async (req: Request): Promise<Response> => {
           }
         }
 
-        const emailResult = await sendOverdueReminder(supabase, payment, brandName);
+        const emailResult = await sendOverdueReminder(supabase, payment);
         if (emailResult.success) {
           emailsSent++;
         } else {
@@ -306,8 +283,7 @@ const handler = async (req: Request): Promise<Response> => {
 
 async function sendUpcomingReminder(
   supabase: any,
-  payment: RentPayment,
-  brandName: string
+  payment: RentPayment
 ): Promise<{ success: boolean; error?: string }> {
   try {
     console.log(`Sending upcoming reminder for payment ${payment.id}`);
@@ -431,7 +407,7 @@ async function sendUpcomingReminder(
       </table>
     `;
 
-    const html = getEmailWrapper("Upcoming Rent Payment", content, managerName, brandName);
+    const html = getEmailWrapper("Upcoming Rent Payment", "#2C4240", content, managerName);
 
     // Send email using Resend API
     const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -441,7 +417,7 @@ async function sendUpcomingReminder(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `${brandName} <noreply@rentmate.me>`,
+        from: "RentMate <noreply@rentmate.me>",
         to: [tenantInfo.email],
         subject,
         html,
@@ -485,8 +461,7 @@ async function sendUpcomingReminder(
 
 async function sendOverdueReminder(
   supabase: any,
-  payment: RentPayment,
-  brandName: string
+  payment: RentPayment
 ): Promise<{ success: boolean; error?: string }> {
   try {
     console.log(`Sending overdue reminder for payment ${payment.id}`);
@@ -621,7 +596,8 @@ async function sendOverdueReminder(
       </table>
     `;
 
-    const html = getEmailWrapper("Overdue Rent Payment", content, managerName, brandName);
+    // Use darker header for overdue emails to convey urgency
+    const html = getEmailWrapper("Overdue Rent Payment", "#2C4240", content, managerName);
 
     // Send email using Resend API
     const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -631,7 +607,7 @@ async function sendOverdueReminder(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `${brandName} <noreply@rentmate.me>`,
+        from: "RentMate <noreply@rentmate.me>",
         to: [tenantInfo.email],
         subject,
         html,

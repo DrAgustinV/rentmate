@@ -41,14 +41,6 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
 
-    // Fetch brand name from brand_settings
-    const { data: brandData } = await supabaseAdmin
-      .from("brand_settings")
-      .select("brand_name")
-      .single();
-
-    const brandName = brandData?.brand_name || "RentMate";
-
     // Generate password recovery link using Admin API
     const { data, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
@@ -78,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Get email content based on language
-    const { subject, html } = getEmailContent(email, resetUrl, language, brandName);
+    const { subject, html } = getEmailContent(email, resetUrl, language);
 
     // Send email using Resend API
     const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -88,7 +80,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `${brandName} <noreply@rentmate.me>`,
+        from: "RentMate <noreply@rentmate.me>",
         to: [email],
         subject,
         html,
@@ -118,78 +110,28 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-function getEmailContent(email: string, resetUrl: string, language: string, brandName: string): { subject: string; html: string } {
+function getEmailContent(email: string, resetUrl: string, language: string): { subject: string; html: string } {
   if (language === "es") {
     return {
-      subject: `Restablece tu contraseña de ${brandName}`,
-      html: getRecoveryEmailTemplateES(resetUrl, brandName),
+      subject: "Restablece tu contraseña de RentMate",
+      html: getRecoveryEmailTemplateES(resetUrl),
     };
   }
   
   return {
-    subject: `Reset your ${brandName} password`,
-    html: getRecoveryEmailTemplateEN(resetUrl, brandName),
+    subject: "Reset your RentMate password",
+    html: getRecoveryEmailTemplateEN(resetUrl),
   };
 }
 
-function getEmailHeader(brandName: string): string {
-  return `<!-- Header -->
-          <tr>
-            <td style="background-color: #2C4240; padding: 32px 24px; text-align: center;">
-              <!-- White pill container with circular RE and brand name inline -->
-              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #FFFFFF; border-radius: 999px;">
-                <tr>
-                  <td style="padding: 8px 20px 8px 8px;">
-                    <table cellpadding="0" cellspacing="0" border="0">
-                      <tr>
-                        <!-- Circular RE monogram -->
-                        <td style="vertical-align: middle;">
-                          <table cellpadding="0" cellspacing="0" border="0" style="background-color: #2C4240; border-radius: 50%; width: 40px; height: 40px;">
-                            <tr>
-                              <td style="text-align: center; vertical-align: middle; width: 40px; height: 40px;">
-                                <span style="color: #FFFFFF; font-size: 14px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RE</span>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                        <!-- Brand name -->
-                        <td style="padding-left: 10px; vertical-align: middle;">
-                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${brandName}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>`;
-}
-
-function getEmailFooter(brandName: string, teamLabel: string, automatedLabel: string): string {
-  return `<!-- Footer -->
-          <tr>
-            <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
-              <p style="margin: 0 0 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                ${teamLabel}
-              </p>
-              <p style="margin: 8px 0; color: #2C4240; font-size: 12px; opacity: 0.8; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                ${automatedLabel}
-              </p>
-              <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                © ${new Date().getFullYear()} ${brandName}. All rights reserved.
-              </p>
-            </td>
-          </tr>`;
-}
-
-function getRecoveryEmailTemplateEN(resetUrl: string, brandName: string): string {
+function getRecoveryEmailTemplateEN(resetUrl: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Reset Your Password - ${brandName}</title>
+  <title>Reset Your Password - RentMate</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
@@ -197,7 +139,26 @@ function getRecoveryEmailTemplateEN(resetUrl: string, brandName: string): string
       <td align="center" style="padding: 20px 0;">
         <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
           
-          ${getEmailHeader(brandName)}
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #2C4240; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px;">
+                      <tr>
+                        <td style="padding: 14px 18px; text-align: center;">
+                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Professional Property Management</p>
+            </td>
+          </tr>
           
           <!-- Content -->
           <tr>
@@ -222,7 +183,7 @@ function getRecoveryEmailTemplateEN(resetUrl: string, brandName: string): string
                 <tr>
                   <td style="padding-bottom: 24px;">
                     <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      We received a request to reset your ${brandName} password. Click the button below to create a new password:
+                      We received a request to reset your RentMate password. Click the button below to create a new password:
                     </p>
                   </td>
                 </tr>
@@ -282,7 +243,20 @@ function getRecoveryEmailTemplateEN(resetUrl: string, brandName: string): string
             </td>
           </tr>
           
-          ${getEmailFooter(brandName, `Best regards,<br>The ${brandName} Team`, "This is an automated email. Please do not reply.")}
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
+              <p style="margin: 0 0 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                Best regards,<br>The RentMate Team
+              </p>
+              <p style="margin: 8px 0; color: #2C4240; font-size: 12px; opacity: 0.8; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                This is an automated email. Please do not reply.
+              </p>
+              <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                © ${new Date().getFullYear()} RentMate. All rights reserved.
+              </p>
+            </td>
+          </tr>
           
         </table>
       </td>
@@ -292,14 +266,14 @@ function getRecoveryEmailTemplateEN(resetUrl: string, brandName: string): string
 </html>`;
 }
 
-function getRecoveryEmailTemplateES(resetUrl: string, brandName: string): string {
+function getRecoveryEmailTemplateES(resetUrl: string): string {
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Restablece tu Contraseña - ${brandName}</title>
+  <title>Restablece tu Contraseña - RentMate</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
@@ -307,7 +281,26 @@ function getRecoveryEmailTemplateES(resetUrl: string, brandName: string): string
       <td align="center" style="padding: 20px 0;">
         <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
           
-          ${getEmailHeader(brandName)}
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #2C4240; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px;">
+                      <tr>
+                        <td style="padding: 14px 18px; text-align: center;">
+                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Gestión Profesional de Propiedades</p>
+            </td>
+          </tr>
           
           <!-- Content -->
           <tr>
@@ -332,7 +325,7 @@ function getRecoveryEmailTemplateES(resetUrl: string, brandName: string): string
                 <tr>
                   <td style="padding-bottom: 24px;">
                     <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
-                      Hemos recibido una solicitud para restablecer tu contraseña de ${brandName}. Haz clic en el botón de abajo para crear una nueva contraseña:
+                      Hemos recibido una solicitud para restablecer tu contraseña de RentMate. Haz clic en el botón de abajo para crear una nueva contraseña:
                     </p>
                   </td>
                 </tr>
@@ -392,7 +385,20 @@ function getRecoveryEmailTemplateES(resetUrl: string, brandName: string): string
             </td>
           </tr>
           
-          ${getEmailFooter(brandName, `Saludos,<br>El equipo de ${brandName}`, "Este es un correo automático. Por favor no respondas.")}
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
+              <p style="margin: 0 0 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                Saludos,<br>El equipo de RentMate
+              </p>
+              <p style="margin: 8px 0; color: #2C4240; font-size: 12px; opacity: 0.8; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                Este es un correo automático. Por favor no respondas.
+              </p>
+              <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                © ${new Date().getFullYear()} RentMate. Todos los derechos reservados.
+              </p>
+            </td>
+          </tr>
           
         </table>
       </td>
