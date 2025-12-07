@@ -824,6 +824,10 @@ export type Database = {
           deletion_requested_at: string | null
           deletion_scheduled_for: string | null
           email: string
+          email_verification_expires_at: string | null
+          email_verification_sent_at: string | null
+          email_verification_token: string | null
+          email_verified: boolean | null
           first_name: string | null
           id: string
           id_document_country: string | null
@@ -851,6 +855,10 @@ export type Database = {
           deletion_requested_at?: string | null
           deletion_scheduled_for?: string | null
           email: string
+          email_verification_expires_at?: string | null
+          email_verification_sent_at?: string | null
+          email_verification_token?: string | null
+          email_verified?: boolean | null
           first_name?: string | null
           id: string
           id_document_country?: string | null
@@ -878,6 +886,10 @@ export type Database = {
           deletion_requested_at?: string | null
           deletion_scheduled_for?: string | null
           email?: string
+          email_verification_expires_at?: string | null
+          email_verification_sent_at?: string | null
+          email_verification_token?: string | null
+          email_verified?: boolean | null
           first_name?: string | null
           id?: string
           id_document_country?: string | null

@@ -113,3 +113,10 @@ verify_jwt = false  # Public webhook endpoint from YouSign
 
 [functions.send-welcome-email]
 verify_jwt = true  # Requires user authentication to send welcome email
+
+# Email Verification Functions
+[functions.send-email-verification]
+verify_jwt = true  # Requires user authentication
+
+[functions.verify-email-token]
+verify_jwt = false  # Public endpoint for token validation

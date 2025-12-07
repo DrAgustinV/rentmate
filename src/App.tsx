@@ -3,9 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CookieConsent } from "@/components/CookieConsent";
+import { EmailVerificationGate } from "@/components/EmailVerificationGate";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
 import Dashboard from "./pages/Dashboard";
 import PropertyTenants from "./pages/PropertyTenants";
 import PropertyTickets from "./pages/PropertyTickets";
@@ -50,42 +52,45 @@ const App = () => (
       <CookieConsent />
       <BrowserRouter>
         <AnalyticsProvider>
-          <Routes>
-           <Route path="/" element={<Index />} />
-           <Route path="/pricing" element={<Pricing />} />
-           <Route path="/auth" element={<Auth />} />
-           <Route path="/reset-password" element={<ResetPassword />} />
-           <Route path="/dashboard" element={<Dashboard />} />
-           <Route path="/properties" element={<Properties />} />
-           <Route path="/import" element={<Import />} />
-           <Route path="/repair-shops" element={<RepairShops />} />
-           <Route path="/repair-shops/import" element={<ImportRepairShops />} />
-           <Route path="/rentals" element={<Rentals />} />
-           <Route path="/renting" element={<Navigate to="/rentals" replace />} />
-          <Route path="/configuration" element={<Configuration />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/profile" element={<Navigate to="/account" replace />} />
-          <Route path="/identity" element={<Navigate to="/account" replace />} />
-          <Route path="/invitations" element={<Navigate to="/rentals" replace />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/kilt-setup" element={<KiltSetup />} />
-          <Route path="/admin" element={<Admin />} />
-          {/* Property Hub - unified property management */}
-          <Route path="/properties/:propertyId/tenants" element={<PropertyTenants />} />
-          {/* Legacy route redirects to Property Hub */}
-          <Route path="/properties/:propertyId/details" element={<PropertyDetailsRedirect />} />
-          <Route path="/properties/:propertyId/tickets" element={<PropertyTickets />} />
-          <Route path="/properties/:propertyId/maintenance" element={<PropertyMaintenance />} />
-          <Route path="/properties/:propertyId/tickets/:ticketId" element={<TicketDetail />} />
-          <Route path="/maintenance-calendar/:propertyId" element={<MaintenanceCalendar />} />
-          <Route path="/tickets" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/help" element={<Help />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-          </Routes>
+          <EmailVerificationGate>
+            <Routes>
+             <Route path="/" element={<Index />} />
+             <Route path="/pricing" element={<Pricing />} />
+             <Route path="/auth" element={<Auth />} />
+             <Route path="/reset-password" element={<ResetPassword />} />
+             <Route path="/verify-email" element={<VerifyEmail />} />
+             <Route path="/dashboard" element={<Dashboard />} />
+             <Route path="/properties" element={<Properties />} />
+             <Route path="/import" element={<Import />} />
+             <Route path="/repair-shops" element={<RepairShops />} />
+             <Route path="/repair-shops/import" element={<ImportRepairShops />} />
+             <Route path="/rentals" element={<Rentals />} />
+             <Route path="/renting" element={<Navigate to="/rentals" replace />} />
+            <Route path="/configuration" element={<Configuration />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/profile" element={<Navigate to="/account" replace />} />
+            <Route path="/identity" element={<Navigate to="/account" replace />} />
+            <Route path="/invitations" element={<Navigate to="/rentals" replace />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/kilt-setup" element={<KiltSetup />} />
+            <Route path="/admin" element={<Admin />} />
+            {/* Property Hub - unified property management */}
+            <Route path="/properties/:propertyId/tenants" element={<PropertyTenants />} />
+            {/* Legacy route redirects to Property Hub */}
+            <Route path="/properties/:propertyId/details" element={<PropertyDetailsRedirect />} />
+            <Route path="/properties/:propertyId/tickets" element={<PropertyTickets />} />
+            <Route path="/properties/:propertyId/maintenance" element={<PropertyMaintenance />} />
+            <Route path="/properties/:propertyId/tickets/:ticketId" element={<TicketDetail />} />
+            <Route path="/maintenance-calendar/:propertyId" element={<MaintenanceCalendar />} />
+            <Route path="/tickets" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/help" element={<Help />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+            </Routes>
+          </EmailVerificationGate>
         </AnalyticsProvider>
       </BrowserRouter>
     </TooltipProvider>

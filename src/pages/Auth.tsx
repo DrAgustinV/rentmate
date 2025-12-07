@@ -28,9 +28,6 @@ export default function Auth() {
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
   const [invitationContext, setInvitationContext] = useState<{ token: string; email: string } | null>(null);
-  const [emailConfirmationPending, setEmailConfirmationPending] = useState(false);
-  const [confirmationEmail, setConfirmationEmail] = useState("");
-  const [resendingConfirmation, setResendingConfirmation] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -38,26 +35,6 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const sendWelcomeEmail = async () => {
-      try {
-        const storageKey = "rentmate_welcome_email_sent";
-        if (localStorage.getItem(storageKey) === "true") {
-          return;
-        }
-
-        const { error } = await supabase.functions.invoke("send-welcome-email");
-
-        if (error) {
-          console.error("Error sending welcome email:", error);
-          return;
-        }
-
-        localStorage.setItem(storageKey, "true");
-      } catch (error) {
-        console.error("Unexpected error sending welcome email:", error);
-      }
-    };
-
     const checkAuthAndToken = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -105,9 +82,6 @@ export default function Auth() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // Clear confirmation pending state
-        setEmailConfirmationPending(false);
-        
         // Handle invitation token if present
         const storedToken = sessionStorage.getItem('invitation_token');
         if (storedToken) {
@@ -117,11 +91,6 @@ export default function Auth() {
           console.log('Signed in, redirecting to properties');
           navigate("/properties");
         }
-
-        // Trigger branded welcome email after first successful login
-        setTimeout(() => {
-          void sendWelcomeEmail();
-        }, 0);
       }
     });
 
@@ -183,31 +152,16 @@ export default function Auth() {
 
         if (error) throw error;
         
-        // Check if email confirmation is required
-        if (data?.user && !data.session) {
-          // Email confirmation required
-          setEmailConfirmationPending(true);
-          setConfirmationEmail(email);
-          showToast.success(t('auth.emailConfirmationSent'));
-        } else {
-          showToast.success(t('auth.signUpSuccess'));
-        }
+        // Auto-confirmed signup - user will be signed in automatically
+        // The EmailVerificationGate will handle showing the verification screen
+        showToast.success(t('auth.signUpSuccess'));
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        if (error) {
-          // Check if error is due to unconfirmed email
-          if (error.message.includes('Email not confirmed')) {
-            setEmailConfirmationPending(true);
-            setConfirmationEmail(email);
-            showToast.error(t('auth.cannotSignInUnconfirmed'));
-            return;
-          }
-          throw error;
-        }
+        if (error) throw error;
         
         showToast.success(t('auth.signInSuccess'));
       }
@@ -227,88 +181,6 @@ export default function Auth() {
       setLoading(false);
     }
   };
-
-  const handleResendConfirmation = async () => {
-    setResendingConfirmation(true);
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: confirmationEmail,
-      });
-
-      if (error) throw error;
-      
-      showToast.success(t('auth.confirmationResent'));
-    } catch (error: any) {
-      console.error('Resend confirmation error:', error);
-      showToast.error(error.message);
-    } finally {
-      setResendingConfirmation(false);
-    }
-  };
-
-  if (emailConfirmationPending) {
-    return (
-      <AuthLayout
-        title={t('auth.checkYourEmail')}
-        description=""
-      >
-        <div className="space-y-4 text-center">
-          <div className="flex justify-center">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <svg
-                className="h-8 w-8 text-primary"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              {t('auth.confirmationLinkSent')}
-            </p>
-            <p className="text-sm font-medium text-foreground">{confirmationEmail}</p>
-            <p className="text-sm text-muted-foreground">
-              {t('auth.clickToActivate')}
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            onClick={handleResendConfirmation}
-            disabled={resendingConfirmation}
-            className="w-full"
-          >
-            {resendingConfirmation ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('common.loading')}
-              </>
-            ) : (
-              t('auth.resendConfirmation')
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setEmailConfirmationPending(false);
-              setConfirmationEmail("");
-            }}
-            className="w-full"
-          >
-            {t('auth.backToSignIn')}
-          </Button>
-        </div>
-      </AuthLayout>
-    );
-  }
 
   return (
     <AuthLayout
