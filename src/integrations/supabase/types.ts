@@ -819,6 +819,7 @@ export type Database = {
       profiles: {
         Row: {
           aml_status: string | null
+          avatar_url: string | null
           created_at: string
           default_rent_settings: Json | null
           deletion_requested_at: string | null
@@ -850,6 +851,7 @@ export type Database = {
         }
         Insert: {
           aml_status?: string | null
+          avatar_url?: string | null
           created_at?: string
           default_rent_settings?: Json | null
           deletion_requested_at?: string | null
@@ -881,6 +883,7 @@ export type Database = {
         }
         Update: {
           aml_status?: string | null
+          avatar_url?: string | null
           created_at?: string
           default_rent_settings?: Json | null
           deletion_requested_at?: string | null

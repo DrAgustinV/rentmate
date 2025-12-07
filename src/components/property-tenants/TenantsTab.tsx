@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,7 +6,9 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   UserMinus,
   Mail,
@@ -16,6 +18,7 @@ import {
   Download,
   AlertTriangle,
   Eye,
+  BadgeCheck,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
@@ -30,6 +33,8 @@ interface Tenant {
   first_name: string | null;
   last_name: string | null;
   notes: string | null;
+  avatar_url?: string | null;
+  kyc_status?: string | null;
 }
 
 interface Invitation {
@@ -105,6 +110,29 @@ export function TenantsTab({
   openDocument,
 }: TenantsTabProps) {
   const { t } = useLanguage();
+  const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
+
+  // Load signed URLs for tenant avatars
+  useEffect(() => {
+    const loadAvatarUrls = async () => {
+      if (!activeTenants) return;
+      
+      const urlMap: Record<string, string> = {};
+      for (const tenant of activeTenants) {
+        if (tenant.avatar_url) {
+          const { data } = await supabase.storage
+            .from('profile-photos')
+            .createSignedUrl(tenant.avatar_url, 3600);
+          if (data) {
+            urlMap[tenant.tenant_id] = data.signedUrl;
+          }
+        }
+      }
+      setAvatarUrls(urlMap);
+    };
+    
+    loadAvatarUrls();
+  }, [activeTenants]);
 
   const getTenantName = (tenant: Tenant) => {
     if (tenant.first_name && tenant.last_name) {
@@ -112,6 +140,12 @@ export function TenantsTab({
     }
     if (tenant.first_name) return tenant.first_name;
     return tenant.email;
+  };
+
+  const getTenantInitials = (tenant: Tenant) => {
+    const first = tenant.first_name?.charAt(0) || "";
+    const last = tenant.last_name?.charAt(0) || "";
+    return (first + last).toUpperCase() || tenant.email.charAt(0).toUpperCase();
   };
 
   return (
@@ -141,23 +175,45 @@ export function TenantsTab({
             {activeTenants.map((tenant) => (
               <div key={tenant.id} className="p-4 border rounded-lg space-y-2">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={cn(
-                          "h-2 w-2 rounded-full",
-                          tenant.tenancy_status === "active" ? "bg-green-500" : "bg-yellow-500"
-                        )}
-                      />
-                      <p className="font-medium">{getTenantName(tenant)}</p>
+                  <div className="flex items-start gap-3 flex-1">
+                    {/* Tenant Avatar with KYC Badge */}
+                    <div className="relative flex-shrink-0">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={avatarUrls[tenant.tenant_id]} alt={getTenantName(tenant)} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                          {getTenantInitials(tenant)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {tenant.kyc_status === 'verified' && (
+                        <div className="absolute -bottom-0.5 -right-0.5 bg-background rounded-full p-0.5">
+                          <BadgeCheck className="h-4 w-4 text-blue-500" />
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{tenant.email}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {t("properties.tenancyStarted")}: {formatDate(tenant.started_at)}
-                    </p>
-                    {tenant.notes && (
-                      <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>
-                    )}
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={cn(
+                            "h-2 w-2 rounded-full flex-shrink-0",
+                            tenant.tenancy_status === "active" ? "bg-green-500" : "bg-yellow-500"
+                          )}
+                        />
+                        <p className="font-medium truncate">{getTenantName(tenant)}</p>
+                        {tenant.kyc_status === 'verified' && (
+                          <span className="text-xs text-blue-500 font-medium hidden sm:inline">
+                            {t("tenants.kycVerified")}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground truncate">{tenant.email}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {t("properties.tenancyStarted")}: {formatDate(tenant.started_at)}
+                      </p>
+                      {tenant.notes && (
+                        <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>
+                      )}
+                    </div>
                   </div>
                   {userRole?.isManager && !isReadOnly && (
                     <div className="flex gap-2">
