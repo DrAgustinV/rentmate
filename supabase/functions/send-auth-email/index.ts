@@ -33,22 +33,22 @@ const handler = async (req: Request): Promise<Response> => {
     switch (actionType) {
       case "signup":
         subject = "Confirm your RentMate account";
-        html = getSignupEmailTemplate(user.email, confirmationUrl);
+        html = getSignupEmailTemplate(confirmationUrl);
         break;
       
       case "recovery":
         subject = "Reset your RentMate password";
-        html = getRecoveryEmailTemplate(user.email, confirmationUrl);
+        html = getRecoveryEmailTemplate(confirmationUrl);
         break;
       
       case "magiclink":
         subject = "Your RentMate magic link";
-        html = getMagicLinkEmailTemplate(user.email, confirmationUrl);
+        html = getMagicLinkEmailTemplate(confirmationUrl);
         break;
       
       default:
         subject = "RentMate notification";
-        html = getDefaultEmailTemplate(user.email, confirmationUrl, actionType);
+        html = getDefaultEmailTemplate(confirmationUrl, actionType);
     }
 
     // Send email using Resend API
@@ -91,209 +91,382 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-function getSignupEmailTemplate(email: string, confirmationUrl: string): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; border-radius: 8px 8px 0 0; text-align: center; }
-          .header h1 { margin: 0; color: white; font-size: 28px; }
-          .content { background-color: #ffffff; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-          .button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
-          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 14px; color: #6c757d; text-align: center; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>Welcome to RentMate! 🏠</h1>
-          </div>
+function getEmailWrapper(title: string, content: string): string {
+  const currentYear = new Date().getFullYear();
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>${title} - RentMate</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
           
-          <div class="content">
-            <p>Hi there,</p>
-            
-            <p>Thank you for signing up for RentMate! We're excited to have you on board.</p>
-            
-            <p>To get started, please confirm your email address by clicking the button below:</p>
-            
-            <div style="text-align: center;">
-              <a href="${confirmationUrl}" class="button">Confirm Email Address</a>
-            </div>
-            
-            <p style="color: #6c757d; font-size: 14px; margin-top: 20px;">
-              If the button doesn't work, copy and paste this link into your browser:<br>
-              <a href="${confirmationUrl}" style="color: #667eea; word-break: break-all;">${confirmationUrl}</a>
-            </p>
-            
-            <p style="margin-top: 30px;">Once confirmed, you'll be able to:</p>
-            <ul>
-              <li>Manage your properties</li>
-              <li>Track rent payments</li>
-              <li>Handle maintenance tickets</li>
-              <li>Store important documents</li>
-            </ul>
-            
-            <div class="footer">
-              <p>Best regards,<br>The RentMate Team</p>
-              <p style="font-size: 12px; color: #999;">This is an automated email. Please do not reply.</p>
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #2C4240; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px;">
+                      <tr>
+                        <td style="padding: 14px 18px; text-align: center;">
+                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Professional Property Management</p>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 32px; background-color: #ffffff;">
+              ${content}
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
+              <p style="margin: 0 0 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                Best regards,<br>The RentMate Team
+              </p>
+              <p style="margin: 8px 0; color: #2C4240; font-size: 12px; opacity: 0.8; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                This is an automated email. Please do not reply.
+              </p>
+              <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                © ${currentYear} RentMate. All rights reserved.
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }
 
-function getRecoveryEmailTemplate(email: string, resetUrl: string): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; border-radius: 8px 8px 0 0; text-align: center; }
-          .header h1 { margin: 0; color: white; font-size: 28px; }
-          .content { background-color: #ffffff; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-          .button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
-          .warning { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 20px 0; }
-          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 14px; color: #6c757d; text-align: center; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>Reset Your Password 🔐</h1>
-          </div>
-          
-          <div class="content">
-            <p>Hi there,</p>
-            
-            <p>We received a request to reset your RentMate password.</p>
-            
-            <p>Click the button below to create a new password:</p>
-            
-            <div style="text-align: center;">
-              <a href="${resetUrl}" class="button">Reset Password</a>
-            </div>
-            
-            <p style="color: #6c757d; font-size: 14px; margin-top: 20px;">
-              If the button doesn't work, copy and paste this link into your browser:<br>
-              <a href="${resetUrl}" style="color: #667eea; word-break: break-all;">${resetUrl}</a>
-            </p>
-            
-            <div class="warning">
-              <strong>⚠️ Security Notice:</strong> This link will expire in 1 hour.
-            </div>
-            
-            <p style="margin-top: 20px;">If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.</p>
-            
-            <div class="footer">
-              <p>Best regards,<br>The RentMate Team</p>
-              <p style="font-size: 12px; color: #999;">This is an automated email. Please do not reply.</p>
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
+function getSignupEmailTemplate(confirmationUrl: string): string {
+  const content = `
+    <!-- Title -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 24px;">
+          <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Welcome to RentMate!</h2>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Intro Text -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 16px;">
+          <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Hi there,</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom: 24px;">
+          <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            Thank you for signing up for RentMate! We're excited to have you on board. Please confirm your email address by clicking the button below:
+          </p>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Button -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td align="center" style="padding-bottom: 24px;">
+          <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+            <tr>
+              <td align="center" style="background-color: #46A19D; border-radius: 6px;">
+                <a href="${confirmationUrl}" style="display: inline-block; background-color: #46A19D; color: #ffffff; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px;">
+                  Confirm Email Address
+                </a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Link fallback -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 24px;">
+          <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            If the button doesn't work, copy and paste this link into your browser:<br>
+            <a href="${confirmationUrl}" style="color: #46A19D; word-break: break-all;">${confirmationUrl}</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Features -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 16px;">
+          <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            Once confirmed, you'll be able to:
+          </p>
+        </td>
+      </tr>
+    </table>
+    
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding-left: 0; margin: 0 0 16px 0;">
+      <tr>
+        <td width="20" valign="top" style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
+        <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+          Manage your properties
+        </td>
+      </tr>
+      <tr>
+        <td width="20" valign="top" style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
+        <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+          Track rent payments
+        </td>
+      </tr>
+      <tr>
+        <td width="20" valign="top" style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
+        <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+          Handle maintenance tickets
+        </td>
+      </tr>
+      <tr>
+        <td width="20" valign="top" style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
+        <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+          Store important documents
+        </td>
+      </tr>
+    </table>
   `;
+  
+  return getEmailWrapper("Welcome", content);
 }
 
-function getMagicLinkEmailTemplate(email: string, magicUrl: string): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; border-radius: 8px 8px 0 0; text-align: center; }
-          .header h1 { margin: 0; color: white; font-size: 28px; }
-          .content { background-color: #ffffff; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-          .button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
-          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 14px; color: #6c757d; text-align: center; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>Your Magic Link ✨</h1>
-          </div>
-          
-          <div class="content">
-            <p>Hi there,</p>
-            
-            <p>Click the button below to instantly sign in to your RentMate account:</p>
-            
-            <div style="text-align: center;">
-              <a href="${magicUrl}" class="button">Sign In to RentMate</a>
-            </div>
-            
-            <p style="color: #6c757d; font-size: 14px; margin-top: 20px;">
-              If the button doesn't work, copy and paste this link into your browser:<br>
-              <a href="${magicUrl}" style="color: #667eea; word-break: break-all;">${magicUrl}</a>
-            </p>
-            
-            <p style="margin-top: 20px;">This link will expire in 1 hour for security reasons.</p>
-            
-            <div class="footer">
-              <p>Best regards,<br>The RentMate Team</p>
-              <p style="font-size: 12px; color: #999;">This is an automated email. Please do not reply.</p>
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
+function getRecoveryEmailTemplate(resetUrl: string): string {
+  const content = `
+    <!-- Title -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 24px;">
+          <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Reset Your Password</h2>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Intro Text -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 16px;">
+          <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Hi there,</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom: 24px;">
+          <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            We received a request to reset your RentMate password. Click the button below to create a new password:
+          </p>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Button -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td align="center" style="padding-bottom: 24px;">
+          <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+            <tr>
+              <td align="center" style="background-color: #46A19D; border-radius: 6px;">
+                <a href="${resetUrl}" style="display: inline-block; background-color: #46A19D; color: #ffffff; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px;">
+                  Reset Password
+                </a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Link fallback -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 24px;">
+          <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            If the button doesn't work, copy and paste this link into your browser:<br>
+            <a href="${resetUrl}" style="color: #46A19D; word-break: break-all;">${resetUrl}</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Warning -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding: 16px; background-color: #FEF3C7; border-left: 4px solid #F59E0B; border-radius: 4px; margin-bottom: 24px;">
+          <p style="margin: 0; color: #92400E; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            <strong>Security Notice:</strong> This link will expire in 1 hour.
+          </p>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Ignore notice -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-top: 24px;">
+          <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.
+          </p>
+        </td>
+      </tr>
+    </table>
   `;
+  
+  return getEmailWrapper("Reset Password", content);
 }
 
-function getDefaultEmailTemplate(email: string, actionUrl: string, actionType: string): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; border-radius: 8px 8px 0 0; text-align: center; }
-          .header h1 { margin: 0; color: white; font-size: 28px; }
-          .content { background-color: #ffffff; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-          .button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
-          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 14px; color: #6c757d; text-align: center; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>Action Required</h1>
-          </div>
-          
-          <div class="content">
-            <p>Hi there,</p>
-            
-            <p>Please click the button below to continue:</p>
-            
-            <div style="text-align: center;">
-              <a href="${actionUrl}" class="button">Continue</a>
-            </div>
-            
-            <p style="color: #6c757d; font-size: 14px; margin-top: 20px;">
-              If the button doesn't work, copy and paste this link into your browser:<br>
-              <a href="${actionUrl}" style="color: #667eea; word-break: break-all;">${actionUrl}</a>
-            </p>
-            
-            <div class="footer">
-              <p>Best regards,<br>The RentMate Team</p>
-              <p style="font-size: 12px; color: #999;">This is an automated email. Please do not reply.</p>
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
+function getMagicLinkEmailTemplate(magicUrl: string): string {
+  const content = `
+    <!-- Title -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 24px;">
+          <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Your Magic Link</h2>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Intro Text -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 16px;">
+          <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Hi there,</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom: 24px;">
+          <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            Click the button below to instantly sign in to your RentMate account:
+          </p>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Button -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td align="center" style="padding-bottom: 24px;">
+          <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+            <tr>
+              <td align="center" style="background-color: #46A19D; border-radius: 6px;">
+                <a href="${magicUrl}" style="display: inline-block; background-color: #46A19D; color: #ffffff; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px;">
+                  Sign In to RentMate
+                </a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Link fallback -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 24px;">
+          <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            If the button doesn't work, copy and paste this link into your browser:<br>
+            <a href="${magicUrl}" style="color: #46A19D; word-break: break-all;">${magicUrl}</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Expiry notice -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td>
+          <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            This link will expire in 1 hour for security reasons.
+          </p>
+        </td>
+      </tr>
+    </table>
   `;
+  
+  return getEmailWrapper("Magic Link", content);
+}
+
+function getDefaultEmailTemplate(actionUrl: string, actionType: string): string {
+  const content = `
+    <!-- Title -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 24px;">
+          <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Action Required</h2>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Intro Text -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td style="padding-bottom: 16px;">
+          <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Hi there,</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom: 24px;">
+          <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            Please click the button below to continue:
+          </p>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Button -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td align="center" style="padding-bottom: 24px;">
+          <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+            <tr>
+              <td align="center" style="background-color: #46A19D; border-radius: 6px;">
+                <a href="${actionUrl}" style="display: inline-block; background-color: #46A19D; color: #ffffff; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px;">
+                  Continue
+                </a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    
+    <!-- Link fallback -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <td>
+          <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+            If the button doesn't work, copy and paste this link into your browser:<br>
+            <a href="${actionUrl}" style="color: #46A19D; word-break: break-all;">${actionUrl}</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
+  
+  return getEmailWrapper("Notification", content);
 }
 
 serve(handler);

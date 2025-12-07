@@ -114,124 +114,298 @@ function getEmailContent(email: string, resetUrl: string, language: string): { s
   if (language === "es") {
     return {
       subject: "Restablece tu contraseña de RentMate",
-      html: getRecoveryEmailTemplateES(email, resetUrl),
+      html: getRecoveryEmailTemplateES(resetUrl),
     };
   }
   
   return {
     subject: "Reset your RentMate password",
-    html: getRecoveryEmailTemplateEN(email, resetUrl),
+    html: getRecoveryEmailTemplateEN(resetUrl),
   };
 }
 
-function getRecoveryEmailTemplateEN(email: string, resetUrl: string): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); padding: 30px 20px; border-radius: 8px 8px 0 0; text-align: center; }
-          .header h1 { margin: 0; color: white; font-size: 28px; }
-          .content { background-color: #ffffff; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-          .button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
-          .warning { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 20px 0; }
-          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 14px; color: #6c757d; text-align: center; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>Reset Your Password 🔐</h1>
-          </div>
+function getRecoveryEmailTemplateEN(resetUrl: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Reset Your Password - RentMate</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
           
-          <div class="content">
-            <p>Hi there,</p>
-            
-            <p>We received a request to reset your RentMate password.</p>
-            
-            <p>Click the button below to create a new password:</p>
-            
-            <div style="text-align: center;">
-              <a href="${resetUrl}" class="button">Reset Password</a>
-            </div>
-            
-            <p style="color: #6c757d; font-size: 14px; margin-top: 20px;">
-              If the button doesn't work, copy and paste this link into your browser:<br>
-              <a href="${resetUrl}" style="color: #0d9488; word-break: break-all;">${resetUrl}</a>
-            </p>
-            
-            <div class="warning">
-              <strong>⚠️ Security Notice:</strong> This link will expire in 1 hour.
-            </div>
-            
-            <p style="margin-top: 20px;">If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.</p>
-            
-            <div class="footer">
-              <p>Best regards,<br>The RentMate Team</p>
-              <p style="font-size: 12px; color: #999;">This is an automated email. Please do not reply.</p>
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #2C4240; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px;">
+                      <tr>
+                        <td style="padding: 14px 18px; text-align: center;">
+                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Professional Property Management</p>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 32px; background-color: #ffffff;">
+              
+              <!-- Title -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-bottom: 24px;">
+                    <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Reset Your Password</h2>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Intro Text -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Hi there,</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 24px;">
+                    <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      We received a request to reset your RentMate password. Click the button below to create a new password:
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Button -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td align="center" style="padding-bottom: 24px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                      <tr>
+                        <td align="center" style="background-color: #46A19D; border-radius: 6px;">
+                          <a href="${resetUrl}" style="display: inline-block; background-color: #46A19D; color: #ffffff; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px;">
+                            Reset Password
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Link fallback -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-bottom: 24px;">
+                    <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      If the button doesn't work, copy and paste this link into your browser:<br>
+                      <a href="${resetUrl}" style="color: #46A19D; word-break: break-all;">${resetUrl}</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Warning -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding: 16px; background-color: #FEF3C7; border-left: 4px solid #F59E0B; border-radius: 4px; margin-bottom: 24px;">
+                    <p style="margin: 0; color: #92400E; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      <strong>Security Notice:</strong> This link will expire in 1 hour.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Ignore notice -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-top: 24px;">
+                    <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
+              <p style="margin: 0 0 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                Best regards,<br>The RentMate Team
+              </p>
+              <p style="margin: 8px 0; color: #2C4240; font-size: 12px; opacity: 0.8; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                This is an automated email. Please do not reply.
+              </p>
+              <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                © ${new Date().getFullYear()} RentMate. All rights reserved.
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }
 
-function getRecoveryEmailTemplateES(email: string, resetUrl: string): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); padding: 30px 20px; border-radius: 8px 8px 0 0; text-align: center; }
-          .header h1 { margin: 0; color: white; font-size: 28px; }
-          .content { background-color: #ffffff; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-          .button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
-          .warning { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 20px 0; }
-          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 14px; color: #6c757d; text-align: center; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>Restablece tu Contraseña 🔐</h1>
-          </div>
+function getRecoveryEmailTemplateES(resetUrl: string): string {
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Restablece tu Contraseña - RentMate</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
           
-          <div class="content">
-            <p>Hola,</p>
-            
-            <p>Hemos recibido una solicitud para restablecer tu contraseña de RentMate.</p>
-            
-            <p>Haz clic en el botón de abajo para crear una nueva contraseña:</p>
-            
-            <div style="text-align: center;">
-              <a href="${resetUrl}" class="button">Restablecer Contraseña</a>
-            </div>
-            
-            <p style="color: #6c757d; font-size: 14px; margin-top: 20px;">
-              Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
-              <a href="${resetUrl}" style="color: #0d9488; word-break: break-all;">${resetUrl}</a>
-            </p>
-            
-            <div class="warning">
-              <strong>⚠️ Aviso de Seguridad:</strong> Este enlace expirará en 1 hora.
-            </div>
-            
-            <p style="margin-top: 20px;">Si no solicitaste restablecer tu contraseña, puedes ignorar este correo. Tu contraseña no será modificada.</p>
-            
-            <div class="footer">
-              <p>Saludos,<br>El equipo de RentMate</p>
-              <p style="font-size: 12px; color: #999;">Este es un correo automático. Por favor no respondas.</p>
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #2C4240; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px;">
+                      <tr>
+                        <td style="padding: 14px 18px; text-align: center;">
+                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Gestión Profesional de Propiedades</p>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 32px; background-color: #ffffff;">
+              
+              <!-- Title -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-bottom: 24px;">
+                    <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Restablece tu Contraseña</h2>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Intro Text -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Hola,</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 24px;">
+                    <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      Hemos recibido una solicitud para restablecer tu contraseña de RentMate. Haz clic en el botón de abajo para crear una nueva contraseña:
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Button -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td align="center" style="padding-bottom: 24px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                      <tr>
+                        <td align="center" style="background-color: #46A19D; border-radius: 6px;">
+                          <a href="${resetUrl}" style="display: inline-block; background-color: #46A19D; color: #ffffff; font-family: 'Inter', 'Roboto', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px;">
+                            Restablecer Contraseña
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Link fallback -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-bottom: 24px;">
+                    <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                      <a href="${resetUrl}" style="color: #46A19D; word-break: break-all;">${resetUrl}</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Warning -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding: 16px; background-color: #FEF3C7; border-left: 4px solid #F59E0B; border-radius: 4px; margin-bottom: 24px;">
+                    <p style="margin: 0; color: #92400E; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      <strong>Aviso de Seguridad:</strong> Este enlace expirará en 1 hora.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Ignore notice -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-top: 24px;">
+                    <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      Si no solicitaste restablecer tu contraseña, puedes ignorar este correo. Tu contraseña no será modificada.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
+              <p style="margin: 0 0 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                Saludos,<br>El equipo de RentMate
+              </p>
+              <p style="margin: 8px 0; color: #2C4240; font-size: 12px; opacity: 0.8; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                Este es un correo automático. Por favor no respondas.
+              </p>
+              <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                © ${new Date().getFullYear()} RentMate. Todos los derechos reservados.
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }
 
 serve(handler);

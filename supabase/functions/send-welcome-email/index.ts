@@ -129,75 +129,154 @@ serve(async (req: Request): Promise<Response> => {
 });
 
 function getWelcomeEmailTemplate(): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Welcome to RentMate</title>
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #111827; margin: 0; padding: 0; background-color: #f3f4f6; }
-          .container { max-width: 600px; margin: 0 auto; padding: 24px 16px; }
-          .card { background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(15,23,42,0.1), 0 10px 10px -5px rgba(15,23,42,0.04); }
-          .header { background: radial-gradient(circle at 10% 20%, #0f766e 0, #14b8a6 35%, #22c55e 70%, #e5e7eb 100%); padding: 32px 24px; text-align: left; color: #ecfeff; }
-          .logo-pill { display: inline-flex; align-items: center; justify-content: center; padding: 10px 14px; border-radius: 999px; background-color: rgba(15,23,42,0.15); margin-bottom: 16px; font-weight: 700; letter-spacing: 0.12em; font-size: 11px; text-transform: uppercase; }
-          .logo-pill span { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background-color: #ecfeff; color: #0f766e; font-weight: 800; margin-right: 8px; font-size: 14px; }
-          .title { font-size: 26px; margin: 0 0 8px 0; font-weight: 700; letter-spacing: -0.03em; }
-          .subtitle { margin: 0; font-size: 14px; opacity: 0.9; max-width: 360px; }
-          .content { padding: 24px 24px 28px 24px; }
-          .section-title { font-size: 15px; font-weight: 600; margin: 0 0 12px 0; color: #0f172a; }
-          .list { margin: 0 0 16px 0; padding-left: 18px; color: #4b5563; font-size: 14px; }
-          .list li { margin-bottom: 4px; }
-          .highlight { margin: 16px 0; padding: 12px 14px; border-radius: 10px; background: #ecfdf5; border: 1px solid #bbf7d0; color: #166534; font-size: 13px; }
-          .footer { border-top: 1px solid #e5e7eb; margin-top: 20px; padding-top: 14px; font-size: 12px; color: #6b7280; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="card">
-            <div class="header">
-              <div class="logo-pill">
-                <span>RE</span>
-                RENTMATE
-              </div>
-              <h1 class="title">Welcome to RentMate</h1>
-              <p class="subtitle">
-                Your workspace for modern property management—contracts, payments, and maintenance in one secure place.
+  const currentYear = new Date().getFullYear();
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Welcome to RentMate</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #2C4240; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px;">
+                      <tr>
+                        <td style="padding: 14px 18px; text-align: center;">
+                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Professional Property Management</p>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 32px; background-color: #ffffff;">
+              
+              <!-- Title -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-bottom: 24px;">
+                    <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Welcome to RentMate!</h2>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Intro Text -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Hi there,</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 24px;">
+                    <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      Thanks for creating your account. You're all set to start managing properties, tenants, and payments more efficiently.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Features Title -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <p style="margin: 0; color: #374151; font-size: 16px; font-weight: 600; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      With RentMate you can:
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Feature List -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding-left: 0; margin: 0 0 24px 0;">
+                <tr>
+                  <td width="20" valign="top" style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
+                  <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                    Centralise contracts and important documents for every property
+                  </td>
+                </tr>
+                <tr>
+                  <td width="20" valign="top" style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
+                  <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                    Track rent and utility payments with clear status and history
+                  </td>
+                </tr>
+                <tr>
+                  <td width="20" valign="top" style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
+                  <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                    Handle maintenance tickets with full activity timelines
+                  </td>
+                </tr>
+                <tr>
+                  <td width="20" valign="top" style="color: #46A19D; font-size: 16px; font-weight: bold; padding-right: 8px; font-family: Arial, sans-serif;">•</td>
+                  <td style="color: #374151; font-size: 16px; line-height: 1.6; padding-bottom: 8px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                    Invite tenants securely and collaborate in one shared space
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Highlight Box -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding: 16px; background-color: #ECFDF5; border-left: 4px solid #46A19D; border-radius: 4px; margin-bottom: 24px;">
+                    <p style="margin: 0; color: #166534; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      <strong>Next step:</strong> Log in to your account and create your first property. It only takes a minute.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Ignore notice -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="padding-top: 24px;">
+                    <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                      If you did not create this account, you can safely ignore this email.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
+              <p style="margin: 0 0 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                Best regards,<br>The RentMate Team
               </p>
-            </div>
-            <div class="content">
-              <p style="margin: 0 0 10px 0; font-size: 14px; color: #111827;">
-                Hi there,
+              <p style="margin: 8px 0; color: #2C4240; font-size: 12px; opacity: 0.8; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                This is an automated email. Please do not reply.
               </p>
-              <p style="margin: 0 0 14px 0; font-size: 14px; color: #374151;">
-                Thanks for creating your account. You're all set to start managing properties, tenants, and payments more efficiently.
+              <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                © ${currentYear} RentMate. All rights reserved.
               </p>
-
-              <p class="section-title">With RentMate you can:</p>
-              <ul class="list">
-                <li>Centralise contracts and important documents for every property</li>
-                <li>Track rent and utility payments with clear status and history</li>
-                <li>Handle maintenance tickets with full activity timelines</li>
-                <li>Invite tenants securely and collaborate in one shared space</li>
-              </ul>
-
-              <div class="highlight">
-                <strong>Next step:</strong> log in to your account and create your first property. It only takes a minute.
-              </div>
-
-              <p style="margin: 0 0 6px 0; font-size: 13px; color: #4b5563;">
-                If you did not create this account, you can safely ignore this email.
-              </p>
-
-              <div class="footer">
-                <p style="margin: 0 0 4px 0;">Best regards,<br />The RentMate Team</p>
-                <p style="margin: 0; color: #9ca3af;">This is an automated message, please do not reply.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }

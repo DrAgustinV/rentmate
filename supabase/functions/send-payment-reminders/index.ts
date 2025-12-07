@@ -42,6 +42,74 @@ interface ManagerInfo {
   last_name: string;
 }
 
+// Email template wrapper with standardized branding
+function getEmailWrapper(title: string, headerBgColor: string, content: string, managerName: string): string {
+  const currentYear = new Date().getFullYear();
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>${title} - RentMate</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Inter', 'Roboto', Arial, sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; margin: 0; padding: 0;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background-color: ${headerBgColor}; padding: 48px 24px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding-bottom: 16px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px;">
+                      <tr>
+                        <td style="padding: 14px 18px; text-align: center;">
+                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #FFFFFF; font-size: 24px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RentMate</h1>
+              <p style="margin: 8px 0 0; color: #FFFFFF; opacity: 0.8; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Professional Property Management</p>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 32px; background-color: #ffffff;">
+              ${content}
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #BEF0ED; padding: 24px 32px; text-align: center;">
+              <p style="margin: 0 0 8px 0; color: #2C4240; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                Best regards,<br>${managerName}
+              </p>
+              <p style="margin: 8px 0; color: #2C4240; font-size: 12px; opacity: 0.8; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                This is an automated reminder. Please do not reply to this email.
+              </p>
+              <p style="margin: 8px 0 0 0; color: #2C4240; font-size: 12px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+                © ${currentYear} RentMate. All rights reserved.
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -258,68 +326,88 @@ async function sendUpcomingReminder(
     const currencySymbol = payment.currency === "eur" ? "€" : payment.currency.toUpperCase();
 
     const subject = `Rent Payment Due in ${daysUntilDue} Day${daysUntilDue !== 1 ? 's' : ''} - ${propertyInfo.address || propertyInfo.title}`;
+    const managerName = `${managerInfo.first_name || ''} ${managerInfo.last_name || ''}`.trim() || 'Your Property Manager';
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-            .content { padding: 20px 0; }
-            .details { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0; }
-            .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6; }
-            .detail-row:last-child { border-bottom: none; }
-            .label { font-weight: bold; color: #6c757d; }
-            .value { color: #212529; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 14px; color: #6c757d; }
-            .button { display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0; color: #007bff;">Upcoming Rent Payment</h1>
-            </div>
-            
-            <div class="content">
-              <p>Hello ${tenantInfo.first_name || 'Tenant'},</p>
-              
-              <p>This is a friendly reminder that your rent payment is due in <strong>${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}</strong>.</p>
-              
-              <div class="details">
-                <div class="detail-row">
-                  <span class="label">Property:</span>
-                  <span class="value">${propertyInfo.address || propertyInfo.title}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Amount:</span>
-                  <span class="value">${currencySymbol}${amount}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Due Date:</span>
-                  <span class="value">${dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Payment Method:</span>
-                  <span class="value">SEPA Direct Debit</span>
-                </div>
-              </div>
-              
-              <p>If you've already made this payment, please upload your proof of payment in your tenant portal.</p>
-              
-              <p style="margin-top: 30px;">If you have any questions, please contact your property manager.</p>
-            </div>
-            
-            <div class="footer">
-              <p>Best regards,<br>${managerInfo.first_name} ${managerInfo.last_name}</p>
-              <p style="font-size: 12px; color: #999;">This is an automated reminder. Please do not reply to this email.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const content = `
+      <!-- Title -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding-bottom: 24px;">
+            <h2 style="margin: 0; color: #46A19D; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Upcoming Rent Payment</h2>
+          </td>
+        </tr>
+      </table>
+      
+      <!-- Intro Text -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding-bottom: 16px;">
+            <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Hello ${tenantInfo.first_name || 'Tenant'},</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom: 24px;">
+            <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+              This is a friendly reminder that your rent payment is due in <strong>${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}</strong>.
+            </p>
+          </td>
+        </tr>
+      </table>
+      
+      <!-- Payment Details Box -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f8f9fa; border-radius: 8px; margin-bottom: 24px;">
+        <tr>
+          <td style="padding: 20px;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td style="padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                  <span style="color: #6B7280; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Property</span><br>
+                  <span style="color: #111827; font-size: 16px; font-weight: 500; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${propertyInfo.address || propertyInfo.title}</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                  <span style="color: #6B7280; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Amount</span><br>
+                  <span style="color: #111827; font-size: 16px; font-weight: 500; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${currencySymbol}${amount}</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                  <span style="color: #6B7280; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Due Date</span><br>
+                  <span style="color: #111827; font-size: 16px; font-weight: 500; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-top: 12px;">
+                  <span style="color: #6B7280; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Payment Method</span><br>
+                  <span style="color: #111827; font-size: 16px; font-weight: 500; font-family: 'Inter', 'Roboto', Arial, sans-serif;">SEPA Direct Debit</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+      
+      <!-- Additional Info -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding-bottom: 16px;">
+            <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+              If you've already made this payment, please upload your proof of payment in your tenant portal.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+              If you have any questions, please contact your property manager.
+            </p>
+          </td>
+        </tr>
+      </table>
     `;
+
+    const html = getEmailWrapper("Upcoming Rent Payment", "#2C4240", content, managerName);
 
     // Send email using Resend API
     const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -416,73 +504,100 @@ async function sendOverdueReminder(
     const currencySymbol = payment.currency === "eur" ? "€" : payment.currency.toUpperCase();
 
     const subject = `Overdue Rent Payment - ${propertyInfo.address || propertyInfo.title}`;
+    const managerName = `${managerInfo.first_name || ''} ${managerInfo.last_name || ''}`.trim() || 'Your Property Manager';
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background-color: #dc3545; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-            .header h1 { margin: 0; color: white; }
-            .content { padding: 20px 0; }
-            .details { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0; }
-            .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6; }
-            .detail-row:last-child { border-bottom: none; }
-            .label { font-weight: bold; color: #6c757d; }
-            .value { color: #212529; }
-            .warning { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 20px 0; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; font-size: 14px; color: #6c757d; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>Overdue Rent Payment Notice</h1>
-            </div>
-            
-            <div class="content">
-              <p>Hello ${tenantInfo.first_name || 'Tenant'},</p>
-              
-              <div class="warning">
-                <strong>⚠️ Important:</strong> We noticed that your rent payment was due on <strong>${dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> and has not been received yet.
-              </div>
-              
-              <div class="details">
-                <div class="detail-row">
-                  <span class="label">Property:</span>
-                  <span class="value">${propertyInfo.address || propertyInfo.title}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Amount:</span>
-                  <span class="value">${currencySymbol}${amount}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Original Due Date:</span>
-                  <span class="value">${dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Days Overdue:</span>
-                  <span class="value" style="color: #dc3545; font-weight: bold;">${daysOverdue} day${daysOverdue !== 1 ? 's' : ''}</span>
-                </div>
-              </div>
-              
-              <p><strong>Please make the payment as soon as possible to avoid any late fees or further action.</strong></p>
-              
-              <p>If you have already made this payment, please upload your proof of payment in your tenant portal immediately.</p>
-              
-              <p>If you're experiencing financial difficulties, please contact your property manager to discuss payment arrangements.</p>
-            </div>
-            
-            <div class="footer">
-              <p>Best regards,<br>${managerInfo.first_name} ${managerInfo.last_name}</p>
-              <p style="font-size: 12px; color: #999;">This is an automated reminder. Please do not reply to this email.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const content = `
+      <!-- Title -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding-bottom: 24px;">
+            <h2 style="margin: 0; color: #DC2626; font-size: 22px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Overdue Rent Payment Notice</h2>
+          </td>
+        </tr>
+      </table>
+      
+      <!-- Intro Text -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding-bottom: 16px;">
+            <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Hello ${tenantInfo.first_name || 'Tenant'},</p>
+          </td>
+        </tr>
+      </table>
+      
+      <!-- Warning Box -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding: 16px; background-color: #FEF2F2; border-left: 4px solid #DC2626; border-radius: 4px; margin-bottom: 24px;">
+            <p style="margin: 0; color: #991B1B; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+              <strong>Important:</strong> We noticed that your rent payment was due on <strong>${dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</strong> and has not been received yet.
+            </p>
+          </td>
+        </tr>
+      </table>
+      
+      <!-- Payment Details Box -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f8f9fa; border-radius: 8px; margin: 24px 0;">
+        <tr>
+          <td style="padding: 20px;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td style="padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                  <span style="color: #6B7280; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Property</span><br>
+                  <span style="color: #111827; font-size: 16px; font-weight: 500; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${propertyInfo.address || propertyInfo.title}</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                  <span style="color: #6B7280; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Amount</span><br>
+                  <span style="color: #111827; font-size: 16px; font-weight: 500; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${currencySymbol}${amount}</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+                  <span style="color: #6B7280; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Original Due Date</span><br>
+                  <span style="color: #111827; font-size: 16px; font-weight: 500; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-top: 12px;">
+                  <span style="color: #6B7280; font-size: 14px; font-family: 'Inter', 'Roboto', Arial, sans-serif;">Days Overdue</span><br>
+                  <span style="color: #DC2626; font-size: 16px; font-weight: 600; font-family: 'Inter', 'Roboto', Arial, sans-serif;">${daysOverdue} day${daysOverdue !== 1 ? 's' : ''}</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+      
+      <!-- Additional Info -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding-bottom: 16px;">
+            <p style="margin: 0; color: #374151; font-size: 16px; font-weight: 600; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+              Please make the payment as soon as possible to avoid any late fees or further action.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom: 16px;">
+            <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+              If you have already made this payment, please upload your proof of payment in your tenant portal immediately.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <p style="margin: 0; color: #6B7280; font-size: 14px; line-height: 1.6; font-family: 'Inter', 'Roboto', Arial, sans-serif;">
+              If you're experiencing financial difficulties, please contact your property manager to discuss payment arrangements.
+            </p>
+          </td>
+        </tr>
+      </table>
     `;
+
+    // Use darker header for overdue emails to convey urgency
+    const html = getEmailWrapper("Overdue Rent Payment", "#2C4240", content, managerName);
 
     // Send email using Resend API
     const emailResponse = await fetch("https://api.resend.com/emails", {
