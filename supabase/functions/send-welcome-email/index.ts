@@ -150,10 +150,10 @@ function getWelcomeEmailTemplate(): string {
               <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
                 <tr>
                   <td style="padding-bottom: 16px;">
-                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #BEF0ED; border-radius: 8px;">
+                    <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; width: 48px; height: 48px; background-color: #2C4240; border-radius: 50%;">
                       <tr>
-                        <td style="padding: 14px 18px; text-align: center;">
-                          <span style="color: #2C4240; font-size: 20px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif; letter-spacing: 0.5px;">RE</span>
+                        <td style="text-align: center; vertical-align: middle;">
+                          <span style="color: #FFFFFF; font-size: 18px; font-weight: 700; font-family: 'Inter', 'Roboto', Arial, sans-serif;">RE</span>
                         </td>
                       </tr>
                     </table>
