@@ -10,7 +10,7 @@ export interface UserPreferences {
 }
 
 interface UserPreferencesContextType {
-  preferences: UserPreferences | null;
+  preferences: UserPreferences;
   loading: boolean;
   updatePreferences: (prefs: Partial<UserPreferences>) => Promise<void>;
 }
@@ -25,31 +25,30 @@ export const defaultPreferences: UserPreferences = {
   week_start_day: 'monday',
 };
 
+// Load cached preferences synchronously to avoid flash
+const getCachedPreferences = (): UserPreferences => {
+  try {
+    const cached = localStorage.getItem('user-preferences');
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (e) {
+    // Ignore parse errors
+  }
+  return defaultPreferences;
+};
+
 export const UserPreferencesProvider = ({ children }: { children: ReactNode }) => {
-  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Initialize with cached preferences immediately - no blocking
+  const [preferences, setPreferences] = useState<UserPreferences>(getCachedPreferences);
+  const [loading, setLoading] = useState(false); // Start false - we have cached data
 
-  const loadPreferences = async () => {
+  const loadPreferencesFromDB = async (userId: string) => {
     try {
-      // Load from localStorage immediately
-      const cached = localStorage.getItem('user-preferences');
-      if (cached) {
-        setPreferences(JSON.parse(cached));
-      }
-
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setPreferences(defaultPreferences);
-        setLoading(false);
-        return;
-      }
-
-      // Fetch from database
       const { data, error } = await supabase
         .from('user_preferences')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (error) throw error;
@@ -64,15 +63,9 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
         };
         setPreferences(prefs);
         localStorage.setItem('user-preferences', JSON.stringify(prefs));
-      } else {
-        setPreferences(defaultPreferences);
-        localStorage.setItem('user-preferences', JSON.stringify(defaultPreferences));
       }
     } catch (error) {
-      console.error('Error loading preferences:', error);
-      setPreferences(defaultPreferences);
-    } finally {
-      setLoading(false);
+      console.error('Error loading preferences from DB:', error);
     }
   };
 
@@ -83,13 +76,13 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
     setPreferences(updatedPrefs);
     localStorage.setItem('user-preferences', JSON.stringify(updatedPrefs));
     
-    // Try to save to database if authenticated
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
+    // Try to save to database if authenticated (use getSession for cache)
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
-          user_id: user.id,
+          user_id: session.user.id,
           theme_mode: updatedPrefs.theme_mode,
           font_size: updatedPrefs.font_size,
           date_format: updatedPrefs.date_format,
@@ -101,17 +94,28 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
       
       if (error) {
         console.error('Error saving preferences:', error);
-        // Don't throw - preferences are still saved locally
       }
     }
-    // If not authenticated, preferences are only saved in localStorage
   };
 
   useEffect(() => {
-    loadPreferences();
+    // Check session and load DB preferences in background (non-blocking)
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        loadPreferencesFromDB(session.user.id);
+      }
+    };
+    init();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      loadPreferences();
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        // Defer DB fetch to avoid auth deadlock
+        setTimeout(() => {
+          loadPreferencesFromDB(session.user.id);
+        }, 0);
+      }
     });
 
     return () => {
