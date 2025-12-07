@@ -71,6 +71,8 @@ interface Tenant {
   first_name: string | null;
   last_name: string | null;
   notes: string | null;
+  avatar_url?: string | null;
+  kyc_status?: string | null;
 }
 
 interface Invitation {
@@ -205,7 +207,7 @@ export default function PropertyTenants() {
       const tenantIds = tenancies.map(t => t.tenant_id);
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, email, first_name, last_name")
+        .select("id, email, first_name, last_name, avatar_url, kyc_status")
         .in("id", tenantIds);
 
       if (profilesError) throw profilesError;
@@ -218,6 +220,8 @@ export default function PropertyTenants() {
           email: profile?.email || "Unknown",
           first_name: profile?.first_name || null,
           last_name: profile?.last_name || null,
+          avatar_url: profile?.avatar_url || null,
+          kyc_status: profile?.kyc_status || null,
         } as Tenant;
       });
     },

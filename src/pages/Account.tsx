@@ -33,6 +33,7 @@ import { IdentityVerification } from "@/components/IdentityVerification";
 import { SubscriptionManager } from "@/components/SubscriptionManager";
 import { PrivacySettings } from "@/components/PrivacySettings";
 import { ChangePassword } from "@/components/auth/ChangePassword";
+import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
 import { useSearchParams } from "react-router-dom";
 
 const languages: { code: Language; label: string; flag: string }[] = [
@@ -70,12 +71,14 @@ export default function Account() {
     checkUser();
   }, [navigate]);
 
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
   const fetchProfile = async (userId: string) => {
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("first_name, last_name, deletion_scheduled_for")
+        .select("first_name, last_name, deletion_scheduled_for, avatar_url")
         .eq("id", userId)
         .maybeSingle();
 
@@ -85,6 +88,7 @@ export default function Account() {
         setFirstName(data.first_name || "");
         setLastName(data.last_name || "");
         setDeletionScheduled(data.deletion_scheduled_for);
+        setAvatarUrl(data.avatar_url);
       }
       setSelectedLanguage(language);
     } catch (error: any) {
@@ -277,6 +281,22 @@ export default function Account() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Profile Photo */}
+                {user && (
+                  <div className="pb-4">
+                    <Label className="mb-3 block">{t('account.profilePhoto')}</Label>
+                    <ProfilePhotoUpload
+                      userId={user.id}
+                      currentPhotoPath={avatarUrl}
+                      firstName={firstName}
+                      lastName={lastName}
+                      onPhotoChange={(path) => setAvatarUrl(path)}
+                    />
+                  </div>
+                )}
+
+                <Separator />
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">{t('settings.firstName')}</Label>
