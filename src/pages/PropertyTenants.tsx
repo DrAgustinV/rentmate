@@ -199,7 +199,7 @@ export default function PropertyTenants() {
       // Step 1: Fetch property_tenants records (tenant can see their own via RLS)
       const { data: tenancies, error: tenanciesError } = await supabase
         .from("property_tenants")
-        .select("id, tenant_id, tenancy_status, started_at, ended_at, notes")
+        .select("id, tenant_id, tenancy_status, started_at, ended_at, planned_ending_date, notes")
         .eq("property_id", propertyId)
         .in("tenancy_status", ["active", "ending_tenancy"])
         .order("started_at", { ascending: false });
@@ -526,6 +526,7 @@ export default function PropertyTenants() {
       queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] });
       queryClient.invalidateQueries({ queryKey: ["tenancy-history", propertyId] });
       queryClient.invalidateQueries({ queryKey: ["active-tenant-profile", propertyId] });
+      setRemovingTenant(null);
     },
     onError: (error: any) => {
       toast({ title: t("common.error"), description: error.message, variant: "destructive" });
