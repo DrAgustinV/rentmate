@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Upload, X, Camera } from "lucide-react";
+import { Upload, X, Camera, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ interface ProfilePhotoUploadProps {
   onPhotoChange?: (photoPath: string | null) => void;
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
+  isKycVerified?: boolean;
 }
 
 export function ProfilePhotoUpload({ 
@@ -23,7 +24,8 @@ export function ProfilePhotoUpload({
   lastName,
   onPhotoChange,
   disabled,
-  size = "lg"
+  size = "lg",
+  isKycVerified = false
 }: ProfilePhotoUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -162,6 +164,12 @@ export function ProfilePhotoUpload({
     }
   };
 
+  const badgeSizeClasses = {
+    sm: "h-3.5 w-3.5",
+    md: "h-4 w-4",
+    lg: "h-5 w-5"
+  };
+
   return (
     <div className="flex items-center gap-4">
       <div className="relative">
@@ -171,7 +179,12 @@ export function ProfilePhotoUpload({
             {getInitials()}
           </AvatarFallback>
         </Avatar>
-        {!disabled && (
+        {isKycVerified && (
+          <div className="absolute -bottom-0.5 -right-0.5 bg-background rounded-full p-0.5 shadow-sm">
+            <BadgeCheck className={`${badgeSizeClasses[size]} text-blue-500 fill-blue-500`} />
+          </div>
+        )}
+        {!disabled && !isKycVerified && (
           <label 
             htmlFor="profile-photo-upload" 
             className="absolute -bottom-1 -right-1 p-1.5 bg-primary text-primary-foreground rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-md"

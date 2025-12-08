@@ -72,13 +72,14 @@ export default function Account() {
   }, [navigate]);
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [kycStatus, setKycStatus] = useState<string | null>(null);
 
   const fetchProfile = async (userId: string) => {
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("first_name, last_name, deletion_scheduled_for, avatar_url")
+        .select("first_name, last_name, deletion_scheduled_for, avatar_url, kyc_status")
         .eq("id", userId)
         .maybeSingle();
 
@@ -89,6 +90,7 @@ export default function Account() {
         setLastName(data.last_name || "");
         setDeletionScheduled(data.deletion_scheduled_for);
         setAvatarUrl(data.avatar_url);
+        setKycStatus(data.kyc_status);
       }
       setSelectedLanguage(language);
     } catch (error: any) {
@@ -291,6 +293,7 @@ export default function Account() {
                       firstName={firstName}
                       lastName={lastName}
                       onPhotoChange={(path) => setAvatarUrl(path)}
+                      isKycVerified={kycStatus === 'verified'}
                     />
                   </div>
                 )}
