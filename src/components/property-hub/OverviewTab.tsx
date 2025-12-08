@@ -12,12 +12,14 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { Save, Archive, Mail, Pencil, Users } from "lucide-react";
+import { Save, Archive, Plus, Pencil, Users } from "lucide-react";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { cn } from "@/lib/utils";
 import { usePropertyMutations } from "@/hooks/useProperties";
 import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
+import { CreateTenancyWizard } from "@/components/CreateTenancyWizard";
+import { useTenancyRequirements, CreateTenancyRequirementInput } from "@/hooks/useTenancyRequirements";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,12 +37,29 @@ interface OverviewTabProps {
   propertyId: string;
   userRole: { isManager: boolean; userId?: string } | null | undefined;
   activeTenant: any;
+  templates?: Array<{ id: string; document_title: string }>;
+  onInviteTenant?: (email: string) => void;
 }
 
-export function OverviewTab({ property, propertyId, userRole, activeTenant }: OverviewTabProps) {
+export function OverviewTab({ property, propertyId, userRole, activeTenant, templates = [], onInviteTenant }: OverviewTabProps) {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+  const [showTenancyWizard, setShowTenancyWizard] = useState(false);
+  
+  const { createRequirement } = useTenancyRequirements(propertyId);
+
+  const handleWizardSubmit = async (data: CreateTenancyRequirementInput) => {
+    try {
+      await createRequirement.mutateAsync(data);
+      if (onInviteTenant) {
+        onInviteTenant(data.tenant_email);
+      }
+      toast.success(t('tenancy.wizard.invitationSent') || 'Invitation sent successfully');
+    } catch (error: any) {
+      toast.error(error.message || t('common.error'));
+    }
+  };
   
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(property?.title || "");
@@ -146,20 +165,20 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant }: Ov
 
   return (
     <div className="space-y-6">
-      {/* Free Property Alert - Invite Tenant */}
+      {/* Free Property Alert - Start New Tenancy */}
       {userRole?.isManager && !activeTenant && property?.status === 'active' && (
         <Alert className="border-primary/50 bg-primary/5 animate-fade-in">
-          <Mail className="h-4 w-4 text-primary" />
+          <Plus className="h-4 w-4 text-primary" />
           <AlertTitle className="text-primary">{t("properties.propertyIsFree")}</AlertTitle>
           <AlertDescription className="flex items-center justify-between gap-4">
             <span className="text-sm">{t("properties.inviteTenantToGetStarted")}</span>
             <Button
               size="sm"
-              onClick={() => navigate(`/properties/${propertyId}/tenants?tab=tenants`)}
+              onClick={() => setShowTenancyWizard(true)}
               className="gap-2"
             >
-              <Mail className="h-4 w-4" />
-              {t("properties.inviteTenantButton")}
+              <Plus className="h-4 w-4" />
+              {t("tenancy.wizard.newTenancy") || "New Tenancy Setup"}
             </Button>
           </AlertDescription>
         </Alert>
@@ -382,6 +401,17 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant }: Ov
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Tenancy Setup Wizard */}
+      <CreateTenancyWizard
+        open={showTenancyWizard}
+        onOpenChange={setShowTenancyWizard}
+        propertyId={propertyId}
+        propertyCountry={property?.country}
+        templates={templates}
+        onSubmit={handleWizardSubmit}
+        isSubmitting={createRequirement.isPending}
+      />
     </div>
   );
 }
