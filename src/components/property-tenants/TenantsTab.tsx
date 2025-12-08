@@ -19,9 +19,13 @@ import {
   AlertTriangle,
   Eye,
   BadgeCheck,
+  Plus,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
+import { CreateTenancyWizard } from "@/components/CreateTenancyWizard";
+import { useTenancyRequirements, CreateTenancyRequirementInput } from "@/hooks/useTenancyRequirements";
+import { toast } from "sonner";
 
 interface Tenant {
   id: string;
@@ -82,6 +86,9 @@ interface TenantsTabProps {
   loadTenancyDocuments: (tenancyId: string) => Promise<void>;
   downloadDocument: (doc: TenancyDocument) => Promise<void>;
   openDocument?: (doc: TenancyDocument) => Promise<void>;
+  propertyId: string;
+  propertyCountry?: string;
+  templates?: Array<{ id: string; document_title: string }>;
 }
 
 export function TenantsTab({
@@ -108,9 +115,26 @@ export function TenantsTab({
   loadTenancyDocuments,
   downloadDocument,
   openDocument,
+  propertyId,
+  propertyCountry,
+  templates = [],
 }: TenantsTabProps) {
   const { t } = useLanguage();
   const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
+  const [showWizard, setShowWizard] = useState(false);
+  
+  const { createRequirement } = useTenancyRequirements(propertyId);
+
+  const handleWizardSubmit = async (data: CreateTenancyRequirementInput) => {
+    try {
+      const requirement = await createRequirement.mutateAsync(data);
+      // After creating requirement, also send the invitation
+      onInviteTenant(data.tenant_email);
+      toast.success(t('tenancy.wizard.invitationSent') || 'Invitation sent successfully');
+    } catch (error: any) {
+      toast.error(error.message || t('common.error'));
+    }
+  };
 
   // Load signed URLs for tenant avatars
   useEffect(() => {
@@ -234,19 +258,19 @@ export function TenantsTab({
         )}
         
         {/* Invite New Tenant - Prominent when no tenants */}
-        {userRole?.isManager && !isReadOnly && !currentTenant && !showInviteForm && (
+        {userRole?.isManager && !isReadOnly && !currentTenant && (
           <Alert className="border-primary/50 bg-primary/5 mt-4">
-            <Mail className="h-4 w-4 text-primary" />
+            <Plus className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary">{t("properties.noTenantsYet")}</AlertTitle>
             <AlertDescription>
               <p className="text-sm mb-3">{t("properties.inviteTenantToGetStarted")}</p>
               <Button
                 variant="default"
-                onClick={() => setShowInviteForm(true)}
+                onClick={() => setShowWizard(true)}
                 className="w-full"
               >
-                <Mail className="h-4 w-4 mr-2" />
-                {t("properties.inviteTenantButton")}
+                <Plus className="h-4 w-4 mr-2" />
+                {t("tenancy.wizard.newTenancy") || "New Tenancy Setup"}
               </Button>
             </AlertDescription>
           </Alert>
@@ -256,11 +280,11 @@ export function TenantsTab({
         {userRole?.isManager && !isReadOnly && currentTenant && (
           <Button
             variant="outline"
-            onClick={() => setShowInviteForm(!showInviteForm)}
+            onClick={() => setShowWizard(true)}
             className="w-full mt-3"
           >
-            <Mail className="h-4 w-4 mr-2" />
-            {showInviteForm ? t("common.cancel") : t("properties.inviteAdditionalTenant")}
+            <Plus className="h-4 w-4 mr-2" />
+            {t("tenancy.wizard.newTenancy") || "New Tenancy Setup"}
           </Button>
         )}
       </div>
@@ -288,56 +312,6 @@ export function TenantsTab({
                   </Button>
                 </div>
               ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Section 3: Invite Form (Conditional, Manager Only, Not Read-Only) */}
-      {userRole?.isManager && !isReadOnly && showInviteForm && (
-        <>
-          <Separator />
-          <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-            <h3 className="text-lg font-semibold">{t("properties.inviteTenantButton")}</h3>
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("dialogs.inviteTenant.emailLabel")}</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder={t("dialogs.inviteTenant.emailPlaceholder")}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && email.trim()) {
-                      onInviteTenant(email.trim());
-                    }
-                  }}
-                />
-                <Button
-                  variant="default"
-                  onClick={() => {
-                    const trimmedEmail = email.trim();
-                    if (trimmedEmail) {
-                      onInviteTenant(trimmedEmail);
-                    }
-                  }}
-                  disabled={invitePending || !email.trim()}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  {t("dialogs.inviteTenant.send")}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowInviteForm(false);
-                    setEmail('');
-                  }}
-                  disabled={invitePending}
-                >
-                  {t("common.cancel")}
-                </Button>
-              </div>
             </div>
           </div>
         </>
@@ -418,6 +392,17 @@ export function TenantsTab({
           </div>
         </>
       )}
+
+      {/* Tenancy Setup Wizard */}
+      <CreateTenancyWizard
+        open={showWizard}
+        onOpenChange={setShowWizard}
+        propertyId={propertyId}
+        propertyCountry={propertyCountry}
+        templates={templates}
+        onSubmit={handleWizardSubmit}
+        isSubmitting={createRequirement.isPending}
+      />
     </div>
   );
 }

@@ -742,6 +742,8 @@ export default function PropertyTenants() {
                   loadTenancyDocuments={loadTenancyDocuments}
                   downloadDocument={downloadDocument}
                   openDocument={openDocument}
+                  propertyId={propertyId!}
+                  propertyCountry={property?.country || undefined}
                 />
               </TabsContent>
 
