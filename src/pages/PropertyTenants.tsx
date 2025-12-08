@@ -738,6 +738,7 @@ export default function PropertyTenants() {
                   propertyId={propertyId!}
                   userRole={userRole}
                   activeTenant={activeTenantWithProfile}
+                  onInviteTenant={(email) => inviteMutation.mutate(email)}
                 />
               </TabsContent>
 
@@ -768,6 +769,7 @@ export default function PropertyTenants() {
                   openDocument={openDocument}
                   propertyId={propertyId!}
                   propertyCountry={property?.country || undefined}
+                  onNavigateToOverview={() => setActiveTab('overview')}
                 />
               </TabsContent>
 

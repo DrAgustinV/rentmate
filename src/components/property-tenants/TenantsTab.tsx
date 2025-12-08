@@ -88,6 +88,7 @@ interface TenantsTabProps {
   propertyId: string;
   propertyCountry?: string;
   templates?: Array<{ id: string; document_title: string }>;
+  onNavigateToOverview?: () => void;
 }
 
 export function TenantsTab({
@@ -117,6 +118,7 @@ export function TenantsTab({
   propertyId,
   propertyCountry,
   templates = [],
+  onNavigateToOverview,
 }: TenantsTabProps) {
   const { t } = useLanguage();
   const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
@@ -278,20 +280,19 @@ export function TenantsTab({
           <p className="text-sm text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
         )}
         
-        {/* Invite New Tenant - Prominent when no tenants */}
-        {userRole?.isManager && !isReadOnly && !currentTenant && (
-          <Alert className="border-primary/50 bg-primary/5 mt-4">
-            <Plus className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary">{t("properties.noTenantsYet")}</AlertTitle>
+        {/* Redirect to Overview when no tenants */}
+        {userRole?.isManager && !isReadOnly && !currentTenant && onNavigateToOverview && (
+          <Alert className="border-muted bg-muted/30 mt-4">
+            <Plus className="h-4 w-4 text-muted-foreground" />
+            <AlertTitle>{t("properties.noTenantsYet")}</AlertTitle>
             <AlertDescription>
-              <p className="text-sm mb-3">{t("properties.inviteTenantToGetStarted")}</p>
+              <p className="text-sm mb-3">{t("properties.setupFromOverview")}</p>
               <Button
-                variant="default"
-                onClick={() => setShowWizard(true)}
+                variant="outline"
+                onClick={onNavigateToOverview}
                 className="w-full"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                {t("tenancy.wizard.newTenancy") || "New Tenancy Setup"}
+                {t("properties.goToOverview")}
               </Button>
             </AlertDescription>
           </Alert>
