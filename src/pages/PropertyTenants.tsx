@@ -80,6 +80,7 @@ interface Tenant {
 interface Invitation {
   id: string;
   email: string;
+  status: string;
   expires_at: string;
   created_at: string;
 }
@@ -264,6 +265,23 @@ export default function PropertyTenants() {
       return data as Invitation[];
     },
     enabled: !!propertyId && userRole?.isManager,
+  });
+
+  // Query for contract templates
+  const { data: templates } = useQuery({
+    queryKey: ["contract-templates", propertyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("property_documents")
+        .select("id, document_title")
+        .eq("document_category", "template")
+        .or(`property_id.eq.${propertyId},property_id.is.null`)
+        .eq("is_latest_version", true)
+        .order("document_title");
+      if (error) throw error;
+      return data as Array<{ id: string; document_title: string }>;
+    },
+    enabled: !!propertyId,
   });
 
   // Query for rent agreements (for managers)
@@ -744,6 +762,8 @@ export default function PropertyTenants() {
                   propertyId={propertyId!}
                   userRole={userRole}
                   activeTenant={activeTenantWithProfile}
+                  templates={templates}
+                  invitations={invitations}
                   onInviteTenant={(email) => inviteMutation.mutate(email)}
                 />
               </TabsContent>

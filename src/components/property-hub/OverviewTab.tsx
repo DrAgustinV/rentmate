@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { Save, Archive, Plus, Pencil, Users } from "lucide-react";
+import { Save, Archive, Plus, Pencil, Users, Mail } from "lucide-react";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { cn } from "@/lib/utils";
 import { usePropertyMutations } from "@/hooks/useProperties";
@@ -38,10 +38,11 @@ interface OverviewTabProps {
   userRole: { isManager: boolean; userId?: string } | null | undefined;
   activeTenant: any;
   templates?: Array<{ id: string; document_title: string }>;
+  invitations?: Array<{ id: string; email: string; status: string; expires_at: string }>;
   onInviteTenant?: (email: string) => void;
 }
 
-export function OverviewTab({ property, propertyId, userRole, activeTenant, templates = [], onInviteTenant }: OverviewTabProps) {
+export function OverviewTab({ property, propertyId, userRole, activeTenant, templates = [], invitations = [], onInviteTenant }: OverviewTabProps) {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
@@ -55,6 +56,9 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
       if (onInviteTenant) {
         onInviteTenant(data.tenant_email);
       }
+      // Invalidate invitations query to refresh UI
+      queryClient.invalidateQueries({ queryKey: ["invitations", propertyId] });
+      setShowTenancyWizard(false);
       toast.success(t('tenancy.wizard.invitationSent') || 'Invitation sent successfully');
     } catch (error: any) {
       toast.error(error.message || t('common.error'));
@@ -163,13 +167,29 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
 
   const isArchived = property?.status === "inactive";
 
-  // Show wizard when property is free OR current tenant is ending_tenancy
-  const canSetupNewTenancy = !activeTenant || activeTenant?.tenancy_status === 'ending_tenancy';
+  // Check for pending invitations
+  const hasPendingInvitation = invitations && invitations.length > 0;
+  
+  // Show wizard when property is free OR current tenant is ending_tenancy AND no pending invitation
+  const canSetupNewTenancy = (!activeTenant || activeTenant?.tenancy_status === 'ending_tenancy') && !hasPendingInvitation;
 
   return (
     <div className="space-y-6">
+      {/* Pending Invitation Alert */}
+      {userRole?.isManager && hasPendingInvitation && property?.status === 'active' && (
+        <Alert className="border-blue-500/50 bg-blue-500/5 animate-fade-in">
+          <Mail className="h-4 w-4 text-blue-600" />
+          <AlertTitle className="text-blue-600">{t("properties.invitationPending") || "Invitation Pending"}</AlertTitle>
+          <AlertDescription>
+            <span className="text-sm">
+              {t("properties.invitationSentTo") || "Invitation sent to"}: <strong>{invitations[0].email}</strong>
+            </span>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Free Property Alert - Start New Tenancy */}
-      {userRole?.isManager && !activeTenant && property?.status === 'active' && (
+      {userRole?.isManager && !activeTenant && property?.status === 'active' && canSetupNewTenancy && (
         <Alert className="border-primary/50 bg-primary/5 animate-fade-in">
           <Plus className="h-4 w-4 text-primary" />
           <AlertTitle className="text-primary">{t("properties.propertyIsFree")}</AlertTitle>
@@ -188,7 +208,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
       )}
       
       {/* Ending Tenancy Alert - Can set up new tenant in parallel */}
-      {userRole?.isManager && activeTenant?.tenancy_status === 'ending_tenancy' && property?.status === 'active' && (
+      {userRole?.isManager && activeTenant?.tenancy_status === 'ending_tenancy' && property?.status === 'active' && canSetupNewTenancy && (
         <Alert className="border-yellow-500/50 bg-yellow-500/5 animate-fade-in">
           <Plus className="h-4 w-4 text-yellow-600" />
           <AlertTitle className="text-yellow-600">{t("properties.tenancyEnding")}</AlertTitle>
