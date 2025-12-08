@@ -39,6 +39,7 @@ interface Tenant {
 interface Invitation {
   id: string;
   email: string;
+  status: string;
   expires_at: string;
   created_at: string;
 }
