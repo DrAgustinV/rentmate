@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -10,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Mail,
   X,
   Clock,
   ChevronDown,
@@ -19,12 +16,10 @@ import {
   Eye,
   BadgeCheck,
   Plus,
+  CalendarClock,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
-import { CreateTenancyWizard } from "@/components/CreateTenancyWizard";
-import { useTenancyRequirements, CreateTenancyRequirementInput } from "@/hooks/useTenancyRequirements";
-import { toast } from "sonner";
 
 interface Tenant {
   id: string;
@@ -32,6 +27,7 @@ interface Tenant {
   tenancy_status: 'active' | 'ending_tenancy' | 'historic';
   started_at: string;
   ended_at: string | null;
+  planned_ending_date: string | null;
   email: string;
   first_name: string | null;
   last_name: string | null;
@@ -74,6 +70,7 @@ interface TenantsTabProps {
   setRemovingTenant: (tenant: Tenant | null) => void;
   setEditingTenant: (tenant: Tenant | null) => void;
   setCancellingInvitation: (invitation: Invitation | null) => void;
+  onEndTenancy?: (tenant: Tenant) => void;
   onInviteTenant: (email: string) => void;
   invitePending: boolean;
   currentTenant: Tenant | null;
@@ -104,6 +101,7 @@ export function TenantsTab({
   setRemovingTenant,
   setEditingTenant,
   setCancellingInvitation,
+  onEndTenancy,
   onInviteTenant,
   invitePending,
   currentTenant,
@@ -122,20 +120,6 @@ export function TenantsTab({
 }: TenantsTabProps) {
   const { t } = useLanguage();
   const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
-  const [showWizard, setShowWizard] = useState(false);
-  
-  const { createRequirement } = useTenancyRequirements(propertyId);
-
-  const handleWizardSubmit = async (data: CreateTenancyRequirementInput) => {
-    try {
-      const requirement = await createRequirement.mutateAsync(data);
-      // After creating requirement, also send the invitation
-      onInviteTenant(data.tenant_email);
-      toast.success(t('tenancy.wizard.invitationSent') || 'Invitation sent successfully');
-    } catch (error: any) {
-      toast.error(error.message || t('common.error'));
-    }
-  };
 
   // Load signed URLs for tenant avatars
   useEffect(() => {
@@ -240,6 +224,12 @@ export function TenantsTab({
                       <p className="text-xs text-muted-foreground mt-1">
                         {t("properties.tenancyStarted")}: {formatDate(tenant.started_at)}
                       </p>
+                      {tenant.tenancy_status === 'ending_tenancy' && tenant.planned_ending_date && (
+                        <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-1 flex items-center gap-1">
+                          <CalendarClock className="h-3 w-3" />
+                          {t("tenants.plannedEndDate")}: {formatDate(tenant.planned_ending_date)}
+                        </p>
+                      )}
                       {tenant.notes && (
                         <p className="text-xs text-muted-foreground mt-2 italic">{tenant.notes}</p>
                       )}
@@ -263,7 +253,7 @@ export function TenantsTab({
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => setRemovingTenant(tenant)} 
+                          onClick={() => onEndTenancy?.(tenant)} 
                           disabled={isReadOnly}
                           className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30"
                         >
@@ -296,18 +286,6 @@ export function TenantsTab({
               </Button>
             </AlertDescription>
           </Alert>
-        )}
-        
-        {/* Invite Additional Tenant Button */}
-        {userRole?.isManager && !isReadOnly && currentTenant && (
-          <Button
-            variant="outline"
-            onClick={() => setShowWizard(true)}
-            className="w-full mt-3"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {t("tenancy.wizard.newTenancy") || "New Tenancy Setup"}
-          </Button>
         )}
       </div>
 
@@ -414,17 +392,6 @@ export function TenantsTab({
           </div>
         </>
       )}
-
-      {/* Tenancy Setup Wizard */}
-      <CreateTenancyWizard
-        open={showWizard}
-        onOpenChange={setShowWizard}
-        propertyId={propertyId}
-        propertyCountry={propertyCountry}
-        templates={templates}
-        onSubmit={handleWizardSubmit}
-        isSubmitting={createRequirement.isPending}
-      />
     </div>
   );
 }

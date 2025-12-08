@@ -672,6 +672,8 @@ export const translations = {
       freeToRent: "Free to Rent",
       free: "Free",
       propertyIsFree: "Property is Free",
+      tenancyEnding: "Tenancy Ending Soon",
+      canSetupNewTenantParallel: "You can set up a new tenant while the current tenancy is ending.",
       inviteTenantToGetStarted: "Invite a tenant to get started managing this property",
       inviteTenantButton: "Invite Tenant",
       inviteNewTenant: "Invite New Tenant",
@@ -1373,6 +1375,15 @@ export const translations = {
         sendInvitation: "Send Invitation",
         propertyLifecycle: "Property Lifecycle",
       },
+      endTenancy: {
+        title: "End Tenancy",
+        description: "Set a planned end date for this tenancy. You can set up a new tenant in parallel.",
+        tenantLabel: "Tenant",
+        selectEndDate: "Planned End Date",
+        pickDate: "Select end date",
+        parallelSetupHint: "After setting the end date, you can immediately start setting up a new tenant from the Overview tab.",
+        confirm: "Confirm End Date",
+      },
       propertyDocuments: {
         title: "Property Documents",
         description:
@@ -1643,6 +1654,7 @@ export const translations = {
       manageTenantsSections: "Manage current tenants and invitations",
       kycVerified: "Verified",
       endingTenancy: "Ending",
+      plannedEndDate: "Planned end date",
     },
     repairShops: {
       title: "Repair Shops",
@@ -2362,6 +2374,8 @@ export const translations = {
       freeToRent: "Libre para Alquilar",
       free: "Libre",
       propertyIsFree: "Propiedad Libre",
+      tenancyEnding: "Arrendamiento Terminando Pronto",
+      canSetupNewTenantParallel: "Puedes configurar un nuevo inquilino mientras el arrendamiento actual está terminando.",
       inviteTenantToGetStarted: "Invita a un inquilino para comenzar a gestionar esta propiedad",
       inviteTenantButton: "Invitar Inquilino",
       inviteNewTenant: "Invitar Nuevo Inquilino",
@@ -2979,6 +2993,15 @@ export const translations = {
         sendInvitation: "Enviar Invitación",
         propertyLifecycle: "Ciclo de Vida de la Propiedad",
       },
+      endTenancy: {
+        title: "Terminar Arrendamiento",
+        description: "Establece una fecha de fin planificada. Puedes configurar un nuevo inquilino en paralelo.",
+        tenantLabel: "Inquilino",
+        selectEndDate: "Fecha de Fin Planificada",
+        pickDate: "Seleccionar fecha de fin",
+        parallelSetupHint: "Después de establecer la fecha de fin, puedes comenzar a configurar un nuevo inquilino desde la pestaña Resumen.",
+        confirm: "Confirmar Fecha de Fin",
+      },
       propertyDocuments: {
         title: "Documentos de Propiedad",
         description:
@@ -3242,6 +3265,7 @@ export const translations = {
       manageTenantsSections: "Gestionar inquilinos actuales e invitaciones",
       kycVerified: "Verificado",
       endingTenancy: "Finalizando",
+      plannedEndDate: "Fecha de fin planificada",
     },
     repairShops: {
       title: "Talleres de Reparación",

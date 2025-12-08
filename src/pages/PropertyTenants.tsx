@@ -45,6 +45,7 @@ import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
 import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
 import { EditTenantDialog } from "@/components/EditTenantDialog";
+import { EndTenancyDialog } from "@/components/EndTenancyDialog";
 import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
@@ -67,6 +68,7 @@ interface Tenant {
   tenancy_status: 'active' | 'ending_tenancy' | 'historic';
   started_at: string;
   ended_at: string | null;
+  planned_ending_date: string | null;
   email: string;
   first_name: string | null;
   last_name: string | null;
@@ -161,6 +163,8 @@ export default function PropertyTenants() {
   const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
   const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [showEndTenancyDialog, setShowEndTenancyDialog] = useState(false);
+  const [endingTenant, setEndingTenant] = useState<Tenant | null>(null);
 
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
@@ -481,13 +485,14 @@ export default function PropertyTenants() {
     },
   });
 
-  // Step 1: End tenancy (sets status to 'ending_tenancy')
+  // Step 1: End tenancy (sets status to 'ending_tenancy' with planned end date)
   const endTenancyMutation = useMutation({
-    mutationFn: async (tenantId: string) => {
+    mutationFn: async ({ tenantId, plannedEndDate }: { tenantId: string; plannedEndDate: string }) => {
       const { error } = await supabase
         .from("property_tenants")
         .update({
           tenancy_status: "ending_tenancy",
+          planned_ending_date: plannedEndDate,
         })
         .eq("id", tenantId);
       if (error) throw error;
@@ -770,6 +775,10 @@ export default function PropertyTenants() {
                   propertyId={propertyId!}
                   propertyCountry={property?.country || undefined}
                   onNavigateToOverview={() => setActiveTab('overview')}
+                  onEndTenancy={(tenant) => {
+                    setEndingTenant(tenant);
+                    setShowEndTenancyDialog(true);
+                  }}
                 />
               </TabsContent>
 
@@ -825,19 +834,31 @@ export default function PropertyTenants() {
         </Card>
       </div>
 
-      {/* End Tenancy Dialog */}
+      {/* End Tenancy Dialog with Date Picker */}
+      <EndTenancyDialog
+        open={showEndTenancyDialog}
+        onOpenChange={(open) => {
+          setShowEndTenancyDialog(open);
+          if (!open) setEndingTenant(null);
+        }}
+        tenantName={endingTenant ? getTenantName(endingTenant) : ""}
+        onConfirm={(plannedEndDate) => {
+          if (endingTenant) {
+            endTenancyMutation.mutate({ tenantId: endingTenant.id, plannedEndDate });
+          }
+          setShowEndTenancyDialog(false);
+          setEndingTenant(null);
+        }}
+        isPending={endTenancyMutation.isPending}
+      />
+
+      {/* Finalize Tenancy Dialog */}
       <AlertDialog open={!!removingTenant} onOpenChange={() => setRemovingTenant(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {removingTenant?.tenancy_status === 'ending_tenancy' 
-                ? t("dialogs.manageTenants.finalizeTitle") 
-                : t("dialogs.manageTenants.endTenancyTitle")}
-            </AlertDialogTitle>
+            <AlertDialogTitle>{t("dialogs.manageTenants.finalizeTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {removingTenant?.tenancy_status === 'ending_tenancy' 
-                ? `${t("dialogs.manageTenants.finalizeMessage")} ${removingTenant && getTenantName(removingTenant)}?`
-                : `${t("dialogs.manageTenants.endTenancyMessage")} ${removingTenant && getTenantName(removingTenant)}?`}
+              {`${t("dialogs.manageTenants.finalizeMessage")} ${removingTenant && getTenantName(removingTenant)}?`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -845,17 +866,11 @@ export default function PropertyTenants() {
             <AlertDialogAction 
               onClick={() => {
                 if (removingTenant) {
-                  if (removingTenant.tenancy_status === 'ending_tenancy') {
-                    finalizeTenancyMutation.mutate(removingTenant.id);
-                  } else {
-                    endTenancyMutation.mutate(removingTenant.id);
-                  }
+                  finalizeTenancyMutation.mutate(removingTenant.id);
                 }
               }}
             >
-              {removingTenant?.tenancy_status === 'ending_tenancy' 
-                ? t("dialogs.manageTenants.finalize") 
-                : t("dialogs.manageTenants.endTenancy")}
+              {t("dialogs.manageTenants.finalize")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

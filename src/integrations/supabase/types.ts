@@ -1098,6 +1098,7 @@ export type Database = {
           ended_at: string | null
           id: string
           notes: string | null
+          planned_ending_date: string | null
           property_id: string
           started_at: string
           tenancy_status: string | null
@@ -1109,6 +1110,7 @@ export type Database = {
           ended_at?: string | null
           id?: string
           notes?: string | null
+          planned_ending_date?: string | null
           property_id: string
           started_at?: string
           tenancy_status?: string | null
@@ -1120,6 +1122,7 @@ export type Database = {
           ended_at?: string | null
           id?: string
           notes?: string | null
+          planned_ending_date?: string | null
           property_id?: string
           started_at?: string
           tenancy_status?: string | null
