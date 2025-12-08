@@ -333,39 +333,20 @@ export function CreateTenancyWizard({
                         onValueChange={field.onChange}
                         className="space-y-3"
                       >
+                        {/* DocuSeal option hidden - code retained for future use */}
+                        
                         <label className={cn(
                           "flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors",
-                          field.value === 'docuseal' && "border-primary bg-primary/5"
+                          field.value === 'yousign' && "border-primary bg-primary/5"
                         )}>
-                          <RadioGroupItem value="docuseal" className="mt-1" />
+                          <RadioGroupItem value="yousign" className="mt-1" />
                           <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{t('tenancy.wizard.digitalStandard') || 'Digital Signature (Standard)'}</span>
-                              <Badge variant="secondary">DocuSeal</Badge>
-                            </div>
+                            <span className="font-medium">{t('tenancy.wizard.digitalSignature') || 'Digital Signature'}</span>
                             <p className="text-sm text-muted-foreground mt-1">
-                              {t('tenancy.wizard.digitalStandardDesc') || 'Advanced electronic signature (AES) - valid worldwide'}
+                              {t('tenancy.wizard.digitalSignatureDesc') || 'Legally binding electronic signature'}
                             </p>
                           </div>
                         </label>
-
-                        {isEUCountry && (
-                          <label className={cn(
-                            "flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors",
-                            field.value === 'yousign' && "border-primary bg-primary/5"
-                          )}>
-                            <RadioGroupItem value="yousign" className="mt-1" />
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{t('tenancy.wizard.qualifiedSignature') || 'Qualified Signature (EU)'}</span>
-                                <Badge variant="default">YouSign QES</Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {t('tenancy.wizard.qualifiedSignatureDesc') || 'Qualified electronic signature - highest legal standard in EU'}
-                              </p>
-                            </div>
-                          </label>
-                        )}
 
                         <label className={cn(
                           "flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors",
