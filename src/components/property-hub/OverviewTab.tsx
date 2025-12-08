@@ -163,6 +163,9 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
 
   const isArchived = property?.status === "inactive";
 
+  // Show wizard when property is free OR current tenant is ending_tenancy
+  const canSetupNewTenancy = !activeTenant || activeTenant?.tenancy_status === 'ending_tenancy';
+
   return (
     <div className="space-y-6">
       {/* Free Property Alert - Start New Tenancy */}
@@ -176,6 +179,26 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
               size="sm"
               onClick={() => setShowTenancyWizard(true)}
               className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              {t("tenancy.wizard.newTenancy") || "New Tenancy Setup"}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {/* Ending Tenancy Alert - Can set up new tenant in parallel */}
+      {userRole?.isManager && activeTenant?.tenancy_status === 'ending_tenancy' && property?.status === 'active' && (
+        <Alert className="border-yellow-500/50 bg-yellow-500/5 animate-fade-in">
+          <Plus className="h-4 w-4 text-yellow-600" />
+          <AlertTitle className="text-yellow-600">{t("properties.tenancyEnding")}</AlertTitle>
+          <AlertDescription className="flex items-center justify-between gap-4">
+            <span className="text-sm">{t("properties.canSetupNewTenantParallel")}</span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowTenancyWizard(true)}
+              className="gap-2 border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30"
             >
               <Plus className="h-4 w-4" />
               {t("tenancy.wizard.newTenancy") || "New Tenancy Setup"}
