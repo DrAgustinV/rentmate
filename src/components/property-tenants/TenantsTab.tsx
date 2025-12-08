@@ -10,7 +10,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  UserMinus,
   Mail,
   X,
   Clock,
@@ -216,7 +215,7 @@ export function TenantsTab({
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <div
                           className={cn(
                             "h-2 w-2 rounded-full flex-shrink-0",
@@ -224,6 +223,11 @@ export function TenantsTab({
                           )}
                         />
                         <p className="font-medium truncate">{getTenantName(tenant)}</p>
+                        {tenant.tenancy_status === 'ending_tenancy' && (
+                          <Badge variant="outline" className="border-yellow-500 text-yellow-600 bg-yellow-50 dark:bg-yellow-950/30">
+                            {t("tenants.endingTenancy")}
+                          </Badge>
+                        )}
                         {tenant.kyc_status === 'verified' && (
                           <span className="text-xs text-blue-500 font-medium hidden sm:inline">
                             {t("tenants.kycVerified")}
@@ -240,13 +244,30 @@ export function TenantsTab({
                     </div>
                   </div>
                   {userRole?.isManager && !isReadOnly && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button variant="outline" size="sm" onClick={() => setEditingTenant(tenant)} disabled={isReadOnly}>
                         {t("common.edit")}
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={() => setRemovingTenant(tenant)} disabled={isReadOnly}>
-                        <UserMinus className="h-4 w-4" />
-                      </Button>
+                      {tenant.tenancy_status === 'ending_tenancy' ? (
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => setRemovingTenant(tenant)} 
+                          disabled={isReadOnly}
+                        >
+                          {t("dialogs.manageTenants.finalize")}
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setRemovingTenant(tenant)} 
+                          disabled={isReadOnly}
+                          className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30"
+                        >
+                          {t("dialogs.manageTenants.endTenancy")}
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
