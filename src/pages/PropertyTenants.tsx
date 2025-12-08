@@ -481,7 +481,31 @@ export default function PropertyTenants() {
     },
   });
 
-  const removeTenantMutation = useMutation({
+  // Step 1: End tenancy (sets status to 'ending_tenancy')
+  const endTenancyMutation = useMutation({
+    mutationFn: async (tenantId: string) => {
+      const { error } = await supabase
+        .from("property_tenants")
+        .update({
+          tenancy_status: "ending_tenancy",
+        })
+        .eq("id", tenantId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: t("dialogs.manageTenants.tenancyEnding") });
+      queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["tenancy-history", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["active-tenant-profile", propertyId] });
+      setRemovingTenant(null);
+    },
+    onError: (error: any) => {
+      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Step 2: Finalize tenancy (sets status to 'historic' and records end date)
+  const finalizeTenancyMutation = useMutation({
     mutationFn: async (tenantId: string) => {
       const { error } = await supabase
         .from("property_tenants")
@@ -493,10 +517,10 @@ export default function PropertyTenants() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: t("dialogs.manageTenants.tenancyEnding") });
-      queryClient.invalidateQueries({ queryKey: ["current-tenant"] });
-      queryClient.invalidateQueries({ queryKey: ["tenancy-history"] });
-      setRemovingTenant(null);
+      toast({ title: t("dialogs.manageTenants.tenancyFinalized") });
+      queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["tenancy-history", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["active-tenant-profile", propertyId] });
     },
     onError: (error: any) => {
       toast({ title: t("common.error"), description: error.message, variant: "destructive" });
@@ -799,19 +823,37 @@ export default function PropertyTenants() {
         </Card>
       </div>
 
-      {/* Remove Tenant Dialog */}
+      {/* End Tenancy Dialog */}
       <AlertDialog open={!!removingTenant} onOpenChange={() => setRemovingTenant(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("dialogs.manageTenants.removeTitle")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {removingTenant?.tenancy_status === 'ending_tenancy' 
+                ? t("dialogs.manageTenants.finalizeTitle") 
+                : t("dialogs.manageTenants.endTenancyTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {removingTenant && getTenantName(removingTenant)} {t("dialogs.manageTenants.removeMessage")}
+              {removingTenant?.tenancy_status === 'ending_tenancy' 
+                ? `${t("dialogs.manageTenants.finalizeMessage")} ${removingTenant && getTenantName(removingTenant)}?`
+                : `${t("dialogs.manageTenants.endTenancyMessage")} ${removingTenant && getTenantName(removingTenant)}?`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => removingTenant && removeTenantMutation.mutate(removingTenant.id)}>
-              {t("dialogs.manageTenants.remove")}
+            <AlertDialogAction 
+              onClick={() => {
+                if (removingTenant) {
+                  if (removingTenant.tenancy_status === 'ending_tenancy') {
+                    finalizeTenancyMutation.mutate(removingTenant.id);
+                  } else {
+                    endTenancyMutation.mutate(removingTenant.id);
+                  }
+                }
+              }}
+            >
+              {removingTenant?.tenancy_status === 'ending_tenancy' 
+                ? t("dialogs.manageTenants.finalize") 
+                : t("dialogs.manageTenants.endTenancy")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
