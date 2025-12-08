@@ -586,6 +586,7 @@ export type Database = {
           invited_user_id: string | null
           property_id: string
           status: Database["public"]["Enums"]["invitation_status"]
+          tenancy_requirements_id: string | null
           token: string
         }
         Insert: {
@@ -596,6 +597,7 @@ export type Database = {
           invited_user_id?: string | null
           property_id: string
           status?: Database["public"]["Enums"]["invitation_status"]
+          tenancy_requirements_id?: string | null
           token: string
         }
         Update: {
@@ -606,6 +608,7 @@ export type Database = {
           invited_user_id?: string | null
           property_id?: string
           status?: Database["public"]["Enums"]["invitation_status"]
+          tenancy_requirements_id?: string | null
           token?: string
         }
         Relationships: [
@@ -614,6 +617,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_tenancy_requirements_id_fkey"
+            columns: ["tenancy_requirements_id"]
+            isOneToOne: false
+            referencedRelation: "tenancy_requirements"
             referencedColumns: ["id"]
           },
         ]
@@ -1894,6 +1904,127 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenancy_requirements: {
+        Row: {
+          contract_method: string | null
+          created_at: string | null
+          created_by: string
+          currency: string | null
+          end_date: string | null
+          id: string
+          invitation_id: string | null
+          payment_day: number | null
+          property_id: string
+          questionnaire_config: Json | null
+          questionnaire_enabled: boolean | null
+          rent_amount_cents: number | null
+          require_email_verification: boolean | null
+          require_kyc_verification: boolean | null
+          require_phone_verification: boolean | null
+          security_deposit_cents: number | null
+          selected_template_id: string | null
+          start_date: string | null
+          status: string | null
+          tenancy_id: string | null
+          tenant_email: string
+          updated_at: string | null
+          utilities_config: Json | null
+        }
+        Insert: {
+          contract_method?: string | null
+          created_at?: string | null
+          created_by: string
+          currency?: string | null
+          end_date?: string | null
+          id?: string
+          invitation_id?: string | null
+          payment_day?: number | null
+          property_id: string
+          questionnaire_config?: Json | null
+          questionnaire_enabled?: boolean | null
+          rent_amount_cents?: number | null
+          require_email_verification?: boolean | null
+          require_kyc_verification?: boolean | null
+          require_phone_verification?: boolean | null
+          security_deposit_cents?: number | null
+          selected_template_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          tenancy_id?: string | null
+          tenant_email: string
+          updated_at?: string | null
+          utilities_config?: Json | null
+        }
+        Update: {
+          contract_method?: string | null
+          created_at?: string | null
+          created_by?: string
+          currency?: string | null
+          end_date?: string | null
+          id?: string
+          invitation_id?: string | null
+          payment_day?: number | null
+          property_id?: string
+          questionnaire_config?: Json | null
+          questionnaire_enabled?: boolean | null
+          rent_amount_cents?: number | null
+          require_email_verification?: boolean | null
+          require_kyc_verification?: boolean | null
+          require_phone_verification?: boolean | null
+          security_deposit_cents?: number | null
+          selected_template_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          tenancy_id?: string | null
+          tenant_email?: string
+          updated_at?: string | null
+          utilities_config?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenancy_requirements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_requirements_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_requirements_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "invitations_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_requirements_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_requirements_selected_template_id_fkey"
+            columns: ["selected_template_id"]
+            isOneToOne: false
+            referencedRelation: "property_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_requirements_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: false
+            referencedRelation: "property_tenants"
             referencedColumns: ["id"]
           },
         ]
