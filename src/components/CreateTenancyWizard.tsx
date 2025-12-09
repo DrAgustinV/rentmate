@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -80,6 +80,17 @@ export function CreateTenancyWizard({
 }: CreateTenancyWizardProps) {
   const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
+  const [isReadyToSubmit, setIsReadyToSubmit] = useState(false);
+
+  // Only allow submission after user has been on review step for a moment
+  useEffect(() => {
+    if (currentStep === STEPS.length - 1) {
+      const timer = setTimeout(() => setIsReadyToSubmit(true), 500);
+      return () => clearTimeout(timer);
+    } else {
+      setIsReadyToSubmit(false);
+    }
+  }, [currentStep]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -115,8 +126,9 @@ export function CreateTenancyWizard({
   };
 
   const handleSubmit = async (data: FormData) => {
-    // Guard: Only allow submission from the review step (last step)
-    if (currentStep !== STEPS.length - 1) {
+    // Guard: Only allow submission if explicitly ready AND on last step
+    if (!isReadyToSubmit || currentStep !== STEPS.length - 1) {
+      console.log('Blocked premature submission', { isReadyToSubmit, currentStep });
       return;
     }
     
@@ -715,7 +727,11 @@ export function CreateTenancyWizard({
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
-                <Button type="submit" disabled={isSubmitting}>
+                <Button 
+                  type="button" 
+                  disabled={isSubmitting || !isReadyToSubmit}
+                  onClick={() => form.handleSubmit(handleSubmit)()}
+                >
                   {isSubmitting ? t('common.saving') || 'Saving...' : t('tenancy.wizard.saveSetup') || 'Save Setup'}
                 </Button>
               )}
