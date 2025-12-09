@@ -408,7 +408,7 @@ export default function PropertyTenants() {
         if (existing) throw new Error(t("dialogs.inviteTenant.alreadyTenant"));
       }
 
-      // Check for ANY existing invitation (pending or cancelled)
+      // Check for ANY existing invitation (pending, cancelled, or accepted)
       const { data: existingInvite } = await supabase
         .from("invitations")
         .select("id, status")
@@ -425,8 +425,8 @@ export default function PropertyTenants() {
           throw new Error(t("dialogs.inviteTenant.alreadyInvited"));
         }
 
-        // If cancelled, reactivate it with new token and expiration
-        if (existingInvite.status === "cancelled") {
+        // If cancelled or accepted, reactivate with new token and expiration
+        if (existingInvite.status === "cancelled" || existingInvite.status === "accepted") {
           const { error } = await supabase
             .from("invitations")
             .update({
