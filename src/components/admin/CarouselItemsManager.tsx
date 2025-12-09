@@ -211,6 +211,9 @@ export function CarouselItemsManager({ items, onUpdate, settingsId }: CarouselIt
                     }}
                     disabled={uploading === index}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    PNG, JPG or WEBP. Max 5MB.
+                  </p>
                   <Input
                     placeholder="Or paste image URL..."
                     value={item.image_url}

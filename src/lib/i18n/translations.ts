@@ -528,6 +528,9 @@ export const translations = {
     payments: {
       uploadProof: "Upload Proof of Payment",
       uploadProofDesc: "Upload a receipt, bank transfer screenshot, or other proof",
+      uploadProofDescription: "Upload a receipt, bank transfer screenshot, or other proof that you made the rent payment.",
+      proofFormatsHint: "JPG, PNG, WEBP, or PDF. Max 10MB.",
+      selectedFile: "Selected",
       confirmPayment: "I confirm payment was made",
       proofUploaded: "Proof uploaded successfully",
       proofUploadFailed: "Failed to upload proof",
@@ -1090,6 +1093,8 @@ export const translations = {
       commentsDesc: "Discuss this ticket with your team",
       activityTimeline: "Activity Timeline",
       activityTimelineDesc: "Track all changes and updates",
+      uploadHintPhotos: "Max {size}MB each, up to {count} photos",
+      uploadHintVideo: "Max {size}MB",
     },
     propertyTenants: {
       tabs: {
@@ -1138,7 +1143,7 @@ export const translations = {
       billingPeriodStart: "Period Start",
       billingPeriodEnd: "Period End",
       selectProofFile: "Select proof of payment file",
-      acceptedFormats: "Accepted formats: Images (JPG, PNG) or PDF",
+      acceptedFormats: "Images (JPG, PNG) or PDF. Max 10MB.",
       paymentDetails: "Payment Details",
       uploadedProof: "Uploaded Proof",
       imageLoadError: "Failed to load image",
@@ -1419,6 +1424,8 @@ export const translations = {
         previousVersions: "Previous Versions",
         uploadVersion: "Upload New Version",
         seeVersions: "See all versions",
+        dragAndDropHint: "Drag and drop a file here, or click to select",
+        uploadHint: "Max {size}MB · PDF, DOC, DOCX, ODT, XLS, XLSX, ODS, TXT, Images",
       },
     },
     admin: {
@@ -2296,6 +2303,9 @@ export const translations = {
     payments: {
       uploadProof: "Subir Comprobante de Pago",
       uploadProofDesc: "Sube un recibo, captura de transferencia bancaria u otro comprobante",
+      uploadProofDescription: "Sube un recibo, captura de transferencia bancaria u otro comprobante de que realizaste el pago del alquiler.",
+      proofFormatsHint: "JPG, PNG, WEBP o PDF. Máx 10MB.",
+      selectedFile: "Seleccionado",
       confirmPayment: "Confirmo que se realizó el pago",
       proofUploaded: "Comprobante subido exitosamente",
       proofUploadFailed: "Error al subir comprobante",
@@ -2724,6 +2734,8 @@ export const translations = {
       commentsDesc: "Discute este ticket con tu equipo",
       activityTimeline: "Línea de Tiempo de Actividad",
       activityTimelineDesc: "Rastrea todos los cambios y actualizaciones",
+      uploadHintPhotos: "Máx {size}MB cada una, hasta {count} fotos",
+      uploadHintVideo: "Máx {size}MB",
     },
     propertyTenants: {
       tabs: {
@@ -2772,7 +2784,7 @@ export const translations = {
       billingPeriodStart: "Inicio del Período",
       billingPeriodEnd: "Fin del Período",
       selectProofFile: "Seleccionar archivo de comprobante de pago",
-      acceptedFormats: "Formatos aceptados: Imágenes (JPG, PNG) o PDF",
+      acceptedFormats: "Imágenes (JPG, PNG) o PDF. Máx 10MB.",
       paymentDetails: "Detalles del Pago",
       uploadedProof: "Comprobante Subido",
       imageLoadError: "Error al cargar la imagen",
@@ -3055,6 +3067,8 @@ export const translations = {
         previousVersions: "Versiones Anteriores",
         uploadVersion: "Subir Nueva Versión",
         seeVersions: "Ver todas las versiones",
+        dragAndDropHint: "Arrastra y suelta un archivo aquí, o haz clic para seleccionar",
+        uploadHint: "Máx {size}MB · PDF, DOC, DOCX, ODT, XLS, XLSX, ODS, TXT, Imágenes",
       },
     },
     about: {

@@ -5,12 +5,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AttachmentUploadProps {
   ticketId: string;
 }
 
 export const AttachmentUpload = ({ ticketId }: AttachmentUploadProps) => {
+  const { t } = useLanguage();
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -184,10 +186,14 @@ export const AttachmentUpload = ({ ticketId }: AttachmentUploadProps) => {
     uploadMutation.mutate();
   };
 
+  const maxPhotos = settings?.ticket_max_photos || 10;
+  const maxPhotoSizeMB = settings?.ticket_photo_max_size_mb || 5;
+  const maxVideoSizeMB = settings?.ticket_video_max_size_mb || 50;
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3">
-        <div>
+        <div className="space-y-1">
           <input
             type="file"
             id="photo-upload"
@@ -205,9 +211,12 @@ export const AttachmentUpload = ({ ticketId }: AttachmentUploadProps) => {
             <Image className="h-4 w-4 mr-2" />
             Add Photos
           </Button>
+          <p className="text-xs text-muted-foreground">
+            {t("tickets.uploadHintPhotos").replace("{size}", String(maxPhotoSizeMB)).replace("{count}", String(maxPhotos))}
+          </p>
         </div>
 
-        <div>
+        <div className="space-y-1">
           <input
             type="file"
             id="video-upload"
@@ -226,6 +235,9 @@ export const AttachmentUpload = ({ ticketId }: AttachmentUploadProps) => {
             <Video className="h-4 w-4 mr-2" />
             Add Video
           </Button>
+          <p className="text-xs text-muted-foreground">
+            {t("tickets.uploadHintVideo").replace("{size}", String(maxVideoSizeMB))}
+          </p>
         </div>
       </div>
 
