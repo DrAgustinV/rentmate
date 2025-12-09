@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CountrySelect } from "@/components/ui/country-select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -312,10 +313,9 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
                 <div className="space-y-2">
                   <Label htmlFor="country">{t("properties.country")}</Label>
                   {userRole?.isManager ? (
-                    <Input
-                      id="country"
+                    <CountrySelect
                       value={country}
-                      onChange={(e) => setCountry(e.target.value)}
+                      onValueChange={setCountry}
                       disabled={!isEditing}
                       placeholder={t("properties.countryPlaceholder")}
                     />
