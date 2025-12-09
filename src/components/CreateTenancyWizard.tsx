@@ -702,7 +702,7 @@ export function CreateTenancyWizard({
                 </Button>
               ) : (
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? t('common.creating') : t('tenancy.wizard.sendInvitation') || 'Send Invitation'}
+                  {isSubmitting ? t('common.saving') || 'Saving...' : t('tenancy.wizard.saveSetup') || 'Save Setup'}
                 </Button>
               )}
             </div>
