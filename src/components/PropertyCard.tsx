@@ -335,24 +335,6 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
           </CardFooter>
         )}
 
-        {/* Manager Actions - Invite Tenant */}
-        {property.status === "active" && isManager && tenantStatus?.status === "free" && (
-          <CardFooter className="border-t bg-primary/5 pt-4">
-            <Button
-              variant="default"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate({ pathname: `/properties/${property.id}/tenants`, search: '?tab=tenants' });
-              }}
-              className="w-full gap-2"
-              aria-label={`${t("properties.inviteTenant")} ${property.title}`}
-            >
-              <Mail className="h-4 w-4" />
-              {t("properties.inviteTenantButton")}
-            </Button>
-          </CardFooter>
-        )}
       </Card>
     </>
   );
