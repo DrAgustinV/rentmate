@@ -133,8 +133,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       const error = err instanceof Error ? err : new Error(t('kyc.errors.unknownError'));
       setError(error);
       
-      console.error('[useKYC] Error fetching KYC status:', error);
-      
       toast({
         title: t('kyc.errors.title'),
         description: error.message,
@@ -217,8 +215,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       const error = err instanceof Error ? err : new Error(t('kyc.errors.unknownError'));
       setError(error);
       
-      console.error('[useKYC] Error initiating verification:', error);
-      
       toast({
         title: t('kyc.errors.initiationTitle'),
         description: error.message,
@@ -275,8 +271,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       const error = err instanceof Error ? err : new Error(t('kyc.errors.unknownError'));
       setError(error);
       
-      console.error('[useKYC] Error canceling verification:', error);
-      
       toast({
         title: t('kyc.errors.title'),
         description: error.message,
@@ -303,8 +297,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       setCheckingStatus(true);
       setError(null);
 
-      console.log('[useKYC] Checking Didit status...');
-
       const { data, error: functionError } = await supabase.functions.invoke('check-didit-kyc-status');
 
       if (functionError) {
@@ -314,8 +306,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       if (!data.success) {
         throw new Error(data.error || 'Status check failed');
       }
-
-      console.log('[useKYC] Didit status check result:', data);
 
       if (data.updated) {
         toast({
@@ -335,8 +325,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Unknown error');
       setError(error);
-      
-      console.error('[useKYC] Error checking Didit status:', error);
       
       toast({
         title: 'Status Check Failed',

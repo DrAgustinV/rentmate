@@ -36,7 +36,6 @@ async function checkFileExists(filePath: string): Promise<boolean> {
     .createSignedUrl(normalizedPath, 60);
   
   if (error) {
-    console.log('File check failed for:', normalizedPath, error.message);
     return false;
   }
   return !!data?.signedUrl;
@@ -66,11 +65,8 @@ export function CopyTemplatesDialog({
         .or(`property_id.eq.${propertyId},property_id.is.null`);
 
       if (error) {
-        console.error('Error fetching property templates:', error);
         throw error;
       }
-      
-      console.log('Property templates found:', data?.length || 0, data);
       
       // Check file existence for each template
       const templatesWithStatus = await Promise.all(
@@ -121,7 +117,6 @@ export function CopyTemplatesDialog({
         try {
           // Normalize the file path before download
           const downloadPath = normalizeFilePath(template.file_path);
-          console.log('Downloading file from path:', downloadPath);
 
           // Download the file
           const { data: fileData, error: downloadError } = await supabase.storage
@@ -129,7 +124,6 @@ export function CopyTemplatesDialog({
             .download(downloadPath);
 
           if (downloadError) {
-            console.error('Download error:', downloadError);
             errors.push(`Failed to download "${template.document_title}": ${downloadError.message}`);
             continue;
           }
@@ -154,14 +148,7 @@ export function CopyTemplatesDialog({
           }
 
           // Create new document record
-          console.log('Inserting tenancy document:', {
-            property_id: propertyId,
-            tenancy_id: tenancyId,
-            document_title: template.document_title,
-            document_category: "tenancy",
-          });
-          
-          const { data: insertedDoc, error: dbError } = await supabase.from("property_documents").insert({
+          const { error: dbError } = await supabase.from("property_documents").insert({
             property_id: propertyId,
             tenancy_id: tenancyId,
             uploaded_by: currentUser.id,
@@ -178,10 +165,8 @@ export function CopyTemplatesDialog({
           }).select();
 
           if (dbError) {
-            console.error('DB insert error:', dbError);
             errors.push(`Failed to save "${template.document_title}": ${dbError.message}`);
           } else {
-            console.log('Document inserted successfully:', insertedDoc);
             successCount.count++;
           }
         } catch (err) {
@@ -196,8 +181,6 @@ export function CopyTemplatesDialog({
       return { successCount: successCount.count, errors };
     },
     onSuccess: (result) => {
-      console.log('Templates copied successfully to tenancy:', tenancyId);
-      
       if (result.errors && result.errors.length > 0) {
         toast({
           title: `${result.successCount} template(s) copied`,
@@ -217,7 +200,6 @@ export function CopyTemplatesDialog({
       onOpenChange(false);
     },
     onError: (error) => {
-      console.error("Copy error:", error);
       toast({
         title: t('common.error'),
         description: error instanceof Error ? error.message : "Failed to copy templates",
