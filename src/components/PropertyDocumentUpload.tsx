@@ -63,6 +63,7 @@ export default function PropertyDocumentUpload({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useLanguage();
   const { trackEvent } = useAnalyticsContext();
 
   const { data: settings } = useQuery({
@@ -278,10 +279,10 @@ export default function PropertyDocumentUpload({
           <>
             <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-sm text-muted-foreground mb-2">
-              Drag and drop a file here, or click to select
+              {t("properties.propertyDocuments.dragAndDropHint")}
             </p>
             <p className="text-xs text-muted-foreground">
-              Max size: {maxSizeMB}MB · Allowed: PDF, DOC, DOCX, ODT, XLS, XLSX, ODS, TXT, Images
+              {t("properties.propertyDocuments.uploadHint").replace("{size}", String(maxSizeMB))}
             </p>
             <input
               ref={fileInputRef}

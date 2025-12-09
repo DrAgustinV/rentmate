@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProofOfPaymentUploadProps {
   paymentId: string;
@@ -25,6 +26,7 @@ export function ProofOfPaymentUpload({
   onOpenChange,
   onSuccess,
 }: ProofOfPaymentUploadProps) {
+  const { t } = useLanguage();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -91,10 +93,9 @@ export function ProofOfPaymentUpload({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Upload Proof of Payment</DialogTitle>
+          <DialogTitle>{t("payments.uploadProof")}</DialogTitle>
           <DialogDescription>
-            Upload a receipt, bank transfer screenshot, or other proof that you
-            made the rent payment.
+            {t("payments.uploadProofDescription")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -106,11 +107,11 @@ export function ProofOfPaymentUpload({
               disabled={uploading}
             />
             <p className="text-xs text-muted-foreground">
-              Accepted formats: JPG, PNG, WEBP, PDF (max 10MB)
+              {t("payments.proofFormatsHint")}
             </p>
             {file && (
               <p className="text-sm text-muted-foreground">
-                Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                {t("payments.selectedFile")}: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
               </p>
             )}
           </div>
@@ -125,14 +126,14 @@ export function ProofOfPaymentUpload({
               ) : (
                 <Upload className="h-4 w-4 mr-2" />
               )}
-              {uploading ? "Uploading..." : "Upload Proof"}
+              {uploading ? t("common.uploading") : t("payments.uploadProof")}
             </Button>
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={uploading}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
           </div>
         </div>
