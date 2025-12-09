@@ -434,7 +434,7 @@ export function CreateTenancyWizard({
                       name="rent_amount"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('rentAgreement.rentAmount') || 'Monthly Rent'}</FormLabel>
+                          <FormLabel>{t('rentAgreement.rentAmount')}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -453,7 +453,7 @@ export function CreateTenancyWizard({
                       name="currency"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('rentAgreement.currency') || 'Currency'}</FormLabel>
+                          <FormLabel>{t('rentAgreement.currency')}</FormLabel>
                           <Select value={field.value} onValueChange={field.onChange}>
                             <FormControl>
                               <SelectTrigger>
@@ -477,7 +477,7 @@ export function CreateTenancyWizard({
                       name="security_deposit"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('rentAgreement.securityDeposit') || 'Security Deposit'}</FormLabel>
+                          <FormLabel>{t('rentAgreement.securityDeposit')}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -496,7 +496,7 @@ export function CreateTenancyWizard({
                       name="payment_day"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('rentAgreement.paymentDay') || 'Payment Day'}</FormLabel>
+                          <FormLabel>{t('rentAgreement.paymentDay')}</FormLabel>
                           <Select value={field.value} onValueChange={field.onChange}>
                             <FormControl>
                               <SelectTrigger>
@@ -522,7 +522,7 @@ export function CreateTenancyWizard({
                       name="start_date"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('rentAgreement.startDate') || 'Start Date'}</FormLabel>
+                          <FormLabel>{t('rentAgreement.startDate')}</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -535,7 +535,7 @@ export function CreateTenancyWizard({
                       name="end_date"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('rentAgreement.endDate') || 'End Date'} ({t('common.optional')})</FormLabel>
+                          <FormLabel>{t('rentAgreement.endDate')} ({t('common.optional')})</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>

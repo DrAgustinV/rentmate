@@ -264,7 +264,7 @@ export function CopyTemplatesDialog({
               {t('common.error')}: {queryError?.message || 'Failed to load templates'}
             </p>
             <Button variant="outline" onClick={() => refetch()}>
-              {t('common.retry') || 'Retry'}
+              {t('common.retry')}
             </Button>
           </div>
         ) : templates && templates.length > 0 ? (
@@ -340,8 +340,7 @@ export function CopyTemplatesDialog({
               {t('properties.noTemplatesAvailable')}
             </p>
             <p className="text-sm text-muted-foreground">
-              {t('properties.createTemplatesInConfiguration') || 
-                'To create document templates, go to Configuration → Templates and upload your contract templates. They will be available here for all properties.'}
+              {t('properties.createTemplatesInConfiguration')}
             </p>
           </div>
         )}

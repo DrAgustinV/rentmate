@@ -39,6 +39,11 @@ export const translations = {
       tomorrow: "Tomorrow",
       month: "month",
       comingSoon: "Coming Soon",
+      cookieConsent: "Cookie Consent",
+      retry: "Retry",
+      acceptAll: "Accept All Cookies",
+      rejectNonEssential: "Reject Non-Essential",
+      cookieMessage: "We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.",
     },
     landing: {
       getStarted: "Get Started",
@@ -459,6 +464,15 @@ export const translations = {
       pending: "Pending",
       viewAgreement: "View Agreement",
     },
+    // Alias for backward compatibility with code using singular form
+    rentAgreement: {
+      rentAmount: "Monthly Rent",
+      currency: "Currency",
+      securityDeposit: "Security Deposit",
+      paymentDay: "Payment Day",
+      startDate: "Start Date",
+      endDate: "End Date",
+    },
     settings: {
       title: "Settings",
       description: "Manage your account preferences and settings",
@@ -758,9 +772,10 @@ export const translations = {
        templatesCopied: "Templates copied successfully",
        tenancyStarted: "Started",
        tenancyEnded: "Ended",
-       documentUploaded: "Document uploaded successfully",
-       documentUploadFailed: "Failed to upload document",
-     },
+        documentUploaded: "Document uploaded successfully",
+        documentUploadFailed: "Failed to upload document",
+        createTemplatesInConfiguration: "Create contract templates in Configuration → Templates to use them here",
+      },
     maintenance: {
       title: "Maintenance",
       manageScheduled: "Manage scheduled maintenance",
@@ -1136,6 +1151,7 @@ export const translations = {
     tenancy: {
       wizard: {
         title: "New Tenancy Setup",
+        newTenancy: "New Tenancy Setup",
         subtitle: "Configure all requirements for the new tenant",
         steps: {
           tenant: "Tenant",
@@ -1785,6 +1801,11 @@ export const translations = {
       tomorrow: "Mañana",
       month: "mes",
       comingSoon: "Próximamente",
+      cookieConsent: "Consentimiento de Cookies",
+      retry: "Reintentar",
+      acceptAll: "Aceptar Todas las Cookies",
+      rejectNonEssential: "Rechazar No Esenciales",
+      cookieMessage: "Usamos cookies para mejorar tu experiencia. Al continuar visitando este sitio, aceptas nuestro uso de cookies.",
     },
     landing: {
       getStarted: "Comenzar",
@@ -2211,6 +2232,15 @@ export const translations = {
       pending: "Pendiente",
       viewAgreement: "Ver Acuerdo",
     },
+    // Alias para compatibilidad con código usando la forma singular
+    rentAgreement: {
+      rentAmount: "Alquiler Mensual",
+      currency: "Moneda",
+      securityDeposit: "Depósito de Seguridad",
+      paymentDay: "Día de Pago",
+      startDate: "Fecha de Inicio",
+      endDate: "Fecha de Fin",
+    },
     settings: {
       title: "Configuración",
       description: "Gestiona las preferencias y configuración de tu cuenta",
@@ -2470,9 +2500,10 @@ export const translations = {
       freePlanLimitWarning: "Has creado 4 propiedades. Puedes crear 1 propiedad más en el plan gratuito.",
       freePlanLimitReached:
         "Has alcanzado el límite de 5 propiedades en el plan gratuito. Por favor, actualiza para crear más propiedades.",
-      noDocuments: "No se encontraron documentos",
-      tenantManagement: "Gestión de Inquilinos",
-      tenants: "Inquilinos",
+       noDocuments: "No se encontraron documentos",
+       tenantManagement: "Gestión de Inquilinos",
+       tenants: "Inquilinos",
+       createTemplatesInConfiguration: "Crea plantillas de contrato en Configuración → Plantillas para usarlas aquí",
     },
     maintenance: {
       title: "Mantenimiento",
@@ -2754,6 +2785,7 @@ export const translations = {
     tenancy: {
       wizard: {
         title: "Nueva Configuración de Arrendamiento",
+        newTenancy: "Nueva Configuración de Arrendamiento",
         subtitle: "Configura todos los requisitos para el nuevo inquilino",
         steps: {
           tenant: "Inquilino",

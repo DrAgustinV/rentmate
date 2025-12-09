@@ -107,21 +107,21 @@ export function CookieConsent() {
           <Cookie className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
           <div className="flex-1">
             <h3 className="font-semibold text-lg mb-2">
-              {t('common.cookieConsent') || 'Cookie Consent'}
+              {t('common.cookieConsent')}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              We use essential cookies to make our site work. With your consent, we may also use analytics cookies to improve your experience and understand how you use our site. You can change your preferences at any time in your account settings.
+              {t('common.cookieMessage')}
               {' '}
               <a href="/privacy" className="text-primary hover:underline">
-                Learn more in our Privacy Policy
+                {t('privacy.title')}
               </a>
             </p>
             <div className="flex flex-wrap gap-3">
               <Button onClick={handleAccept} size="sm">
-                Accept All Cookies
+                {t('common.acceptAll')}
               </Button>
               <Button onClick={handleReject} variant="outline" size="sm">
-                Reject Non-Essential
+                {t('common.rejectNonEssential')}
               </Button>
             </div>
           </div>
