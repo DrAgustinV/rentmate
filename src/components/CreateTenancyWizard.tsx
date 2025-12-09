@@ -166,7 +166,7 @@ export function CreateTenancyWizard({
       case 0: return ['tenant_email'];
       case 1: return ['require_email_verification', 'require_kyc_verification'];
       case 2: return ['contract_method'];
-      case 3: return ['rent_amount', 'currency', 'payment_day'];
+      case 3: return ['rent_amount', 'currency', 'security_deposit', 'payment_day', 'start_date'];
       case 4: return ['utilities_config'];
       default: return [];
     }
