@@ -249,6 +249,12 @@ export function BrandSettings() {
         throw error;
       }
 
+      // Check if update actually affected rows (RLS may silently block updates)
+      if (!data || data.length === 0) {
+        console.error("Update returned no rows - RLS policy may have blocked the update");
+        throw new Error("Failed to save changes. You may not have permission to update brand settings.");
+      }
+
       console.log("Update successful!");
 
       toast({
@@ -402,6 +408,7 @@ export function BrandSettings() {
       </div>
 
       <Button
+        type="button"
         onClick={handleSave}
         disabled={loading || uploading || !settings}
         className="w-full"
