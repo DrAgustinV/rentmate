@@ -20,8 +20,8 @@ import { usePropertyMutations } from "@/hooks/useProperties";
 import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
 import { CreateTenancyWizard } from "@/components/CreateTenancyWizard";
-import { useTenancyRequirements, CreateTenancyRequirementInput, TENANCY_REQUIREMENTS_QUERY_KEY } from "@/hooks/useTenancyRequirements";
-import { Clock, FileText } from "lucide-react";
+import { useTenancyRequirements, CreateTenancyRequirementInput, TenancyRequirement } from "@/hooks/useTenancyRequirements";
+import { Clock, FileText, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,7 +50,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
   const queryClient = useQueryClient();
   const [showTenancyWizard, setShowTenancyWizard] = useState(false);
   
-  const { createRequirement, requirements } = useTenancyRequirements(propertyId);
+  const { createRequirement, requirements, deleteRequirement } = useTenancyRequirements(propertyId);
   
   // Filter for pending tenancy requirements (draft or sent status)
   const pendingRequirements = requirements?.filter(r => r.status === 'draft' || r.status === 'sent') || [];
@@ -80,7 +80,35 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
       toast.error(error.message || t('common.error'));
     }
   };
-  
+
+  const handleCancelSetup = async (requirement: TenancyRequirement) => {
+    try {
+      // Cancel associated invitation if exists
+      if (requirement.invitation_id) {
+        await supabase
+          .from('invitations')
+          .update({ status: 'cancelled' })
+          .eq('id', requirement.invitation_id);
+      } else {
+        // Try to find invitation by email and cancel it
+        await supabase
+          .from('invitations')
+          .update({ status: 'cancelled' })
+          .eq('property_id', propertyId)
+          .eq('email', requirement.tenant_email)
+          .eq('status', 'pending');
+      }
+      
+      // Delete the tenancy requirement
+      await deleteRequirement.mutateAsync(requirement.id);
+      
+      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
+      toast.success(t('tenancy.setupCancelled') || 'Tenancy setup cancelled');
+    } catch (error: any) {
+      toast.error(error.message || t('common.error'));
+    }
+  };
+
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(property?.title || "");
   const [address, setAddress] = useState(property?.address || "");
@@ -258,9 +286,21 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
                     <Clock className="h-3 w-3 text-purple-500" />
                     <span>{req.tenant_email}</span>
                   </div>
-                  <Badge variant="outline" className="text-purple-600 border-purple-300">
-                    {req.status === 'draft' ? (t("common.draft") || "Draft") : (t("common.sent") || "Sent")}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-purple-600 border-purple-300">
+                      {req.status === 'draft' ? (t("common.draft") || "Draft") : (t("common.sent") || "Sent")}
+                    </Badge>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => handleCancelSetup(req)}
+                      disabled={deleteRequirement.isPending}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      {t("common.cancel") || "Cancel"}
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
