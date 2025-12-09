@@ -39,9 +39,9 @@ const formSchema = z.object({
   require_phone_verification: z.boolean().default(false),
   contract_method: z.enum(['docuseal', 'yousign', 'manual', 'none']).nullable(),
   selected_template_id: z.string().nullable(),
-  rent_amount: z.string().optional(),
+  rent_amount: z.string().min(1, "rentRequired"),
   currency: z.string().default('EUR'),
-  security_deposit: z.string().optional(),
+  security_deposit: z.string().min(1, "securityDepositRequired"),
   payment_day: z.string().optional(),
   start_date: z.string().optional(),
   end_date: z.string().optional(),
@@ -107,7 +107,14 @@ export function CreateTenancyWizard({
       payment_day: '1',
       start_date: '',
       end_date: '',
-      utilities_config: {},
+      utilities_config: {
+        electricity: 'not_applicable',
+        water: 'not_applicable',
+        gas: 'not_applicable',
+        internet: 'not_applicable',
+        heating: 'not_applicable',
+        trash: 'not_applicable',
+      },
     },
   });
 
@@ -247,7 +254,7 @@ export function CreateTenancyWizard({
                         <FormControl>
                           <Input
                             type="email"
-                            placeholder="tenant@example.com"
+                            placeholder={t('tenancy.wizard.tenantEmailPlaceholder') || 'tenant@example.com'}
                             {...field}
                           />
                         </FormControl>
@@ -460,16 +467,17 @@ export function CreateTenancyWizard({
                       name="rent_amount"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('rentAgreement.rentAmount')}</FormLabel>
+                      <FormLabel>{t('rentAgreement.rentAmount')} *</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               step="0.01"
                               min="0"
-                              placeholder="1200.00"
+                              placeholder={t('tenancy.wizard.rentAmountPlaceholder') || '1200.00'}
                               {...field}
                             />
                           </FormControl>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -503,16 +511,17 @@ export function CreateTenancyWizard({
                       name="security_deposit"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('rentAgreement.securityDeposit')}</FormLabel>
+                      <FormLabel>{t('rentAgreement.securityDeposit')} *</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               step="0.01"
                               min="0"
-                              placeholder="2400.00"
+                              placeholder={t('tenancy.wizard.securityDepositPlaceholder') || '2400.00'}
                               {...field}
                             />
                           </FormControl>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />

@@ -1250,6 +1250,11 @@ export const translations = {
         utilitiesDesc: "Define who is responsible for each utility",
         review: "Review & Confirm",
         reviewDesc: "Review the tenancy setup before sending the invitation",
+        saveSetup: "Save Setup",
+        rentAmountPlaceholder: "1200.00",
+        securityDepositPlaceholder: "2400.00",
+        rentRequired: "Rent amount is required",
+        securityDepositRequired: "Security deposit is required",
       },
     },
     invitations: {
@@ -2891,6 +2896,11 @@ export const translations = {
         utilitiesDesc: "Define quién es responsable de cada servicio",
         review: "Revisar y Confirmar",
         reviewDesc: "Revisa la configuración del arrendamiento antes de enviar la invitación",
+        saveSetup: "Guardar Configuración",
+        rentAmountPlaceholder: "1200.00",
+        securityDepositPlaceholder: "2400.00",
+        rentRequired: "El importe del alquiler es obligatorio",
+        securityDepositRequired: "La fianza es obligatoria",
       },
     },
     invitations: {
