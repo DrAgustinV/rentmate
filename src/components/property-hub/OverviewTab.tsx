@@ -21,7 +21,7 @@ import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
 import { CreateTenancyWizard } from "@/components/CreateTenancyWizard";
 import { useTenancyRequirements, CreateTenancyRequirementInput, TenancyRequirement } from "@/hooks/useTenancyRequirements";
-import { Clock, FileText, X, Send } from "lucide-react";
+import { PendingTenancySetupCard } from "@/components/property-hub/PendingTenancySetupCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -279,56 +279,22 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
         </Alert>
       )}
 
-      {/* Pending Tenancy Requirements Alert */}
+      {/* Pending Tenancy Setups */}
       {userRole?.isManager && pendingRequirements.length > 0 && (
-        <Alert className="border-purple-500/50 bg-purple-500/5 animate-fade-in">
-          <FileText className="h-4 w-4 text-purple-600" />
-          <AlertTitle className="text-purple-600">
+        <div className="space-y-4">
+          <h3 className="text-sm font-medium text-muted-foreground">
             {t("tenancy.pendingSetups") || "Pending Tenancy Setups"}
-          </AlertTitle>
-          <AlertDescription>
-            <div className="space-y-2 mt-2">
-              {pendingRequirements.map((req) => (
-                <div key={req.id} className="flex items-center justify-between text-sm p-2 rounded-md bg-purple-500/5">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-3 w-3 text-purple-500" />
-                    <span>{req.tenant_email}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-purple-600 border-purple-300">
-                      {req.status === 'draft' ? (t("common.draft") || "Draft") : (t("common.sent") || "Sent")}
-                    </Badge>
-                    
-                    {/* Send Invitation button - only show for drafts */}
-                    {req.status === 'draft' && (
-                      <Button 
-                        variant="default" 
-                        size="sm"
-                        className="h-7"
-                        onClick={() => handleSendInvitation(req)}
-                      >
-                        <Send className="h-4 w-4 mr-1" />
-                        {t("tenancy.sendInvitation") || "Send"}
-                      </Button>
-                    )}
-                    
-                    {/* Cancel button */}
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => handleCancelSetup(req)}
-                      disabled={deleteRequirement.isPending}
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      {t("common.cancel") || "Cancel"}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </AlertDescription>
-        </Alert>
+          </h3>
+          {pendingRequirements.map((req) => (
+            <PendingTenancySetupCard
+              key={req.id}
+              requirement={req}
+              onSendInvitation={handleSendInvitation}
+              onCancelSetup={handleCancelSetup}
+              isDeleting={deleteRequirement.isPending}
+            />
+          ))}
+        </div>
       )}
 
       <Card>
