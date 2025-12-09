@@ -145,15 +145,22 @@ export function useTenancyRequirements(propertyId: string) {
 
   const deleteRequirement = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('tenancy_requirements')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
       if (error) throw error;
+      
+      // Verify that a row was actually deleted
+      if (!data || data.length === 0) {
+        throw new Error('Unable to cancel this tenancy setup. It may have already been processed.');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TENANCY_REQUIREMENTS_QUERY_KEY, propertyId] });
+      toast.success(t('tenancy.setupCancelled') || 'Tenancy setup cancelled');
     },
     onError: (error: any) => {
       toast.error(error.message || t('common.error'));
