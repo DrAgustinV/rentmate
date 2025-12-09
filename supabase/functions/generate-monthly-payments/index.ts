@@ -11,6 +11,18 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Authorization check - only allow cron jobs with service role key
+  const authHeader = req.headers.get("authorization");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  
+  if (!authHeader || !authHeader.includes(serviceRoleKey || "")) {
+    console.error("[generate-monthly-payments] Unauthorized request - missing or invalid authorization");
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
