@@ -321,7 +321,7 @@ export function SubscriptionPlansManagement() {
                       {plan.name}
                       {plan.is_default && <Badge variant="secondary">Default</Badge>}
                       {plan.is_available_for_signup ? (
-                        <Badge className="bg-green-500"><Check className="h-3 w-3 mr-1" />Available</Badge>
+                        <Badge variant="success"><Check className="h-3 w-3 mr-1" />Available</Badge>
                       ) : (
                         <Badge variant="outline"><X className="h-3 w-3 mr-1" />Coming Soon</Badge>
                       )}

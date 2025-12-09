@@ -84,26 +84,23 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
       // For active properties, show tenant status
       if (tenantStatus?.status === "occupied") {
         return {
-          variant: "default" as const,
-          className: "bg-green-500 hover:bg-green-600",
+          variant: "success" as const,
           text: t("properties.active"),
         };
       } else {
-        // Free or invited
+        // Free or invited - use brand primary color
         return {
           variant: "default" as const,
-          className: "bg-blue-500 hover:bg-blue-600",
           text: t("properties.free"),
         };
       }
     } else if (property.status === "ending_tenancy") {
       return {
-        variant: "default" as const,
-        className: "bg-orange-500 hover:bg-orange-600",
+        variant: "warning" as const,
         text: t("properties.endingTenancy"),
       };
     } else {
-      return { variant: "secondary" as const, className: "", text: t("properties.inactive") };
+      return { variant: "secondary" as const, text: t("properties.inactive") };
     }
   };
 
@@ -164,7 +161,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
               {loadingStatus ? (
                 <Skeleton className="h-6 w-16" />
               ) : (
-                <Badge variant={statusBadge.variant} className={statusBadge.className}>
+                <Badge variant={statusBadge.variant}>
                   {statusBadge.text}
                 </Badge>
               )}
