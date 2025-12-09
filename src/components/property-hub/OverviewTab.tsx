@@ -21,7 +21,7 @@ import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
 import { CreateTenancyWizard } from "@/components/CreateTenancyWizard";
 import { useTenancyRequirements, CreateTenancyRequirementInput, TenancyRequirement } from "@/hooks/useTenancyRequirements";
-import { Clock, FileText, X } from "lucide-react";
+import { Clock, FileText, X, Send } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,25 +57,33 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
 
   const handleWizardSubmit = async (data: CreateTenancyRequirementInput) => {
     try {
-      // Create the tenancy requirements first
-      const requirement = await createRequirement.mutateAsync(data);
+      // Only create the tenancy requirement as draft - NO invitation sent yet
+      await createRequirement.mutateAsync(data);
       
-      // Now send the invitation - wrap in promise to properly await
-      if (onInviteTenant) {
-        await new Promise<void>((resolve, reject) => {
-          // We need to call the mutation and wait for it to complete
-          // Since onInviteTenant is a callback that triggers a mutation, we wait a bit for it
-          onInviteTenant(data.tenant_email);
-          // Give the mutation time to process - the actual result will show via toast
-          setTimeout(resolve, 1000);
-        });
-      }
-      
-      // Invalidate queries to refresh UI
-      queryClient.invalidateQueries({ queryKey: ["invitations", propertyId] });
       queryClient.invalidateQueries({ queryKey: ["tenancy-requirements", propertyId] });
       setShowTenancyWizard(false);
-      toast.success(t('tenancy.wizard.invitationSent') || 'Invitation sent successfully');
+      toast.success(t('tenancy.wizard.setupSaved') || 'Tenancy setup saved. Send invitation when ready.');
+    } catch (error: any) {
+      toast.error(error.message || t('common.error'));
+    }
+  };
+
+  const handleSendInvitation = async (requirement: TenancyRequirement) => {
+    try {
+      // Send invitation to tenant
+      if (onInviteTenant) {
+        onInviteTenant(requirement.tenant_email);
+      }
+      
+      // Update status to 'sent'
+      await supabase
+        .from('tenancy_requirements')
+        .update({ status: 'sent' })
+        .eq('id', requirement.id);
+      
+      queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
+      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
+      toast.success(t('tenancy.invitationSent') || 'Invitation sent to tenant');
     } catch (error: any) {
       toast.error(error.message || t('common.error'));
     }
@@ -290,6 +298,21 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
                     <Badge variant="outline" className="text-purple-600 border-purple-300">
                       {req.status === 'draft' ? (t("common.draft") || "Draft") : (t("common.sent") || "Sent")}
                     </Badge>
+                    
+                    {/* Send Invitation button - only show for drafts */}
+                    {req.status === 'draft' && (
+                      <Button 
+                        variant="default" 
+                        size="sm"
+                        className="h-7"
+                        onClick={() => handleSendInvitation(req)}
+                      >
+                        <Send className="h-4 w-4 mr-1" />
+                        {t("tenancy.sendInvitation") || "Send"}
+                      </Button>
+                    )}
+                    
+                    {/* Cancel button */}
                     <Button 
                       variant="ghost" 
                       size="sm"
