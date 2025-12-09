@@ -78,7 +78,94 @@ serve(async (req) => {
       }
     );
 
-    // Delete the user from auth.users (will cascade to profiles and user_roles)
+    // Step 1: Clear invited_user_id references in invitations
+    console.log(`Clearing invitations references for user ${userId}`);
+    const { error: invitationsError } = await supabaseAdmin
+      .from('invitations')
+      .update({ invited_user_id: null })
+      .eq('invited_user_id', userId);
+    
+    if (invitationsError) {
+      console.error('Error clearing invitations:', invitationsError);
+      // Continue anyway - FK constraint update should handle this
+    }
+
+    // Step 2: Delete property_tenants records
+    console.log(`Deleting property_tenants for user ${userId}`);
+    const { error: tenantsError } = await supabaseAdmin
+      .from('property_tenants')
+      .delete()
+      .eq('tenant_id', userId);
+    
+    if (tenantsError) {
+      console.error('Error deleting property_tenants:', tenantsError);
+    }
+
+    // Step 3: Delete user subscriptions
+    console.log(`Deleting user_subscriptions for user ${userId}`);
+    const { error: subscriptionsError } = await supabaseAdmin
+      .from('user_subscriptions')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (subscriptionsError) {
+      console.error('Error deleting user_subscriptions:', subscriptionsError);
+    }
+
+    // Step 4: Delete subscription usage
+    console.log(`Deleting subscription_usage for user ${userId}`);
+    const { error: usageError } = await supabaseAdmin
+      .from('subscription_usage')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (usageError) {
+      console.error('Error deleting subscription_usage:', usageError);
+    }
+
+    // Step 5: Delete analytics records (GDPR compliance)
+    console.log(`Deleting analytics_navigation_paths for user ${userId}`);
+    const { error: navError } = await supabaseAdmin
+      .from('analytics_navigation_paths')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (navError) {
+      console.error('Error deleting analytics_navigation_paths:', navError);
+    }
+
+    console.log(`Deleting analytics_events for user ${userId}`);
+    const { error: eventsError } = await supabaseAdmin
+      .from('analytics_events')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (eventsError) {
+      console.error('Error deleting analytics_events:', eventsError);
+    }
+
+    console.log(`Deleting analytics_page_views for user ${userId}`);
+    const { error: pageViewsError } = await supabaseAdmin
+      .from('analytics_page_views')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (pageViewsError) {
+      console.error('Error deleting analytics_page_views:', pageViewsError);
+    }
+
+    console.log(`Deleting analytics_sessions for user ${userId}`);
+    const { error: sessionsError } = await supabaseAdmin
+      .from('analytics_sessions')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (sessionsError) {
+      console.error('Error deleting analytics_sessions:', sessionsError);
+    }
+
+    // Step 6: Delete the user from auth.users (will cascade to profiles and user_roles)
+    console.log(`Deleting auth user ${userId}`);
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
     
     if (deleteError) {
