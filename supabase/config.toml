@@ -41,9 +41,6 @@ verify_jwt = true
 [functions.initiate-qualified-signature]
 verify_jwt = true
 
-[functions.qualified-signature-callback]
-verify_jwt = false
-
 # Edge function security configuration
 [functions.send-tenant-invitation]
 verify_jwt = true  # Requires user authentication to prevent spam
@@ -87,12 +84,6 @@ verify_jwt = false  # Cron job - no user context available
 # OpenAPI Identity Verification (IDV) Functions
 [functions.initiate-openapi-kyc]
 verify_jwt = true  # User initiates KYC verification
-
-[functions.verify-openapi-kyc]
-verify_jwt = false  # Public webhook endpoint from OpenAPI
-
-[functions.check-openapi-kyc-status]
-verify_jwt = true  # User checks their KYC status
 
 # Didit.me Identity Verification Functions
 [functions.initiate-didit-kyc]
