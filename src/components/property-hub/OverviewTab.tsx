@@ -21,7 +21,7 @@ import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
 import { CreateTenancyWizard } from "@/components/CreateTenancyWizard";
 import { useTenancyRequirements, CreateTenancyRequirementInput, TenancyRequirement } from "@/hooks/useTenancyRequirements";
-import { PendingTenancySetupCard } from "@/components/property-hub/PendingTenancySetupCard";
+import { TenancySetupCard } from "@/components/property-hub/TenancySetupCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,8 +52,8 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
   
   const { createRequirement, requirements, deleteRequirement } = useTenancyRequirements(propertyId);
   
-  // Filter for pending tenancy requirements (draft or sent status)
-  const pendingRequirements = requirements?.filter(r => r.status === 'draft' || r.status === 'sent') || [];
+  // Get first pending tenancy requirement (draft or sent status)
+  const pendingRequirement = requirements?.find(r => r.status === 'draft' || r.status === 'sent') || null;
 
   const handleWizardSubmit = async (data: CreateTenancyRequirementInput) => {
     try {
@@ -222,79 +222,23 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
   // Check for pending invitations
   const hasPendingInvitation = invitations && invitations.length > 0;
   
-  // Show wizard when property is free OR current tenant is ending_tenancy AND no pending invitation
-  const canSetupNewTenancy = (!activeTenant || activeTenant?.tenancy_status === 'ending_tenancy') && !hasPendingInvitation;
+  // Show wizard when property is free OR current tenant is ending_tenancy AND no pending requirement
+  const canSetupNewTenancy = (!activeTenant || activeTenant?.tenancy_status === 'ending_tenancy') && !pendingRequirement;
+  const hasEndingTenancy = activeTenant?.tenancy_status === 'ending_tenancy';
 
   return (
     <div className="space-y-6">
-      {/* Pending Invitation Alert */}
-      {userRole?.isManager && hasPendingInvitation && property?.status === 'active' && (
-        <Alert className="border-blue-500/50 bg-blue-500/5 animate-fade-in">
-          <Mail className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="text-blue-600">{t("properties.invitationPending") || "Invitation Pending"}</AlertTitle>
-          <AlertDescription>
-            <span className="text-sm">
-              {t("properties.invitationSentTo") || "Invitation sent to"}: <strong>{invitations[0].email}</strong>
-            </span>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Free Property Alert - Start New Tenancy */}
-      {userRole?.isManager && !activeTenant && property?.status === 'active' && canSetupNewTenancy && (
-        <Alert className="border-primary/50 bg-primary/5 animate-fade-in">
-          <Plus className="h-4 w-4 text-primary" />
-          <AlertTitle className="text-primary">{t("properties.propertyIsFree")}</AlertTitle>
-          <AlertDescription className="flex items-center justify-between gap-4">
-            <span className="text-sm">{t("properties.inviteTenantToGetStarted")}</span>
-            <Button
-              size="sm"
-              onClick={() => setShowTenancyWizard(true)}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              {t("tenancy.wizard.newTenancy") || "New Tenancy Setup"}
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {/* Ending Tenancy Alert - Can set up new tenant in parallel */}
-      {userRole?.isManager && activeTenant?.tenancy_status === 'ending_tenancy' && property?.status === 'active' && canSetupNewTenancy && (
-        <Alert className="border-yellow-500/50 bg-yellow-500/5 animate-fade-in">
-          <Plus className="h-4 w-4 text-yellow-600" />
-          <AlertTitle className="text-yellow-600">{t("properties.tenancyEnding")}</AlertTitle>
-          <AlertDescription className="flex items-center justify-between gap-4">
-            <span className="text-sm">{t("properties.canSetupNewTenantParallel")}</span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowTenancyWizard(true)}
-              className="gap-2 border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30"
-            >
-              <Plus className="h-4 w-4" />
-              {t("tenancy.wizard.newTenancy") || "New Tenancy Setup"}
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Pending Tenancy Setups */}
-      {userRole?.isManager && pendingRequirements.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            {t("tenancy.pendingSetups") || "Pending Tenancy Setups"}
-          </h3>
-          {pendingRequirements.map((req) => (
-            <PendingTenancySetupCard
-              key={req.id}
-              requirement={req}
-              onSendInvitation={handleSendInvitation}
-              onCancelSetup={handleCancelSetup}
-              isDeleting={deleteRequirement.isPending}
-            />
-          ))}
-        </div>
+      {/* Unified Tenancy Setup Card */}
+      {userRole?.isManager && property?.status === 'active' && (
+        <TenancySetupCard
+          pendingRequirement={pendingRequirement}
+          canSetupNewTenancy={canSetupNewTenancy}
+          hasEndingTenancy={hasEndingTenancy}
+          onStartSetup={() => setShowTenancyWizard(true)}
+          onSendInvitation={handleSendInvitation}
+          onCancelSetup={handleCancelSetup}
+          isDeleting={deleteRequirement.isPending}
+        />
       )}
 
       <Card>
