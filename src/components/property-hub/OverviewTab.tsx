@@ -20,7 +20,8 @@ import { usePropertyMutations } from "@/hooks/useProperties";
 import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
 import { CreateTenancyWizard } from "@/components/CreateTenancyWizard";
-import { useTenancyRequirements, CreateTenancyRequirementInput } from "@/hooks/useTenancyRequirements";
+import { useTenancyRequirements, CreateTenancyRequirementInput, TENANCY_REQUIREMENTS_QUERY_KEY } from "@/hooks/useTenancyRequirements";
+import { Clock, FileText } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,16 +50,30 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
   const queryClient = useQueryClient();
   const [showTenancyWizard, setShowTenancyWizard] = useState(false);
   
-  const { createRequirement } = useTenancyRequirements(propertyId);
+  const { createRequirement, requirements } = useTenancyRequirements(propertyId);
+  
+  // Filter for pending tenancy requirements (draft or sent status)
+  const pendingRequirements = requirements?.filter(r => r.status === 'draft' || r.status === 'sent') || [];
 
   const handleWizardSubmit = async (data: CreateTenancyRequirementInput) => {
     try {
-      await createRequirement.mutateAsync(data);
+      // Create the tenancy requirements first
+      const requirement = await createRequirement.mutateAsync(data);
+      
+      // Now send the invitation - wrap in promise to properly await
       if (onInviteTenant) {
-        onInviteTenant(data.tenant_email);
+        await new Promise<void>((resolve, reject) => {
+          // We need to call the mutation and wait for it to complete
+          // Since onInviteTenant is a callback that triggers a mutation, we wait a bit for it
+          onInviteTenant(data.tenant_email);
+          // Give the mutation time to process - the actual result will show via toast
+          setTimeout(resolve, 1000);
+        });
       }
-      // Invalidate invitations query to refresh UI
+      
+      // Invalidate queries to refresh UI
       queryClient.invalidateQueries({ queryKey: ["invitations", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["tenancy-requirements", propertyId] });
       setShowTenancyWizard(false);
       toast.success(t('tenancy.wizard.invitationSent') || 'Invitation sent successfully');
     } catch (error: any) {
@@ -224,6 +239,31 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
               <Plus className="h-4 w-4" />
               {t("tenancy.wizard.newTenancy") || "New Tenancy Setup"}
             </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Pending Tenancy Requirements Alert */}
+      {userRole?.isManager && pendingRequirements.length > 0 && (
+        <Alert className="border-purple-500/50 bg-purple-500/5 animate-fade-in">
+          <FileText className="h-4 w-4 text-purple-600" />
+          <AlertTitle className="text-purple-600">
+            {t("tenancy.pendingSetups") || "Pending Tenancy Setups"}
+          </AlertTitle>
+          <AlertDescription>
+            <div className="space-y-2 mt-2">
+              {pendingRequirements.map((req) => (
+                <div key={req.id} className="flex items-center justify-between text-sm p-2 rounded-md bg-purple-500/5">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3 w-3 text-purple-500" />
+                    <span>{req.tenant_email}</span>
+                  </div>
+                  <Badge variant="outline" className="text-purple-600 border-purple-300">
+                    {req.status === 'draft' ? (t("common.draft") || "Draft") : (t("common.sent") || "Sent")}
+                  </Badge>
+                </div>
+              ))}
+            </div>
           </AlertDescription>
         </Alert>
       )}
