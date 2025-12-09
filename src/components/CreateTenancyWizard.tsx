@@ -107,7 +107,14 @@ export function CreateTenancyWizard({
       payment_day: '1',
       start_date: '',
       end_date: '',
-      utilities_config: {},
+      utilities_config: {
+        electricity: 'not_applicable',
+        water: 'not_applicable',
+        gas: 'not_applicable',
+        internet: 'not_applicable',
+        heating: 'not_applicable',
+        trash: 'not_applicable',
+      },
     },
   });
 
