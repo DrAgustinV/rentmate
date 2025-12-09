@@ -16,7 +16,7 @@ import MaintenanceCalendar from "./pages/MaintenanceCalendar";
 import ScheduledTasks from "./pages/ScheduledTasks";
 import TicketDetail from "./pages/TicketDetail";
 import Tickets from "./pages/Tickets";
-import Settings from "./pages/Settings";
+// Settings page removed - consolidated into Account
 import KiltSetup from "./pages/KiltSetup";
 import Admin from "./pages/Admin";
 import TemplatesManager from "./pages/TemplatesManager";
@@ -71,7 +71,7 @@ const App = () => (
             <Route path="/profile" element={<Navigate to="/account" replace />} />
             <Route path="/identity" element={<Navigate to="/account" replace />} />
             <Route path="/invitations" element={<Navigate to="/rentals" replace />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/settings" element={<Navigate to="/account" replace />} />
             <Route path="/kilt-setup" element={<KiltSetup />} />
             <Route path="/admin" element={<Admin />} />
             {/* Property Hub - unified property management */}
