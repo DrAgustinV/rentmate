@@ -162,14 +162,10 @@ export const ContractSignatureManager = ({
     }
   }, [initialized]);
 
-  useEffect(() => {
-    console.log('🎯 qualifiedProviders state updated:', qualifiedProviders);
-  }, [qualifiedProviders]);
+  // Effect to track provider updates (debug removed)
 
   const fetchPropertyCountryAndProvider = async () => {
     try {
-      console.log('🔍 Fetching property country for propertyId:', propertyId);
-      
       // Fetch property country
       const { data: property } = await supabase
         .from('properties')
@@ -177,27 +173,21 @@ export const ContractSignatureManager = ({
         .eq('id', propertyId)
         .single();
       
-      console.log('📍 Property country fetched:', property?.country);
       setPropertyCountry(property?.country || null);
 
-    // Fetch ALL qualified providers for this country (using ISO code)
-    if (property?.country) {
-      console.log('🔎 Querying qualified_signature_providers with country_codes contains:', [property.country]);
-      
-      const { data: providers, error } = await supabase
-        .from('qualified_signature_providers')
-        .select('provider_code, provider_name, protocol_scheme, installation_url, country_codes, is_active')
-        .contains('country_codes', [property.country])
-        .eq('is_active', true)
-        .order('provider_name');
-      
-      console.log('✅ Providers query result:', { providers, error });
-      console.log('📋 Setting qualifiedProviders to:', providers || []);
-      
-      setQualifiedProviders(providers || []);
-    }
+      // Fetch ALL qualified providers for this country (using ISO code)
+      if (property?.country) {
+        const { data: providers } = await supabase
+          .from('qualified_signature_providers')
+          .select('provider_code, provider_name, protocol_scheme, installation_url, country_codes, is_active')
+          .contains('country_codes', [property.country])
+          .eq('is_active', true)
+          .order('provider_name');
+        
+        setQualifiedProviders(providers || []);
+      }
     } catch (error) {
-      console.error('❌ Error fetching property country:', error);
+      // Silent fail - non-critical
     }
   };
 
@@ -462,7 +452,6 @@ export const ContractSignatureManager = ({
 
                   {/* Show each qualified provider as a separate option */}
                   {qualifiedProviders.map((provider) => {
-                    console.log('🎨 Rendering provider option:', provider);
                     const providerUI = getProviderUI(provider.provider_code);
                     const ProviderIcon = providerUI?.icon || Shield;
                     

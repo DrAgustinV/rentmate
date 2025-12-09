@@ -69,12 +69,11 @@ export default function Auth() {
             setEmail(invitation.email);
           }
         } catch (error) {
-          console.log('Could not fetch invitation details:', error);
+          // Silent fail - invitation details optional
         }
       }
       
       if (session) {
-        console.log('Already authenticated, redirecting to properties');
         navigate("/properties");
       }
     };
@@ -86,10 +85,8 @@ export default function Auth() {
         // Handle invitation token if present
         const storedToken = sessionStorage.getItem('invitation_token');
         if (storedToken) {
-          console.log('Signed in with invitation token, redirecting to invitations');
           navigate(`/invitations?token=${storedToken}`);
         } else {
-          console.log('Signed in, redirecting to properties');
           navigate("/properties");
         }
       }
