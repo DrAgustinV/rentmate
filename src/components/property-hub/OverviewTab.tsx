@@ -19,7 +19,6 @@ import { cn } from "@/lib/utils";
 import { usePropertyMutations } from "@/hooks/useProperties";
 import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
-import { z } from "zod";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -151,10 +150,6 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
 
   // Check for pending invitations
   const hasPendingInvitation = invitations && invitations.length > 0;
-  
-  // Show wizard when property is free OR current tenant is ending_tenancy AND no pending requirement
-  const canSetupNewTenancy = (!activeTenant || activeTenant?.tenancy_status === 'ending_tenancy') && !pendingRequirement;
-  const hasEndingTenancy = activeTenant?.tenancy_status === 'ending_tenancy';
 
   return (
     <div className="space-y-6">
@@ -375,16 +370,6 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Tenancy Setup Wizard */}
-      <CreateTenancyWizard
-        open={showTenancyWizard}
-        onOpenChange={setShowTenancyWizard}
-        propertyId={propertyId}
-        propertyCountry={property?.country}
-        templates={templates}
-        onSubmit={handleWizardSubmit}
-        isSubmitting={createRequirement.isPending}
-      />
     </div>
   );
 }
