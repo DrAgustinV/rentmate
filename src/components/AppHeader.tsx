@@ -177,8 +177,6 @@ export function AppHeader() {
             <Button 
               size="sm" 
               onClick={() => navigate("/auth?mode=signup")}
-              className="bg-white hover:bg-white/90"
-              style={{ color: 'hsl(var(--header-background))' }}
             >
               {t('landing.getStarted')}
             </Button>
