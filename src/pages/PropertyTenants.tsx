@@ -60,6 +60,9 @@ import { PaymentsTab } from '@/components/property-tenants/PaymentsTab';
 import { TicketsTab } from '@/components/property-tenants/TicketsTab';
 import { UtilitiesTab } from '@/components/property-tenants/UtilitiesTab';
 import { OverviewTab } from '@/components/property-hub/OverviewTab';
+import { useTenancyRequirements, CreateTenancyRequirementInput, TenancyRequirement } from '@/hooks/useTenancyRequirements';
+import { CreateTenancyWizard } from '@/components/CreateTenancyWizard';
+import { toast as sonnerToast } from 'sonner';
 
 
 interface Tenant {
@@ -166,6 +169,64 @@ export default function PropertyTenants() {
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [showEndTenancyDialog, setShowEndTenancyDialog] = useState(false);
   const [endingTenant, setEndingTenant] = useState<Tenant | null>(null);
+  const [showTenancyWizard, setShowTenancyWizard] = useState(false);
+
+  // Tenancy Requirements Hook
+  const { createRequirement, requirements, deleteRequirement } = useTenancyRequirements(propertyId!);
+  
+  // Get first pending tenancy requirement (draft or sent status)
+  const pendingRequirement = requirements?.find(r => r.status === 'draft' || r.status === 'sent') || null;
+
+  const handleWizardSubmit = async (data: CreateTenancyRequirementInput) => {
+    try {
+      await createRequirement.mutateAsync(data);
+      queryClient.invalidateQueries({ queryKey: ["tenancy-requirements", propertyId] });
+      setShowTenancyWizard(false);
+      sonnerToast.success(t('tenancy.wizard.setupSaved') || 'Tenancy setup saved. Send invitation when ready.');
+    } catch (error: any) {
+      sonnerToast.error(error.message || t('common.error'));
+    }
+  };
+
+  const handleSendInvitation = async (requirement: TenancyRequirement) => {
+    try {
+      inviteMutation.mutate(requirement.tenant_email);
+      
+      await supabase
+        .from('tenancy_requirements')
+        .update({ status: 'sent' })
+        .eq('id', requirement.id);
+      
+      queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
+      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
+      sonnerToast.success(t('tenancy.invitationSent') || 'Invitation sent to tenant');
+    } catch (error: any) {
+      sonnerToast.error(error.message || t('common.error'));
+    }
+  };
+
+  const handleCancelSetup = async (requirement: TenancyRequirement) => {
+    try {
+      if (requirement.invitation_id) {
+        await supabase
+          .from('invitations')
+          .update({ status: 'cancelled' })
+          .eq('id', requirement.invitation_id);
+      } else {
+        await supabase
+          .from('invitations')
+          .update({ status: 'cancelled' })
+          .eq('property_id', propertyId)
+          .eq('email', requirement.tenant_email)
+          .eq('status', 'pending');
+      }
+      
+      await deleteRequirement.mutateAsync(requirement.id);
+      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
+    } catch (error: any) {
+      sonnerToast.error(error.message || t('common.error'));
+    }
+  };
 
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
@@ -236,6 +297,10 @@ export default function PropertyTenants() {
   // Find focused tenant if tenancyId provided, otherwise get first active tenant
   const focusedTenant = activeTenants?.find((t) => t.id === tenancyId);
   const currentTenant = focusedTenant || (activeTenants && activeTenants.length > 0 ? activeTenants[0] : null);
+
+  // Compute tenancy setup state
+  const canSetupNewTenancy = (!currentTenant || currentTenant?.tenancy_status === 'ending_tenancy') && !pendingRequirement;
+  const hasEndingTenancy = currentTenant?.tenancy_status === 'ending_tenancy';
 
   const { data: tenancyDocuments, refetch: refetchDocuments } = useQuery({
     queryKey: ["tenancy-documents", currentTenant?.id],
@@ -795,11 +860,17 @@ export default function PropertyTenants() {
                   openDocument={openDocument}
                   propertyId={propertyId!}
                   propertyCountry={property?.country || undefined}
-                  onNavigateToOverview={() => setActiveTab('overview')}
                   onEndTenancy={(tenant) => {
                     setEndingTenant(tenant);
                     setShowEndTenancyDialog(true);
                   }}
+                  pendingRequirement={pendingRequirement}
+                  canSetupNewTenancy={canSetupNewTenancy}
+                  hasEndingTenancy={hasEndingTenancy}
+                  onStartSetup={() => setShowTenancyWizard(true)}
+                  onSendInvitation={handleSendInvitation}
+                  onCancelSetup={handleCancelSetup}
+                  isDeleting={deleteRequirement.isPending}
                 />
               </TabsContent>
 
@@ -935,6 +1006,17 @@ export default function PropertyTenants() {
         onOpenChange={(open) => !open && setEditingTenant(null)}
         propertyId={propertyId!}
         readOnly={isReadOnly}
+      />
+
+      {/* Tenancy Setup Wizard */}
+      <CreateTenancyWizard
+        open={showTenancyWizard}
+        onOpenChange={setShowTenancyWizard}
+        propertyId={propertyId!}
+        propertyCountry={property?.country}
+        templates={templates}
+        onSubmit={handleWizardSubmit}
+        isSubmitting={createRequirement.isPending}
       />
     </AppLayout>
   );
