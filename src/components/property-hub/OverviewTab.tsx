@@ -19,9 +19,7 @@ import { cn } from "@/lib/utils";
 import { usePropertyMutations } from "@/hooks/useProperties";
 import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
-import { CreateTenancyWizard } from "@/components/CreateTenancyWizard";
-import { useTenancyRequirements, CreateTenancyRequirementInput, TenancyRequirement } from "@/hooks/useTenancyRequirements";
-import { TenancySetupCard } from "@/components/property-hub/TenancySetupCard";
+import { z } from "zod";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,78 +42,10 @@ interface OverviewTabProps {
   onInviteTenant?: (email: string) => void;
 }
 
-export function OverviewTab({ property, propertyId, userRole, activeTenant, templates = [], invitations = [], onInviteTenant }: OverviewTabProps) {
+export function OverviewTab({ property, propertyId, userRole, activeTenant, templates = [], invitations = [] }: OverviewTabProps) {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
-  const [showTenancyWizard, setShowTenancyWizard] = useState(false);
-  
-  const { createRequirement, requirements, deleteRequirement } = useTenancyRequirements(propertyId);
-  
-  // Get first pending tenancy requirement (draft or sent status)
-  const pendingRequirement = requirements?.find(r => r.status === 'draft' || r.status === 'sent') || null;
-
-  const handleWizardSubmit = async (data: CreateTenancyRequirementInput) => {
-    try {
-      // Only create the tenancy requirement as draft - NO invitation sent yet
-      await createRequirement.mutateAsync(data);
-      
-      queryClient.invalidateQueries({ queryKey: ["tenancy-requirements", propertyId] });
-      setShowTenancyWizard(false);
-      toast.success(t('tenancy.wizard.setupSaved') || 'Tenancy setup saved. Send invitation when ready.');
-    } catch (error: any) {
-      toast.error(error.message || t('common.error'));
-    }
-  };
-
-  const handleSendInvitation = async (requirement: TenancyRequirement) => {
-    try {
-      // Send invitation to tenant
-      if (onInviteTenant) {
-        onInviteTenant(requirement.tenant_email);
-      }
-      
-      // Update status to 'sent'
-      await supabase
-        .from('tenancy_requirements')
-        .update({ status: 'sent' })
-        .eq('id', requirement.id);
-      
-      queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
-      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
-      toast.success(t('tenancy.invitationSent') || 'Invitation sent to tenant');
-    } catch (error: any) {
-      toast.error(error.message || t('common.error'));
-    }
-  };
-
-  const handleCancelSetup = async (requirement: TenancyRequirement) => {
-    try {
-      // Cancel associated invitation if exists
-      if (requirement.invitation_id) {
-        await supabase
-          .from('invitations')
-          .update({ status: 'cancelled' })
-          .eq('id', requirement.invitation_id);
-      } else {
-        // Try to find invitation by email and cancel it
-        await supabase
-          .from('invitations')
-          .update({ status: 'cancelled' })
-          .eq('property_id', propertyId)
-          .eq('email', requirement.tenant_email)
-          .eq('status', 'pending');
-      }
-      
-      // Delete the tenancy requirement
-      await deleteRequirement.mutateAsync(requirement.id);
-      
-      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
-      toast.success(t('tenancy.setupCancelled') || 'Tenancy setup cancelled');
-    } catch (error: any) {
-      toast.error(error.message || t('common.error'));
-    }
-  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(property?.title || "");
@@ -228,19 +158,6 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
 
   return (
     <div className="space-y-6">
-      {/* Unified Tenancy Setup Card */}
-      {userRole?.isManager && property?.status === 'active' && (
-        <TenancySetupCard
-          pendingRequirement={pendingRequirement}
-          canSetupNewTenancy={canSetupNewTenancy}
-          hasEndingTenancy={hasEndingTenancy}
-          onStartSetup={() => setShowTenancyWizard(true)}
-          onSendInvitation={handleSendInvitation}
-          onCancelSetup={handleCancelSetup}
-          isDeleting={deleteRequirement.isPending}
-        />
-      )}
-
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

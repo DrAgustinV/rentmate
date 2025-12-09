@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -15,11 +14,12 @@ import {
   AlertTriangle,
   Eye,
   BadgeCheck,
-  Plus,
   CalendarClock,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
+import { TenancySetupCard } from "@/components/property-hub/TenancySetupCard";
+import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
 
 interface Tenant {
   id: string;
@@ -86,7 +86,14 @@ interface TenantsTabProps {
   propertyId: string;
   propertyCountry?: string;
   templates?: Array<{ id: string; document_title: string }>;
-  onNavigateToOverview?: () => void;
+  // Tenancy setup props
+  pendingRequirement?: TenancyRequirement | null;
+  canSetupNewTenancy?: boolean;
+  hasEndingTenancy?: boolean;
+  onStartSetup?: () => void;
+  onSendInvitation?: (req: TenancyRequirement) => void;
+  onCancelSetup?: (req: TenancyRequirement) => void;
+  isDeleting?: boolean;
 }
 
 export function TenantsTab({
@@ -117,7 +124,14 @@ export function TenantsTab({
   propertyId,
   propertyCountry,
   templates = [],
-  onNavigateToOverview,
+  // Tenancy setup props
+  pendingRequirement,
+  canSetupNewTenancy,
+  hasEndingTenancy,
+  onStartSetup,
+  onSendInvitation,
+  onCancelSetup,
+  isDeleting,
 }: TenantsTabProps) {
   const { t } = useLanguage();
   const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
@@ -160,6 +174,19 @@ export function TenantsTab({
 
   return (
     <div className="space-y-6">
+      {/* Tenancy Setup Card */}
+      {userRole?.isManager && !isReadOnly && onStartSetup && onSendInvitation && onCancelSetup && (
+        <TenancySetupCard
+          pendingRequirement={pendingRequirement || null}
+          canSetupNewTenancy={canSetupNewTenancy || false}
+          hasEndingTenancy={hasEndingTenancy || false}
+          onStartSetup={onStartSetup}
+          onSendInvitation={onSendInvitation}
+          onCancelSetup={onCancelSetup}
+          isDeleting={isDeleting}
+        />
+      )}
+
       {/* Property Limit Warning */}
       {userRole?.isManager && propertyCount !== undefined && propertyCount >= maxPropertiesLimit - 1 && (
         <div className="p-4 border border-yellow-500/50 bg-yellow-500/10 rounded-lg flex items-start gap-3">
@@ -269,24 +296,6 @@ export function TenantsTab({
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">{t("dialogs.manageTenants.noTenants")}</p>
-        )}
-        
-        {/* Redirect to Overview when no tenants */}
-        {userRole?.isManager && !isReadOnly && !currentTenant && onNavigateToOverview && (
-          <Alert className="border-muted bg-muted/30 mt-4">
-            <Plus className="h-4 w-4 text-muted-foreground" />
-            <AlertTitle>{t("properties.noTenantsYet")}</AlertTitle>
-            <AlertDescription>
-              <p className="text-sm mb-3">{t("properties.setupFromOverview")}</p>
-              <Button
-                variant="outline"
-                onClick={onNavigateToOverview}
-                className="w-full"
-              >
-                {t("properties.goToOverview")}
-              </Button>
-            </AlertDescription>
-          </Alert>
         )}
       </div>
 
