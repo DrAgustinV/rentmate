@@ -115,6 +115,11 @@ export function CreateTenancyWizard({
   };
 
   const handleSubmit = async (data: FormData) => {
+    // Guard: Only allow submission from the review step (last step)
+    if (currentStep !== STEPS.length - 1) {
+      return;
+    }
+    
     const input: CreateTenancyRequirementInput = {
       property_id: propertyId,
       tenant_email: data.tenant_email,
@@ -132,7 +137,7 @@ export function CreateTenancyWizard({
       utilities_config: data.utilities_config as UtilitiesConfig,
     };
     await onSubmit(input);
-    onOpenChange(false);
+    // Don't close dialog here - let parent control closing after successful save
     form.reset();
     setCurrentStep(0);
   };
@@ -198,7 +203,16 @@ export function CreateTenancyWizard({
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form 
+            onSubmit={form.handleSubmit(handleSubmit)} 
+            onKeyDown={(e) => {
+              // Prevent Enter key from submitting form prematurely (only allow on last step)
+              if (e.key === 'Enter' && currentStep !== STEPS.length - 1) {
+                e.preventDefault();
+              }
+            }}
+            className="space-y-6"
+          >
             {/* Step 1: Tenant Email */}
             {currentStep === 0 && (
               <Card>
