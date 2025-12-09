@@ -102,23 +102,37 @@ Deno.serve(async (req) => {
     console.log('[verify-didit-kyc] Webhook secret configured:', !!webhookSecret);
 
     // Verify webhook signature if secret is configured
-    if (webhookSecret && signature) {
+    if (webhookSecret) {
+      // Reject requests without signature when secret is configured
+      if (!signature) {
+        console.error('[verify-didit-kyc] Webhook secret configured but no signature in request');
+        return new Response(
+          JSON.stringify({ error: 'Missing signature' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       // Validate timestamp first
       if (timestamp && !isTimestampValid(timestamp)) {
-        console.warn('[verify-didit-kyc] Timestamp validation failed, but continuing...');
+        console.error('[verify-didit-kyc] Timestamp validation failed - rejecting request');
+        return new Response(
+          JSON.stringify({ error: 'Invalid timestamp' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       // Verify HMAC signature
       const isValid = await verifyHmacSignature(rawBody, signature, webhookSecret);
       
       if (!isValid) {
-        console.warn('[verify-didit-kyc] Invalid webhook signature - continuing anyway for debugging');
-        // In production, you might want to reject: return new Response('Invalid signature', { status: 401 });
-      } else {
-        console.log('[verify-didit-kyc] Webhook signature verified successfully');
+        console.error('[verify-didit-kyc] Invalid webhook signature - rejecting request');
+        return new Response(
+          JSON.stringify({ error: 'Invalid signature' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
-    } else if (webhookSecret && !signature) {
-      console.warn('[verify-didit-kyc] Webhook secret configured but no signature in request');
+      
+      console.log('[verify-didit-kyc] Webhook signature verified successfully');
     }
 
     // Parse webhook payload
