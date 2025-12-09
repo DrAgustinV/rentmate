@@ -11,11 +11,12 @@ interface CountrySelectProps {
   value: string;
   onValueChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-export function CountrySelect({ value, onValueChange, placeholder = "Select country" }: CountrySelectProps) {
+export function CountrySelect({ value, onValueChange, placeholder = "Select country", disabled }: CountrySelectProps) {
   return (
-    <Select value={value} onValueChange={onValueChange}>
+    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectTrigger>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
