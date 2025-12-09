@@ -20,6 +20,19 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // Authorization check - require service role key for cron jobs or valid JWT
+    const authHeader = req.headers.get("authorization");
+    const cronSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (!authHeader || !authHeader.includes(cronSecret || "")) {
+      logStep("Unauthorized request - missing or invalid authorization");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+    logStep("Authorization verified");
+
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
