@@ -44,6 +44,19 @@ export const translations = {
       acceptAll: "Accept All Cookies",
       rejectNonEssential: "Reject Non-Essential",
       cookieMessage: "We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.",
+      unknown: "Unknown",
+      user: "User",
+      dueDate: "Due Date",
+      amount: "Amount",
+      status: "Status",
+      actions: "Actions",
+      draft: "Draft",
+      sent: "Sent",
+    },
+    verification: {
+      email: "Email",
+      kyc: "KYC",
+      phone: "Phone",
     },
     landing: {
       getStarted: "Get Started",
@@ -541,7 +554,7 @@ export const translations = {
       viewProof: "View Proof",
       tenant: "Tenant",
       amount: "Amount",
-      status: {
+      statusOld: {
         paid: "Paid",
         pending: "Pending",
         proofUploaded: "Proof Uploaded",
@@ -623,6 +636,19 @@ export const translations = {
         noUpcoming: "No upcoming payments",
         noHistory: "No payment history yet",
         waitingForAgreement: "Create a rent agreement to start tracking payments",
+      },
+      toasts: {
+        markedPaid: "Payment marked as received",
+        collectionInitiated: "Payment collection initiated successfully",
+        retryFailed: "Failed to retry payment",
+      },
+      status: {
+        paid: "Paid",
+        pending: "Pending",
+        proofUploaded: "Proof Uploaded",
+        overdue: "Overdue",
+        failed: "Failed",
+        due: "Due",
       },
       upcomingPaymentsTitle: "Upcoming Payments",
       upcomingPaymentsDesc: "Rent payments due this month",
@@ -1742,6 +1768,48 @@ export const translations = {
       choosePlan: "Choose Plan",
       comingSoon: "Coming Soon",
       contactSales: "Contact Sales",
+      // New keys for SubscriptionManager
+      loadError: "Unable to load subscription data",
+      featuresLabel: "Features",
+      billingLabel: "Billing",
+      digitalSignaturesLabel: "Digital Signatures",
+      signaturesRemaining: "signatures remaining",
+      signaturesPerYear: "signatures/year",
+      automatedPaymentsLabel: "Automated payments",
+      kycVerificationLabel: "KYC verification",
+      upgradeMonthly: "Upgrade to Pro (Monthly)",
+      upgradeAnnual: "Upgrade to Pro (Annual - Save 20%)",
+      alerts: {
+        trialEnds: "Trial ends on",
+        gracePeriod: "Payment failed. Grace period ends on",
+        subscriptionEnds: "Subscription ends on",
+      },
+      toasts: {
+        openingCheckout: "Opening Stripe checkout...",
+        checkoutFailed: "Failed to create checkout session",
+        openingPortal: "Opening Stripe billing portal...",
+        portalFailed: "Failed to open billing portal",
+      },
+      whyUpgrade: {
+        title: "Why Upgrade to Pro?",
+        description: "Unlock powerful features to scale your property management",
+        signatures: {
+          title: "100 Digital Signatures per Year",
+          description: "Create legally-binding contracts with tenants",
+        },
+        payments: {
+          title: "Automated Payment Collection",
+          description: "Collect rent automatically via Stripe Connect",
+        },
+        kyc: {
+          title: "KYC Verification",
+          description: "Verify tenant identities with blockchain-based KYC",
+        },
+        support: {
+          title: "Priority Support",
+          description: "Get help faster with dedicated support",
+        },
+      },
       features: {
         maxProperties: "properties",
         maxTenanciesPerProperty: "tenancies per property",
@@ -1835,6 +1903,19 @@ export const translations = {
       acceptAll: "Aceptar Todas las Cookies",
       rejectNonEssential: "Rechazar No Esenciales",
       cookieMessage: "Usamos cookies para mejorar tu experiencia. Al continuar visitando este sitio, aceptas nuestro uso de cookies.",
+      unknown: "Desconocido",
+      user: "Usuario",
+      dueDate: "Fecha de Vencimiento",
+      amount: "Monto",
+      status: "Estado",
+      actions: "Acciones",
+      draft: "Borrador",
+      sent: "Enviado",
+    },
+    verification: {
+      email: "Correo",
+      kyc: "KYC",
+      phone: "Teléfono",
     },
     landing: {
       getStarted: "Comenzar",
@@ -2385,6 +2466,19 @@ export const translations = {
         noUpcoming: "No hay pagos próximos",
         noHistory: "Aún no hay historial de pagos",
         waitingForAgreement: "Crea un acuerdo de alquiler para comenzar a rastrear pagos",
+      },
+      toasts: {
+        markedPaid: "Pago marcado como recibido",
+        collectionInitiated: "Cobro de pago iniciado exitosamente",
+        retryFailed: "Error al reintentar el pago",
+      },
+      status: {
+        paid: "Pagado",
+        pending: "Pendiente",
+        proofUploaded: "Comprobante Subido",
+        overdue: "Vencido",
+        failed: "Fallido",
+        due: "Pendiente",
       },
       upcomingPaymentsTitle: "Pagos Próximos",
       upcomingPaymentsDesc: "Pagos de alquiler que vencen este mes",
@@ -3418,13 +3512,9 @@ export const translations = {
       upgradeRequired: "Actualización Requerida",
       upgradeToPro: "Actualizar a Pro",
       viewEnterprise: "Contactar Ventas",
-      
-      // Plan Names
       freePlan: "Plan Gratuito",
       proPlan: "Plan Pro",
       enterprisePlan: "Plan Enterprise",
-      
-      // Billing Terms
       monthly: "Mensual",
       annual: "Anual",
       perMonth: "/mes",
@@ -3432,20 +3522,56 @@ export const translations = {
       billedMonthly: "Facturado mensualmente",
       billedAnnually: "Facturado anualmente",
       save20: "Ahorra 20%",
-      
-      // Status Fields
       currentPeriodEnd: "Se renueva el",
       trialEnd: "Prueba termina el",
       cancelAtPeriodEnd: "Se cancela el",
       gracePeriodEndsAt: "Período de gracia termina",
-      
-      // Actions
       manageSubscription: "Gestionar Suscripción",
       choosePlan: "Elegir Plan",
       comingSoon: "Próximamente",
       contactSales: "Contactar Ventas",
-      
-      // Features
+      // New keys for SubscriptionManager
+      loadError: "No se pueden cargar los datos de suscripción",
+      featuresLabel: "Características",
+      billingLabel: "Facturación",
+      digitalSignaturesLabel: "Firmas Digitales",
+      signaturesRemaining: "firmas restantes",
+      signaturesPerYear: "firmas/año",
+      automatedPaymentsLabel: "Pagos automatizados",
+      kycVerificationLabel: "Verificación KYC",
+      upgradeMonthly: "Actualizar a Pro (Mensual)",
+      upgradeAnnual: "Actualizar a Pro (Anual - Ahorra 20%)",
+      alerts: {
+        trialEnds: "La prueba termina el",
+        gracePeriod: "Pago fallido. El período de gracia termina el",
+        subscriptionEnds: "La suscripción termina el",
+      },
+      toasts: {
+        openingCheckout: "Abriendo checkout de Stripe...",
+        checkoutFailed: "Error al crear la sesión de pago",
+        openingPortal: "Abriendo portal de facturación...",
+        portalFailed: "Error al abrir el portal de facturación",
+      },
+      whyUpgrade: {
+        title: "¿Por qué Actualizar a Pro?",
+        description: "Desbloquea funciones potentes para escalar tu gestión de propiedades",
+        signatures: {
+          title: "100 Firmas Digitales por Año",
+          description: "Crea contratos legalmente vinculantes con inquilinos",
+        },
+        payments: {
+          title: "Cobro Automatizado de Pagos",
+          description: "Cobra el alquiler automáticamente vía Stripe Connect",
+        },
+        kyc: {
+          title: "Verificación KYC",
+          description: "Verifica identidades de inquilinos con KYC basado en blockchain",
+        },
+        support: {
+          title: "Soporte Prioritario",
+          description: "Obtén ayuda más rápido con soporte dedicado",
+        },
+      },
       features: {
         maxProperties: "propiedades",
         maxTenanciesPerProperty: "arrendamientos por propiedad",
@@ -3457,8 +3583,6 @@ export const translations = {
         apiAccess: "Acceso API",
         advancedAnalytics: "Análisis avanzado",
       },
-      
-      // Usage
       usage: {
         title: "Uso",
         signaturesUsed: "Firmas utilizadas",

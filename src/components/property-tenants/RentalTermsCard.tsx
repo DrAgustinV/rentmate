@@ -59,11 +59,11 @@ const formatCurrency = (cents: number | null | undefined, currency: string = 'EU
 const getContractMethodLabel = (method: string | null | undefined, t: (key: string) => string) => {
   switch (method) {
     case "digital":
-      return t("tenancy.wizard.digitalSignature") || "Digital Signature";
+      return t("tenancy.wizard.digitalSignature");
     case "manual":
-      return t("tenancy.wizard.manualSignature") || "Manual / Paper";
+      return t("tenancy.wizard.manualSignature");
     case "none":
-      return t("tenancy.wizard.skipContract") || "Skip Contract";
+      return t("tenancy.wizard.skipContract");
     default:
       return "—";
   }
@@ -169,12 +169,12 @@ export function RentalTermsCard({
 
   // Utilities breakdown
   const utilityLabels: Record<string, string> = {
-    electricity: t("tenancy.wizard.utilities.electricity") || "Electricity",
-    gas: t("tenancy.wizard.utilities.gas") || "Gas",
-    water: t("tenancy.wizard.utilities.water") || "Water",
-    internet: t("tenancy.wizard.utilities.internet") || "Internet",
-    heating: t("tenancy.wizard.utilities.heating") || "Heating",
-    trash: t("tenancy.wizard.utilities.trash") || "Trash",
+    electricity: t("tenancy.wizard.utilities.electricity"),
+    gas: t("tenancy.wizard.utilities.gas"),
+    water: t("tenancy.wizard.utilities.water"),
+    internet: t("tenancy.wizard.utilities.internet"),
+    heating: t("tenancy.wizard.utilities.heating"),
+    trash: t("tenancy.wizard.utilities.trash"),
   };
 
   const tenantUtilities: string[] = [];
@@ -216,8 +216,8 @@ export function RentalTermsCard({
           <CardTitle className="text-base flex items-center gap-2">
             <FileSignature className="h-4 w-4" />
             {showPendingSetup 
-              ? (t("tenancy.wizard.tenancySetup") || "Tenancy Setup")
-              : (t("contracts.rentalTerms") || "Rental Terms")
+              ? t("tenancy.wizard.tenancySetup")
+              : t("contracts.rentalTerms")
             }
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -226,7 +226,7 @@ export function RentalTermsCard({
                 isDraft ? "border-amber-500 text-amber-600 bg-amber-50 dark:bg-amber-950/30" :
                 isSent ? "border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950/30" : ""
               }>
-                {isDraft ? t("common.draft") || "Draft" : t("common.sent") || "Sent"}
+                {isDraft ? t("common.draft") : t("common.sent")}
               </Badge>
             )}
             {/* Setup button - always visible for managers when allowed, disabled when tenant is active */}
@@ -239,7 +239,7 @@ export function RentalTermsCard({
                 className="gap-1"
               >
                 <Plus className="h-3 w-3" />
-                {t("tenancy.wizard.newTenancy") || "Setup"}
+                {t("tenancy.wizard.newTenancy")}
               </Button>
             )}
           </div>
@@ -248,8 +248,8 @@ export function RentalTermsCard({
         {isManager && currentTenantName && !showPendingSetup && (
           <p className="text-sm text-muted-foreground">
             {hasEndingTenancy 
-              ? `${t("tenants.currentTenant") || "Current tenant"}: ${currentTenantName} (${t("tenants.endingTenancy") || "ending"})`
-              : `${t("tenants.currentTenant") || "Current tenant"}: ${currentTenantName}`
+              ? `${t("tenants.currentTenant")}: ${currentTenantName} (${t("tenants.endingTenancy")})`
+              : `${t("tenants.currentTenant")}: ${currentTenantName}`
             }
           </p>
         )}
@@ -270,7 +270,7 @@ export function RentalTermsCard({
               <div className="flex items-center gap-2">
                 <Banknote className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-muted-foreground">{t("rent.amount") || "Rent"}: </span>
+                  <span className="text-muted-foreground">{t("rent.amount")}: </span>
                   <span className="font-medium">
                     {formatCurrency(pendingRequirement.rent_amount_cents, pendingRequirement.currency || 'EUR')}
                   </span>
@@ -279,7 +279,7 @@ export function RentalTermsCard({
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-muted-foreground">{t("rent.deposit") || "Deposit"}: </span>
+                  <span className="text-muted-foreground">{t("rent.deposit")}: </span>
                   <span className="font-medium">
                     {formatCurrency(pendingRequirement.security_deposit_cents, pendingRequirement.currency || 'EUR')}
                   </span>
@@ -288,7 +288,7 @@ export function RentalTermsCard({
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-muted-foreground">{t("tenancy.startDate") || "Start"}: </span>
+                  <span className="text-muted-foreground">{t("tenancy.startDate")}: </span>
                   <span className="font-medium">
                     {pendingRequirement.start_date 
                       ? format(new Date(pendingRequirement.start_date), 'MMM d, yyyy')
@@ -299,7 +299,7 @@ export function RentalTermsCard({
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-muted-foreground">{t("rent.paymentDay") || "Day"}: </span>
+                  <span className="text-muted-foreground">{t("rent.paymentDay")}: </span>
                   <span className="font-medium">
                     {pendingRequirement.payment_day ? `${pendingRequirement.payment_day}` : '-'}
                   </span>
@@ -308,21 +308,21 @@ export function RentalTermsCard({
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-muted-foreground">{t("contracts.method") || "Contract"}: </span>
+                  <span className="text-muted-foreground">{t("contracts.method")}: </span>
                   <span className="font-medium">{getContractMethodLabel(pendingRequirement.contract_method, t)}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-muted-foreground">{t("utilities.title") || "Utilities"}: </span>
+                  <span className="text-muted-foreground">{t("utilities.title")}: </span>
                   <span className="font-medium">
                     {(() => {
                       const utils = getUtilitiesSummary(pendingRequirement.utilities_config as UtilitiesConfig);
                       if (utils.tenantPays === 0 && utils.managerPays === 0) return '-';
                       const parts = [];
-                      if (utils.tenantPays > 0) parts.push(`${utils.tenantPays} tenant`);
-                      if (utils.managerPays > 0) parts.push(`${utils.managerPays} manager`);
+                      if (utils.tenantPays > 0) parts.push(`${utils.tenantPays} ${t("tenants.tenant").toLowerCase()}`);
+                      if (utils.managerPays > 0) parts.push(`${utils.managerPays} ${t("properties.tenant").toLowerCase()}`);
                       return parts.join(', ');
                     })()}
                   </span>
@@ -332,30 +332,30 @@ export function RentalTermsCard({
 
             {/* Verification Requirements */}
             <div className="flex items-center gap-3 pt-2">
-              <span className="text-xs text-muted-foreground">{t("tenancy.verification") || "Verification"}:</span>
+              <span className="text-xs text-muted-foreground">{t("tenancy.verification")}:</span>
               <div className="flex items-center gap-2">
                 {pendingRequirement.require_email_verification && (
                   <div className="flex items-center gap-1 text-xs">
                     <Mail className="h-3 w-3 text-primary" />
-                    <span>Email</span>
+                    <span>{t("verification.email")}</span>
                   </div>
                 )}
                 {pendingRequirement.require_kyc_verification && (
                   <div className="flex items-center gap-1 text-xs">
                     <CheckCircle2 className="h-3 w-3 text-primary" />
-                    <span>KYC</span>
+                    <span>{t("verification.kyc")}</span>
                   </div>
                 )}
                 {pendingRequirement.require_phone_verification && (
                   <div className="flex items-center gap-1 text-xs">
                     <Phone className="h-3 w-3 text-primary" />
-                    <span>Phone</span>
+                    <span>{t("verification.phone")}</span>
                   </div>
                 )}
                 {!pendingRequirement.require_email_verification && 
                  !pendingRequirement.require_kyc_verification && 
                  !pendingRequirement.require_phone_verification && (
-                  <span className="text-xs text-muted-foreground">None</span>
+                  <span className="text-xs text-muted-foreground">{t("common.none")}</span>
                 )}
               </div>
             </div>
@@ -369,7 +369,7 @@ export function RentalTermsCard({
                   className="gap-2"
                 >
                   <Send className="h-4 w-4" />
-                  {t("tenancy.sendInvitation") || "Send Invitation"}
+                  {t("tenancy.sendInvitation")}
                 </Button>
               )}
               {isSent && onResendInvitation && (
@@ -381,7 +381,7 @@ export function RentalTermsCard({
                   className="gap-2"
                 >
                   <RefreshCcw className={`h-4 w-4 ${isResending ? 'animate-spin' : ''}`} />
-                  {t("tenancy.resendInvitation") || "Resend Invite"}
+                  {t("tenancy.resendInvitation")}
                 </Button>
               )}
               {onCancelSetup && (
@@ -393,7 +393,7 @@ export function RentalTermsCard({
                   className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
                 >
                   <X className="h-4 w-4" />
-                  {t("common.cancel") || "Cancel"}
+                  {t("common.cancel")}
                 </Button>
               )}
             </div>
@@ -408,28 +408,28 @@ export function RentalTermsCard({
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Banknote className="h-3 w-3" />
-                  {t("tenancy.wizard.monthlyRent") || "Monthly Rent"}
+                  {t("tenancy.wizard.monthlyRent")}
                 </div>
                 <p className="font-semibold">{formatCurrency(rentAmountCents, currency)}</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Shield className="h-3 w-3" />
-                  {t("tenancy.wizard.securityDeposit") || "Security Deposit"}
+                  {t("tenancy.wizard.securityDeposit")}
                 </div>
                 <p className="font-semibold">{formatCurrency(depositCents, currency)}</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Calendar className="h-3 w-3" />
-                  {t("tenancy.wizard.paymentDay") || "Payment Day"}
+                  {t("tenancy.wizard.paymentDay")}
                 </div>
-                <p className="font-semibold">{paymentDay ? `Day ${paymentDay}` : "—"}</p>
+                <p className="font-semibold">{paymentDay ? `${t("rent.dayOfMonth")} ${paymentDay}` : "—"}</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <CalendarDays className="h-3 w-3" />
-                  {t("tenancy.wizard.leaseDates") || "Lease Dates"}
+                  {t("tenancy.wizard.leaseDates")}
                 </div>
                 <p className="font-semibold text-sm">
                   {startDate ? formatDate(startDate) : "—"}{" "}
@@ -443,7 +443,7 @@ export function RentalTermsCard({
               <div className="pt-2 border-t">
                 <div className="flex items-center gap-2 text-sm">
                   <FileSignature className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{t("tenancy.wizard.contractMethod") || "Contract Signing"}:</span>
+                  <span className="text-muted-foreground">{t("tenancy.wizard.contractMethod")}:</span>
                   <Badge variant="secondary">{getContractMethodLabel(contractMethod, t)}</Badge>
                 </div>
               </div>
@@ -452,24 +452,24 @@ export function RentalTermsCard({
             {/* Verification Requirements */}
             {(requireEmailVerification !== undefined || requireKycVerification !== undefined || requirePhoneVerification !== undefined) && (
               <div className="pt-2 border-t">
-                <p className="text-xs text-muted-foreground mb-2">{t("tenancy.wizard.verificationRequirements") || "Verification Requirements"}</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("tenancy.wizard.verificationRequirements")}</p>
                 <div className="flex flex-wrap gap-2">
                   {requireEmailVerification !== undefined && (
                     <Badge variant={requireEmailVerification ? "default" : "outline"} className="text-xs">
                       {requireEmailVerification ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
-                      {t("tenancy.wizard.emailVerification") || "Email"}
+                      {t("verification.email")}
                     </Badge>
                   )}
                   {requireKycVerification !== undefined && (
                     <Badge variant={requireKycVerification ? "default" : "outline"} className="text-xs">
                       {requireKycVerification ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
-                      {t("tenancy.wizard.kycVerification") || "Identity"}
+                      {t("verification.kyc")}
                     </Badge>
                   )}
                   {requirePhoneVerification !== undefined && (
                     <Badge variant={requirePhoneVerification ? "default" : "outline"} className="text-xs">
                       {requirePhoneVerification ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
-                      {t("tenancy.wizard.phoneVerification") || "Phone"}
+                      {t("verification.phone")}
                     </Badge>
                   )}
                 </div>
@@ -481,18 +481,18 @@ export function RentalTermsCard({
               <div className="pt-2 border-t">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
                   <Zap className="h-3 w-3" />
-                  {t("tenancy.wizard.utilitiesResponsibilities") || "Utilities Responsibilities"}
+                  {t("tenancy.wizard.utilitiesResponsibilities")}
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   {tenantUtilities.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">{t("tenancy.wizard.tenantPays") || "Tenant pays"}:</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">{t("tenancy.wizard.tenantPays")}:</p>
                       <p className="text-sm">{tenantUtilities.join(", ")}</p>
                     </div>
                   )}
                   {managerUtilities.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">{t("tenancy.wizard.managerPays") || "Manager pays"}:</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">{t("tenancy.wizard.managerPays")}:</p>
                       <p className="text-sm">{managerUtilities.join(", ")}</p>
                     </div>
                   )}
@@ -506,7 +506,7 @@ export function RentalTermsCard({
         {!showPendingSetup && !hasRentalData && (
           <div className="text-center py-4 text-muted-foreground">
             <FileSignature className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">{t("contracts.noRentalTerms") || "No rental agreement yet"}</p>
+            <p className="text-sm">{t("contracts.noRentalTerms")}</p>
             {isManager && canSetupNewTenancy && onStartSetup && (
               <Button 
                 variant="outline" 
@@ -515,7 +515,7 @@ export function RentalTermsCard({
                 className="mt-3 gap-2"
               >
                 <Plus className="h-4 w-4" />
-                {t("tenancy.wizard.newTenancy") || "Setup New Tenancy"}
+                {t("tenancy.wizard.newTenancy")}
               </Button>
             )}
           </div>
