@@ -383,8 +383,54 @@ export default function PropertyTenants() {
     }
   };
 
-  const handleResendInvitation = (requirement: TenancyRequirement) => {
-    inviteMutation.mutate(requirement.tenant_email);
+  const handleResendInvitation = async (requirement: TenancyRequirement) => {
+    try {
+      // Get existing invitation with token
+      const { data: existingInvite, error: fetchError } = await supabase
+        .from("invitations")
+        .select("id, token, expires_at")
+        .eq("email", requirement.tenant_email)
+        .eq("property_id", propertyId!)
+        .eq("status", "pending")
+        .single();
+
+      if (fetchError || !existingInvite) {
+        throw new Error("Invitation not found");
+      }
+
+      // Get manager info
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: managerProfile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", user?.id)
+        .single();
+
+      const managerName = managerProfile
+        ? `${managerProfile.first_name || ""} ${managerProfile.last_name || ""}`.trim() || "Property Manager"
+        : "Property Manager";
+
+      // Resend email with existing token
+      await supabase.functions.invoke("send-tenant-invitation", {
+        body: {
+          email: requirement.tenant_email,
+          propertyTitle: property?.title,
+          propertyAddress: null,
+          managerName,
+          token: existingInvite.token,
+          expiresAt: existingInvite.expires_at,
+          language: localStorage.getItem("language") || "en",
+          projectId: import.meta.env.VITE_SUPABASE_PROJECT_ID,
+          propertyId: propertyId,
+        },
+      });
+
+      sonnerToast.success(t('tenancy.invitationResent') || 'Invitation resent to tenant');
+      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
+    } catch (error: any) {
+      console.error("Resend invitation error:", error);
+      sonnerToast.error(error.message || t('common.error'));
+    }
   };
 
   // Tenancy mutations
