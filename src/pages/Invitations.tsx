@@ -198,6 +198,13 @@ export default function Invitations() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Get user's profile for email
+      const { data: userProfile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", user.id)
+        .single();
+
       // Mark email as verified - clicking invitation link proves email ownership
       await supabase
         .from("profiles")
@@ -205,14 +212,16 @@ export default function Invitations() {
         .eq("id", user.id);
 
       // Add user as tenant with active status
-      const { error: tenantError } = await supabase
+      const { data: newTenancy, error: tenantError } = await supabase
         .from("property_tenants")
         .insert({
           property_id: propertyId,
           tenant_id: user.id,
           tenancy_status: 'active',
           started_at: new Date().toISOString(),
-        });
+        })
+        .select('id')
+        .single();
 
       if (tenantError) throw tenantError;
 
@@ -226,6 +235,49 @@ export default function Invitations() {
         .eq("id", invitationId);
 
       if (updateError) throw updateError;
+
+      // Find matching tenancy_requirements for this invitation
+      const { data: requirements } = await supabase
+        .from("tenancy_requirements")
+        .select("*")
+        .eq("property_id", propertyId)
+        .eq("tenant_email", userProfile?.email || '')
+        .in("status", ["sent", "draft"])
+        .maybeSingle();
+
+      if (requirements && newTenancy) {
+        // Get property manager_id for rent_agreement
+        const { data: propertyData } = await supabase
+          .from("properties")
+          .select("manager_id")
+          .eq("id", propertyId)
+          .single();
+
+        // Create rent_agreement from requirements if rent data exists
+        if (requirements.rent_amount_cents && propertyData?.manager_id) {
+          await supabase.from("rent_agreements").insert({
+            property_id: propertyId,
+            tenancy_id: newTenancy.id,
+            manager_id: propertyData.manager_id,
+            tenant_id: user.id,
+            rent_amount_cents: requirements.rent_amount_cents,
+            currency: requirements.currency || 'EUR',
+            security_deposit_cents: requirements.security_deposit_cents,
+            payment_day: requirements.payment_day || 1,
+            start_date: requirements.start_date,
+            end_date: requirements.end_date,
+          });
+        }
+
+        // Update tenancy_requirements to link to tenancy and mark as accepted
+        await supabase
+          .from("tenancy_requirements")
+          .update({ 
+            tenancy_id: newTenancy.id,
+            status: 'accepted' 
+          })
+          .eq("id", requirements.id);
+      }
 
       // Enforce FIFO tenancy limit (delete oldest inactive if > 5 tenancies)
       await supabase.functions.invoke("manage-tenancy-limit", {
@@ -244,8 +296,8 @@ export default function Invitations() {
 
       setInvitations(invitations.filter((inv) => inv.id !== invitationId));
       
-      // Redirect to property details
-      navigate(`/properties/${propertyId}/details`);
+      // Redirect to property hub
+      navigate(`/properties/${propertyId}/tenants`);
     } catch (error: any) {
       toast({
         title: t('common.error'),
