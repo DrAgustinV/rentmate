@@ -51,10 +51,17 @@ export const es = {
     draft: "Borrador",
     sent: "Enviado",
   },
+  locale: "es-ES",
   verification: {
     email: "Correo",
     kyc: "KYC",
     phone: "Teléfono",
+  },
+  rent: {
+    amount: "Monto del Alquiler",
+    deposit: "Depósito de Seguridad",
+    paymentDay: "Día de Pago",
+    dayOfMonth: "Día del Mes",
   },
   landing: {
     getStarted: "Comenzar",
@@ -565,6 +572,20 @@ export const es = {
     acceptedFormats: "JPG, PNG o PDF. Máx 10MB.",
     uploadSuccess: "Comprobante subido exitosamente",
     uploadFailed: "Error al subir comprobante",
+    tenant: "Inquilino",
+    amount: "Monto",
+    availableAfterStart: "Disponible después del inicio del arrendamiento",
+    statistics: {
+      noData: "Sin datos disponibles",
+      totalPaid: "Total Pagado",
+      payments: "pagos",
+      nextDue: "Próximo Vencimiento",
+      onTimeRate: "Tasa de Pago a Tiempo",
+      noHistory: "Sin historial",
+      remindersSent: "Recordatorios Enviados",
+      totalReminders: "recordatorios totales",
+      noneYet: "Ninguno aún",
+    },
   },
   notFound: {
     title: "Página No Encontrada",
@@ -947,6 +968,7 @@ export const es = {
     uploadHintVideo: "Máx {size}MB",
   },
   utilities: {
+    title: "Servicios",
     manageUtilities: "Pagos de Servicios",
     addUtilityBill: "Agregar Factura de Servicio",
     paymentHistory: "Historial de Pagos de Servicios",
@@ -995,8 +1017,13 @@ export const es = {
     notApplicable: "No aplica",
   },
   tenancy: {
+    startDate: "Fecha de Inicio",
+    verification: "Verificación",
+    sendInvitation: "Enviar Invitación",
+    resendInvitation: "Reenviar Invitación",
     wizard: {
       title: "Nueva Configuración de Arrendamiento",
+      leaseDates: "Fechas del Arrendamiento",
       newTenancy: "Nueva Configuración de Arrendamiento",
       subtitle: "Configura todos los requisitos para el nuevo inquilino",
       steps: {

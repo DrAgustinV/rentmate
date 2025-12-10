@@ -51,10 +51,17 @@ export const en = {
     draft: "Draft",
     sent: "Sent",
   },
+  locale: "en-US",
   verification: {
     email: "Email",
     kyc: "KYC",
     phone: "Phone",
+  },
+  rent: {
+    amount: "Rent Amount",
+    deposit: "Security Deposit",
+    paymentDay: "Payment Day",
+    dayOfMonth: "Day of Month",
   },
   landing: {
     getStarted: "Get Started",
@@ -554,6 +561,20 @@ export const en = {
     acceptedFormats: "JPG, PNG or PDF. Max 10MB.",
     uploadSuccess: "Proof uploaded successfully",
     uploadFailed: "Failed to upload proof",
+    tenant: "Tenant",
+    amount: "Amount",
+    availableAfterStart: "Available after tenancy starts",
+    statistics: {
+      noData: "No data available",
+      totalPaid: "Total Paid",
+      payments: "payments",
+      nextDue: "Next Due",
+      onTimeRate: "On-Time Rate",
+      noHistory: "No history",
+      remindersSent: "Reminders Sent",
+      totalReminders: "total reminders",
+      noneYet: "None yet",
+    },
   },
   notFound: {
     title: "Page Not Found",
@@ -832,6 +853,7 @@ export const en = {
     },
   },
   utilities: {
+    title: "Utilities",
     manageUtilities: "Utility Payments",
     addUtilityBill: "Add Utility Bill",
     paymentHistory: "Utility Payment History",
@@ -880,8 +902,13 @@ export const en = {
     notApplicable: "Not applicable",
   },
   tenancy: {
+    startDate: "Start Date",
+    verification: "Verification",
+    sendInvitation: "Send Invitation",
+    resendInvitation: "Resend Invitation",
     wizard: {
       title: "New Tenancy Setup",
+      leaseDates: "Lease Dates",
       newTenancy: "New Tenancy Setup",
       subtitle: "Configure all requirements for the new tenant",
       steps: {
