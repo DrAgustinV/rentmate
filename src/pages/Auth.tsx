@@ -87,7 +87,36 @@ export default function Auth() {
         if (storedToken) {
           navigate(`/invitations?token=${storedToken}`);
         } else {
-          navigate("/properties");
+          // Smart role-based redirect
+          setTimeout(async () => {
+            // Check if user manages any properties
+            const { data: managedProps } = await supabase
+              .from('properties')
+              .select('id')
+              .eq('manager_id', session.user.id)
+              .limit(1);
+            
+            if (managedProps && managedProps.length > 0) {
+              // User is a manager
+              navigate("/properties");
+            } else {
+              // Check if user has active tenancies
+              const { data: tenancies } = await supabase
+                .from('property_tenants')
+                .select('id')
+                .eq('tenant_id', session.user.id)
+                .eq('tenancy_status', 'active')
+                .limit(1);
+              
+              if (tenancies && tenancies.length > 0) {
+                // User is a tenant-only
+                navigate("/rentals");
+              } else {
+                // New user - send to properties to create first property
+                navigate("/properties");
+              }
+            }
+          }, 0);
         }
       }
     });
