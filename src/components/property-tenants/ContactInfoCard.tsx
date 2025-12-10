@@ -81,9 +81,27 @@ export function ContactInfoCard({
     loadAvatarUrl();
   }, [currentTenant?.avatar_url, managerInfo?.avatar_url, userRole?.isManager]);
 
-  // Manager view: show tenant info
+  // Manager view: show tenant info or empty state
   if (userRole?.isManager) {
-    if (!currentTenant) return null;
+    // Empty state for managers
+    if (!currentTenant) {
+      return (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-4 w-4" />
+              {t("contracts.tenantInfo") || "Tenant Information"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-4 text-muted-foreground">
+              <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">{t("dialogs.manageTenants.noTenants") || "No current tenant"}</p>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
 
     const getTenantName = () => {
       if (currentTenant.first_name && currentTenant.last_name) {
@@ -185,7 +203,25 @@ export function ContactInfoCard({
     );
   }
 
-  if (!managerInfo) return null;
+  // Empty state for tenants
+  if (!managerInfo) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <User className="h-4 w-4" />
+            {t("contracts.managerInfo") || "Property Manager"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4 text-muted-foreground">
+            <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">{t("contracts.noManagerInfo") || "Manager info unavailable"}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const getManagerName = () => {
     if (managerInfo.first_name && managerInfo.last_name) {

@@ -17,7 +17,6 @@ import {
   Eye,
   Clock,
   X,
-  AlertTriangle,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
@@ -25,8 +24,7 @@ import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
 import { ContractSignatureManager } from "@/components/ContractSignatureManager";
 import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
-import { TenancySetupCard } from "@/components/property-hub/TenancySetupCard";
-import { RentalTermsSummary } from "./RentalTermsSummary";
+import { RentalTermsCard } from "./RentalTermsCard";
 import { ContactInfoCard } from "./ContactInfoCard";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
 
@@ -117,7 +115,6 @@ export function ContractsTab({
   const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
   const [expandedTenancyId, setExpandedTenancyId] = useState<string | null>(null);
   const [tenancyDocsMap, setTenancyDocsMap] = useState<Record<string, TenancyDocument[]>>({});
-  const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
 
   // Lazy-loaded query for tenancy documents
   const { data: tenancyDocuments, isLoading: docsLoading, refetch: refetchDocuments } = useQuery({
@@ -186,43 +183,6 @@ export function ContractsTab({
       });
     },
     enabled: !!propertyId && userRole?.isManager,
-  });
-
-  // Property count (manager only)
-  const { data: propertyCount } = useQuery({
-    queryKey: ["property-count"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return 0;
-      const { count, error } = await supabase
-        .from("properties")
-        .select("*", { count: "exact", head: true })
-        .eq("manager_id", user.id)
-        .eq("status", "active");
-      if (error) throw error;
-      return count || 0;
-    },
-    enabled: userRole?.isManager,
-  });
-
-  // Fetch property limit setting
-  useQuery({
-    queryKey: ["max-properties-limit"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("system_settings")
-        .select("setting_value")
-        .eq("setting_key", "max_active_properties_per_user")
-        .maybeSingle();
-
-      if (!error && data) {
-        const limit = parseInt((data.setting_value as any).value);
-        setMaxPropertiesLimit(limit);
-        return limit;
-      }
-      return 5;
-    },
-    enabled: userRole?.isManager,
   });
 
   const deleteDocumentMutation = useMutation({
@@ -340,15 +300,12 @@ export function ContractsTab({
     return acc;
   }, {} as Record<string, TenancyDocument[]>);
 
-  // Sort versions within each group
-  if (groupedDocuments) {
-    Object.keys(groupedDocuments).forEach((title) => {
-      groupedDocuments[title].sort((a, b) => b.version - a.version);
-    });
-  }
-
-  // Show tenancy setup when there's no current tenant OR tenant is ending
-  const showTenancySetup = userRole?.isManager && !isReadOnly && onStartSetup && onSendInvitation && onCancelSetup;
+  // Get current tenant name for display
+  const currentTenantName = currentTenant 
+    ? (currentTenant.first_name && currentTenant.last_name 
+        ? `${currentTenant.first_name} ${currentTenant.last_name}` 
+        : currentTenant.email)
+    : undefined;
 
   if (docsLoading && currentTenant) {
     return (
@@ -361,52 +318,32 @@ export function ContractsTab({
 
   return (
     <div className="space-y-6">
-      {/* 1. Rental Terms Summary (always shown if data exists) */}
-      <RentalTermsSummary 
+      {/* 1. Rental Terms Card (always shows - merges rental terms + tenancy setup) */}
+      <RentalTermsCard 
         propertyId={propertyId} 
         tenancyId={currentTenant?.id}
         tenantEmail={currentTenant?.email}
+        isManager={userRole?.isManager || false}
+        isReadOnly={isReadOnly}
+        pendingRequirement={pendingRequirement || null}
+        canSetupNewTenancy={canSetupNewTenancy || false}
+        hasEndingTenancy={hasEndingTenancy || false}
+        currentTenantName={currentTenantName}
+        onStartSetup={onStartSetup}
+        onSendInvitation={onSendInvitation}
+        onCancelSetup={onCancelSetup}
+        onResendInvitation={onResendInvitation}
+        isDeleting={isDeleting}
+        isResending={isResending}
       />
 
-      {/* 2. Tenancy Setup Card (manager only) */}
-      {showTenancySetup && (
-        <TenancySetupCard
-          pendingRequirement={pendingRequirement || null}
-          canSetupNewTenancy={canSetupNewTenancy || false}
-          hasEndingTenancy={hasEndingTenancy || false}
-          onStartSetup={onStartSetup}
-          onSendInvitation={onSendInvitation}
-          onCancelSetup={onCancelSetup}
-          onResendInvitation={onResendInvitation}
-          isDeleting={isDeleting}
-          isResending={isResending}
-        />
-      )}
-
-      {/* Property Limit Warning (manager only) */}
-      {userRole?.isManager && propertyCount !== undefined && propertyCount >= maxPropertiesLimit - 1 && (
-        <div className="p-4 border border-yellow-500/50 bg-yellow-500/10 rounded-lg flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
-          <div className="flex-1">
-            <p className="font-medium text-yellow-700 dark:text-yellow-400">{t("properties.freePlanLimitTitle")}</p>
-            <p className="text-sm text-yellow-600 dark:text-yellow-500 mt-1">
-              {propertyCount >= maxPropertiesLimit
-                ? `You have reached the limit of ${maxPropertiesLimit} active properties. Please contact support to increase your limit.`
-                : `You have created ${propertyCount} active properties. You can create ${maxPropertiesLimit - propertyCount} more.`}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* 3. Digital Contract Signature (only if there's a tenant) */}
-      {currentTenant && (
-        <ContractSignatureManager
-          tenancyId={currentTenant.id}
-          propertyId={propertyId}
-          isManager={userRole?.isManager || false}
-          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
-        />
-      )}
+      {/* 2. Digital Contract Signature (always shows) */}
+      <ContractSignatureManager
+        tenancyId={currentTenant?.id || ''}
+        propertyId={propertyId}
+        isManager={userRole?.isManager || false}
+        onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
+      />
 
       {/* 4. Tenancy Documents (only if there's a tenant) */}
       {currentTenant && (
@@ -567,15 +504,7 @@ export function ContractsTab({
         </div>
       )}
 
-      {/* Empty state when no tenant */}
-      {!currentTenant && !pendingRequirement && (
-        <div className="text-center py-8 text-muted-foreground">
-          <p>{t("dialogs.manageTenants.noTenants")}</p>
-          <p className="text-sm mt-2">{t("properties.inviteTenantToGetStarted")}</p>
-        </div>
-      )}
-
-      {/* 5. Contact Info Card */}
+      {/* 3. Contact Info Card (always shows) */}
       <ContactInfoCard
         propertyId={propertyId}
         currentTenant={currentTenant}
