@@ -198,6 +198,12 @@ export default function Invitations() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Mark email as verified - clicking invitation link proves email ownership
+      await supabase
+        .from("profiles")
+        .update({ email_verified: true })
+        .eq("id", user.id);
+
       // Add user as tenant with active status
       const { error: tenantError } = await supabase
         .from("property_tenants")
