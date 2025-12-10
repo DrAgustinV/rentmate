@@ -58,14 +58,12 @@ const formatCurrency = (cents: number | null | undefined, currency: string = 'EU
 
 const getContractMethodLabel = (method: string | null | undefined, t: (key: string) => string) => {
   switch (method) {
-    case "yousign":
-      return t("tenancy.wizard.yousignLabel") || "Qualified Digital Signature (EU)";
-    case "docuseal":
-      return t("tenancy.wizard.docusealLabel") || "Advanced Digital Signature";
+    case "digital":
+      return t("tenancy.wizard.digitalSignature") || "Digital Signature";
     case "manual":
-      return t("tenancy.wizard.manualLabel") || "Manual/Paper";
+      return t("tenancy.wizard.manualSignature") || "Manual / Paper";
     case "none":
-      return "No Contract";
+      return t("tenancy.wizard.skipContract") || "Skip Contract";
     default:
       return "—";
   }

@@ -70,12 +70,7 @@ verify_jwt = true  # Manager/Tenant generates mandate PDF
 [functions.generate-monthly-payments]
 verify_jwt = false  # Cron job - no user context available
 
-# Contract Signature Functions - Mock Phase
-[functions.initiate-contract-signature]
-verify_jwt = true  # Manager initiates mock signature
-
-[functions.handle-signature-webhook]
-verify_jwt = false  # Mock webhook endpoint
+# Payment Reminders - Automated Email System
 
 # Payment Reminders - Automated Email System
 [functions.send-payment-reminders]

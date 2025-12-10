@@ -116,6 +116,22 @@ export function ContractsTab({
   const [expandedTenancyId, setExpandedTenancyId] = useState<string | null>(null);
   const [tenancyDocsMap, setTenancyDocsMap] = useState<Record<string, TenancyDocument[]>>({});
 
+  // Query tenancy requirements for contract method
+  const { data: tenancyRequirements } = useQuery({
+    queryKey: ["tenancy-requirements-for-contract", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant) return null;
+      const { data, error } = await supabase
+        .from("tenancy_requirements")
+        .select("contract_method")
+        .eq("tenancy_id", currentTenant.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!currentTenant?.id,
+  });
+
   // Lazy-loaded query for tenancy documents
   const { data: tenancyDocuments, isLoading: docsLoading, refetch: refetchDocuments } = useQuery({
     queryKey: ["tenancy-documents", currentTenant?.id],
@@ -342,6 +358,10 @@ export function ContractsTab({
         tenancyId={currentTenant?.id || ''}
         propertyId={propertyId}
         isManager={userRole?.isManager || false}
+        contractMethod={
+          pendingRequirement?.contract_method || 
+          tenancyRequirements?.contract_method as 'digital' | 'manual' | 'none' | null | undefined
+        }
         onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
       />
 

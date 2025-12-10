@@ -27,7 +27,7 @@ export interface TenancyRequirement {
   require_email_verification: boolean;
   require_kyc_verification: boolean;
   require_phone_verification: boolean;
-  contract_method: 'docuseal' | 'yousign' | 'manual' | 'none' | null;
+  contract_method: 'digital' | 'manual' | 'none' | null;
   selected_template_id: string | null;
   rent_amount_cents: number | null;
   currency: string;
@@ -49,7 +49,7 @@ export interface CreateTenancyRequirementInput {
   require_email_verification?: boolean;
   require_kyc_verification?: boolean;
   require_phone_verification?: boolean;
-  contract_method?: 'docuseal' | 'yousign' | 'manual' | 'none' | null;
+  contract_method?: 'digital' | 'manual' | 'none' | null;
   selected_template_id?: string | null;
   rent_amount_cents?: number | null;
   currency?: string;
