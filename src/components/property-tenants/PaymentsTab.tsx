@@ -85,7 +85,7 @@ export function PaymentsTab({
       )}
 
       {/* Rent Payments Card */}
-      <Card>
+      <Card className="card-shine">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>{t("propertyHub.rentPayments")}</CardTitle>
@@ -153,7 +153,7 @@ export function PaymentsTab({
       </Card>
 
       {/* Utility Payments Card */}
-      <Card>
+      <Card className="card-shine">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>{t("propertyHub.utilityPayments")}</CardTitle>

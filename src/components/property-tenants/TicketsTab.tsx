@@ -105,7 +105,7 @@ export function TicketsTab({ propertyId, tenancyId }: TicketsTabProps) {
       
       {/* Tickets table */}
       {tickets.length > 0 ? (
-        <div className="border rounded-lg">
+        <div className="border rounded-lg card-shine">
           <Table>
             <TableHeader>
               <TableRow>
@@ -138,7 +138,7 @@ export function TicketsTab({ propertyId, tenancyId }: TicketsTabProps) {
           </Table>
         </div>
       ) : (
-        <div className="text-center py-8 border rounded-lg">
+        <div className="text-center py-8 border rounded-lg card-shine">
           <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-3 opacity-50" />
           <p className="text-sm text-muted-foreground">
             {statusFilter === "all" 
