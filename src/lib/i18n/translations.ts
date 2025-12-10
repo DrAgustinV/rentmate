@@ -242,6 +242,8 @@ export const translations = {
       description: "Overview, tenants, contracts, payments, and documents",
       overview: "Overview",
       documents: "Templates",
+      rentPayments: "Rent Payments",
+      utilityPayments: "Utility Payments",
     },
     profile: {
       title: "Profile",
@@ -1710,6 +1712,16 @@ export const translations = {
       kycVerified: "Verified",
       endingTenancy: "Ending",
       plannedEndDate: "Planned end date",
+      currentTenant: "Current Tenant",
+      tenant: "tenant",
+    },
+    contracts: {
+      tenantInfo: "Tenant Information",
+      managerInfo: "Property Manager",
+      noManagerInfo: "Manager info unavailable",
+      rentalTerms: "Rental Terms",
+      method: "Contract Method",
+      noRentalTerms: "No rental terms set up",
     },
     repairShops: {
       title: "Repair Shops",
@@ -2105,6 +2117,8 @@ export const translations = {
       description: "Resumen, inquilinos, contratos, pagos y documentos",
       overview: "Resumen",
       documents: "Plantillas",
+      rentPayments: "Pagos de Alquiler",
+      utilityPayments: "Pagos de Servicios",
     },
     profile: {
       title: "Perfil",
@@ -3436,6 +3450,16 @@ export const translations = {
       kycVerified: "Verificado",
       endingTenancy: "Finalizando",
       plannedEndDate: "Fecha de fin planificada",
+      currentTenant: "Inquilino Actual",
+      tenant: "inquilino",
+    },
+    contracts: {
+      tenantInfo: "Información del Inquilino",
+      managerInfo: "Administrador de Propiedad",
+      noManagerInfo: "Información del administrador no disponible",
+      rentalTerms: "Términos de Alquiler",
+      method: "Método de Contrato",
+      noRentalTerms: "Sin términos de alquiler configurados",
     },
     repairShops: {
       title: "Talleres de Reparación",
