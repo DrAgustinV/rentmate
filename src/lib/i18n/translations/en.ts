@@ -1408,6 +1408,10 @@ export const en = {
     rentalTerms: "Rental Terms",
     method: "Contract Method",
     noRentalTerms: "No rental terms set up",
+    signatureStatus: "Signature Status",
+    managerSignature: "Manager",
+    tenantSignature: "Tenant",
+    requestExpiration: "Request Expiration",
   },
   repairShops: {
     title: "Repair Shops",
