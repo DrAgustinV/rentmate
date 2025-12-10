@@ -94,7 +94,7 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
 
       if (error) throw error;
 
-      toast.success('Payment marked as received');
+      toast.success(t("payments.toasts.markedPaid"));
       fetchPayments();
     } catch (error: any) {
       toast.error(error.message);
@@ -113,13 +113,13 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
       if (error) throw error;
 
       if (data.success) {
-        toast.success('Payment collection initiated successfully');
+        toast.success(t("payments.toasts.collectionInitiated"));
         fetchPayments();
       } else {
-        toast.error(data.message || 'Failed to retry payment');
+        toast.error(data.message || t("payments.toasts.retryFailed"));
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to retry payment');
+      toast.error(error.message || t("payments.toasts.retryFailed"));
     } finally {
       setRetrying(null);
     }
@@ -144,7 +144,7 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
     return (
       <Badge variant="secondary" className="flex items-center gap-1">
         <Clock className="h-3 w-3" />
-        {t("payments.status.due") || "DUE"}
+        {t("payments.status.due")}
       </Badge>
     );
   };
@@ -250,7 +250,7 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                           ) : (
                             <>
                               <RefreshCw className="h-4 w-4 mr-2" />
-                              Retry
+                              {t("common.retry")}
                             </>
                           )}
                         </Button>

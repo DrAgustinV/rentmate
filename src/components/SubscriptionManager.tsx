@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,15 +15,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function SubscriptionManager() {
   const { t } = useLanguage();
-  const queryClient = useQueryClient();
   const { subscription, isLoading, refresh } = useSubscription();
-  const [isUpgrading, setIsUpgrading] = useState(false);
 
   // Create checkout session
   const createCheckout = useMutation({
     mutationFn: async (billingPeriod: "monthly" | "annual") => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
+      if (!session) throw new Error(t("common.notAuthenticated"));
 
       const { data, error } = await supabase.functions.invoke("create-subscription-checkout", {
         headers: { Authorization: `Bearer ${session.access_token}` },
@@ -36,13 +34,13 @@ export function SubscriptionManager() {
     onSuccess: (data) => {
       if (data?.url) {
         window.open(data.url, "_blank");
-        toast.success("Opening Stripe checkout...");
+        toast.success(t("subscription.toasts.openingCheckout"));
         // Refresh subscription after 5 seconds
         setTimeout(() => refresh(), 5000);
       }
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to create checkout session");
+      toast.error(error.message || t("subscription.toasts.checkoutFailed"));
     },
   });
 
@@ -50,7 +48,7 @@ export function SubscriptionManager() {
   const openPortal = useMutation({
     mutationFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
+      if (!session) throw new Error(t("common.notAuthenticated"));
 
       const { data, error } = await supabase.functions.invoke("customer-portal-session", {
         headers: { Authorization: `Bearer ${session.access_token}` },
@@ -62,11 +60,11 @@ export function SubscriptionManager() {
     onSuccess: (data) => {
       if (data?.url) {
         window.open(data.url, "_blank");
-        toast.success("Opening Stripe billing portal...");
+        toast.success(t("subscription.toasts.openingPortal"));
       }
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to open billing portal");
+      toast.error(error.message || t("subscription.toasts.portalFailed"));
     },
   });
 
@@ -85,9 +83,9 @@ export function SubscriptionManager() {
       <Card>
         <CardContent className="py-12 text-center">
           <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">Unable to load subscription data</p>
+          <p className="text-muted-foreground">{t("subscription.loadError")}</p>
           <Button onClick={() => refresh()} variant="outline" className="mt-4">
-            Retry
+            {t("common.retry")}
           </Button>
         </CardContent>
       </Card>
@@ -132,7 +130,7 @@ export function SubscriptionManager() {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Trial ends on {format(new Date(subscription.trial_end), "PPP")}
+                {t("subscription.alerts.trialEnds")} {format(new Date(subscription.trial_end), "PPP")}
               </AlertDescription>
             </Alert>
           )}
@@ -141,7 +139,7 @@ export function SubscriptionManager() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Payment failed. Grace period ends on{" "}
+                {t("subscription.alerts.gracePeriod")}{" "}
                 {format(new Date(subscription.grace_period_ends_at), "PPP")}
               </AlertDescription>
             </Alert>
@@ -151,7 +149,7 @@ export function SubscriptionManager() {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Subscription ends on {format(new Date(subscription.current_period_end), "PPP")}
+                {t("subscription.alerts.subscriptionEnds")} {format(new Date(subscription.current_period_end), "PPP")}
               </AlertDescription>
             </Alert>
           )}
@@ -159,32 +157,32 @@ export function SubscriptionManager() {
           {/* Plan Details */}
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <p className="text-sm font-medium mb-2">Features</p>
+              <p className="text-sm font-medium mb-2">{t("subscription.featuresLabel")}</p>
               <ul className="space-y-2">
                 <li className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
-                  {subscription.features.digital_signatures_per_year} signatures/year
+                  {subscription.features.digital_signatures_per_year} {t("subscription.signaturesPerYear")}
                 </li>
                 {subscription.features.automated_payments_enabled && (
                   <li className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
-                    Automated payments
+                    {t("subscription.automatedPaymentsLabel")}
                   </li>
                 )}
                 {subscription.features.kyc_verification_enabled && (
                   <li className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
-                    KYC verification
+                    {t("subscription.kycVerificationLabel")}
                   </li>
                 )}
               </ul>
             </div>
 
             <div>
-              <p className="text-sm font-medium mb-2">Billing</p>
+              <p className="text-sm font-medium mb-2">{t("subscription.billingLabel")}</p>
               {subscription.current_period_end && (
                 <p className="text-sm text-muted-foreground">
-                  Renews on {format(new Date(subscription.current_period_end), "PPP")}
+                  {t("subscription.currentPeriodEnd")} {format(new Date(subscription.current_period_end), "PPP")}
                 </p>
               )}
             </div>
@@ -196,7 +194,7 @@ export function SubscriptionManager() {
           <div className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium">Digital Signatures</p>
+                <p className="text-sm font-medium">{t("subscription.digitalSignaturesLabel")}</p>
                 <p className="text-sm text-muted-foreground">
                   {subscription.usage.signatures_used} / {subscription.features.digital_signatures_per_year}
                 </p>
@@ -204,7 +202,7 @@ export function SubscriptionManager() {
               <Progress value={signaturesPercent} className="h-2" />
               {subscription.usage.remaining <= 20 && subscription.features.digital_signatures_per_year > 0 && (
                 <p className="text-sm text-orange-600 mt-1">
-                  {subscription.usage.remaining} signatures remaining
+                  {subscription.usage.remaining} {t("subscription.signaturesRemaining")}
                 </p>
               )}
             </div>
@@ -222,7 +220,7 @@ export function SubscriptionManager() {
                   className="flex-1"
                 >
                   <Crown className="mr-2 h-4 w-4" />
-                  Upgrade to Pro (Monthly)
+                  {t("subscription.upgradeMonthly")}
                 </Button>
                 <Button
                   onClick={() => createCheckout.mutate("annual")}
@@ -231,7 +229,7 @@ export function SubscriptionManager() {
                   className="flex-1"
                 >
                   <Crown className="mr-2 h-4 w-4" />
-                  Upgrade to Pro (Annual - Save 20%)
+                  {t("subscription.upgradeAnnual")}
                 </Button>
               </>
             ) : (
@@ -252,9 +250,9 @@ export function SubscriptionManager() {
       {isFree && (
         <Card>
           <CardHeader>
-            <CardTitle>Why Upgrade to Pro?</CardTitle>
+            <CardTitle>{t("subscription.whyUpgrade.title")}</CardTitle>
             <CardDescription>
-              Unlock powerful features to scale your property management
+              {t("subscription.whyUpgrade.description")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -262,36 +260,36 @@ export function SubscriptionManager() {
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-medium">100 Digital Signatures per Year</p>
+                  <p className="font-medium">{t("subscription.whyUpgrade.signatures.title")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Create legally-binding contracts with tenants
+                    {t("subscription.whyUpgrade.signatures.description")}
                   </p>
                 </div>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-medium">Automated Payment Collection</p>
+                  <p className="font-medium">{t("subscription.whyUpgrade.payments.title")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Collect rent automatically via Stripe Connect
+                    {t("subscription.whyUpgrade.payments.description")}
                   </p>
                 </div>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-medium">KYC Verification</p>
+                  <p className="font-medium">{t("subscription.whyUpgrade.kyc.title")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Verify tenant identities with blockchain-based KYC
+                    {t("subscription.whyUpgrade.kyc.description")}
                   </p>
                 </div>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-medium">Priority Support</p>
+                  <p className="font-medium">{t("subscription.whyUpgrade.support.title")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Get help faster with dedicated support
+                    {t("subscription.whyUpgrade.support.description")}
                   </p>
                 </div>
               </li>
