@@ -90,7 +90,7 @@ export function ContactInfoCard({
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <User className="h-4 w-4" />
-              {t("contracts.tenantInfo") || "Tenant Information"}
+              {t("contracts.tenantInfo")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -122,7 +122,7 @@ export function ContactInfoCard({
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <User className="h-4 w-4" />
-            {t("contracts.tenantInfo") || "Tenant Information"}
+            {t("contracts.tenantInfo")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -151,7 +151,7 @@ export function ContactInfoCard({
                   )}
                   {currentTenant.kyc_status === 'verified' && (
                     <span className="text-xs text-blue-500 font-medium">
-                      {t("tenants.kycVerified") || "Verified"}
+                      {t("tenants.kycVerified")}
                     </span>
                   )}
                 </div>
@@ -210,13 +210,13 @@ export function ContactInfoCard({
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <User className="h-4 w-4" />
-            {t("contracts.managerInfo") || "Property Manager"}
+            {t("contracts.managerInfo")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-4 text-muted-foreground">
             <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">{t("contracts.noManagerInfo") || "Manager info unavailable"}</p>
+            <p className="text-sm">{t("contracts.noManagerInfo")}</p>
           </div>
         </CardContent>
       </Card>
@@ -242,7 +242,7 @@ export function ContactInfoCard({
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <User className="h-4 w-4" />
-          {t("contracts.managerInfo") || "Property Manager"}
+          {t("contracts.managerInfo")}
         </CardTitle>
       </CardHeader>
       <CardContent>
