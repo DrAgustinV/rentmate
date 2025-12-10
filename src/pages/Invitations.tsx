@@ -77,22 +77,11 @@ export default function Invitations() {
     if (!session) {
       // If not logged in and has token, detect account and redirect
       if (token) {
-        // Fetch invitation details
+        // For anonymous users, fetch ONLY invitation data (no properties join)
+        // Properties table RLS blocks anonymous access, so we skip the join
         const { data: invitation, error: invitationError } = await supabase
           .from("invitations")
-          .select(`
-            id,
-            property_id,
-            email,
-            token,
-            expires_at,
-            properties (
-              title,
-              address,
-              description,
-              images
-            )
-          `)
+          .select("id, property_id, email, token, expires_at")
           .eq("token", token)
           .eq("status", "pending")
           .gt("expires_at", new Date().toISOString())
