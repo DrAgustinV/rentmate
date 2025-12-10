@@ -77,7 +77,9 @@ interface TenantsTabProps {
   onStartSetup?: () => void;
   onSendInvitation?: (req: TenancyRequirement) => void;
   onCancelSetup?: (req: TenancyRequirement) => void;
+  onResendInvitation?: (req: TenancyRequirement) => void;
   isDeleting?: boolean;
+  isResending?: boolean;
 }
 
 export function TenantsTab({
@@ -97,7 +99,9 @@ export function TenantsTab({
   onStartSetup,
   onSendInvitation,
   onCancelSetup,
+  onResendInvitation,
   isDeleting,
+  isResending,
 }: TenantsTabProps) {
   const { t } = useLanguage();
   const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
@@ -347,7 +351,9 @@ export function TenantsTab({
           onStartSetup={onStartSetup}
           onSendInvitation={onSendInvitation}
           onCancelSetup={onCancelSetup}
+          onResendInvitation={onResendInvitation}
           isDeleting={isDeleting}
+          isResending={isResending}
         />
       )}
 

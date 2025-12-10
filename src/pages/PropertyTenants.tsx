@@ -383,6 +383,10 @@ export default function PropertyTenants() {
     }
   };
 
+  const handleResendInvitation = (requirement: TenancyRequirement) => {
+    inviteMutation.mutate(requirement.tenant_email);
+  };
+
   // Tenancy mutations
   const endTenancyMutation = useMutation({
     mutationFn: async ({ tenantId, plannedEndDate }: { tenantId: string; plannedEndDate: string }) => {
@@ -556,7 +560,9 @@ export default function PropertyTenants() {
                   onStartSetup={() => setShowTenancyWizard(true)}
                   onSendInvitation={handleSendInvitation}
                   onCancelSetup={handleCancelSetup}
+                  onResendInvitation={handleResendInvitation}
                   isDeleting={deleteRequirement.isPending}
+                  isResending={inviteMutation.isPending}
                 />
               </TabsContent>
 
