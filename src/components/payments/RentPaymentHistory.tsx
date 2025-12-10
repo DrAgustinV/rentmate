@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -152,138 +151,122 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="py-12">
-          <div className="flex flex-col items-center justify-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="py-8 flex flex-col items-center justify-center gap-4">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
+      </div>
     );
   }
 
   const hasPayments = payments.length > 0;
 
   return (
-    <div className="space-y-6">
-      {/* Unified Rent Payments List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            {t("propertyHub.rentPayments")}
-          </CardTitle>
-          <CardDescription>{t("payments.paymentHistoryDesc")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {!hasPayments ? (
-            <EmptyState
-              icon={DollarSign}
-              title={t("payments.emptyStates.noHistory")}
-              description={hasRentAgreement ? t("payments.emptyStates.noPaymentsDesc") : t("payments.emptyStates.waitingForAgreement")}
-              variant="info"
-            />
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("common.dueDate")}</TableHead>
-                    <TableHead>{t("common.amount")}</TableHead>
-                    <TableHead>{t("common.status")}</TableHead>
-                    <TableHead>{t("common.actions")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>
-                        {format(new Date(payment.payment_due_date), 'PP')}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {formatCurrency(payment.amount_cents, payment.currency)}
-                      </TableCell>
-                      <TableCell>
-                        {getSimpleStatusBadge(payment.status)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {/* Tenant: Upload proof for unpaid payments */}
-                          {!isManager && payment.status !== 'paid' && !payment.proof_of_payment_url && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedPaymentId(payment.id);
-                                setUploadDialogOpen(true);
-                              }}
-                            >
-                              <Upload className="h-4 w-4 mr-2" />
-                              {t("payments.uploadProofBtn")}
-                            </Button>
+    <div className="space-y-4">
+      {!hasPayments ? (
+        <EmptyState
+          icon={DollarSign}
+          title={t("payments.emptyStates.noHistory")}
+          description={hasRentAgreement ? t("payments.emptyStates.noPaymentsDesc") : t("payments.emptyStates.waitingForAgreement")}
+          variant="info"
+        />
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("common.dueDate")}</TableHead>
+                <TableHead>{t("common.amount")}</TableHead>
+                <TableHead>{t("common.status")}</TableHead>
+                <TableHead>{t("common.actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {payments.map((payment) => (
+                <TableRow key={payment.id}>
+                  <TableCell>
+                    {format(new Date(payment.payment_due_date), 'PP')}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {formatCurrency(payment.amount_cents, payment.currency)}
+                  </TableCell>
+                  <TableCell>
+                    {getSimpleStatusBadge(payment.status)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      {/* Tenant: Upload proof for unpaid payments */}
+                      {!isManager && payment.status !== 'paid' && !payment.proof_of_payment_url && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedPaymentId(payment.id);
+                            setUploadDialogOpen(true);
+                          }}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          {t("payments.uploadProofBtn")}
+                        </Button>
+                      )}
+                      {/* Manager: Review proof */}
+                      {isManager && payment.proof_of_payment_url && !payment.manager_reviewed && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setReviewPayment(payment);
+                            setReviewDialogOpen(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          {t("payments.reviewBtn")}
+                        </Button>
+                      )}
+                      {/* Manager: Mark as paid */}
+                      {isManager && payment.status !== 'paid' && !payment.proof_of_payment_url && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleMarkAsPaid(payment.id)}
+                          disabled={marking === payment.id}
+                        >
+                          {marking === payment.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            t("payments.markPaidBtn")
                           )}
-                          {/* Manager: Review proof */}
-                          {isManager && payment.proof_of_payment_url && !payment.manager_reviewed && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setReviewPayment(payment);
-                                setReviewDialogOpen(true);
-                              }}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              {t("payments.reviewBtn")}
-                            </Button>
+                        </Button>
+                      )}
+                      {/* Manager: Retry failed payment */}
+                      {isManager && payment.status === 'failed' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRetryPayment(payment.id)}
+                          disabled={retrying === payment.id}
+                        >
+                          {retrying === payment.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Retry
+                            </>
                           )}
-                          {/* Manager: Mark as paid */}
-                          {isManager && payment.status !== 'paid' && !payment.proof_of_payment_url && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleMarkAsPaid(payment.id)}
-                              disabled={marking === payment.id}
-                            >
-                              {marking === payment.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                t("payments.markPaidBtn")
-                              )}
-                            </Button>
-                          )}
-                          {/* Manager: Retry failed payment */}
-                          {isManager && payment.status === 'failed' && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleRetryPayment(payment.id)}
-                              disabled={retrying === payment.id}
-                            >
-                              {retrying === payment.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <>
-                                  <RefreshCw className="h-4 w-4 mr-2" />
-                                  Retry
-                                </>
-                              )}
-                            </Button>
-                          )}
-                          {/* No actions for paid payments */}
-                          {payment.status === 'paid' && (
-                            <span className="text-sm text-muted-foreground">—</span>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                        </Button>
+                      )}
+                      {/* No actions for paid payments */}
+                      {payment.status === 'paid' && (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {/* Upload Proof Dialog */}
       {selectedPaymentId && (
