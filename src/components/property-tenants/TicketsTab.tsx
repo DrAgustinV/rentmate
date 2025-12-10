@@ -4,21 +4,26 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Pencil, AlertCircle } from "lucide-react";
+import { Plus, Pencil, AlertCircle, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTickets } from "@/hooks/useTickets";
+import { useTenancyStarted } from "@/hooks/useTenancyStarted";
 import { CreateTicketDialog } from "@/components/CreateTicketDialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TicketsTabProps {
   propertyId: string;
+  tenancyId?: string;
 }
 
-export function TicketsTab({ propertyId }: TicketsTabProps) {
+export function TicketsTab({ propertyId, tenancyId }: TicketsTabProps) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  
+  const { isStarted, formattedStartDate, isLoading: tenancyLoading } = useTenancyStarted(propertyId, tenancyId);
   
   const { data, isLoading } = useTickets({
     propertyId,
@@ -35,7 +40,7 @@ export function TicketsTab({ propertyId }: TicketsTabProps) {
     cancelled: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
   };
 
-  if (isLoading) {
+  if (isLoading || tenancyLoading) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4">
@@ -53,6 +58,14 @@ export function TicketsTab({ propertyId }: TicketsTabProps) {
 
   return (
     <div className="space-y-4">
+      {/* Notice when tenancy hasn't started */}
+      {!isStarted && formattedStartDate && (
+        <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+          <Clock className="h-4 w-4 flex-shrink-0" />
+          <span>{t("tickets.availableAfterStart")} {formattedStartDate}</span>
+        </div>
+      )}
+
       {/* Header with filter and New Ticket button */}
       <div className="flex items-center justify-between gap-4">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -67,10 +80,27 @@ export function TicketsTab({ propertyId }: TicketsTabProps) {
           </SelectContent>
         </Select>
         
-        <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t("tickets.newTicket")}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button 
+                  size="sm" 
+                  onClick={() => setCreateDialogOpen(true)}
+                  disabled={!isStarted}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t("tickets.newTicket")}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!isStarted && formattedStartDate && (
+              <TooltipContent>
+                <p>{t("tickets.availableAfterStart")} {formattedStartDate}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
       
       {/* Tickets table */}
