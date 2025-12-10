@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -59,33 +61,15 @@ interface TenancyDocument {
 }
 
 interface TenantsTabProps {
-  activeTenants: Tenant[] | undefined;
-  invitations: Invitation[] | undefined;
-  tenancyHistory: Tenant[] | undefined;
+  propertyId: string;
+  propertyCountry?: string;
   userRole: { isManager: boolean } | undefined;
   isReadOnly: boolean;
-  email: string;
-  setEmail: (email: string) => void;
-  showInviteForm: boolean;
-  setShowInviteForm: (show: boolean) => void;
+  currentTenant: Tenant | null;
   setRemovingTenant: (tenant: Tenant | null) => void;
   setEditingTenant: (tenant: Tenant | null) => void;
   setCancellingInvitation: (invitation: Invitation | null) => void;
   onEndTenancy?: (tenant: Tenant) => void;
-  onInviteTenant: (email: string) => void;
-  invitePending: boolean;
-  currentTenant: Tenant | null;
-  propertyCount: number | undefined;
-  maxPropertiesLimit: number;
-  tenancyDocsMap: Record<string, TenancyDocument[]>;
-  expandedTenancyId: string | null;
-  setExpandedTenancyId: (id: string | null) => void;
-  loadTenancyDocuments: (tenancyId: string) => Promise<void>;
-  downloadDocument: (doc: TenancyDocument) => Promise<void>;
-  openDocument?: (doc: TenancyDocument) => Promise<void>;
-  propertyId: string;
-  propertyCountry?: string;
-  templates?: Array<{ id: string; document_title: string }>;
   // Tenancy setup props
   pendingRequirement?: TenancyRequirement | null;
   canSetupNewTenancy?: boolean;
@@ -97,33 +81,15 @@ interface TenantsTabProps {
 }
 
 export function TenantsTab({
-  activeTenants,
-  invitations,
-  tenancyHistory,
+  propertyId,
+  propertyCountry,
   userRole,
   isReadOnly,
-  email,
-  setEmail,
-  showInviteForm,
-  setShowInviteForm,
+  currentTenant,
   setRemovingTenant,
   setEditingTenant,
   setCancellingInvitation,
   onEndTenancy,
-  onInviteTenant,
-  invitePending,
-  currentTenant,
-  propertyCount,
-  maxPropertiesLimit,
-  tenancyDocsMap,
-  expandedTenancyId,
-  setExpandedTenancyId,
-  loadTenancyDocuments,
-  downloadDocument,
-  openDocument,
-  propertyId,
-  propertyCountry,
-  templates = [],
   // Tenancy setup props
   pendingRequirement,
   canSetupNewTenancy,
@@ -135,6 +101,133 @@ export function TenantsTab({
 }: TenantsTabProps) {
   const { t } = useLanguage();
   const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
+  const [expandedTenancyId, setExpandedTenancyId] = useState<string | null>(null);
+  const [tenancyDocsMap, setTenancyDocsMap] = useState<Record<string, TenancyDocument[]>>({});
+  const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
+
+  // Lazy-loaded queries - only fetched when TenantsTab is rendered
+  const { data: activeTenants, isLoading: tenantsLoading } = useQuery({
+    queryKey: ["active-tenants", propertyId],
+    queryFn: async () => {
+      const { data: tenancies, error: tenanciesError } = await supabase
+        .from("property_tenants")
+        .select("id, tenant_id, tenancy_status, started_at, ended_at, planned_ending_date, notes")
+        .eq("property_id", propertyId)
+        .in("tenancy_status", ["active", "ending_tenancy"])
+        .order("started_at", { ascending: false });
+
+      if (tenanciesError) throw tenanciesError;
+      if (!tenancies || tenancies.length === 0) return [];
+
+      const tenantIds = tenancies.map(t => t.tenant_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name, avatar_url, kyc_status")
+        .in("id", tenantIds);
+
+      if (profilesError) throw profilesError;
+
+      return tenancies.map((tenancy) => {
+        const profile = profiles?.find(p => p.id === tenancy.tenant_id);
+        return {
+          ...tenancy,
+          email: profile?.email || "Unknown",
+          first_name: profile?.first_name || null,
+          last_name: profile?.last_name || null,
+          avatar_url: profile?.avatar_url || null,
+          kyc_status: profile?.kyc_status || null,
+        } as Tenant;
+      });
+    },
+    enabled: !!propertyId,
+  });
+
+  const { data: invitations } = useQuery({
+    queryKey: ["invitations", propertyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invitations")
+        .select("*")
+        .eq("property_id", propertyId)
+        .eq("status", "pending")
+        .gt("expires_at", new Date().toISOString());
+      if (error) throw error;
+      return data as Invitation[];
+    },
+    enabled: !!propertyId && userRole?.isManager,
+  });
+
+  const { data: tenancyHistory } = useQuery({
+    queryKey: ["tenancy-history", propertyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("property_tenants")
+        .select(`
+          id,
+          tenant_id,
+          tenancy_status,
+          started_at,
+          ended_at,
+          profiles!property_tenants_tenant_id_fkey (
+            email,
+            first_name,
+            last_name
+          )
+        `)
+        .eq("property_id", propertyId)
+        .in("tenancy_status", ["ending_tenancy", "historic"])
+        .order("started_at", { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      return data.map((item: any) => {
+        const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+        return {
+          ...item,
+          email: profile?.email || "Unknown",
+          first_name: profile?.first_name || null,
+          last_name: profile?.last_name || null,
+        } as Tenant;
+      });
+    },
+    enabled: !!propertyId && userRole?.isManager,
+  });
+
+  const { data: propertyCount } = useQuery({
+    queryKey: ["property-count"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+      const { count, error } = await supabase
+        .from("properties")
+        .select("*", { count: "exact", head: true })
+        .eq("manager_id", user.id)
+        .eq("status", "active");
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: userRole?.isManager,
+  });
+
+  // Fetch property limit setting
+  useQuery({
+    queryKey: ["max-properties-limit"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("system_settings")
+        .select("setting_value")
+        .eq("setting_key", "max_active_properties_per_user")
+        .maybeSingle();
+
+      if (!error && data) {
+        const limit = parseInt((data.setting_value as any).value);
+        setMaxPropertiesLimit(limit);
+        return limit;
+      }
+      return 5;
+    },
+    enabled: userRole?.isManager,
+  });
 
   // Load signed URLs for tenant avatars
   useEffect(() => {
@@ -158,6 +251,68 @@ export function TenantsTab({
     loadAvatarUrls();
   }, [activeTenants]);
 
+  const loadTenancyDocuments = async (tenancyId: string) => {
+    if (tenancyDocsMap[tenancyId]) return;
+
+    const { data, error } = await supabase
+      .from("property_documents")
+      .select("*")
+      .eq("tenancy_id", tenancyId)
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      setTenancyDocsMap((prev) => ({ ...prev, [tenancyId]: data as TenancyDocument[] }));
+    }
+  };
+
+  const downloadDocument = async (doc: TenancyDocument) => {
+    try {
+      const { data, error } = await supabase.storage.from('property-documents').download(doc.file_path);
+      if (error) throw error;
+      
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error('Download error:', error);
+    }
+  };
+
+  const VIEWABLE_EXTENSIONS = ['.pdf', '.txt', '.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'];
+
+  const openDocument = async (doc: TenancyDocument) => {
+    const extension = doc.file_name.toLowerCase().substring(doc.file_name.lastIndexOf('.'));
+    const isViewable = VIEWABLE_EXTENSIONS.includes(extension);
+    
+    if (isViewable) {
+      const newWindow = window.open('', '_blank');
+      
+      try {
+        const { data, error } = await supabase.storage
+          .from("property-documents")
+          .createSignedUrl(doc.file_path, 3600);
+        
+        if (error || !data?.signedUrl) {
+          newWindow?.close();
+          return;
+        }
+        
+        if (newWindow) {
+          newWindow.location.href = data.signedUrl;
+        }
+      } catch (error: any) {
+        newWindow?.close();
+      }
+    } else {
+      downloadDocument(doc);
+    }
+  };
+
   const getTenantName = (tenant: Tenant) => {
     if (tenant.first_name && tenant.last_name) {
       return `${tenant.first_name} ${tenant.last_name}`;
@@ -171,6 +326,15 @@ export function TenantsTab({
     const last = tenant.last_name?.charAt(0) || "";
     return (first + last).toUpperCase() || tenant.email.charAt(0).toUpperCase();
   };
+
+  if (tenantsLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-20 w-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -373,11 +537,9 @@ export function TenantsTab({
                                   </p>
                                 </div>
                                 <div className="flex gap-1">
-                                  {openDocument && (
-                                    <Button variant="outline" size="sm" onClick={() => openDocument(doc)} title={t("common.open")}>
-                                      <Eye className="h-4 w-4" />
-                                    </Button>
-                                  )}
+                                  <Button variant="outline" size="sm" onClick={() => openDocument(doc)} title={t("common.open")}>
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
                                   <Button variant="ghost" size="sm" onClick={() => downloadDocument(doc)} title={t("common.download")}>
                                     <Download className="h-4 w-4" />
                                   </Button>
