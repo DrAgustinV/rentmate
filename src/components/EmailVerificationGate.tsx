@@ -17,6 +17,7 @@ const PUBLIC_ROUTES = [
   "/auth",
   "/reset-password",
   "/verify-email",
+  "/invitations",
   "/about",
   "/terms",
   "/privacy",
