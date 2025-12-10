@@ -2877,6 +2877,10 @@ export type Database = {
         Args: { _profile_id: string; _viewer_id: string }
         Returns: boolean
       }
+      check_email_has_account: {
+        Args: { check_email: string }
+        Returns: boolean
+      }
       generate_rent_payments: {
         Args: { p_agreement_id: string; p_months_ahead?: number }
         Returns: number

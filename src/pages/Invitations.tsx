@@ -108,16 +108,11 @@ export default function Invitations() {
           return;
         }
 
-        // Check if email exists in profiles (using invitations_safe view to bypass RLS)
-        const { data: existingUsers } = await supabase
-          .from("invitations_safe")
-          .select("invited_user_id, email")
-          .eq("email", invitation.email)
-          .not("invited_user_id", "is", null)
-          .limit(1);
+        // Check if email has an existing account using SECURITY DEFINER function
+        const { data: hasAccount } = await supabase
+          .rpc('check_email_has_account', { check_email: invitation.email });
 
         // Determine mode based on whether user exists
-        const hasAccount = existingUsers && existingUsers.length > 0;
         const mode = hasAccount ? 'signin' : 'signup';
         
         // Redirect to auth with appropriate mode and detection flag
