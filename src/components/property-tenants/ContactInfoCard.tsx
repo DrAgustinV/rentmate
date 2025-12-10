@@ -86,7 +86,7 @@ export function ContactInfoCard({
     // Empty state for managers
     if (!currentTenant) {
       return (
-        <Card>
+        <Card className="card-shine">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <User className="h-4 w-4" />
@@ -118,7 +118,7 @@ export function ContactInfoCard({
     };
 
     return (
-      <Card>
+      <Card className="card-shine">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <User className="h-4 w-4" />
@@ -192,7 +192,7 @@ export function ContactInfoCard({
   // Tenant view: show manager info
   if (managerLoading) {
     return (
-      <Card>
+      <Card className="card-shine">
         <CardHeader>
           <Skeleton className="h-5 w-40" />
         </CardHeader>
@@ -206,7 +206,7 @@ export function ContactInfoCard({
   // Empty state for tenants
   if (!managerInfo) {
     return (
-      <Card>
+      <Card className="card-shine">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <User className="h-4 w-4" />
@@ -238,7 +238,7 @@ export function ContactInfoCard({
   };
 
   return (
-    <Card>
+    <Card className="card-shine">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <User className="h-4 w-4" />

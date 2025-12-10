@@ -153,7 +153,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="card-shine">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -316,7 +316,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
 
       {/* Archive Property Section - Manager Only */}
       {userRole?.isManager && property?.status === "active" && (
-        <Card className="border-destructive/50">
+        <Card className="card-shine border-destructive/50">
           <CardHeader>
             <CardTitle className="text-destructive">{t("properties.archiveProperty")}</CardTitle>
             <CardDescription>{t("properties.archivePropertyDesc")}</CardDescription>

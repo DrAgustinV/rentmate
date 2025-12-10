@@ -179,6 +179,11 @@ All colors MUST be HSL.
     @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
   }
   
+  .card-shine {
+    @apply transition-all duration-300 ease-out;
+    @apply hover:shadow-md hover:border-primary/20 hover:-translate-y-0.5;
+  }
+  
   .shimmer {
     background: linear-gradient(
       90deg,

@@ -210,7 +210,7 @@ export function RentalTermsCard({
   }
 
   return (
-    <Card className={getCardStyles()}>
+    <Card className={`card-shine ${getCardStyles()}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">

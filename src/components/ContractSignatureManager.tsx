@@ -318,7 +318,7 @@ export const ContractSignatureManager = ({
   // Handle "none" contract method - show simple message
   if (contractMethod === 'none') {
     return (
-      <Card>
+      <Card className="card-shine">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {methodDisplay.icon}
@@ -343,7 +343,7 @@ export const ContractSignatureManager = ({
   // Handle "manual" contract method - show upload instructions
   if (contractMethod === 'manual' && !signature) {
     return (
-      <Card>
+      <Card className="card-shine">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {methodDisplay.icon}
@@ -368,7 +368,7 @@ export const ContractSignatureManager = ({
   // No signature exists yet - show initiation UI for digital signatures
   if (!signature) {
     return (
-      <Card>
+      <Card className="card-shine">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {methodDisplay.icon}
@@ -447,7 +447,7 @@ export const ContractSignatureManager = ({
   const isQualifiedSignature = ['yousign'].includes(signature.signing_method_provider || '');
 
   return (
-    <Card>
+    <Card className="card-shine">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileSignature className="h-5 w-5" />
