@@ -477,19 +477,7 @@ export const ContractSignatureManager = ({
         )}
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Cancel Signature Button - Only for managers when signature is in progress */}
-        {!isCompleted && isManager && (
-          <Button
-            variant="outline"
-            onClick={handleCancelSignature}
-            className="w-full"
-          >
-            <X className="h-4 w-4 mr-2" />
-            {t('contractSignature.cancelAndRestart') || 'Cancel and Restart'}
-          </Button>
-        )}
-
-        {/* Qualified Signature Flow */}
+        {/* Qualified Signature Flow with integrated Cancel button */}
         {isQualifiedSignature && !isCompleted && showSigningForm && (
           <QualifiedSignatureFlow
             tenancyId={tenancyId}
@@ -500,6 +488,7 @@ export const ContractSignatureManager = ({
               loadSignature();
               onRefresh?.();
             }}
+            onCancel={isManager ? handleCancelSignature : undefined}
           />
         )}
 
