@@ -77,6 +77,8 @@ export function useTenancyRequirements(propertyId: string) {
       return data as TenancyRequirement[];
     },
     enabled: !!propertyId,
+    staleTime: 0, // Always refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
   });
 
   const createRequirement = useMutation({
