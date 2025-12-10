@@ -84,6 +84,12 @@ export const ContractSignatureManager = ({
   });
 
   const loadSignature = async () => {
+    // Guard: don't fetch if tenancyId is empty
+    if (!tenancyId) {
+      setInitialized(true);
+      return null;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('contract_signatures')
@@ -107,6 +113,8 @@ export const ContractSignatureManager = ({
         if (doc) {
           setSourceDocument(doc);
         }
+      } else {
+        setSourceDocument(null);
       }
       
       // Initialize form visibility based on current user's signature status
@@ -119,15 +127,23 @@ export const ContractSignatureManager = ({
       return data;
     } catch (error) {
       console.error('Error loading signature:', error);
+      setInitialized(true);
       return null;
     }
   };
 
+  // Re-fetch when tenancyId changes (e.g., from empty to valid UUID)
   useEffect(() => {
-    if (!initialized) {
+    // Reset state when tenancyId changes
+    setSignature(null);
+    setSourceDocument(null);
+    setInitialized(false);
+    setSelectedDocumentId('');
+    
+    if (tenancyId) {
       loadSignature();
     }
-  }, [initialized]);
+  }, [tenancyId]);
 
   const handleInitiateSignature = async () => {
     if (!canCreateSignature) {
