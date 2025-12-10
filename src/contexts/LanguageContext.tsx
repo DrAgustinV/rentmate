@@ -1,5 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { translations, Language } from '@/lib/i18n/translations';
+import { translations, Language, Translations } from '@/lib/i18n/translations';
+import { en } from '@/lib/i18n/translations/en';
 import { useUserPreferences } from './UserPreferencesContext';
 
 interface LanguageContextType {
@@ -10,30 +11,34 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// Helper to get nested value from object
+const getNestedValue = (obj: any, keys: string[]): string | undefined => {
+  let value = obj;
+  for (const k of keys) {
+    value = value?.[k];
+    if (value === undefined) break;
+  }
+  return typeof value === 'string' ? value : undefined;
+};
+
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const { preferences, updatePreferences } = useUserPreferences();
   const language = (preferences?.language || 'en') as Language;
 
   const t = (key: string): string => {
     const keys = key.split('.');
-    let value: any = translations[language];
     
-    for (const k of keys) {
-      value = value?.[k];
-      if (value === undefined) break;
+    // Try current language first
+    const currentLangTranslations = translations[language];
+    const value = getNestedValue(currentLangTranslations, keys);
+    
+    if (value !== undefined) {
+      return value;
     }
     
-    // Fallback to English if translation missing
-    if (value === undefined) {
-      let fallback: any = translations.en;
-      for (const k of keys) {
-        fallback = fallback?.[k];
-        if (fallback === undefined) break;
-      }
-      return fallback || key;
-    }
-    
-    return value;
+    // Fallback to English
+    const fallback = getNestedValue(en, keys);
+    return fallback || key;
   };
 
   const changeLanguage = async (lang: Language) => {

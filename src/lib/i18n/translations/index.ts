@@ -2,19 +2,31 @@
 import { en } from './en';
 import { es } from './es';
 
-// Static exports for backward compatibility
-export const translations = { en, es };
-
-export type Language = keyof typeof translations;
+// Type for translations - use English as the canonical type
 export type Translations = typeof en;
 
+// Partial translations type for non-English languages
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+export type PartialTranslations = DeepPartial<Translations>;
+
+// Static exports for backward compatibility
+export const translations: Record<string, PartialTranslations> = { 
+  en: en as PartialTranslations, 
+  es: es as PartialTranslations 
+};
+
+export type Language = 'en' | 'es';
+
 // Cache for loaded translations
-const translationCache: Partial<Record<Language, Translations>> = {
+const translationCache: Partial<Record<Language, PartialTranslations>> = {
   en, // Preload English as default
 };
 
 // Lazy load translation for a specific language
-export const loadTranslation = async (lang: Language): Promise<Translations> => {
+export const loadTranslation = async (lang: Language): Promise<PartialTranslations> => {
   // Return from cache if available
   if (translationCache[lang]) {
     return translationCache[lang]!;
@@ -33,7 +45,7 @@ export const loadTranslation = async (lang: Language): Promise<Translations> => 
 };
 
 // Get translation synchronously (from cache or fallback to English)
-export const getTranslation = (lang: Language): Translations => {
+export const getTranslation = (lang: Language): PartialTranslations => {
   return translationCache[lang] || en;
 };
 
