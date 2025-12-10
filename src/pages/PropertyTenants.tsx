@@ -29,7 +29,6 @@ import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { ContractsTab } from '@/components/property-tenants/ContractsTab';
 import { PaymentsTab } from '@/components/property-tenants/PaymentsTab';
 import { TicketsTab } from '@/components/property-tenants/TicketsTab';
-import { UtilitiesTab } from '@/components/property-tenants/UtilitiesTab';
 import { OverviewTab } from '@/components/property-hub/OverviewTab';
 import { useTenancyRequirements, CreateTenancyRequirementInput, TenancyRequirement } from '@/hooks/useTenancyRequirements';
 import { CreateTenancyWizard } from '@/components/CreateTenancyWizard';
@@ -573,11 +572,10 @@ export default function PropertyTenants() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">{t("propertyHub.overview")}</TabsTrigger>
                 <TabsTrigger value="contracts">{t("propertyTenants.tabs.contracts")}</TabsTrigger>
                 <TabsTrigger value="payments">{t("propertyTenants.tabs.payments")}</TabsTrigger>
-                <TabsTrigger value="utilities">{t("propertyTenants.tabs.utilities")}</TabsTrigger>
                 <TabsTrigger value="tickets">{t("propertyTenants.tabs.tickets")}</TabsTrigger>
               </TabsList>
 
@@ -623,14 +621,6 @@ export default function PropertyTenants() {
                   currentTenant={currentTenant}
                   propertyId={propertyId!}
                   userRole={userRole}
-                />
-              </TabsContent>
-
-              <TabsContent value="utilities" className="mt-6">
-                <UtilitiesTab
-                  currentTenant={currentTenant}
-                  propertyId={propertyId!}
-                  userRole={userRole?.isManager ? 'manager' : 'tenant'}
                 />
               </TabsContent>
 
