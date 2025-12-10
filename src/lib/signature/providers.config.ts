@@ -1,5 +1,10 @@
 /**
  * Frontend UI Configuration for Signature Providers
+ * 
+ * ⚠️ CRITICAL: Never use vendor names in UI-visible strings!
+ * Use ONLY generic terms: "Digital Signature", "Manual / Paper", "Skip"
+ * Vendor names (YouSign, DocuSeal, Didit, etc.) stay in backend code only.
+ * Legal pages (Privacy, Cookie Policy, DPA) are the ONLY exception.
  */
 
 import { Shield, FileSignature } from "lucide-react";
@@ -82,9 +87,9 @@ const OpenAPIUI: SignatureProviderUIConfig = {
  */
 const YouSignUI: SignatureProviderUIConfig = {
   code: 'yousign',
-  name: 'YouSign',
-  displayName: 'YouSign (EU)',
-  description: 'Professional e-signature platform for EU contracts with email-based signing',
+  name: 'Digital Signature',
+  displayName: 'Digital Signature',
+  description: 'Legally binding electronic signature',
   icon: FileSignature,
   installationGuideUrl: 'https://yousign.com/',
   
