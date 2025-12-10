@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   Upload,
   Copy,
@@ -15,7 +19,7 @@ import { cn } from "@/lib/utils";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
 import { ContractSignatureManager } from "@/components/ContractSignatureManager";
-import { UseQueryResult } from "@tanstack/react-query";
+import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
 
 interface Tenant {
   id: string;
@@ -46,47 +50,53 @@ interface TenancyDocument {
 interface ContractsTabProps {
   currentTenant: Tenant | null;
   propertyId: string;
-  tenancyDocuments: TenancyDocument[] | undefined;
-  groupedDocuments: Record<string, TenancyDocument[]> | undefined;
   userRole: { isManager: boolean } | undefined;
   isReadOnly: boolean;
-  uploadDocumentOpen: boolean;
-  setUploadDocumentOpen: (open: boolean) => void;
-  copyTemplatesOpen: boolean;
-  setCopyTemplatesOpen: (open: boolean) => void;
-  selectedParentDoc: { id: string; title: string } | null;
-  setSelectedParentDoc: (doc: { id: string; title: string } | null) => void;
-  expandedDocuments: Set<string>;
-  toggleDocumentExpansion: (title: string) => void;
-  refetchDocuments: () => void;
-  downloadDocument: (doc: TenancyDocument) => Promise<void>;
-  openDocument: (doc: TenancyDocument) => Promise<void>;
-  deleteDocumentMutation: { mutate: (id: string) => void };
-  onRefreshContract: () => void;
 }
 
 export function ContractsTab({
   currentTenant,
   propertyId,
-  tenancyDocuments,
-  groupedDocuments,
   userRole,
   isReadOnly,
-  uploadDocumentOpen,
-  setUploadDocumentOpen,
-  copyTemplatesOpen,
-  setCopyTemplatesOpen,
-  selectedParentDoc,
-  setSelectedParentDoc,
-  expandedDocuments,
-  toggleDocumentExpansion,
-  refetchDocuments,
-  downloadDocument,
-  openDocument,
-  deleteDocumentMutation,
-  onRefreshContract,
 }: ContractsTabProps) {
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
+  
+  const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
+  const [copyTemplatesOpen, setCopyTemplatesOpen] = useState(false);
+  const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
+  const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
+
+  // Lazy-loaded query - only fetched when ContractsTab is rendered
+  const { data: tenancyDocuments, isLoading: docsLoading, refetch: refetchDocuments } = useQuery({
+    queryKey: ["tenancy-documents", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant) return [];
+      const { data, error } = await supabase
+        .from("property_documents")
+        .select("*")
+        .eq("tenancy_id", currentTenant.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as TenancyDocument[];
+    },
+    enabled: !!currentTenant,
+  });
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async (docId: string) => {
+      const { error } = await supabase.from("property_documents").delete().eq("id", docId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("properties.propertyDocuments.deleteSuccess"));
+      refetchDocuments();
+    },
+    onError: (error: any) => {
+      toast.error(t("properties.propertyDocuments.deleteFailed"));
+    },
+  });
 
   const formatFileSize = (bytes: number) => {
     return `${(bytes / 1024).toFixed(2)} KB`;
@@ -96,11 +106,98 @@ export function ContractsTab({
     return doc.uploaded_by ? "User" : "Unknown";
   };
 
+  const toggleDocumentExpansion = (docTitle: string) => {
+    setExpandedDocuments((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(docTitle)) {
+        newSet.delete(docTitle);
+      } else {
+        newSet.add(docTitle);
+      }
+      return newSet;
+    });
+  };
+
+  const downloadDocument = async (doc: TenancyDocument) => {
+    try {
+      const { data, error } = await supabase.storage.from('property-documents').download(doc.file_path);
+      if (error) throw error;
+      
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      toast.error(t("common.error"));
+    }
+  };
+
+  const VIEWABLE_EXTENSIONS = ['.pdf', '.txt', '.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'];
+
+  const openDocument = async (doc: TenancyDocument) => {
+    const extension = doc.file_name.toLowerCase().substring(doc.file_name.lastIndexOf('.'));
+    const isViewable = VIEWABLE_EXTENSIONS.includes(extension);
+    
+    if (isViewable) {
+      const newWindow = window.open('', '_blank');
+      
+      try {
+        const { data, error } = await supabase.storage
+          .from("property-documents")
+          .createSignedUrl(doc.file_path, 3600);
+        
+        if (error || !data?.signedUrl) {
+          newWindow?.close();
+          toast.error(t("properties.openError"));
+          return;
+        }
+        
+        if (newWindow) {
+          newWindow.location.href = data.signedUrl;
+        }
+      } catch (error: any) {
+        newWindow?.close();
+        toast.error(t("properties.openError"));
+      }
+    } else {
+      downloadDocument(doc);
+    }
+  };
+
+  // Group documents by title
+  const groupedDocuments = tenancyDocuments?.reduce((acc, doc) => {
+    if (!acc[doc.document_title]) {
+      acc[doc.document_title] = [];
+    }
+    acc[doc.document_title].push(doc);
+    return acc;
+  }, {} as Record<string, TenancyDocument[]>);
+
+  // Sort versions within each group
+  if (groupedDocuments) {
+    Object.keys(groupedDocuments).forEach((title) => {
+      groupedDocuments[title].sort((a, b) => b.version - a.version);
+    });
+  }
+
   if (!currentTenant) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <p>{t("dialogs.manageTenants.noTenants")}</p>
         <p className="text-sm mt-2">{t("properties.inviteTenantToGetStarted")}</p>
+      </div>
+    );
+  }
+
+  if (docsLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-20 w-full" />
       </div>
     );
   }
@@ -113,7 +210,7 @@ export function ContractsTab({
           tenancyId={currentTenant.id}
           propertyId={propertyId}
           isManager={userRole?.isManager || false}
-          onRefresh={onRefreshContract}
+          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
         />
       </div>
 
@@ -273,6 +370,14 @@ export function ContractsTab({
           <p className="text-sm text-muted-foreground">{t("properties.noTenancyDocuments")}</p>
         )}
       </div>
+
+      {/* Copy Templates Dialog */}
+      <CopyTemplatesDialog
+        open={copyTemplatesOpen}
+        onOpenChange={setCopyTemplatesOpen}
+        propertyId={propertyId}
+        tenancyId={currentTenant.id}
+      />
     </div>
   );
 }

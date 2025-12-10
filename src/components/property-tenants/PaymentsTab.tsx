@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,6 +7,8 @@ import { CreateRentAgreementDrawer } from "@/components/CreateRentAgreementDrawe
 import { EditRentAgreementDrawer } from "@/components/EditRentAgreementDrawer";
 import { RentPaymentHistory } from "@/components/payments/RentPaymentHistory";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useRentAgreements } from "@/hooks/useRentAgreements";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Tenant {
   id: string;
@@ -19,30 +22,37 @@ interface Tenant {
   notes: string | null;
 }
 
-interface ContractSignature {
-  tenancy_id: string;
-  workflow_status: string;
-}
-
 interface PaymentsTabProps {
   currentTenant: Tenant | null;
   propertyId: string;
   userRole: { isManager: boolean } | undefined;
-  rentAgreements: any[] | undefined;
-  agreementsLoading: boolean;
-  contractSignatures: ContractSignature[] | undefined;
 }
 
 export function PaymentsTab({
   currentTenant,
   propertyId,
   userRole,
-  rentAgreements,
-  agreementsLoading,
-  contractSignatures,
 }: PaymentsTabProps) {
   const { t } = useLanguage();
   const isManager = userRole?.isManager || false;
+
+  // Lazy-loaded queries - only fetched when PaymentsTab is rendered
+  const { data: rentAgreements, isLoading: agreementsLoading } = useRentAgreements(propertyId);
+
+  const { data: contractSignatures } = useQuery({
+    queryKey: ['contract-signatures', propertyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contract_signatures')
+        .select('tenancy_id, workflow_status')
+        .eq('property_id', propertyId)
+        .in('workflow_status', ['pending', 'in_progress']);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!propertyId,
+  });
 
   console.log('[PaymentsTab] Rendering with:', {
     currentTenant: currentTenant?.id,
