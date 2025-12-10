@@ -37,7 +37,7 @@ const formSchema = z.object({
   require_email_verification: z.boolean().default(true),
   require_kyc_verification: z.boolean().default(false),
   require_phone_verification: z.boolean().default(false),
-  contract_method: z.enum(['docuseal', 'yousign', 'manual', 'none']),
+  contract_method: z.enum(['digital', 'manual', 'none']),
   selected_template_id: z.string().nullable(),
   rent_amount: z.string().min(1, "Rent amount is required"),
   currency: z.string().default('EUR'),
@@ -366,13 +366,11 @@ export function CreateTenancyWizard({
                         onValueChange={field.onChange}
                         className="space-y-3"
                       >
-                        {/* DocuSeal option hidden - code retained for future use */}
-                        
                         <label className={cn(
                           "flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors",
-                          field.value === 'yousign' && "border-primary bg-primary/5"
+                          field.value === 'digital' && "border-primary bg-primary/5"
                         )}>
-                          <RadioGroupItem value="yousign" className="mt-1" />
+                          <RadioGroupItem value="digital" className="mt-1" />
                           <div className="flex-1">
                             <span className="font-medium">{t('tenancy.wizard.digitalSignature') || 'Digital Signature'}</span>
                             <p className="text-sm text-muted-foreground mt-1">
@@ -673,10 +671,9 @@ export function CreateTenancyWizard({
                       <span className="font-medium text-sm">{t('tenancy.wizard.contract') || 'Contract'}</span>
                     </div>
                     <p className="text-sm capitalize">
-                      {form.watch('contract_method') === 'docuseal' && 'Digital Signature (DocuSeal)'}
-                      {form.watch('contract_method') === 'yousign' && 'Qualified Signature (YouSign)'}
-                      {form.watch('contract_method') === 'manual' && 'Manual / Paper'}
-                      {form.watch('contract_method') === 'none' && 'Skipped'}
+                      {form.watch('contract_method') === 'digital' && (t('tenancy.wizard.digitalSignature') || 'Digital Signature')}
+                      {form.watch('contract_method') === 'manual' && (t('tenancy.wizard.manualSignature') || 'Manual / Paper')}
+                      {form.watch('contract_method') === 'none' && (t('tenancy.wizard.skipContract') || 'Skipped')}
                       {!form.watch('contract_method') && 'Not configured'}
                     </p>
                   </div>
