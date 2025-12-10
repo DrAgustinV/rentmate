@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ interface QualifiedSignatureFlowProps {
   propertyId: string;
   providerCode: string;
   onComplete: () => void;
+  onCancel?: () => void;
 }
 
 export const QualifiedSignatureFlow = ({
@@ -22,6 +23,7 @@ export const QualifiedSignatureFlow = ({
   propertyId,
   providerCode,
   onComplete,
+  onCancel,
 }: QualifiedSignatureFlowProps) => {
   const { toast } = useToast();
   const [status, setStatus] = useState<'checking' | 'not_installed' | 'ready' | 'initiating' | 'waiting' | 'otp_required'>('checking');
@@ -159,146 +161,161 @@ export const QualifiedSignatureFlow = ({
   const ProviderIcon = providerUI.icon;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ProviderIcon className="h-5 w-5" />
-          {providerUI.displayName}
-        </CardTitle>
-        <CardDescription>{providerUI.description}</CardDescription>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {status === 'checking' && (
-          <Alert>
-            <Clock className="h-4 w-4" />
-            <AlertDescription>
-              Checking if {providerUI.name} is installed...
-            </AlertDescription>
-          </Alert>
-        )}
+    <div className="space-y-4">
+      {status === 'checking' && (
+        <Alert>
+          <Clock className="h-4 w-4" />
+          <AlertDescription>
+            Checking if {providerUI.name} is installed...
+          </AlertDescription>
+        </Alert>
+      )}
 
-        {status === 'not_installed' && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="space-y-3">
-              <p className="font-semibold">
-                {providerUI.name} is not installed on your device
-              </p>
-              <p className="text-sm">
-                You need to install {providerUI.name} to sign contracts with a qualified digital signature.
-              </p>
-              <Button variant="outline" size="sm" asChild>
-                <a 
-                  href={providerUI.installationGuideUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Download {providerUI.name}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </Button>
-              <Button 
-                variant="link" 
-                size="sm" 
-                onClick={checkInstallation}
-                className="text-xs"
+      {status === 'not_installed' && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="space-y-3">
+            <p className="font-semibold">
+              {providerUI.name} is not installed on your device
+            </p>
+            <p className="text-sm">
+              You need to install {providerUI.name} to sign contracts with a qualified digital signature.
+            </p>
+            <Button variant="outline" size="sm" asChild>
+              <a 
+                href={providerUI.installationGuideUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2"
               >
-                I've installed it, check again
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
+                <Download className="h-4 w-4" />
+                Download {providerUI.name}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </Button>
+            <Button 
+              variant="link" 
+              size="sm" 
+              onClick={checkInstallation}
+              className="text-xs"
+            >
+              I've installed it, check again
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
-        {status === 'ready' && (
-          <>
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
+      {status === 'ready' && (
+        <>
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          <div className="flex gap-2">
             <Button 
               onClick={handleInitiateSignature} 
-              className="w-full"
+              className="flex-1"
               size="lg"
             >
               <FileSignature className="h-4 w-4 mr-2" />
               Sign with {providerUI.name}
             </Button>
-          </>
-        )}
-
-        {status === 'initiating' && (
-          <Alert>
-            <Clock className="h-4 w-4 animate-spin" />
-            <AlertDescription>
-              Preparing signature workflow...
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {status === 'waiting' && sessionData && (
-          <div className="space-y-4">
-            <Alert>
-              <Clock className="h-4 w-4" />
-              <AlertDescription>
-                <p className="font-semibold mb-2">Waiting for signature...</p>
-                <p className="text-sm text-muted-foreground">
-                  {providerUI.name} application should have opened. Complete the signature there.
-                </p>
-              </AlertDescription>
-            </Alert>
-
-            {sessionData.protocolUrl && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Mobile Signing</span>
-                  <Badge variant="outline">
-                    <QrCode className="h-3 w-3 mr-1" />
-                    Scan QR Code
-                  </Badge>
-                </div>
-                
-                <div className="flex justify-center p-4 bg-muted rounded-lg">
-                  <QRCodeSVG 
-                    value={sessionData.protocolUrl} 
-                    size={200}
-                    level="M"
-                  />
-                </div>
-                
-                <p className="text-xs text-center text-muted-foreground">
-                  Scan this QR code with your mobile device to continue signing
-                </p>
-              </div>
+            {onCancel && (
+              <Button 
+                variant="outline" 
+                onClick={onCancel}
+                size="lg"
+                className="flex-1"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
             )}
-
-            <Button 
-              variant="outline" 
-              onClick={() => window.location.href = sessionData.protocolUrl}
-              className="w-full"
-            >
-              Open {providerUI.name} Again
-            </Button>
           </div>
-        )}
+        </>
+      )}
 
-        {status === 'otp_required' && (
+      {status === 'initiating' && (
+        <Alert>
+          <Clock className="h-4 w-4 animate-spin" />
+          <AlertDescription>
+            Preparing signature workflow...
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {status === 'waiting' && sessionData && (
+        <div className="space-y-4">
           <Alert>
             <Clock className="h-4 w-4" />
             <AlertDescription>
-              <p className="font-semibold mb-2">Verification Code Sent</p>
+              <p className="font-semibold mb-2">Waiting for signature...</p>
               <p className="text-sm text-muted-foreground">
-                Please enter the 6-digit code sent to your phone to complete the signature.
+                {providerUI.name} application should have opened. Complete the signature there.
               </p>
             </AlertDescription>
           </Alert>
-        )}
-      </CardContent>
+
+          {sessionData.protocolUrl && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Mobile Signing</span>
+                <Badge variant="outline">
+                  <QrCode className="h-3 w-3 mr-1" />
+                  Scan QR Code
+                </Badge>
+              </div>
+              
+              <div className="flex justify-center p-4 bg-muted rounded-lg">
+                <QRCodeSVG 
+                  value={sessionData.protocolUrl} 
+                  size={200}
+                  level="M"
+                />
+              </div>
+              
+              <p className="text-xs text-center text-muted-foreground">
+                Scan this QR code with your mobile device to continue signing
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = sessionData.protocolUrl}
+              className="flex-1"
+            >
+              Open {providerUI.name} Again
+            </Button>
+            {onCancel && (
+              <Button 
+                variant="outline" 
+                onClick={onCancel}
+                className="flex-1"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {status === 'otp_required' && (
+        <Alert>
+          <Clock className="h-4 w-4" />
+          <AlertDescription>
+            <p className="font-semibold mb-2">Verification Code Sent</p>
+            <p className="text-sm text-muted-foreground">
+              Please enter the 6-digit code sent to your phone to complete the signature.
+            </p>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {showOTPDialog && sessionData && (
         <OpenAPIOTPDialog
@@ -312,6 +329,6 @@ export const QualifiedSignatureFlow = ({
           }}
         />
       )}
-    </Card>
+    </div>
   );
 };
