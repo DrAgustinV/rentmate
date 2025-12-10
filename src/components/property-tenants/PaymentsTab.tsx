@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Euro, Plus } from "lucide-react";
+import { Euro, Plus, Clock } from "lucide-react";
 import { useState } from "react";
 import { CreateRentAgreementDrawer } from "@/components/CreateRentAgreementDrawer";
 import { EditRentAgreementDrawer } from "@/components/EditRentAgreementDrawer";
@@ -12,7 +12,9 @@ import { UtilityPaymentHistory } from "@/components/payments/UtilityPaymentHisto
 import { CreateUtilityPaymentDialog } from "@/components/CreateUtilityPaymentDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRentAgreements } from "@/hooks/useRentAgreements";
+import { useTenancyStarted } from "@/hooks/useTenancyStarted";
 import { supabase } from "@/integrations/supabase/client";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Tenant {
   id: string;
@@ -40,6 +42,9 @@ export function PaymentsTab({
   const { t } = useLanguage();
   const isManager = userRole?.isManager || false;
   const [createUtilityDialogOpen, setCreateUtilityDialogOpen] = useState(false);
+
+  // Check if tenancy has started
+  const { isStarted, formattedStartDate } = useTenancyStarted(propertyId, currentTenant?.id);
 
   // Lazy-loaded queries - only fetched when PaymentsTab is rendered
   const { data: rentAgreements, isLoading: agreementsLoading } = useRentAgreements(propertyId);
@@ -71,6 +76,14 @@ export function PaymentsTab({
 
   return (
     <div className="space-y-6">
+      {/* Notice when tenancy hasn't started */}
+      {!isStarted && formattedStartDate && (
+        <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+          <Clock className="h-4 w-4 flex-shrink-0" />
+          <span>{t("payments.availableAfterStart")} {formattedStartDate}</span>
+        </div>
+      )}
+
       {/* Rent Payments Card */}
       <Card>
         <CardHeader>
@@ -145,10 +158,26 @@ export function PaymentsTab({
           <div className="flex items-center justify-between">
             <CardTitle>{t("propertyHub.utilityPayments")}</CardTitle>
             {isManager && (
-              <Button onClick={() => setCreateUtilityDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                {t("utilities.addUtilityBill")}
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button 
+                        onClick={() => setCreateUtilityDialogOpen(true)}
+                        disabled={!isStarted}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        {t("utilities.addUtilityBill")}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {!isStarted && formattedStartDate && (
+                    <TooltipContent>
+                      <p>{t("payments.availableAfterStart")} {formattedStartDate}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
         </CardHeader>

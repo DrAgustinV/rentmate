@@ -625,7 +625,7 @@ export default function PropertyTenants() {
               </TabsContent>
 
               <TabsContent value="tickets" className="mt-6">
-                <TicketsTab propertyId={propertyId!} />
+                <TicketsTab propertyId={propertyId!} tenancyId={currentTenant?.id} />
               </TabsContent>
 
             </Tabs>

@@ -527,6 +527,7 @@ export const translations = {
       resetDefaults: "Reset to Defaults",
     },
     payments: {
+      availableAfterStart: "Payment actions available after tenancy starts on",
       uploadProof: "Upload Proof of Payment",
       uploadProofDesc: "Upload a receipt, bank transfer screenshot, or other proof",
       uploadProofDescription: "Upload a receipt, bank transfer screenshot, or other proof that you made the rent payment.",
@@ -1066,6 +1067,8 @@ export const translations = {
       created: "Created",
       completedBy: "Completed By",
       noTickets: "No tickets found",
+      noTicketsWithStatus: "No tickets with this status",
+      availableAfterStart: "Tickets can be created after tenancy starts on",
       recurring: "Recurring",
       open: "Open",
       inProgress: "In Progress",
@@ -2321,6 +2324,7 @@ export const translations = {
       payments: "Pagos",
     },
     payments: {
+      availableAfterStart: "Acciones de pago disponibles después de que comience el alquiler el",
       uploadProof: "Subir Comprobante de Pago",
       uploadProofDesc: "Sube un recibo, captura de transferencia bancaria u otro comprobante",
       uploadProofDescription: "Sube un recibo, captura de transferencia bancaria u otro comprobante de que realizaste el pago del alquiler.",
@@ -2726,6 +2730,8 @@ export const translations = {
       created: "Creado",
       completedBy: "Completado Por",
       noTickets: "No se encontraron tickets",
+      noTicketsWithStatus: "No hay tickets con este estado",
+      availableAfterStart: "Los tickets se pueden crear después de que comience el alquiler el",
       recurring: "Recurrente",
       open: "Abierto",
       inProgress: "En Progreso",
