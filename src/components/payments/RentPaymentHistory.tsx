@@ -4,13 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DollarSign, CheckCircle2, Clock, AlertTriangle, Loader2, Upload, Eye, XCircle, FileImage, RefreshCw } from 'lucide-react';
+import { DollarSign, CheckCircle2, Clock, Loader2, Upload, Eye, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
+import { format } from 'date-fns';
 import { ProofOfPaymentUpload } from '@/components/ProofOfPaymentUpload';
 import { PaymentProofReview } from './PaymentProofReview';
-import { PaymentStatistics } from './PaymentStatistics';
 import { EmptyState } from '@/components/EmptyState';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -134,127 +132,23 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
     return `${symbols[currency] || currency.toUpperCase()} ${amount.toFixed(2)}`;
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return (
-          <Badge variant="default" className="flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3" />
-            {t("payments.status.paid")}
-          </Badge>
-        );
-      case 'proof_uploaded':
-        return (
-          <Badge className="bg-blue-500 hover:bg-blue-600 flex items-center gap-1">
-            <Upload className="h-3 w-3" />
-            {t("payments.status.proofUploaded")}
-          </Badge>
-        );
-      case 'pending':
-        return (
-          <Badge variant="secondary" className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {t("payments.status.pending")}
-          </Badge>
-        );
-      case 'overdue':
-        return (
-          <Badge variant="destructive" className="flex items-center gap-1">
-            <AlertTriangle className="h-3 w-3" />
-            {t("payments.status.overdue")}
-          </Badge>
-        );
-      case 'failed':
-        return (
-          <Badge variant="destructive" className="flex items-center gap-1">
-            <AlertTriangle className="h-3 w-3" />
-            {t("payments.status.failed")}
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getProofReviewBadge = (payment: RentPayment) => {
-    if (!payment.proof_of_payment_url && payment.status !== 'proof_uploaded') return null;
-    
-    switch (payment.proof_review_status) {
-      case "approved":
-        return (
-          <Badge className="bg-green-500 hover:bg-green-600 gap-1">
-            <CheckCircle2 className="h-3 w-3" />
-            {t("payments.proofReview.approved")}
-          </Badge>
-        );
-      case "rejected":
-        return (
-          <Badge variant="destructive" className="gap-1">
-            <XCircle className="h-3 w-3" />
-            {t("payments.proofReview.rejected")}
-          </Badge>
-        );
-      case "pending":
-      default:
-        return (
-          <Badge variant="outline" className="gap-1">
-            <Clock className="h-3 w-3" />
-            {t("payments.proofReview.pendingReview")}
-          </Badge>
-        );
-    }
-  };
-
-
-  const getUrgencyIndicator = (payment: RentPayment) => {
-    if (isManager) return null;
-    
-    const daysLate = differenceInDays(new Date(), new Date(payment.payment_due_date));
-    
-    if (payment.status === 'overdue' || (payment.status === 'pending' && daysLate > 0)) {
+  // Simplified status: PAID or DUE
+  const getSimpleStatusBadge = (status: string) => {
+    if (status === 'paid') {
       return (
-        <Alert variant="destructive" className="py-2">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription className="text-sm">
-            {t("payments.urgency.overdue")} - {daysLate} {t("common.days")} {t("common.late")}
-          </AlertDescription>
-        </Alert>
+        <Badge variant="default" className="flex items-center gap-1 bg-green-600 hover:bg-green-700">
+          <CheckCircle2 className="h-3 w-3" />
+          {t("payments.status.paid")}
+        </Badge>
       );
     }
-    
-    return null;
-  };
-
-  const getProofThumbnail = (payment: RentPayment) => {
-    if (!payment.proof_of_payment_url) return null;
-
-    const { data } = supabase.storage
-      .from('payment-proofs')
-      .getPublicUrl(payment.proof_of_payment_url);
-
-    const isPdf = payment.proof_of_payment_url.toLowerCase().endsWith('.pdf');
-
     return (
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <FileImage className="h-3 w-3" />
-        {isPdf ? (
-          <span>PDF</span>
-        ) : (
-          <img 
-            src={data.publicUrl} 
-            alt="Proof thumbnail" 
-            className="h-8 w-8 object-cover rounded border"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        )}
-      </div>
+      <Badge variant="secondary" className="flex items-center gap-1">
+        <Clock className="h-3 w-3" />
+        {t("payments.status.due") || "DUE"}
+      </Badge>
     );
   };
-
-  const upcomingPayments = payments.filter(p => p.status === 'pending' && new Date(p.payment_due_date) >= new Date());
-  const pastPayments = payments.filter(p => p.status !== 'pending' || new Date(p.payment_due_date) < new Date());
 
   if (loading) {
     return (
@@ -273,126 +167,21 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
 
   return (
     <div className="space-y-6">
-      {/* Payment Statistics */}
-      <PaymentStatistics payments={payments} hasData={hasPayments} />
-      {/* Upcoming Payments */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            {t("payments.upcomingPaymentsTitle")}
-          </CardTitle>
-          <CardDescription>{t("payments.upcomingPaymentsDesc")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {upcomingPayments.length === 0 ? (
-            <EmptyState
-              icon={Clock}
-              title={t("payments.emptyStates.noUpcoming")}
-              description={hasRentAgreement ? t("payments.emptyStates.noPaymentsDesc") : t("payments.emptyStates.waitingForAgreement")}
-              variant="info"
-            />
-          ) : (
-            <div className="space-y-3">
-              {upcomingPayments.map((payment) => (
-                <div key={payment.id} className="space-y-2">
-                  {getUrgencyIndicator(payment)}
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-1 flex-1">
-                      <p className="font-medium">
-                        {formatCurrency(payment.amount_cents, payment.currency)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {t("common.due")}: {format(new Date(payment.payment_due_date), 'PPP')}
-                      </p>
-                      {getProofThumbnail(payment)}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex flex-col gap-1">
-                        {getStatusBadge(payment.status)}
-                        {getProofReviewBadge(payment)}
-                      </div>
-                      {!isManager && (payment.status === 'pending' || payment.proof_review_status === 'rejected') && !payment.proof_of_payment_url && (
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setSelectedPaymentId(payment.id);
-                            setUploadDialogOpen(true);
-                          }}
-                        >
-                          <Upload className="h-4 w-4 mr-2" />
-                          {payment.proof_review_status === 'rejected' 
-                            ? t("payments.reuploadProofBtn")
-                            : t("payments.uploadProofBtn")}
-                        </Button>
-                      )}
-                      {isManager && (payment.proof_of_payment_url || payment.status === 'proof_uploaded') && !payment.manager_reviewed && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setReviewPayment(payment);
-                            setReviewDialogOpen(true);
-                          }}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          {t("payments.reviewProofBtn")}
-                        </Button>
-                      )}
-                      {isManager && payment.status === 'pending' && !payment.proof_of_payment_url && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleMarkAsPaid(payment.id)}
-                          disabled={marking === payment.id}
-                        >
-                          {marking === payment.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            t("payments.markAsPaidBtn")
-                          )}
-                        </Button>
-                      )}
-                      {isManager && payment.status === 'failed' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRetryPayment(payment.id)}
-                          disabled={retrying === payment.id}
-                        >
-                          {retrying === payment.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <RefreshCw className="h-4 w-4 mr-2" />
-                              Retry Payment
-                            </>
-                          )}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Payment History */}
+      {/* Unified Rent Payments List */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            {t("payments.paymentHistoryTitle")}
+            {t("propertyHub.rentPayments")}
           </CardTitle>
           <CardDescription>{t("payments.paymentHistoryDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {pastPayments.length === 0 ? (
+          {!hasPayments ? (
             <EmptyState
               icon={DollarSign}
               title={t("payments.emptyStates.noHistory")}
-              description={t("payments.emptyStates.noPaymentsDesc")}
+              description={hasRentAgreement ? t("payments.emptyStates.noPaymentsDesc") : t("payments.emptyStates.waitingForAgreement")}
               variant="info"
             />
           ) : (
@@ -403,12 +192,11 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                     <TableHead>{t("common.dueDate")}</TableHead>
                     <TableHead>{t("common.amount")}</TableHead>
                     <TableHead>{t("common.status")}</TableHead>
-                    <TableHead>{t("common.paidOn")}</TableHead>
-                    {isManager && <TableHead>{t("common.actions")}</TableHead>}
+                    <TableHead>{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pastPayments.map((payment) => (
+                  {payments.map((payment) => (
                     <TableRow key={payment.id}>
                       <TableCell>
                         {format(new Date(payment.payment_due_date), 'PP')}
@@ -417,49 +205,77 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                         {formatCurrency(payment.amount_cents, payment.currency)}
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col gap-1">
-                          {getStatusBadge(payment.status)}
-                          {getProofReviewBadge(payment)}
-                        </div>
+                        {getSimpleStatusBadge(payment.status)}
                       </TableCell>
                       <TableCell>
-                        {payment.payment_received_date
-                          ? format(new Date(payment.payment_received_date), 'PP')
-                          : '-'}
+                        <div className="flex gap-2">
+                          {/* Tenant: Upload proof for unpaid payments */}
+                          {!isManager && payment.status !== 'paid' && !payment.proof_of_payment_url && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedPaymentId(payment.id);
+                                setUploadDialogOpen(true);
+                              }}
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              {t("payments.uploadProofBtn")}
+                            </Button>
+                          )}
+                          {/* Manager: Review proof */}
+                          {isManager && payment.proof_of_payment_url && !payment.manager_reviewed && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setReviewPayment(payment);
+                                setReviewDialogOpen(true);
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              {t("payments.reviewBtn")}
+                            </Button>
+                          )}
+                          {/* Manager: Mark as paid */}
+                          {isManager && payment.status !== 'paid' && !payment.proof_of_payment_url && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleMarkAsPaid(payment.id)}
+                              disabled={marking === payment.id}
+                            >
+                              {marking === payment.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                t("payments.markPaidBtn")
+                              )}
+                            </Button>
+                          )}
+                          {/* Manager: Retry failed payment */}
+                          {isManager && payment.status === 'failed' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRetryPayment(payment.id)}
+                              disabled={retrying === payment.id}
+                            >
+                              {retrying === payment.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Retry
+                                </>
+                              )}
+                            </Button>
+                          )}
+                          {/* No actions for paid payments */}
+                          {payment.status === 'paid' && (
+                            <span className="text-sm text-muted-foreground">—</span>
+                          )}
+                        </div>
                       </TableCell>
-                      {isManager && (
-                        <TableCell>
-                          <div className="flex gap-2">
-                            {payment.proof_of_payment_url && !payment.manager_reviewed && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setReviewPayment(payment);
-                                  setReviewDialogOpen(true);
-                                }}
-                              >
-                                <Eye className="h-4 w-4 mr-2" />
-                                {t("payments.reviewBtn")}
-                              </Button>
-                            )}
-                            {payment.status === 'pending' && !payment.proof_of_payment_url && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleMarkAsPaid(payment.id)}
-                                disabled={marking === payment.id}
-                              >
-                                {marking === payment.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  t("payments.markPaidBtn")
-                                )}
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -469,33 +285,41 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
         </CardContent>
       </Card>
 
+      {/* Upload Proof Dialog */}
       {selectedPaymentId && (
         <ProofOfPaymentUpload
           paymentId={selectedPaymentId}
           open={uploadDialogOpen}
-          onOpenChange={setUploadDialogOpen}
-          onSuccess={fetchPayments}
+          onOpenChange={(open) => {
+            setUploadDialogOpen(open);
+            if (!open) setSelectedPaymentId(null);
+          }}
+          onSuccess={() => {
+            fetchPayments();
+            setUploadDialogOpen(false);
+            setSelectedPaymentId(null);
+          }}
         />
       )}
 
-      {reviewPayment && (
+      {/* Review Proof Dialog */}
+      {reviewPayment && reviewPayment.proof_of_payment_url && (
         <PaymentProofReview
           paymentId={reviewPayment.id}
-          proofUrl={reviewPayment.proof_of_payment_url || ""}
-          tenantName="Tenant"
-          amount={reviewPayment.amount_cents}
+          proofUrl={reviewPayment.proof_of_payment_url}
+          tenantName=""
+          amount={reviewPayment.amount_cents / 100}
           currency={reviewPayment.currency}
-          uploadedAt={reviewPayment.tenant_confirmed_at || new Date().toISOString()}
+          uploadedAt={reviewPayment.updated_at}
           open={reviewDialogOpen}
           onOpenChange={(open) => {
             setReviewDialogOpen(open);
-            if (!open) {
-              setReviewPayment(null);
-              fetchPayments();
-            }
+            if (!open) setReviewPayment(null);
           }}
         />
       )}
     </div>
   );
 }
+
+export default RentPaymentHistory;
