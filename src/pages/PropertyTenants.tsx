@@ -565,9 +565,11 @@ export default function PropertyTenants() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-7">
+              <TabsList className={`grid w-full ${userRole?.isManager ? 'grid-cols-6' : 'grid-cols-5'}`}>
                 <TabsTrigger value="overview">{t("propertyHub.overview")}</TabsTrigger>
-                <TabsTrigger value="tenants">{t("propertyTenants.tabs.tenants")}</TabsTrigger>
+                {userRole?.isManager && (
+                  <TabsTrigger value="tenants">{t("propertyTenants.tabs.tenants")}</TabsTrigger>
+                )}
                 <TabsTrigger value="contracts">{t("propertyTenants.tabs.contracts")}</TabsTrigger>
                 <TabsTrigger value="payments">{t("propertyTenants.tabs.payments")}</TabsTrigger>
                 <TabsTrigger value="utilities">{t("propertyTenants.tabs.utilities")}</TabsTrigger>
@@ -586,31 +588,33 @@ export default function PropertyTenants() {
                 />
               </TabsContent>
 
-              <TabsContent value="tenants" className="mt-6">
-                <TenantsTab
-                  propertyId={propertyId!}
-                  propertyCountry={property?.country || undefined}
-                  userRole={userRole}
-                  isReadOnly={isReadOnly}
-                  currentTenant={currentTenant}
-                  setRemovingTenant={setRemovingTenant}
-                  setEditingTenant={setEditingTenant}
-                  setCancellingInvitation={setCancellingInvitation}
-                  onEndTenancy={(tenant) => {
-                    setEndingTenant(tenant);
-                    setShowEndTenancyDialog(true);
-                  }}
-                  pendingRequirement={pendingRequirement}
-                  canSetupNewTenancy={canSetupNewTenancy}
-                  hasEndingTenancy={hasEndingTenancy}
-                  onStartSetup={() => setShowTenancyWizard(true)}
-                  onSendInvitation={handleSendInvitation}
-                  onCancelSetup={handleCancelSetup}
-                  onResendInvitation={handleResendInvitation}
-                  isDeleting={deleteRequirement.isPending}
-                  isResending={inviteMutation.isPending}
-                />
-              </TabsContent>
+              {userRole?.isManager && (
+                <TabsContent value="tenants" className="mt-6">
+                  <TenantsTab
+                    propertyId={propertyId!}
+                    propertyCountry={property?.country || undefined}
+                    userRole={userRole}
+                    isReadOnly={isReadOnly}
+                    currentTenant={currentTenant}
+                    setRemovingTenant={setRemovingTenant}
+                    setEditingTenant={setEditingTenant}
+                    setCancellingInvitation={setCancellingInvitation}
+                    onEndTenancy={(tenant) => {
+                      setEndingTenant(tenant);
+                      setShowEndTenancyDialog(true);
+                    }}
+                    pendingRequirement={pendingRequirement}
+                    canSetupNewTenancy={canSetupNewTenancy}
+                    hasEndingTenancy={hasEndingTenancy}
+                    onStartSetup={() => setShowTenancyWizard(true)}
+                    onSendInvitation={handleSendInvitation}
+                    onCancelSetup={handleCancelSetup}
+                    onResendInvitation={handleResendInvitation}
+                    isDeleting={deleteRequirement.isPending}
+                    isResending={inviteMutation.isPending}
+                  />
+                </TabsContent>
+              )}
 
               <TabsContent value="contracts" className="mt-6">
                 <ContractsTab
