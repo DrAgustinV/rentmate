@@ -74,9 +74,13 @@ export default function Invitations() {
     // Get token from URL search params
     const token = searchParams.get('token');
     
+    console.log('[Invitations] checkAuth - session:', !!session, 'token:', token);
+    
     if (!session) {
       // If not logged in and has token, detect account and redirect
       if (token) {
+        console.log('[Invitations] Anonymous user with token, fetching invitation...');
+        
         // For anonymous users, fetch ONLY invitation data (no properties join)
         // Properties table RLS blocks anonymous access, so we skip the join
         const { data: invitation, error: invitationError } = await supabase
@@ -87,7 +91,10 @@ export default function Invitations() {
           .gt("expires_at", new Date().toISOString())
           .single();
         
+        console.log('[Invitations] Invitation fetch result:', { invitation, error: invitationError });
+        
         if (!invitation || invitationError) {
+          console.log('[Invitations] Invitation not found, redirecting to /auth');
           toast({
             title: "Invitation Not Found",
             description: "This invitation may have expired or been used already.",
@@ -98,16 +105,20 @@ export default function Invitations() {
         }
 
         // Check if email has an existing account using SECURITY DEFINER function
-        const { data: hasAccount } = await supabase
+        const { data: hasAccount, error: rpcError } = await supabase
           .rpc('check_email_has_account', { check_email: invitation.email });
+
+        console.log('[Invitations] check_email_has_account result:', { email: invitation.email, hasAccount, rpcError });
 
         // Determine mode based on whether user exists
         const mode = hasAccount ? 'signin' : 'signup';
         
+        console.log('[Invitations] Redirecting to /auth with mode:', mode);
         // Redirect to auth with appropriate mode and detection flag
         navigate(`/auth?mode=${mode}&token=${token}&detected=true`);
         return;
       } else {
+        console.log('[Invitations] No token, redirecting to /auth');
         navigate("/auth");
       }
       return;
