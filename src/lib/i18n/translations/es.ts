@@ -1523,6 +1523,10 @@ export const es = {
     rentalTerms: "Términos de Alquiler",
     method: "Método de Contrato",
     noRentalTerms: "Sin términos de alquiler configurados",
+    signatureStatus: "Estado de Firma",
+    managerSignature: "Propietario",
+    tenantSignature: "Inquilino",
+    requestExpiration: "Vencimiento de Solicitud",
   },
   repairShops: {
     title: "Talleres de Reparación",

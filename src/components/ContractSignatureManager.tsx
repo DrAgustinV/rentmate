@@ -492,124 +492,116 @@ export const ContractSignatureManager = ({
           />
         )}
 
-        {/* Manager Signature Status */}
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <div className="font-medium flex items-center gap-2">
+        {/* Signature Status - Compact Badge Layout */}
+        <div className="pt-2 border-t">
+          <p className="text-xs text-muted-foreground mb-2">{t('contracts.signatureStatus')}</p>
+          <div className="flex flex-wrap gap-2">
+            {/* Manager Badge */}
+            <Badge 
+              variant={managerSigned ? "default" : "outline"} 
+              className={`text-xs ${managerSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
+            >
               {managerSigned ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <CheckCircle2 className="h-3 w-3 mr-1" />
               ) : (
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Clock className="h-3 w-3 mr-1" />
               )}
-              {t('contractSignature.managerSignature') || 'Manager Signature'}
+              {t('contracts.managerSignature')}
+            </Badge>
+            {/* Tenant Badge */}
+            <Badge 
+              variant={tenantSigned ? "default" : "outline"} 
+              className={`text-xs ${tenantSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
+            >
+              {tenantSigned ? (
+                <CheckCircle2 className="h-3 w-3 mr-1" />
+              ) : (
+                <Clock className="h-3 w-3 mr-1" />
+              )}
+              {t('contracts.tenantSignature')}
+            </Badge>
+          </div>
+          
+          {/* Request Expiration - Inline */}
+          {signature.expires_at && !isCompleted && (
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-xs text-muted-foreground">{t('contracts.requestExpiration')}:</span>
+              <Badge variant="outline" className="text-xs">
+                <Clock className="h-3 w-3 mr-1" />
+                {format(new Date(signature.expires_at), 'PPP')}
+              </Badge>
             </div>
-            {managerSigned && (
-              <div className="text-sm text-muted-foreground space-y-1">
-                <div>{format(new Date(signature.manager_signed_at!), 'PPP p')}</div>
-                <div>{getSignatureMethodBadge(signature.manager_signature_method)}</div>
-              </div>
-            )}
+          )}
+        </div>
+
+        {/* Sign Now Buttons */}
+        {!isCompleted && (
+          <>
             {!managerSigned && isManager && isQualifiedSignature && !showSigningForm && (
               <Button 
                 size="sm" 
                 onClick={() => setShowSigningForm(true)} 
-                className="mt-2"
+                className="w-full"
               >
                 <Shield className="h-4 w-4 mr-2" />
                 {t('contractSignature.signNow') || 'Sign Now'}
               </Button>
-            )}
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Tenant Signature Status */}
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <div className="font-medium flex items-center gap-2">
-              {tenantSigned ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              ) : (
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              )}
-              {t('contractSignature.tenantSignature') || 'Tenant Signature'}
-            </div>
-            {tenantSigned && (
-              <div className="text-sm text-muted-foreground space-y-1">
-                <div>{format(new Date(signature.tenant_signed_at!), 'PPP p')}</div>
-                <div>{getSignatureMethodBadge(signature.tenant_signature_method)}</div>
-              </div>
             )}
             {!tenantSigned && !isManager && isQualifiedSignature && !showSigningForm && (
               <Button 
                 size="sm" 
                 onClick={() => setShowSigningForm(true)} 
-                className="mt-2"
+                className="w-full"
               >
                 <Shield className="h-4 w-4 mr-2" />
                 {t('contractSignature.signNow') || 'Sign Now'}
               </Button>
             )}
-          </div>
-        </div>
-
-        {/* Download completed contract */}
-        {isCompleted && signature.signed_document_url && (
-          <>
-            <Separator />
-            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-              <div className="flex-1">
-                <div className="font-medium">{t('contractSignature.downloadContract') || 'Download Signed Contract'}</div>
-                <div className="text-sm text-muted-foreground">
-                  {t('contractSignature.signedOn') || 'Signed on'}: {format(new Date(signature.completed_at!), 'PPP')}
-                </div>
-              </div>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={async () => {
-                  const newWindow = window.open('', '_blank');
-                  
-                  let storagePath = signature.signed_document_url!;
-                  if (storagePath.includes('/qualified-contracts/')) {
-                    storagePath = storagePath.split('/qualified-contracts/')[1];
-                  }
-                  
-                  const { data, error } = await supabase.storage
-                    .from('qualified-contracts')
-                    .createSignedUrl(storagePath, 3600);
-                  
-                  if (error || !data?.signedUrl) {
-                    newWindow?.close();
-                    toast({
-                      title: t('common.error'),
-                      description: 'Failed to generate download link',
-                      variant: 'destructive',
-                    });
-                    return;
-                  }
-                  
-                  if (newWindow) {
-                    newWindow.location.href = data.signedUrl;
-                  }
-                }}
-              >
-                {t('common.download') || 'Download'}
-              </Button>
-            </div>
           </>
         )}
 
-        {signature.expires_at && !isCompleted && (
-          <div className="flex items-start gap-2 p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg">
-            <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
-            <div className="text-sm">
-              <div className="font-medium text-yellow-900 dark:text-yellow-100">
-                {t('contractSignature.expiresOn') || 'Expires on'}: {format(new Date(signature.expires_at), 'PPP')}
+        {/* Download completed contract */}
+        {isCompleted && signature.signed_document_url && (
+          <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <div className="flex-1">
+              <div className="font-medium">{t('contractSignature.downloadContract') || 'Download Signed Contract'}</div>
+              <div className="text-sm text-muted-foreground">
+                {t('contractSignature.signedOn') || 'Signed on'}: {format(new Date(signature.completed_at!), 'PPP')}
               </div>
             </div>
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={async () => {
+                const newWindow = window.open('', '_blank');
+                
+                let storagePath = signature.signed_document_url!;
+                if (storagePath.includes('/qualified-contracts/')) {
+                  storagePath = storagePath.split('/qualified-contracts/')[1];
+                }
+                
+                const { data, error } = await supabase.storage
+                  .from('qualified-contracts')
+                  .createSignedUrl(storagePath, 3600);
+                
+                if (error || !data?.signedUrl) {
+                  newWindow?.close();
+                  toast({
+                    title: t('common.error'),
+                    description: 'Failed to generate download link',
+                    variant: 'destructive',
+                  });
+                  return;
+                }
+                
+                if (newWindow) {
+                  newWindow.location.href = data.signedUrl;
+                }
+              }}
+            >
+              {t('common.download') || 'Download'}
+            </Button>
           </div>
         )}
       </CardContent>
