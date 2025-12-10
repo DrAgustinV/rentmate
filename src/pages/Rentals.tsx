@@ -5,13 +5,14 @@ import { AppLayout } from "@/components/layouts/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Handshake, Building, Users, Calendar, DollarSign, Mail, Bell } from "lucide-react";
+import { Handshake, Building, Users, Calendar, DollarSign, Mail, Bell, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { useQueryClient } from '@tanstack/react-query';
 import { TENANT_PROPERTIES_QUERY_KEY } from '@/hooks/useTenantProperties';
+import { TenantOnboardingChecklist } from "@/components/property-tenants/TenantOnboardingChecklist";
 
 interface TenancyRelationship {
   id: string;
@@ -294,6 +295,33 @@ export default function Rentals() {
           onViewChange={setCurrentView}
         />
       </div>
+
+      {/* Prominent Onboarding Checklist for Active Tenancies */}
+      {!isManager && tenancies.filter(t => t.tenancy_status === 'active').length > 0 && (
+        <div className="mb-6 space-y-4">
+          {tenancies
+            .filter(t => t.tenancy_status === 'active')
+            .map((tenancy) => (
+              <Card key={`onboarding-${tenancy.id}`} className="border-accent/50 bg-accent/5">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-accent" />
+                    <CardTitle className="text-lg">{t('rentals.completeSetup')}</CardTitle>
+                  </div>
+                  <CardDescription>{tenancy.property_title}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TenantOnboardingChecklist
+                    tenancyId={tenancy.id}
+                    propertyId={tenancy.property_id}
+                    onScrollToContract={() => navigate(`/properties/${tenancy.property_id}/tenants?tab=contracts`)}
+                    onSwitchToPayments={() => navigate(`/properties/${tenancy.property_id}/tenants?tab=payments`)}
+                  />
+                </CardContent>
+              </Card>
+            ))}
+        </div>
+      )}
 
       {!isManager && invitations.length > 0 && (
         <div className="mb-6 space-y-4">
