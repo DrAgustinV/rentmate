@@ -15,7 +15,8 @@ import {
   Zap,
   CheckCircle2,
   Phone,
-  Clock
+  Clock,
+  RefreshCcw
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -26,7 +27,9 @@ interface TenancySetupCardProps {
   onStartSetup: () => void;
   onSendInvitation: (req: TenancyRequirement) => void;
   onCancelSetup: (req: TenancyRequirement) => void;
+  onResendInvitation?: (req: TenancyRequirement) => void;
   isDeleting?: boolean;
+  isResending?: boolean;
 }
 
 const getUtilitiesSummary = (config: UtilitiesConfig | null) => {
@@ -58,7 +61,9 @@ export function TenancySetupCard({
   onStartSetup,
   onSendInvitation,
   onCancelSetup,
-  isDeleting
+  onResendInvitation,
+  isDeleting,
+  isResending
 }: TenancySetupCardProps) {
   const { t } = useLanguage();
 
@@ -256,6 +261,18 @@ export function TenancySetupCard({
                 >
                   <Send className="h-4 w-4" />
                   {t("tenancy.sendInvitation") || "Send Invitation"}
+                </Button>
+              )}
+              {isSent && onResendInvitation && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => onResendInvitation(pendingRequirement)}
+                  disabled={isResending}
+                  className="gap-2"
+                >
+                  <RefreshCcw className={`h-4 w-4 ${isResending ? 'animate-spin' : ''}`} />
+                  {t("tenancy.resendInvitation") || "Resend Invite"}
                 </Button>
               )}
               <Button
