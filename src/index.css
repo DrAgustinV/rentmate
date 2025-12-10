@@ -47,8 +47,8 @@ All colors MUST be HSL.
     --input: 214 32% 91%;
     --ring: 173 77% 32%;
     --placeholder: 215 16% 65%;
-    --header-background: 173 77% 40%;
-    --header-background-opacity: 1;
+    --header-background: 176 19% 21%;
+    --header-background-opacity: 0.5;
 
     --radius: 0.75rem;
 
@@ -110,8 +110,8 @@ All colors MUST be HSL.
     --input: 215 25% 20%;
     --ring: 173 77% 32%;
     --placeholder: 215 16% 45%;
-    --header-background: 173 77% 40%;
-    --header-background-opacity: 1;
+    --header-background: 176 19% 21%;
+    --header-background-opacity: 0.5;
 
     --gradient-primary: linear-gradient(135deg, hsl(173 77% 32%), hsl(173 58% 45%));
     --gradient-card: linear-gradient(to bottom, hsl(215 25% 12%), hsl(215 25% 14%));
