@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
-import { TenantsTab } from '@/components/property-tenants/TenantsTab';
 import { ContractsTab } from '@/components/property-tenants/ContractsTab';
 import { PaymentsTab } from '@/components/property-tenants/PaymentsTab';
 import { TicketsTab } from '@/components/property-tenants/TicketsTab';
@@ -44,7 +43,7 @@ interface Tenant {
   tenancy_status: 'active' | 'ending_tenancy' | 'historic';
   started_at: string;
   ended_at: string | null;
-  planned_ending_date: string | null;
+  planned_ending_date?: string | null;
   email: string;
   first_name: string | null;
   last_name: string | null;
@@ -91,12 +90,12 @@ export default function PropertyTenants() {
   };
 
   // UI state
-  const [removingTenant, setRemovingTenant] = useState<Tenant | null>(null);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [cancellingInvitation, setCancellingInvitation] = useState<Invitation | null>(null);
   const [showEndTenancyDialog, setShowEndTenancyDialog] = useState(false);
   const [endingTenant, setEndingTenant] = useState<Tenant | null>(null);
   const [showTenancyWizard, setShowTenancyWizard] = useState(false);
+  const [finalizingTenant, setFinalizingTenant] = useState<Tenant | null>(null);
 
   // Essential queries that are needed upfront
   const { data: property, isLoading: propertyLoading } = useQuery({
@@ -165,7 +164,7 @@ export default function PropertyTenants() {
       const tenantIds = tenancies.map(t => t.tenant_id);
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, email, first_name, last_name")
+        .select("id, email, first_name, last_name, avatar_url, kyc_status")
         .in("id", tenantIds);
 
       if (profilesError) throw profilesError;
@@ -177,6 +176,8 @@ export default function PropertyTenants() {
           email: profile?.email || "Unknown",
           first_name: profile?.first_name || null,
           last_name: profile?.last_name || null,
+          avatar_url: profile?.avatar_url || null,
+          kyc_status: profile?.kyc_status || null,
         } as Tenant;
       });
     },
@@ -345,10 +346,8 @@ export default function PropertyTenants() {
 
   const handleSendInvitation = async (requirement: TenancyRequirement) => {
     try {
-      // Send the invitation (creates or updates invitation record)
       await inviteMutation.mutateAsync(requirement.tenant_email);
       
-      // Get the invitation ID that was just created/updated
       const { data: invitation } = await supabase
         .from('invitations')
         .select('id')
@@ -357,7 +356,6 @@ export default function PropertyTenants() {
         .eq('status', 'pending')
         .single();
       
-      // Update tenancy_requirements with invitation_id and status
       await supabase
         .from('tenancy_requirements')
         .update({ 
@@ -399,7 +397,6 @@ export default function PropertyTenants() {
 
   const handleResendInvitation = async (requirement: TenancyRequirement) => {
     try {
-      // Get existing invitation with token
       const { data: existingInvite, error: fetchError } = await supabase
         .from("invitations")
         .select("id, token, expires_at")
@@ -412,7 +409,6 @@ export default function PropertyTenants() {
         throw new Error("Invitation not found");
       }
 
-      // Get manager info
       const { data: { user } } = await supabase.auth.getUser();
       const { data: managerProfile } = await supabase
         .from("profiles")
@@ -424,7 +420,6 @@ export default function PropertyTenants() {
         ? `${managerProfile.first_name || ""} ${managerProfile.last_name || ""}`.trim() || "Property Manager"
         : "Property Manager";
 
-      // Resend email with existing token
       await supabase.functions.invoke("send-tenant-invitation", {
         body: {
           email: requirement.tenant_email,
@@ -465,7 +460,6 @@ export default function PropertyTenants() {
       queryClient.invalidateQueries({ queryKey: ["active-tenants-basic", propertyId] });
       queryClient.invalidateQueries({ queryKey: ["tenancy-history", propertyId] });
       queryClient.invalidateQueries({ queryKey: ["active-tenant-profile", propertyId] });
-      setRemovingTenant(null);
     },
     onError: (error: any) => {
       toast({ title: t("common.error"), description: error.message, variant: "destructive" });
@@ -489,7 +483,7 @@ export default function PropertyTenants() {
       queryClient.invalidateQueries({ queryKey: ["active-tenants-basic", propertyId] });
       queryClient.invalidateQueries({ queryKey: ["tenancy-history", propertyId] });
       queryClient.invalidateQueries({ queryKey: ["active-tenant-profile", propertyId] });
-      setRemovingTenant(null);
+      setFinalizingTenant(null);
     },
     onError: (error: any) => {
       toast({ title: t("common.error"), description: error.message, variant: "destructive" });
@@ -579,11 +573,8 @@ export default function PropertyTenants() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className={`grid w-full ${userRole?.isManager ? 'grid-cols-6' : 'grid-cols-5'}`}>
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="overview">{t("propertyHub.overview")}</TabsTrigger>
-                {userRole?.isManager && (
-                  <TabsTrigger value="tenants">{t("propertyTenants.tabs.tenants")}</TabsTrigger>
-                )}
                 <TabsTrigger value="contracts">{t("propertyTenants.tabs.contracts")}</TabsTrigger>
                 <TabsTrigger value="payments">{t("propertyTenants.tabs.payments")}</TabsTrigger>
                 <TabsTrigger value="utilities">{t("propertyTenants.tabs.utilities")}</TabsTrigger>
@@ -602,40 +593,28 @@ export default function PropertyTenants() {
                 />
               </TabsContent>
 
-              {userRole?.isManager && (
-                <TabsContent value="tenants" className="mt-6">
-                  <TenantsTab
-                    propertyId={propertyId!}
-                    propertyCountry={property?.country || undefined}
-                    userRole={userRole}
-                    isReadOnly={isReadOnly}
-                    currentTenant={currentTenant}
-                    setRemovingTenant={setRemovingTenant}
-                    setEditingTenant={setEditingTenant}
-                    setCancellingInvitation={setCancellingInvitation}
-                    onEndTenancy={(tenant) => {
-                      setEndingTenant(tenant);
-                      setShowEndTenancyDialog(true);
-                    }}
-                    pendingRequirement={pendingRequirement}
-                    canSetupNewTenancy={canSetupNewTenancy}
-                    hasEndingTenancy={hasEndingTenancy}
-                    onStartSetup={() => setShowTenancyWizard(true)}
-                    onSendInvitation={handleSendInvitation}
-                    onCancelSetup={handleCancelSetup}
-                    onResendInvitation={handleResendInvitation}
-                    isDeleting={deleteRequirement.isPending}
-                    isResending={inviteMutation.isPending}
-                  />
-                </TabsContent>
-              )}
-
               <TabsContent value="contracts" className="mt-6">
                 <ContractsTab
                   currentTenant={currentTenant}
                   propertyId={propertyId!}
                   userRole={userRole}
                   isReadOnly={isReadOnly}
+                  pendingRequirement={pendingRequirement}
+                  canSetupNewTenancy={canSetupNewTenancy}
+                  hasEndingTenancy={hasEndingTenancy}
+                  onStartSetup={() => setShowTenancyWizard(true)}
+                  onSendInvitation={handleSendInvitation}
+                  onCancelSetup={handleCancelSetup}
+                  onResendInvitation={handleResendInvitation}
+                  isDeleting={deleteRequirement.isPending}
+                  isResending={inviteMutation.isPending}
+                  onEditTenant={setEditingTenant}
+                  onEndTenancy={(tenant) => {
+                    setEndingTenant(tenant);
+                    setShowEndTenancyDialog(true);
+                  }}
+                  onFinalizeTenancy={(tenant) => setFinalizingTenant(tenant)}
+                  setCancellingInvitation={setCancellingInvitation}
                 />
               </TabsContent>
 
@@ -683,20 +662,20 @@ export default function PropertyTenants() {
       />
 
       {/* Finalize Tenancy Dialog */}
-      <AlertDialog open={!!removingTenant} onOpenChange={() => setRemovingTenant(null)}>
+      <AlertDialog open={!!finalizingTenant} onOpenChange={() => setFinalizingTenant(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("dialogs.manageTenants.finalizeTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {`${t("dialogs.manageTenants.finalizeMessage")} ${removingTenant && getTenantName(removingTenant)}?`}
+              {`${t("dialogs.manageTenants.finalizeMessage")} ${finalizingTenant && getTenantName(finalizingTenant)}?`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => {
-                if (removingTenant) {
-                  finalizeTenancyMutation.mutate(removingTenant.id);
+                if (finalizingTenant) {
+                  finalizeTenancyMutation.mutate(finalizingTenant.id);
                 }
               }}
             >
