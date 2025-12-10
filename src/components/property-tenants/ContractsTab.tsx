@@ -26,6 +26,7 @@ import { ContractSignatureManager } from "@/components/ContractSignatureManager"
 import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
 import { RentalTermsCard } from "./RentalTermsCard";
 import { ContactInfoCard } from "./ContactInfoCard";
+import { TenantOnboardingChecklist } from "./TenantOnboardingChecklist";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
 
 interface Tenant {
@@ -334,6 +335,22 @@ export function ContractsTab({
 
   return (
     <div className="space-y-6">
+      {/* 0. Tenant Onboarding Checklist (tenant only, shows only when items pending) */}
+      {!userRole?.isManager && currentTenant && (
+        <TenantOnboardingChecklist
+          tenancyId={currentTenant.id}
+          propertyId={propertyId}
+          onScrollToContract={() => {
+            document.getElementById("contract-signature-section")?.scrollIntoView({ behavior: "smooth" });
+          }}
+          onSwitchToPayments={() => {
+            // Parent component handles tab switch
+            const paymentsTab = document.querySelector('[data-value="payments"]');
+            if (paymentsTab instanceof HTMLElement) paymentsTab.click();
+          }}
+        />
+      )}
+
       {/* 1. Rental Terms Card (always shows - merges rental terms + tenancy setup) */}
       <RentalTermsCard 
         propertyId={propertyId} 
@@ -354,16 +371,18 @@ export function ContractsTab({
       />
 
       {/* 2. Digital Contract Signature (always shows) */}
-      <ContractSignatureManager
-        tenancyId={currentTenant?.id || ''}
-        propertyId={propertyId}
-        isManager={userRole?.isManager || false}
-        contractMethod={
-          pendingRequirement?.contract_method || 
-          tenancyRequirements?.contract_method as 'digital' | 'manual' | 'none' | null | undefined
-        }
-        onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
-      />
+      <div id="contract-signature-section">
+        <ContractSignatureManager
+          tenancyId={currentTenant?.id || ''}
+          propertyId={propertyId}
+          isManager={userRole?.isManager || false}
+          contractMethod={
+            pendingRequirement?.contract_method || 
+            tenancyRequirements?.contract_method as 'digital' | 'manual' | 'none' | null | undefined
+          }
+          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
+        />
+      </div>
 
       {/* 4. Tenancy Documents (only if there's a tenant) */}
       {currentTenant && (
