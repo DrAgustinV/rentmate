@@ -345,11 +345,25 @@ export default function PropertyTenants() {
 
   const handleSendInvitation = async (requirement: TenancyRequirement) => {
     try {
-      inviteMutation.mutate(requirement.tenant_email);
+      // Send the invitation (creates or updates invitation record)
+      await inviteMutation.mutateAsync(requirement.tenant_email);
       
+      // Get the invitation ID that was just created/updated
+      const { data: invitation } = await supabase
+        .from('invitations')
+        .select('id')
+        .eq('email', requirement.tenant_email)
+        .eq('property_id', propertyId)
+        .eq('status', 'pending')
+        .single();
+      
+      // Update tenancy_requirements with invitation_id and status
       await supabase
         .from('tenancy_requirements')
-        .update({ status: 'sent' })
+        .update({ 
+          status: 'sent',
+          invitation_id: invitation?.id || null
+        })
         .eq('id', requirement.id);
       
       queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
