@@ -108,45 +108,22 @@ export function PaymentsTab({
               {rentAgreements
                 .filter(agreement => agreement.tenancy_id === currentTenant.id)
                 .map((agreement) => (
-                  <div key={agreement.id} className="border rounded-lg p-4 space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <p className="font-medium">
-                          {agreement.tenant.first_name || ''} {agreement.tenant.last_name || ''} {agreement.tenant.email}
-                        </p>
-                        <div className="flex gap-4 text-sm text-muted-foreground">
-                          <span>{t("rentAgreements.monthlyRent")}: €{(agreement.rent_amount_cents / 100).toFixed(2)}</span>
-                          <span>{t("rentAgreements.paymentDay")}: {agreement.payment_day}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={agreement.is_active ? "default" : "secondary"}>
-                          {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
-                        </Badge>
-                        {isManager && (
-                          <EditRentAgreementDrawer 
-                            agreement={agreement}
-                            isContractSigning={!!contractSignatures?.some(sig => sig.tenancy_id === agreement.tenancy_id)}
-                          />
-                        )}
-                      </div>
+                  <div key={agreement.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                    <div className="flex items-center gap-4 text-sm">
+                      <span className="font-semibold">€{(agreement.rent_amount_cents / 100).toFixed(2)}/mo</span>
+                      <span className="text-muted-foreground">Day {agreement.payment_day}</span>
+                      {agreement.tenant_iban && (
+                        <span className="text-muted-foreground font-mono">****{agreement.tenant_iban.slice(-4)}</span>
+                      )}
+                      <Badge variant={agreement.is_active ? "default" : "secondary"} className="text-xs">
+                        {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
+                      </Badge>
                     </div>
-                    {!agreement.tenant_iban && (
-                      <div className="text-sm text-muted-foreground">
-                        {t("rentAgreements.setupPayment")}
-                      </div>
-                    )}
-                    {agreement.tenant_iban && (
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">{t("rentAgreements.iban")}: </span>
-                          <span className="font-mono">{agreement.tenant_iban.replace(/(.{4})/g, '$1 ').trim().slice(0, 20)}...</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">{t("rentAgreements.mandateStatus")}: </span>
-                          <span className="capitalize">{t(`rentAgreements.mandateStatus.${agreement.mandate_status}`)}</span>
-                        </div>
-                      </div>
+                    {isManager && (
+                      <EditRentAgreementDrawer 
+                        agreement={agreement}
+                        isContractSigning={!!contractSignatures?.some(sig => sig.tenancy_id === agreement.tenancy_id)}
+                      />
                     )}
                   </div>
                 ))}
