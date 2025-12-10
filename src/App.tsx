@@ -70,7 +70,7 @@ const App = () => (
             <Route path="/account" element={<Account />} />
             <Route path="/profile" element={<Navigate to="/account" replace />} />
             <Route path="/identity" element={<Navigate to="/account" replace />} />
-            <Route path="/invitations" element={<Navigate to="/rentals" replace />} />
+            <Route path="/invitations" element={<Invitations />} />
             <Route path="/settings" element={<Navigate to="/account" replace />} />
             <Route path="/kilt-setup" element={<KiltSetup />} />
             <Route path="/admin" element={<Admin />} />
