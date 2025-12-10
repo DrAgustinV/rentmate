@@ -655,7 +655,7 @@ export const en = {
       deleteFailed: "Failed to delete template",
       updateFailed: "Failed to update template",
     },
-    scheduled: {
+    scheduledTasks: {
       title: "Scheduled Maintenance Tasks",
       description: "Manage recurring maintenance schedules for this property",
       noSchedules: "No scheduled tasks",
@@ -673,7 +673,7 @@ export const en = {
       deleteConfirmTitle: "Delete schedule",
       deleteConfirmDesc: "This will permanently delete this recurring schedule. Existing tasks will not be affected.",
     },
-    createTask: {
+    createTaskDialog: {
       title: "Create Maintenance Task",
       description: "Schedule a new maintenance task for this property",
       taskDetails: "Task Details",
