@@ -132,6 +132,23 @@ export const ContractSignatureManager = ({
     }
   };
 
+  // Auto-select document when only one exists or when signature has source_document_id
+  useEffect(() => {
+    // If signature exists and has a source document, pre-select it
+    if (signature?.source_document_id && tenancyDocuments && tenancyDocuments.length > 0) {
+      const matchingDoc = tenancyDocuments.find(doc => doc.id === signature.source_document_id);
+      if (matchingDoc) {
+        setSelectedDocumentId(matchingDoc.id);
+        return;
+      }
+    }
+    
+    // If only one document exists, auto-select it
+    if (tenancyDocuments && tenancyDocuments.length === 1 && !selectedDocumentId) {
+      setSelectedDocumentId(tenancyDocuments[0].id);
+    }
+  }, [tenancyDocuments, signature?.source_document_id, selectedDocumentId]);
+
   // Re-fetch when tenancyId changes (e.g., from empty to valid UUID)
   useEffect(() => {
     // Reset state when tenancyId changes
