@@ -76,11 +76,11 @@ serve(async (req) => {
 
         // Determine if it's manager or tenant
         if (signerId === metadata.manager_signer_id) {
-          await supabase
+          const { error: updateError } = await supabase
             .from('contract_signatures')
             .update({
               manager_signed_at: new Date().toISOString(),
-              manager_signature_method: 'yousign',
+              manager_signature_method: contractSignature.signature_method || 'AES',
               workflow_status: contractSignature.tenant_signed_at ? 'completed' : 'in_progress',
               qualified_signature_metadata: {
                 ...metadata,
@@ -90,13 +90,17 @@ serve(async (req) => {
             })
             .eq('id', contractSignature.id);
 
-          console.log('Manager signature recorded');
+          if (updateError) {
+            console.error('Failed to update manager signature:', updateError);
+          } else {
+            console.log('Manager signature recorded');
+          }
         } else if (signerId === metadata.tenant_signer_id) {
-          await supabase
+          const { error: updateError } = await supabase
             .from('contract_signatures')
             .update({
               tenant_signed_at: new Date().toISOString(),
-              tenant_signature_method: 'yousign',
+              tenant_signature_method: contractSignature.signature_method || 'AES',
               workflow_status: contractSignature.manager_signed_at ? 'completed' : 'in_progress',
               qualified_signature_metadata: {
                 ...metadata,
@@ -106,7 +110,11 @@ serve(async (req) => {
             })
             .eq('id', contractSignature.id);
 
-          console.log('Tenant signature recorded');
+          if (updateError) {
+            console.error('Failed to update tenant signature:', updateError);
+          } else {
+            console.log('Tenant signature recorded');
+          }
         }
 
         // Log the event
