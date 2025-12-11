@@ -206,7 +206,7 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
                     <FormLabel>{t('rentAgreements.iban')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="DE89370400440532013000"
+                        placeholder={t('placeholders.iban')}
                         {...field}
                         onChange={(e) => {
                           const value = e.target.value.toUpperCase().replace(/\s/g, '');

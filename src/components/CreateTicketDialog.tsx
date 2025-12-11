@@ -24,6 +24,7 @@ import { Loader2 } from "lucide-react";
 import { ticketBaseSchema } from "@/lib/validations";
 import { z } from "zod";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreateTicketDialogProps {
   open: boolean;
@@ -43,6 +44,7 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
 
   const queryClient = useQueryClient();
   const { trackEvent } = useAnalyticsContext();
+  const { t } = useLanguage();
 
   const { data: currentUserData } = useQuery({
     queryKey: ["current-user"],
@@ -206,8 +208,8 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
                   setFormData({ ...formData, propertyId: value })
                 }
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select property" />
+              <SelectTrigger>
+                  <SelectValue placeholder={t('placeholders.selectProperty')} />
                 </SelectTrigger>
                 <SelectContent>
                   {properties?.map((property) => (
@@ -269,7 +271,7 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              placeholder="Brief description of the issue"
+              placeholder={t('placeholders.ticketTitle')}
               maxLength={200}
             />
             <p className="text-xs text-muted-foreground text-right">
@@ -285,7 +287,7 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              placeholder="Detailed description of the issue or request"
+              placeholder={t('placeholders.ticketDescription')}
               rows={4}
               maxLength={2000}
             />

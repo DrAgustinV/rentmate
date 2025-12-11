@@ -1652,4 +1652,61 @@ export const en = {
     credentialsGenerateFailed: "Failed to generate test credentials",
     copiedToClipboard: "Copied to clipboard",
   },
+  placeholders: {
+    // Auth & Account
+    email: "you@example.com",
+    password: "••••••••",
+    firstName: "John",
+    lastName: "Doe",
+    phone: "+1 (555) 123-4567",
+    iban: "DE89370400440532013000",
+    // Property
+    propertyTitle: "Beachfront Villa",
+    propertyAddress: "123 Ocean Drive",
+    city: "Berlin",
+    stateProvince: "Berlin",
+    postalCode: "10115",
+    selectCountry: "Select country",
+    propertyDescription: "Beautiful property with ocean views...",
+    // Enterprise
+    companyName: "Your Company",
+    propertiesCount: "50",
+    enterpriseMessage: "Tell us about your property management needs...",
+    // Rent & Payments
+    rentAmount: "1000.00",
+    depositAmount: "2000.00",
+    paymentDay: "1",
+    depositReturnDays: "30",
+    utilitiesManager: "Electricity, Water, Gas",
+    utilitiesTenant: "Heating, Internet",
+    utilityAmount: "0.00",
+    // Tickets & Maintenance
+    ticketTitle: "Brief description of the issue",
+    ticketDescription: "Detailed description of the issue or request",
+    addComment: "Add a comment...",
+    resolutionNotes: "Describe how the issue was resolved...",
+    selectProperty: "Select property",
+    selectTemplate: "Select a template",
+    // Documents
+    documentTitle: "e.g., Lease Agreement, Insurance Policy, Inventory Report",
+    documentDescription: "Add a description for this document...",
+    selectDocument: "Choose a document...",
+    noDocuments: "No documents available",
+    pasteImageUrl: "Or paste image URL...",
+    // Admin
+    searchSubscriptions: "Search by email, name, or plan...",
+    adminNotes: "Add notes about this request...",
+    grantAccessReason: "Why are you granting Pro access to this user?",
+    brandName: "RentMate",
+    customDomain: "rentmate.me",
+    hslColor: "221 83% 53%",
+    // Settings
+    selectDateFormat: "Select date format",
+    selectWeekStart: "Select week start day",
+    // Privacy
+    restrictProcessingReason: "Describe which processing activities you want to restrict and your reason...",
+    objectProcessingReason: "Describe what processing you object to and the reasons for your objection...",
+    // Tenant
+    tenantEmail: "tenant@example.com",
+  },
 };

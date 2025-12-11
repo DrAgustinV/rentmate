@@ -151,7 +151,7 @@ export default function ResetPassword() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder={t('placeholders.password')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="pl-10"
@@ -169,7 +169,7 @@ export default function ResetPassword() {
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="••••••••"
+                placeholder={t('placeholders.password')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="pl-10"

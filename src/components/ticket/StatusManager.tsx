@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type TicketStatus = "open" | "in_progress" | "resolved" | "cancelled";
 type TicketPriority = "low" | "medium" | "high" | "urgent";
@@ -40,6 +41,7 @@ export const StatusManager = ({
   const [showResolutionDialog, setShowResolutionDialog] = useState(false);
   const [resolutionNotes, setResolutionNotes] = useState("");
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const updateStatusMutation = useMutation({
     mutationFn: async (data: { status?: TicketStatus; priority?: TicketPriority; resolution_notes?: string }) => {
@@ -176,7 +178,7 @@ export const StatusManager = ({
               <Label htmlFor="resolution-notes">Resolution Notes *</Label>
               <Textarea
                 id="resolution-notes"
-                placeholder="Describe how the issue was resolved..."
+                placeholder={t('placeholders.resolutionNotes')}
                 value={resolutionNotes}
                 onChange={(e) => setResolutionNotes(e.target.value)}
                 className="min-h-[120px]"

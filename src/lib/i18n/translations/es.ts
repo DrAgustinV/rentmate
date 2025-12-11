@@ -1844,4 +1844,61 @@ export const es = {
     credentialsGenerateFailed: "Error al generar credenciales de prueba",
     copiedToClipboard: "Copiado al portapapeles",
   },
+  placeholders: {
+    // Auth & Account
+    email: "tu@ejemplo.com",
+    password: "••••••••",
+    firstName: "Juan",
+    lastName: "García",
+    phone: "+34 612 345 678",
+    iban: "ES9121000418450200051332",
+    // Property
+    propertyTitle: "Villa Frente al Mar",
+    propertyAddress: "Calle del Mar 123",
+    city: "Barcelona",
+    stateProvince: "Cataluña",
+    postalCode: "08001",
+    selectCountry: "Seleccionar país",
+    propertyDescription: "Hermosa propiedad con vistas al mar...",
+    // Enterprise
+    companyName: "Tu Empresa",
+    propertiesCount: "50",
+    enterpriseMessage: "Cuéntanos sobre tus necesidades de gestión de propiedades...",
+    // Rent & Payments
+    rentAmount: "1000.00",
+    depositAmount: "2000.00",
+    paymentDay: "1",
+    depositReturnDays: "30",
+    utilitiesManager: "Electricidad, Agua, Gas",
+    utilitiesTenant: "Calefacción, Internet",
+    utilityAmount: "0.00",
+    // Tickets & Maintenance
+    ticketTitle: "Breve descripción del problema",
+    ticketDescription: "Descripción detallada del problema o solicitud",
+    addComment: "Agregar un comentario...",
+    resolutionNotes: "Describe cómo se resolvió el problema...",
+    selectProperty: "Seleccionar propiedad",
+    selectTemplate: "Seleccionar una plantilla",
+    // Documents
+    documentTitle: "ej., Contrato de Arrendamiento, Póliza de Seguro, Inventario",
+    documentDescription: "Añade una descripción para este documento...",
+    selectDocument: "Elegir un documento...",
+    noDocuments: "No hay documentos disponibles",
+    pasteImageUrl: "O pegar URL de imagen...",
+    // Admin
+    searchSubscriptions: "Buscar por email, nombre o plan...",
+    adminNotes: "Agregar notas sobre esta solicitud...",
+    grantAccessReason: "¿Por qué estás otorgando acceso Pro a este usuario?",
+    brandName: "RentMate",
+    customDomain: "rentmate.me",
+    hslColor: "221 83% 53%",
+    // Settings
+    selectDateFormat: "Seleccionar formato de fecha",
+    selectWeekStart: "Seleccionar día de inicio de semana",
+    // Privacy
+    restrictProcessingReason: "Describe qué actividades de procesamiento deseas restringir y tu motivo...",
+    objectProcessingReason: "Describe a qué procesamiento te opones y los motivos de tu objeción...",
+    // Tenant
+    tenantEmail: "inquilino@ejemplo.com",
+  },
 };

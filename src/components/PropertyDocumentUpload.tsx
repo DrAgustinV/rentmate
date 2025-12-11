@@ -327,7 +327,7 @@ export default function PropertyDocumentUpload({
               </Label>
               <Input
                 id="documentTitle"
-                placeholder="e.g., Lease Agreement, Insurance Policy, Inventory Report"
+                placeholder={t('placeholders.documentTitle')}
                 value={documentTitle}
                 onChange={(e) => setDocumentTitle(e.target.value)}
                 disabled={uploadMutation.isPending}
@@ -343,7 +343,7 @@ export default function PropertyDocumentUpload({
             <Label htmlFor="description">Description (Optional)</Label>
             <Textarea
               id="description"
-              placeholder="Add a description for this document..."
+              placeholder={t('placeholders.documentDescription')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={uploadMutation.isPending}

@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Gift, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface GrantProAccessDialogProps {
   userId: string;
@@ -33,6 +34,7 @@ export function GrantProAccessDialog({ userId, currentPlanSlug }: GrantProAccess
   const [duration, setDuration] = useState("30");
   const [reason, setReason] = useState("");
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const grantAccessMutation = useMutation({
     mutationFn: async () => {
@@ -138,7 +140,7 @@ export function GrantProAccessDialog({ userId, currentPlanSlug }: GrantProAccess
             <Label htmlFor="reason">Reason (optional)</Label>
             <Textarea
               id="reason"
-              placeholder="Why are you granting Pro access to this user?"
+              placeholder={t('placeholders.grantAccessReason')}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}

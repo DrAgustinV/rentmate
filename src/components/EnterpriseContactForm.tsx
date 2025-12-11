@@ -122,7 +122,7 @@ export function EnterpriseContactForm({ open, onOpenChange }: EnterpriseContactF
                 <Input
                   id="name"
                   {...form.register("name")}
-                  placeholder="John Doe"
+                  placeholder={t('placeholders.firstName') + ' ' + t('placeholders.lastName')}
                 />
                 {form.formState.errors.name && (
                   <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
@@ -135,7 +135,7 @@ export function EnterpriseContactForm({ open, onOpenChange }: EnterpriseContactF
                   id="email"
                   type="email"
                   {...form.register("email")}
-                  placeholder="john@company.com"
+                  placeholder={t('placeholders.email')}
                 />
                 {form.formState.errors.email && (
                   <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
@@ -147,7 +147,7 @@ export function EnterpriseContactForm({ open, onOpenChange }: EnterpriseContactF
                 <Input
                   id="company_name"
                   {...form.register("company_name")}
-                  placeholder="Your Company"
+                  placeholder={t('placeholders.companyName')}
                 />
                 {form.formState.errors.company_name && (
                   <p className="text-sm text-destructive">
@@ -162,7 +162,7 @@ export function EnterpriseContactForm({ open, onOpenChange }: EnterpriseContactF
                   id="phone"
                   type="tel"
                   {...form.register("phone")}
-                  placeholder="+1 (555) 123-4567"
+                  placeholder={t('placeholders.phone')}
                 />
               </div>
 
@@ -172,7 +172,7 @@ export function EnterpriseContactForm({ open, onOpenChange }: EnterpriseContactF
                   id="properties_count"
                   type="number"
                   {...form.register("properties_count")}
-                  placeholder="50"
+                  placeholder={t('placeholders.propertiesCount')}
                 />
               </div>
 
@@ -181,7 +181,7 @@ export function EnterpriseContactForm({ open, onOpenChange }: EnterpriseContactF
                 <Textarea
                   id="message"
                   {...form.register("message")}
-                  placeholder="Tell us about your property management needs..."
+                  placeholder={t('placeholders.enterpriseMessage')}
                   rows={4}
                 />
                 {form.formState.errors.message && (
