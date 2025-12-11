@@ -13,7 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { 
   Mail, 
   Shield, 
@@ -26,6 +28,7 @@ import {
   Lock,
   Smartphone,
   FileText,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UtilityConfig, UtilitiesConfig, CreateTenancyRequirementInput } from "@/hooks/useTenancyRequirements";
@@ -79,8 +82,11 @@ export function CreateTenancyWizard({
   isSubmitting = false,
 }: CreateTenancyWizardProps) {
   const { t } = useLanguage();
+  const { canUseGovernmentIdKYC, isFree } = useSubscription();
   const [currentStep, setCurrentStep] = useState(0);
   const [isReadyToSubmit, setIsReadyToSubmit] = useState(false);
+  
+  const canUseGovId = canUseGovernmentIdKYC();
 
   // Only allow submission after user has been on review step for a moment
   useEffect(() => {
@@ -305,20 +311,44 @@ export function CreateTenancyWizard({
                     control={form.control}
                     name="require_kyc_verification"
                     render={({ field }) => (
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Shield className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <Label className="font-medium">{t('tenancy.wizard.kycVerification') || 'KYC Verification'}</Label>
-                            <p className="text-sm text-muted-foreground">
-                              {t('tenancy.wizard.kycVerificationDesc') || 'Tenant must verify identity with government ID'}
-                            </p>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Shield className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <Label className="font-medium">{t('tenancy.wizard.kycVerification') || 'Identity Verification'}</Label>
+                              <p className="text-sm text-muted-foreground">
+                                {t('tenancy.wizard.kycVerificationDesc') || 'Tenant must verify their identity'}
+                              </p>
+                            </div>
                           </div>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
                         </div>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        
+                        {/* Show info about available KYC methods based on plan */}
+                        {field.value && (
+                          <Alert className="bg-muted/50">
+                            <Info className="h-4 w-4" />
+                            <AlertDescription className="text-sm">
+                              {canUseGovId ? (
+                                <>
+                                  <span className="font-medium">Available methods:</span> Government ID verification and KILT Protocol
+                                </>
+                              ) : (
+                                <>
+                                  <span className="font-medium">Available method:</span> KILT Protocol (blockchain-based)
+                                  <span className="block mt-1 text-xs text-muted-foreground">
+                                    <Lock className="h-3 w-3 inline mr-1" />
+                                    Upgrade to PRO for Government ID verification
+                                  </span>
+                                </>
+                              )}
+                            </AlertDescription>
+                          </Alert>
+                        )}
                       </div>
                     )}
                   />

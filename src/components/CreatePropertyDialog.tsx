@@ -9,6 +9,7 @@ import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { supabase } from "@/integrations/supabase/client";
 import { propertyBaseSchema } from "@/lib/validations";
 import { usePropertyMutations } from "@/hooks/useProperties";
+import { useSubscription } from "@/hooks/useSubscription";
 import { z } from "zod";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 import { CountrySelect } from "@/components/ui/country-select";
@@ -33,6 +34,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
   const { trackEvent } = useAnalyticsContext();
   const { createProperty } = usePropertyMutations();
   const { t } = useLanguage();
+  const { getPropertyLimit, isFree, isPro } = useSubscription();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,14 +54,8 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Check property limit
-      const { data: settingData } = await supabase
-        .from('system_settings')
-        .select('setting_value')
-        .eq('setting_key', 'max_active_properties_per_user')
-        .maybeSingle();
-      
-      const maxLimit = settingData ? parseInt((settingData.setting_value as any).value) : 5;
+      // Check property limit based on subscription plan
+      const propertyLimit = getPropertyLimit();
       
       const { count } = await supabase
         .from('properties')
@@ -67,8 +63,9 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
         .eq('manager_id', user.id)
         .eq('status', 'active');
       
-      if (count && count >= maxLimit) {
-        throw new Error(`You have reached the maximum limit of ${maxLimit} active properties. Please contact support to increase your limit.`);
+      if (count && count >= propertyLimit) {
+        const planName = isFree ? 'Free' : isPro ? 'Pro' : 'your current';
+        throw new Error(`You have reached the maximum limit of ${propertyLimit} active ${propertyLimit === 1 ? 'property' : 'properties'} on the ${planName} plan. Please upgrade to add more properties.`);
       }
 
       // Create property first without photo
