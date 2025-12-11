@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -83,10 +83,14 @@ export default function PropertyTenants() {
 
   // Get active tab from URL or default to 'overview'
   const activeTab = searchParams.get('tab') || 'overview';
+  const actionParam = searchParams.get('action');
   
   const setActiveTab = (tab: string) => {
     setSearchParams({ tab });
   };
+  
+  // Handle ?action=newTenancy URL param to auto-trigger wizard
+  const [hasTriggeredAction, setHasTriggeredAction] = useState(false);
 
   // UI state
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
@@ -196,6 +200,16 @@ export default function PropertyTenants() {
   // Compute tenancy setup state
   const canSetupNewTenancy = (!currentTenant || currentTenant?.tenancy_status === 'ending_tenancy') && !pendingRequirement;
   const hasEndingTenancy = currentTenant?.tenancy_status === 'ending_tenancy';
+
+  // Auto-trigger wizard from URL action param
+  useEffect(() => {
+    if (actionParam === 'newTenancy' && canSetupNewTenancy && !hasTriggeredAction && !propertyLoading) {
+      setShowTenancyWizard(true);
+      setHasTriggeredAction(true);
+      // Clear the action param from URL
+      setSearchParams({ tab: 'contracts' });
+    }
+  }, [actionParam, canSetupNewTenancy, hasTriggeredAction, propertyLoading, setSearchParams]);
 
   // Query for invitations (needed for OverviewTab)
   const { data: invitations, refetch: refetchInvitations } = useQuery({
