@@ -409,7 +409,7 @@ export default function Invitations() {
                 You're Invited!
               </Badge>
             </div>
-            <CardTitle className="text-3xl">{invitationPreview.properties?.title}</CardTitle>
+            <CardTitle>{invitationPreview.properties?.title}</CardTitle>
             {invitationPreview.properties?.address && (
               <CardDescription className="flex items-center justify-center gap-2 text-base mt-2">
                 <MapPin className="h-4 w-4" />
@@ -506,7 +506,7 @@ export default function Invitations() {
                           <Home className="h-5 w-5 text-primary" />
                           <Badge variant="secondary">You're Invited!</Badge>
                         </div>
-                        <CardTitle className="text-2xl">{invitation.properties?.title || t('invitations.property')}</CardTitle>
+                        <CardTitle>{invitation.properties?.title || t('invitations.property')}</CardTitle>
                         {invitation.properties?.address && (
                           <CardDescription className="flex items-center gap-1 mt-2">
                             <MapPin className="h-4 w-4" />

@@ -150,7 +150,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
           <div className="p-6 pb-2">
             <div className="flex items-start justify-between gap-2 mb-3">
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-xl mb-2 truncate">{property.title}</CardTitle>
+                <CardTitle className="mb-2 truncate">{property.title}</CardTitle>
                 {property.address && (
                   <CardDescription className="flex items-center gap-1 text-sm">
                     <MapPin className="h-3 w-3 flex-shrink-0" />
