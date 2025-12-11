@@ -1867,6 +1867,7 @@ export type Database = {
           is_default: boolean
           limitations_display: Json | null
           name: string
+          overage_price_per_government_id_cents: number | null
           overage_price_per_signature_cents: number
           price_annual_cents: number
           price_monthly_cents: number
@@ -1890,6 +1891,7 @@ export type Database = {
           is_default?: boolean
           limitations_display?: Json | null
           name: string
+          overage_price_per_government_id_cents?: number | null
           overage_price_per_signature_cents?: number
           price_annual_cents?: number
           price_monthly_cents?: number
@@ -1913,6 +1915,7 @@ export type Database = {
           is_default?: boolean
           limitations_display?: Json | null
           name?: string
+          overage_price_per_government_id_cents?: number | null
           overage_price_per_signature_cents?: number
           price_annual_cents?: number
           price_monthly_cents?: number

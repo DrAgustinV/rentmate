@@ -246,7 +246,12 @@ export function SubscriptionPlansManagement() {
       trial_days: plan.trial_days,
       grace_period_days: plan.grace_period_days,
       overage_price_per_signature_cents: plan.overage_price_per_signature_cents / 100,
+      overage_price_per_government_id_cents: (plan.overage_price_per_government_id_cents || 100) / 100,
       digital_signatures_per_year: (featureLimits as any).digital_signatures_per_year || 0,
+      property_limit: (featureLimits as any).property_limit || 1,
+      government_id_verifications_per_year: (featureLimits as any).government_id_verifications_per_year || 0,
+      kilt_kyc_enabled: (featureLimits as any).kilt_kyc_enabled ?? true,
+      government_id_kyc_enabled: (featureLimits as any).government_id_kyc_enabled ?? false,
       features_display: typeof plan.features_display === 'object' ? plan.features_display : {},
       limitations_display: typeof plan.limitations_display === 'object' ? plan.limitations_display : {},
       slug: plan.slug,
@@ -265,9 +270,14 @@ export function SubscriptionPlansManagement() {
       trial_days: formData.trial_days,
       grace_period_days: formData.grace_period_days,
       overage_price_per_signature_cents: Math.round(formData.overage_price_per_signature_cents * 100),
+      overage_price_per_government_id_cents: Math.round(formData.overage_price_per_government_id_cents * 100),
       feature_limits: {
         ...(typeof currentPlan.feature_limits === 'object' ? currentPlan.feature_limits : {}),
         digital_signatures_per_year: formData.digital_signatures_per_year,
+        property_limit: formData.property_limit,
+        government_id_verifications_per_year: formData.government_id_verifications_per_year,
+        kilt_kyc_enabled: formData.kilt_kyc_enabled,
+        government_id_kyc_enabled: formData.government_id_kyc_enabled,
       },
       features_display: formData.features_display,
       limitations_display: formData.limitations_display,
@@ -438,6 +448,61 @@ export function SubscriptionPlansManagement() {
                           onChange={(e) => setFormData({ ...formData, overage_price_per_signature_cents: parseFloat(e.target.value) })}
                         />
                       </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="property-limit">Property Limit</Label>
+                        <Input
+                          id="property-limit"
+                          type="number"
+                          value={formData.property_limit}
+                          onChange={(e) => setFormData({ ...formData, property_limit: parseInt(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gov-id-verifications">Government ID Verifications/Year</Label>
+                        <Input
+                          id="gov-id-verifications"
+                          type="number"
+                          value={formData.government_id_verifications_per_year}
+                          onChange={(e) => setFormData({ ...formData, government_id_verifications_per_year: parseInt(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gov-id-overage-price">Government ID Overage Price (€)</Label>
+                        <Input
+                          id="gov-id-overage-price"
+                          type="number"
+                          step="0.01"
+                          value={formData.overage_price_per_government_id_cents}
+                          onChange={(e) => setFormData({ ...formData, overage_price_per_government_id_cents: parseFloat(e.target.value) })}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* KYC Provider Toggles */}
+                    <div className="border-t pt-4 mt-4">
+                      <h4 className="text-sm font-medium mb-4">KYC Provider Access</h4>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="flex items-center justify-between rounded-lg border p-3">
+                          <div className="space-y-0.5">
+                            <Label className="text-sm font-medium">KILT KYC</Label>
+                            <p className="text-xs text-muted-foreground">Blockchain-based verification</p>
+                          </div>
+                          <Switch
+                            checked={formData.kilt_kyc_enabled}
+                            onCheckedChange={(checked) => setFormData({ ...formData, kilt_kyc_enabled: checked })}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between rounded-lg border p-3">
+                          <div className="space-y-0.5">
+                            <Label className="text-sm font-medium">Government ID KYC</Label>
+                            <p className="text-xs text-muted-foreground">Document verification</p>
+                          </div>
+                          <Switch
+                            checked={formData.government_id_kyc_enabled}
+                            onCheckedChange={(checked) => setFormData({ ...formData, government_id_kyc_enabled: checked })}
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     {/* Features Editor with Language Tabs */}
@@ -450,34 +515,67 @@ export function SubscriptionPlansManagement() {
                     />
                   </div>
                 ) : (
-                  <div className="grid gap-4 md:grid-cols-3 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Monthly Price</p>
-                      <p className="font-semibold">€{(plan.price_monthly_cents / 100).toFixed(2)}</p>
+                  <div className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-3 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Monthly Price</p>
+                        <p className="font-semibold">€{(plan.price_monthly_cents / 100).toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Annual Price</p>
+                        <p className="font-semibold">€{(plan.price_annual_cents / 100).toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Trial Days</p>
+                        <p className="font-semibold">{plan.trial_days}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Grace Period</p>
+                        <p className="font-semibold">{plan.grace_period_days} days</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Property Limit</p>
+                        <p className="font-semibold">
+                          {typeof plan.feature_limits === 'object' && plan.feature_limits && 'property_limit' in plan.feature_limits
+                            ? (plan.feature_limits as any).property_limit
+                            : 1}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Signatures/Year</p>
+                        <p className="font-semibold">
+                          {typeof plan.feature_limits === 'object' && plan.feature_limits && 'digital_signatures_per_year' in plan.feature_limits
+                            ? (plan.feature_limits as any).digital_signatures_per_year
+                            : 0}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Signature Overage (€)</p>
+                        <p className="font-semibold">€{(plan.overage_price_per_signature_cents / 100).toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Gov ID Verifications/Year</p>
+                        <p className="font-semibold">
+                          {typeof plan.feature_limits === 'object' && plan.feature_limits && 'government_id_verifications_per_year' in plan.feature_limits
+                            ? (plan.feature_limits as any).government_id_verifications_per_year
+                            : 0}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Gov ID Overage (€)</p>
+                        <p className="font-semibold">€{((plan as any).overage_price_per_government_id_cents / 100 || 1).toFixed(2)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Annual Price</p>
-                      <p className="font-semibold">€{(plan.price_annual_cents / 100).toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Trial Days</p>
-                      <p className="font-semibold">{plan.trial_days}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Grace Period</p>
-                      <p className="font-semibold">{plan.grace_period_days} days</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Signatures/Year</p>
-                      <p className="font-semibold">
-                        {typeof plan.feature_limits === 'object' && plan.feature_limits && 'digital_signatures_per_year' in plan.feature_limits
-                          ? (plan.feature_limits as any).digital_signatures_per_year
-                          : 0}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Overage Price</p>
-                      <p className="font-semibold">€{(plan.overage_price_per_signature_cents / 100).toFixed(2)}</p>
+                    <div className="border-t pt-4">
+                      <p className="text-sm font-medium mb-2">KYC Provider Access</p>
+                      <div className="flex gap-4 text-sm">
+                        <Badge variant={typeof plan.feature_limits === 'object' && (plan.feature_limits as any).kilt_kyc_enabled ? "default" : "secondary"}>
+                          KILT KYC: {typeof plan.feature_limits === 'object' && (plan.feature_limits as any).kilt_kyc_enabled ? "Enabled" : "Disabled"}
+                        </Badge>
+                        <Badge variant={typeof plan.feature_limits === 'object' && (plan.feature_limits as any).government_id_kyc_enabled ? "default" : "secondary"}>
+                          Gov ID KYC: {typeof plan.feature_limits === 'object' && (plan.feature_limits as any).government_id_kyc_enabled ? "Enabled" : "Disabled"}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 )}
