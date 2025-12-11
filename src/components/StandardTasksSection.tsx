@@ -137,7 +137,7 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
         {filteredTemplates && filteredTemplates.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTemplates.map((template) => (
-              <Card key={template.id} className="flex flex-col hover:shadow-md transition-shadow">
+              <Card key={template.id} className="card-shine flex flex-col">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <CardTitle className="text-base line-clamp-2">{template.title}</CardTitle>
@@ -165,6 +165,7 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
                 </CardContent>
                 <CardFooter className="pt-3">
                   <Button
+                    variant="outline"
                     size="sm"
                     className="w-full"
                     onClick={() => handleScheduleClick(template)}
