@@ -1296,6 +1296,37 @@ export const es = {
       dragAndDropHint: "Arrastra y suelta un archivo aquí, o haz clic para seleccionar",
       uploadHint: "Máx {size}MB · PDF, DOC, DOCX, ODT, XLS, XLSX, ODS, TXT, Imágenes",
     },
+    // Verification dialogs
+    enterVerificationCode: "Ingresa el Código de Verificación",
+    verificationCodeDesc: "Hemos enviado un código de verificación de 6 dígitos a {phoneNumber}. Por favor ingrésalo a continuación para completar tu firma.",
+    // Admin dialogs
+    grantProAccess: "Otorgar Acceso Pro",
+    grantProAccessDesc: "Dar a este usuario acceso Pro temporal. Será degradado automáticamente cuando expire la duración.",
+    // Enterprise dialogs
+    contactEnterpriseSales: "Contactar Ventas Enterprise",
+    contactEnterpriseSalesDesc: "Cuéntanos sobre tus necesidades y nuestro equipo creará una solución personalizada para ti.",
+    // Schedule dialogs
+    createRecurringSchedule: "Crear Programación Recurrente",
+    // Ticket dialogs
+    resolveTicket: "Resolver Ticket",
+    resolveTicketDesc: "Por favor proporciona notas sobre cómo se resolvió este ticket",
+    createNewTicket: "Crear Nuevo Ticket",
+    createNewTicketDesc: "Envía un nuevo ticket para un problema o solicitud de propiedad.",
+    // Property dialogs
+    createNewProperty: "Crear Nueva Propiedad",
+    // Privacy dialogs
+    deleteAccount: "Eliminar Cuenta",
+    deleteAccountDesc: "Esto te navegará a la configuración de Privacidad de la Cuenta donde puedes solicitar la eliminación con todos los detalles sobre qué se eliminará y qué se conservará.",
+    confirmAccountDeletion: "Confirmar Eliminación de Cuenta",
+    confirmAccountDeletionDesc: "Tu cuenta será eliminada en 14 días. Puedes cancelar en cualquier momento antes.",
+    // Template dialogs
+    deleteMaintenanceTask: "Eliminar Tarea de Mantenimiento",
+    deleteMaintenanceTaskDesc: "¿Estás seguro de que quieres eliminar esta tarea? Esto también eliminará todas las programaciones y tickets generados asociados. Esta acción no se puede deshacer.",
+    // Rent Agreement dialogs
+    editRentAgreement: "Editar Contrato de Alquiler",
+    editRentAgreementDesc: "Actualiza los detalles del contrato de alquiler. El inquilino será notificado de los cambios.",
+    // Invitation dialogs
+    welcomeTo: "¡Bienvenido a {propertyTitle}!",
   },
   about: {
     title: "Acerca de FlatMate",
@@ -1748,5 +1779,69 @@ export const es = {
       bankSetupDesc: "Agrega tu IBAN para los pagos de alquiler",
       setupBank: "Configurar",
     },
+  },
+  toasts: {
+    // Upload related
+    selectFile: "Por favor selecciona un archivo para subir",
+    invalidImageType: "Por favor sube una imagen (JPG, PNG, WEBP) o archivo PDF",
+    fileTooLarge: "El archivo debe ser menor a 10MB",
+    imageTooLarge: "La imagen debe ser menor a 5MB",
+    invalidFileType: "Tipo de archivo no permitido. Por favor sube un documento o imagen.",
+    uploadFailed: "Error al subir",
+    // Proof of payment
+    proofUploaded: "Comprobante de pago subido exitosamente",
+    // Verification
+    enterSixDigitCode: "Por favor ingresa un código de 6 dígitos",
+    signatureCompleted: "Firma completada exitosamente",
+    invalidVerificationCode: "Código de verificación inválido",
+    failedToVerifyCode: "Error al verificar código",
+    // Settings
+    settingUpdated: "Configuración actualizada exitosamente",
+    settingUpdateFailed: "Error al actualizar configuración",
+    invalidNumber: "Por favor ingresa un número positivo válido",
+    // Tickets
+    ticketCreated: "Ticket creado",
+    ticketCreatedDesc: "Tu ticket ha sido creado exitosamente.",
+    ticketUpdated: "Ticket actualizado exitosamente",
+    ticketUpdateFailed: "Error al actualizar ticket",
+    // Documents
+    documentUploaded: "Documento subido exitosamente",
+    // Schedules
+    scheduleCreated: "Programación recurrente creada",
+    scheduleCreateFailed: "Error al crear programación",
+    selectTemplateAndDate: "Por favor selecciona una plantilla y fecha de inicio",
+    scheduleUpdated: "Programación actualizada",
+    scheduleUpdateFailed: "Error al actualizar programación",
+    // Enterprise
+    enterpriseContactSuccess: "¡Gracias! Te contactaremos en 24 horas.",
+    enterpriseContactFailed: "Error al enviar solicitud. Por favor intenta de nuevo.",
+    requestUpdated: "Solicitud actualizada exitosamente",
+    requestUpdateFailed: "Error al actualizar solicitud",
+    // Attachments
+    attachmentDeleted: "Adjunto eliminado exitosamente",
+    attachmentDeleteFailed: "Error al eliminar adjunto",
+    attachmentsUploaded: "Adjuntos subidos exitosamente",
+    // Carousel
+    carouselImageUploaded: "Imagen subida",
+    carouselImageUploadedDesc: "Imagen del carrusel subida exitosamente",
+    carouselSaved: "Carrusel guardado",
+    carouselSavedDesc: "Elementos del carrusel actualizados exitosamente",
+    carouselSaveFailed: "Error al guardar carrusel",
+    // Tasks
+    taskCompleted: "Tarea completada exitosamente",
+    taskCompleteFailed: "Error al completar tarea",
+    taskDeleted: "Tarea eliminada exitosamente",
+    taskDeleteFailed: "Error al eliminar tarea",
+    // Comments
+    commentAddFailed: "Error al agregar comentario. Por favor intenta de nuevo.",
+    // Plans
+    planUpdated: "Plan actualizado exitosamente",
+    planUpdateFailed: "Error al actualizar plan",
+    // Invitations
+    invitationAccepted: "Invitación aceptada",
+    // KILT
+    credentialsGenerated: "Credenciales de prueba generadas exitosamente",
+    credentialsGenerateFailed: "Error al generar credenciales de prueba",
+    copiedToClipboard: "Copiado al portapapeles",
   },
 };

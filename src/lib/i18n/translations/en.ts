@@ -1209,6 +1209,37 @@ export const en = {
       dragAndDropHint: "Drag and drop a file here, or click to select",
       uploadHint: "Max {size}MB · PDF, DOC, DOCX, ODT, XLS, XLSX, ODS, TXT, Images",
     },
+    // Verification dialogs
+    enterVerificationCode: "Enter Verification Code",
+    verificationCodeDesc: "We've sent a 6-digit verification code to {phoneNumber}. Please enter it below to complete your signature.",
+    // Admin dialogs
+    grantProAccess: "Grant Pro Access",
+    grantProAccessDesc: "Give this user temporary Pro access. They will be automatically downgraded when the duration expires.",
+    // Enterprise dialogs
+    contactEnterpriseSales: "Contact Enterprise Sales",
+    contactEnterpriseSalesDesc: "Tell us about your needs and our team will create a custom solution for you.",
+    // Schedule dialogs
+    createRecurringSchedule: "Create Recurring Schedule",
+    // Ticket dialogs
+    resolveTicket: "Resolve Ticket",
+    resolveTicketDesc: "Please provide notes about how this ticket was resolved",
+    createNewTicket: "Create New Ticket",
+    createNewTicketDesc: "Submit a new ticket for a property issue or request.",
+    // Property dialogs
+    createNewProperty: "Create New Property",
+    // Privacy dialogs
+    deleteAccount: "Delete Account",
+    deleteAccountDesc: "This will navigate you to the Account Privacy settings where you can request account deletion with full details about what will be deleted and retained.",
+    confirmAccountDeletion: "Confirm Account Deletion",
+    confirmAccountDeletionDesc: "Your account will be deleted in 14 days. You can cancel anytime before then.",
+    // Template dialogs
+    deleteMaintenanceTask: "Delete Maintenance Task",
+    deleteMaintenanceTaskDesc: "Are you sure you want to delete this task? This will also delete all schedules and generated tickets associated with it. This action cannot be undone.",
+    // Rent Agreement dialogs
+    editRentAgreement: "Edit Rent Agreement",
+    editRentAgreementDesc: "Update the rent agreement details. Tenant will be notified of changes.",
+    // Invitation dialogs
+    welcomeTo: "Welcome to {propertyTitle}!",
   },
   about: {
     title: "About FlatMate",
@@ -1556,5 +1587,69 @@ export const en = {
       bankSetupDesc: "Add your IBAN for rent payments",
       setupBank: "Set Up",
     },
+  },
+  toasts: {
+    // Upload related
+    selectFile: "Please select a file to upload",
+    invalidImageType: "Please upload an image (JPG, PNG, WEBP) or PDF file",
+    fileTooLarge: "File size must be less than 10MB",
+    imageTooLarge: "Image must be less than 5MB",
+    invalidFileType: "File type not allowed. Please upload a document or image file.",
+    uploadFailed: "Upload failed",
+    // Proof of payment
+    proofUploaded: "Proof of payment uploaded successfully",
+    // Verification
+    enterSixDigitCode: "Please enter a 6-digit code",
+    signatureCompleted: "Signature completed successfully",
+    invalidVerificationCode: "Invalid verification code",
+    failedToVerifyCode: "Failed to verify code",
+    // Settings
+    settingUpdated: "Setting updated successfully",
+    settingUpdateFailed: "Failed to update setting",
+    invalidNumber: "Please enter a valid positive number",
+    // Tickets
+    ticketCreated: "Ticket created",
+    ticketCreatedDesc: "Your ticket has been created successfully.",
+    ticketUpdated: "Ticket updated successfully",
+    ticketUpdateFailed: "Failed to update ticket",
+    // Documents
+    documentUploaded: "Document uploaded successfully",
+    // Schedules
+    scheduleCreated: "Recurring schedule created",
+    scheduleCreateFailed: "Failed to create schedule",
+    selectTemplateAndDate: "Please select a template and start date",
+    scheduleUpdated: "Schedule updated",
+    scheduleUpdateFailed: "Failed to update schedule",
+    // Enterprise
+    enterpriseContactSuccess: "Thank you! We'll contact you within 24 hours.",
+    enterpriseContactFailed: "Failed to submit contact request. Please try again.",
+    requestUpdated: "Request updated successfully",
+    requestUpdateFailed: "Failed to update request",
+    // Attachments
+    attachmentDeleted: "Attachment deleted successfully",
+    attachmentDeleteFailed: "Failed to delete attachment",
+    attachmentsUploaded: "Attachments uploaded successfully",
+    // Carousel
+    carouselImageUploaded: "Image uploaded",
+    carouselImageUploadedDesc: "Carousel image uploaded successfully",
+    carouselSaved: "Carousel saved",
+    carouselSavedDesc: "Carousel items updated successfully",
+    carouselSaveFailed: "Error saving carousel",
+    // Tasks
+    taskCompleted: "Task completed successfully",
+    taskCompleteFailed: "Failed to complete task",
+    taskDeleted: "Task deleted successfully",
+    taskDeleteFailed: "Failed to delete task",
+    // Comments
+    commentAddFailed: "Failed to add comment. Please try again.",
+    // Plans
+    planUpdated: "Plan updated successfully",
+    planUpdateFailed: "Failed to update plan",
+    // Invitations
+    invitationAccepted: "Invitation accepted",
+    // KILT
+    credentialsGenerated: "Test credentials generated successfully",
+    credentialsGenerateFailed: "Failed to generate test credentials",
+    copiedToClipboard: "Copied to clipboard",
   },
 };
