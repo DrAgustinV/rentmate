@@ -47,6 +47,8 @@ interface ContractSignatureManagerProps {
   isManager: boolean;
   contractMethod?: 'digital' | 'manual' | 'none' | null;
   onRefresh?: () => void;
+  /** When true, renders as section without Card wrapper (for embedding in parent Card) */
+  asSection?: boolean;
 }
 
 export const ContractSignatureManager = ({ 
@@ -54,7 +56,8 @@ export const ContractSignatureManager = ({
   propertyId, 
   isManager,
   contractMethod,
-  onRefresh 
+  onRefresh,
+  asSection = false
 }: ContractSignatureManagerProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -317,6 +320,24 @@ export const ContractSignatureManager = ({
 
   // Handle "none" contract method - show simple message
   if (contractMethod === 'none') {
+    const content = (
+      <>
+        <div className="flex items-center gap-2 mb-2">
+          {methodDisplay.icon}
+          <h4 className="font-semibold">{methodDisplay.title}</h4>
+        </div>
+        <p className="text-sm text-muted-foreground mb-3">{methodDisplay.description}</p>
+        <Alert>
+          <FileText className="h-4 w-4" />
+          <AlertDescription>
+            {t('contractSignature.skippedInfo') || 'Contract signing was skipped for this tenancy. You can still upload contract documents manually above.'}
+          </AlertDescription>
+        </Alert>
+      </>
+    );
+
+    if (asSection) return <div className="space-y-3">{content}</div>;
+    
     return (
       <Card className="card-shine">
         <CardHeader>
@@ -324,24 +345,33 @@ export const ContractSignatureManager = ({
             {methodDisplay.icon}
             {methodDisplay.title}
           </CardTitle>
-          <CardDescription>
-            {methodDisplay.description}
-          </CardDescription>
+          <CardDescription>{methodDisplay.description}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Alert>
-            <FileText className="h-4 w-4" />
-            <AlertDescription>
-              {t('contractSignature.skippedInfo') || 'Contract signing was skipped for this tenancy. You can still upload contract documents manually in the Documents section.'}
-            </AlertDescription>
-          </Alert>
-        </CardContent>
+        <CardContent>{content}</CardContent>
       </Card>
     );
   }
 
   // Handle "manual" contract method - show upload instructions
   if (contractMethod === 'manual' && !signature) {
+    const content = (
+      <>
+        <div className="flex items-center gap-2 mb-2">
+          {methodDisplay.icon}
+          <h4 className="font-semibold">{methodDisplay.title}</h4>
+        </div>
+        <p className="text-sm text-muted-foreground mb-3">{methodDisplay.description}</p>
+        <Alert>
+          <Upload className="h-4 w-4" />
+          <AlertDescription>
+            {t('contractSignature.manualInfo') || 'This tenancy uses manual/paper contract signing. Please sign the contract physically and upload the scanned signed copy above.'}
+          </AlertDescription>
+        </Alert>
+      </>
+    );
+
+    if (asSection) return <div className="space-y-3">{content}</div>;
+
     return (
       <Card className="card-shine">
         <CardHeader>
@@ -349,24 +379,89 @@ export const ContractSignatureManager = ({
             {methodDisplay.icon}
             {methodDisplay.title}
           </CardTitle>
-          <CardDescription>
-            {methodDisplay.description}
-          </CardDescription>
+          <CardDescription>{methodDisplay.description}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Alert>
-            <Upload className="h-4 w-4" />
-            <AlertDescription>
-              {t('contractSignature.manualInfo') || 'This tenancy uses manual/paper contract signing. Please sign the contract physically and upload the scanned signed copy in the Documents section above.'}
-            </AlertDescription>
-          </Alert>
-        </CardContent>
+        <CardContent className="space-y-4">{content}</CardContent>
       </Card>
     );
   }
 
   // No signature exists yet - show initiation UI for digital signatures
   if (!signature) {
+    const content = (
+      <div className="space-y-4">
+        {isManager && (
+          <>
+            {/* Document Selector */}
+            <div className="space-y-3">
+              <Label htmlFor="document-select" className="text-base font-semibold">
+                {t('contractSignature.selectDocument') || 'Select Document to Sign'}
+              </Label>
+              <Select value={selectedDocumentId} onValueChange={setSelectedDocumentId}>
+                <SelectTrigger id="document-select" className="w-full">
+                  <SelectValue placeholder={t('contractSignature.chooseDocument') || 'Choose a document...'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {tenancyDocuments.length === 0 ? (
+                    <SelectItem value="none" disabled>
+                      {t('contractSignature.noDocuments') || 'No documents available'}
+                    </SelectItem>
+                  ) : (
+                    tenancyDocuments.map((doc) => (
+                      <SelectItem key={doc.id} value={doc.id}>
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          <div>
+                            <div className="font-medium">{doc.document_title}</div>
+                            <div className="text-xs text-muted-foreground">{doc.file_name}</div>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {!selectedDocumentId && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {t('contractSignature.selectDocumentFirst') || 'Please upload and select a contract document before initiating the signature'}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+
+            <Button 
+              onClick={handleInitiateSignature} 
+              disabled={loading || !selectedDocumentId}
+              className="w-full"
+            >
+              <FileSignature className="h-4 w-4 mr-2" />
+              {loading ? t('common.loading') : (t('contractSignature.initiate') || 'Start Signature Process')}
+            </Button>
+          </>
+        )}
+        {!isManager && (
+          <div className="text-sm text-muted-foreground">
+            {t('contractSignature.waitingForManager') || 'Waiting for manager to initiate the signature process'}
+          </div>
+        )}
+      </div>
+    );
+
+    if (asSection) {
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            {methodDisplay.icon}
+            <h4 className="font-semibold">{methodDisplay.title}</h4>
+          </div>
+          <p className="text-sm text-muted-foreground">{methodDisplay.description}</p>
+          {content}
+        </div>
+      );
+    }
+
     return (
       <Card className="card-shine">
         <CardHeader>
@@ -374,68 +469,9 @@ export const ContractSignatureManager = ({
             {methodDisplay.icon}
             {methodDisplay.title}
           </CardTitle>
-          <CardDescription>
-            {methodDisplay.description}
-          </CardDescription>
+          <CardDescription>{methodDisplay.description}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {isManager && (
-            <>
-              {/* Document Selector */}
-              <div className="space-y-3">
-                <Label htmlFor="document-select" className="text-base font-semibold">
-                  {t('contractSignature.selectDocument') || 'Select Document to Sign'}
-                </Label>
-                <Select value={selectedDocumentId} onValueChange={setSelectedDocumentId}>
-                  <SelectTrigger id="document-select" className="w-full">
-                    <SelectValue placeholder={t('contractSignature.chooseDocument') || 'Choose a document...'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tenancyDocuments.length === 0 ? (
-                      <SelectItem value="none" disabled>
-                        {t('contractSignature.noDocuments') || 'No documents available'}
-                      </SelectItem>
-                    ) : (
-                      tenancyDocuments.map((doc) => (
-                        <SelectItem key={doc.id} value={doc.id}>
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4" />
-                            <div>
-                              <div className="font-medium">{doc.document_title}</div>
-                              <div className="text-xs text-muted-foreground">{doc.file_name}</div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                {!selectedDocumentId && (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      {t('contractSignature.selectDocumentFirst') || 'Please upload and select a contract document before initiating the signature'}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-
-              <Button 
-                onClick={handleInitiateSignature} 
-                disabled={loading || !selectedDocumentId}
-                className="w-full"
-              >
-                <FileSignature className="h-4 w-4 mr-2" />
-                {loading ? t('common.loading') : (t('contractSignature.initiate') || 'Start Signature Process')}
-              </Button>
-            </>
-          )}
-          {!isManager && (
-            <div className="text-sm text-muted-foreground">
-              {t('contractSignature.waitingForManager') || 'Waiting for manager to initiate the signature process'}
-            </div>
-          )}
-        </CardContent>
+        <CardContent>{content}</CardContent>
       </Card>
     );
   }
@@ -445,6 +481,190 @@ export const ContractSignatureManager = ({
   const managerSigned = !!signature.manager_signed_at;
   const tenantSigned = !!signature.tenant_signed_at;
   const isQualifiedSignature = ['yousign'].includes(signature.signing_method_provider || '');
+
+  const signatureContent = (
+    <div className="space-y-4">
+      {/* Qualified Signature Flow with integrated Cancel button */}
+      {isQualifiedSignature && !isCompleted && showSigningForm && (
+        <QualifiedSignatureFlow
+          tenancyId={tenancyId}
+          propertyId={propertyId}
+          providerCode="yousign"
+          onComplete={() => {
+            setShowSigningForm(false);
+            loadSignature();
+            onRefresh?.();
+          }}
+          onCancel={isManager ? handleCancelSignature : undefined}
+        />
+      )}
+
+      {/* Signature Status - Compact Badge Layout */}
+      <div className="pt-2 border-t">
+        <p className="text-xs text-muted-foreground mb-2">{t('contracts.signatureStatus')}</p>
+        <div className="flex flex-wrap gap-2">
+          {/* Manager Badge */}
+          <Badge 
+            variant={managerSigned ? "default" : "outline"} 
+            className={`text-xs ${managerSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
+          >
+            {managerSigned ? (
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+            ) : (
+              <Clock className="h-3 w-3 mr-1" />
+            )}
+            {t('contracts.managerSignature')}
+          </Badge>
+          {/* Tenant Badge */}
+          <Badge 
+            variant={tenantSigned ? "default" : "outline"} 
+            className={`text-xs ${tenantSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
+          >
+            {tenantSigned ? (
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+            ) : (
+              <Clock className="h-3 w-3 mr-1" />
+            )}
+            {t('contracts.tenantSignature')}
+          </Badge>
+        </div>
+        
+        {/* Request Expiration - Inline */}
+        {signature.expires_at && !isCompleted && (
+          <div className="flex items-center gap-2 mt-3">
+            <span className="text-xs text-muted-foreground">{t('contracts.requestExpiration')}:</span>
+            <Badge variant="outline" className="text-xs">
+              <Clock className="h-3 w-3 mr-1" />
+              {format(new Date(signature.expires_at), 'PPP')}
+            </Badge>
+          </div>
+        )}
+      </div>
+
+      {/* Sign Now Buttons */}
+      {!isCompleted && (
+        <>
+          {!managerSigned && isManager && isQualifiedSignature && !showSigningForm && (
+            <Button 
+              size="sm" 
+              onClick={() => setShowSigningForm(true)} 
+              className="w-full"
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              {t('contractSignature.signNow') || 'Sign Now'}
+            </Button>
+          )}
+          {!tenantSigned && !isManager && isQualifiedSignature && !showSigningForm && (
+            <Button 
+              size="sm" 
+              onClick={() => setShowSigningForm(true)} 
+              className="w-full"
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              {t('contractSignature.signNow') || 'Sign Now'}
+            </Button>
+          )}
+        </>
+      )}
+
+      {/* Download completed contract */}
+      {isCompleted && signature.signed_document_url && (
+        <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+          <CheckCircle2 className="h-5 w-5 text-green-600" />
+          <div className="flex-1">
+            <div className="font-medium">{t('contractSignature.downloadContract') || 'Download Signed Contract'}</div>
+            <div className="text-sm text-muted-foreground">
+              {t('contractSignature.signedOn') || 'Signed on'}: {format(new Date(signature.completed_at!), 'PPP')}
+            </div>
+          </div>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={async () => {
+              const newWindow = window.open('', '_blank');
+              
+              let storagePath = signature.signed_document_url!;
+              if (storagePath.includes('/qualified-contracts/')) {
+                storagePath = storagePath.split('/qualified-contracts/')[1];
+              }
+              
+              const { data, error } = await supabase.storage
+                .from('qualified-contracts')
+                .createSignedUrl(storagePath, 3600);
+              
+              if (error || !data?.signedUrl) {
+                newWindow?.close();
+                toast({
+                  title: t('common.error'),
+                  description: 'Failed to generate download link',
+                  variant: 'destructive',
+                });
+                return;
+              }
+              
+              if (newWindow) {
+                newWindow.location.href = data.signedUrl;
+              }
+            }}
+          >
+            {t('common.download') || 'Download'}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
+  // Section header with status badge
+  const sectionHeader = (
+    <div className="flex items-center gap-2 mb-2">
+      <FileSignature className="h-5 w-5" />
+      <h4 className="font-semibold">{methodDisplay.title}</h4>
+      {isCompleted && (
+        <Badge variant="default" className="ml-auto">
+          <CheckCircle2 className="h-3 w-3 mr-1" />
+          {t('contractSignature.status.completed') || 'Completed'}
+        </Badge>
+      )}
+      {!isCompleted && (
+        <Badge variant="secondary" className="ml-auto">
+          <Clock className="h-3 w-3 mr-1" />
+          {t('contractSignature.status.inProgress') || 'In Progress'}
+        </Badge>
+      )}
+    </div>
+  );
+
+  const sectionMeta = (
+    <>
+      <p className="text-sm text-muted-foreground">
+        {t('contractSignature.initiated')}: {format(new Date(signature.initiated_at), 'PPP')}
+      </p>
+      {sourceDocument && (
+        <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+          <FileText className="h-4 w-4" />
+          <span>{t('contractSignature.document') || 'Document'}: {sourceDocument.document_title}</span>
+          <Badge variant="outline" className="text-xs">{sourceDocument.file_name}</Badge>
+        </div>
+      )}
+    </>
+  );
+
+  if (asSection) {
+    return (
+      <div className="space-y-3">
+        {sectionHeader}
+        {sectionMeta}
+        {signatureContent}
+        <UpgradeDialog
+          open={showUpgradeDialog}
+          onOpenChange={setShowUpgradeDialog}
+          feature="Digital Signatures"
+          description="requires a Pro or Enterprise plan to create legally-binding electronic signatures for contracts."
+          requiredPlan="pro"
+        />
+      </div>
+    );
+  }
 
   return (
     <Card className="card-shine">
@@ -476,135 +696,7 @@ export const ContractSignatureManager = ({
           </div>
         )}
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Qualified Signature Flow with integrated Cancel button */}
-        {isQualifiedSignature && !isCompleted && showSigningForm && (
-          <QualifiedSignatureFlow
-            tenancyId={tenancyId}
-            propertyId={propertyId}
-            providerCode="yousign"
-            onComplete={() => {
-              setShowSigningForm(false);
-              loadSignature();
-              onRefresh?.();
-            }}
-            onCancel={isManager ? handleCancelSignature : undefined}
-          />
-        )}
-
-        {/* Signature Status - Compact Badge Layout */}
-        <div className="pt-2 border-t">
-          <p className="text-xs text-muted-foreground mb-2">{t('contracts.signatureStatus')}</p>
-          <div className="flex flex-wrap gap-2">
-            {/* Manager Badge */}
-            <Badge 
-              variant={managerSigned ? "default" : "outline"} 
-              className={`text-xs ${managerSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
-            >
-              {managerSigned ? (
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-              ) : (
-                <Clock className="h-3 w-3 mr-1" />
-              )}
-              {t('contracts.managerSignature')}
-            </Badge>
-            {/* Tenant Badge */}
-            <Badge 
-              variant={tenantSigned ? "default" : "outline"} 
-              className={`text-xs ${tenantSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
-            >
-              {tenantSigned ? (
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-              ) : (
-                <Clock className="h-3 w-3 mr-1" />
-              )}
-              {t('contracts.tenantSignature')}
-            </Badge>
-          </div>
-          
-          {/* Request Expiration - Inline */}
-          {signature.expires_at && !isCompleted && (
-            <div className="flex items-center gap-2 mt-3">
-              <span className="text-xs text-muted-foreground">{t('contracts.requestExpiration')}:</span>
-              <Badge variant="outline" className="text-xs">
-                <Clock className="h-3 w-3 mr-1" />
-                {format(new Date(signature.expires_at), 'PPP')}
-              </Badge>
-            </div>
-          )}
-        </div>
-
-        {/* Sign Now Buttons */}
-        {!isCompleted && (
-          <>
-            {!managerSigned && isManager && isQualifiedSignature && !showSigningForm && (
-              <Button 
-                size="sm" 
-                onClick={() => setShowSigningForm(true)} 
-                className="w-full"
-              >
-                <Shield className="h-4 w-4 mr-2" />
-                {t('contractSignature.signNow') || 'Sign Now'}
-              </Button>
-            )}
-            {!tenantSigned && !isManager && isQualifiedSignature && !showSigningForm && (
-              <Button 
-                size="sm" 
-                onClick={() => setShowSigningForm(true)} 
-                className="w-full"
-              >
-                <Shield className="h-4 w-4 mr-2" />
-                {t('contractSignature.signNow') || 'Sign Now'}
-              </Button>
-            )}
-          </>
-        )}
-
-        {/* Download completed contract */}
-        {isCompleted && signature.signed_document_url && (
-          <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-            <div className="flex-1">
-              <div className="font-medium">{t('contractSignature.downloadContract') || 'Download Signed Contract'}</div>
-              <div className="text-sm text-muted-foreground">
-                {t('contractSignature.signedOn') || 'Signed on'}: {format(new Date(signature.completed_at!), 'PPP')}
-              </div>
-            </div>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={async () => {
-                const newWindow = window.open('', '_blank');
-                
-                let storagePath = signature.signed_document_url!;
-                if (storagePath.includes('/qualified-contracts/')) {
-                  storagePath = storagePath.split('/qualified-contracts/')[1];
-                }
-                
-                const { data, error } = await supabase.storage
-                  .from('qualified-contracts')
-                  .createSignedUrl(storagePath, 3600);
-                
-                if (error || !data?.signedUrl) {
-                  newWindow?.close();
-                  toast({
-                    title: t('common.error'),
-                    description: 'Failed to generate download link',
-                    variant: 'destructive',
-                  });
-                  return;
-                }
-                
-                if (newWindow) {
-                  newWindow.location.href = data.signedUrl;
-                }
-              }}
-            >
-              {t('common.download') || 'Download'}
-            </Button>
-          </div>
-        )}
-      </CardContent>
+      <CardContent>{signatureContent}</CardContent>
       
       <UpgradeDialog
         open={showUpgradeDialog}
