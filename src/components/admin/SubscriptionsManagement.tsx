@@ -8,9 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader2, Search } from "lucide-react";
 import { GrantProAccessDialog } from "./GrantProAccessDialog";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function SubscriptionsManagement() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { t } = useLanguage();
 
   const { data: subscriptions, isLoading } = useQuery({
     queryKey: ["admin-subscriptions"],
@@ -89,7 +91,7 @@ export function SubscriptionsManagement() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search by email, name, or plan..."
+                placeholder={t('placeholders.searchSubscriptions')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"

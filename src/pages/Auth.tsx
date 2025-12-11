@@ -278,7 +278,7 @@ export default function Auth() {
                 id="firstName"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="John"
+                placeholder={t('placeholders.firstName')}
               />
             </div>
             <div className="space-y-2">
@@ -287,7 +287,7 @@ export default function Auth() {
                 id="lastName"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                placeholder="Doe"
+                placeholder={t('placeholders.lastName')}
               />
             </div>
           </div>
@@ -300,7 +300,7 @@ export default function Auth() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            placeholder={t('placeholders.email')}
             required
             disabled={!!invitationContext}
             className={invitationContext ? "bg-muted" : ""}
@@ -314,7 +314,7 @@ export default function Auth() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            placeholder={t('placeholders.password')}
             required
           />
           {isSignUp && (

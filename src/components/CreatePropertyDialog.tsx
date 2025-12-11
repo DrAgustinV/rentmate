@@ -12,6 +12,7 @@ import { usePropertyMutations } from "@/hooks/useProperties";
 import { z } from "zod";
 import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 import { CountrySelect } from "@/components/ui/country-select";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreatePropertyDialogProps {
   open: boolean;
@@ -31,6 +32,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
   const [loading, setLoading] = useState(false);
   const { trackEvent } = useAnalyticsContext();
   const { createProperty } = usePropertyMutations();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -225,7 +227,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Beachfront Villa"
+              placeholder={t('placeholders.propertyTitle')}
               required
               maxLength={100}
             />
@@ -237,7 +239,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
               id="address"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="123 Ocean Drive"
+              placeholder={t('placeholders.propertyAddress')}
               required
               maxLength={200}
             />
@@ -250,7 +252,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
                 id="city"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="Berlin"
+                placeholder={t('placeholders.city')}
                 required
                 maxLength={100}
               />
@@ -262,7 +264,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
                 id="state"
                 value={stateProvince}
                 onChange={(e) => setStateProvince(e.target.value)}
-                placeholder="Berlin"
+                placeholder={t('placeholders.stateProvince')}
                 required
                 maxLength={100}
               />
@@ -276,7 +278,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
                 id="postal"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
-                placeholder="10115"
+                placeholder={t('placeholders.postalCode')}
                 required
                 maxLength={20}
               />
@@ -287,7 +289,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
               <CountrySelect
                 value={country}
                 onValueChange={setCountry}
-                placeholder="Select country"
+                placeholder={t('placeholders.selectCountry')}
               />
             </div>
           </div>
@@ -298,7 +300,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Beautiful property with ocean views..."
+              placeholder={t('placeholders.propertyDescription')}
               rows={4}
               maxLength={500}
             />

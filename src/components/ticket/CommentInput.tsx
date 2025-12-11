@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { commentSchema } from "@/lib/validations";
 import { z } from "zod";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CommentInputProps {
   ticketId: string;
@@ -64,10 +65,12 @@ export const CommentInput = ({ ticketId, isManager }: CommentInputProps) => {
     }
   };
 
+  const { t } = useLanguage();
+
   return (
     <form onSubmit={handleSubmit} className="space-y-3 pt-4 border-t">
       <Textarea
-        placeholder="Add a comment..."
+        placeholder={t('placeholders.addComment')}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         className="min-h-[80px] resize-none"

@@ -254,7 +254,7 @@ export function CreateTenancyWizard({
                         <FormControl>
                           <Input
                             type="email"
-                            placeholder="tenant@example.com"
+                            placeholder={t('placeholders.tenantEmail')}
                             {...field}
                           />
                         </FormControl>

@@ -94,7 +94,7 @@ export function ChangePassword() {
             <Input
               id="currentPassword"
               type="password"
-              placeholder="••••••••"
+              placeholder={t('placeholders.password')}
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
@@ -108,7 +108,7 @@ export function ChangePassword() {
             <Input
               id="newPassword"
               type="password"
-              placeholder="••••••••"
+              placeholder={t('placeholders.password')}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
@@ -122,7 +122,7 @@ export function ChangePassword() {
             <Input
               id="confirmPassword"
               type="password"
-              placeholder="••••••••"
+              placeholder={t('placeholders.password')}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
