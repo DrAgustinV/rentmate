@@ -316,13 +316,13 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
 
       {/* Archive Property Section - Manager Only */}
       {userRole?.isManager && property?.status === "active" && (
-        <Card className="card-shine border-destructive/50">
+        <Card className="card-shine border-yellow-500/50">
           <CardHeader>
-            <CardTitle className="text-destructive">{t("properties.archiveProperty")}</CardTitle>
+            <CardTitle className="text-yellow-600">{t("properties.archiveProperty")}</CardTitle>
             <CardDescription>{t("properties.archivePropertyDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="destructive" onClick={() => setShowArchiveDialog(true)}>
+            <Button variant="outline" className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30" onClick={() => setShowArchiveDialog(true)}>
               <Archive className="h-4 w-4 mr-2" />
               {t("properties.archiveProperty")}
             </Button>
@@ -363,7 +363,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleArchive} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={handleArchive} className="border border-yellow-500 bg-yellow-500 text-yellow-950 hover:bg-yellow-600">
               {t("properties.archiveProperty")}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -165,9 +165,9 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
                     />
                     <Button
                       type="button"
-                      variant="destructive"
+                      variant="outline"
                       size="icon"
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30"
                       onClick={() => setPhotoFile(null)}
                     >
                       <X className="h-3 w-3" />
