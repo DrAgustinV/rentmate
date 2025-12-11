@@ -729,6 +729,9 @@ export const es = {
     tenancyDuration: "Duración",
     documentsCount: "documentos",
     noTenancyHistory: "No hay arrendamientos anteriores",
+    created: "Creado",
+    openTickets: "Tickets Abiertos",
+    maintenanceTasks: "Tareas de Mantenimiento",
     statusIndicators: {
       rent: "Alquiler",
       utilities: "Servicios",
