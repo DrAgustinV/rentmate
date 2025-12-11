@@ -25,6 +25,10 @@ interface SubscriptionData {
     maintenance_templates_enabled: boolean;
     repair_shop_directory_enabled: boolean;
     brand_customization_enabled: boolean;
+    property_limit: number;
+    kilt_kyc_enabled: boolean;
+    government_id_kyc_enabled: boolean;
+    government_id_verifications_per_year: number;
   };
   usage: {
     signatures_used: number;
@@ -80,6 +84,21 @@ export function useSubscription() {
     return { allowed: true };
   };
 
+  const canUseGovernmentIdKYC = (): boolean => {
+    if (!data) return false;
+    return data.features.government_id_kyc_enabled === true;
+  };
+
+  const canUseKiltKYC = (): boolean => {
+    if (!data) return false;
+    return data.features.kilt_kyc_enabled === true;
+  };
+
+  const getPropertyLimit = (): number => {
+    if (!data) return 1; // Default to FREE limit
+    return data.features.property_limit || 1;
+  };
+
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ["subscription-status"] });
     await refetch();
@@ -91,6 +110,9 @@ export function useSubscription() {
     error,
     canUseFeature,
     canCreateSignature,
+    canUseGovernmentIdKYC,
+    canUseKiltKYC,
+    getPropertyLimit,
     refresh,
     isPro: data?.plan === 'pro' || data?.plan === 'enterprise',
     isFree: data?.plan === 'free',

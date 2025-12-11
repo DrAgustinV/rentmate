@@ -1,16 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2, Gift, ExternalLink, RefreshCw } from "lucide-react";
+import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2, Gift, ExternalLink, RefreshCw, Lock } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useKYC, KYCProvider, OpenAPIVerificationLevel } from "@/hooks/useKYC";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isKYCExpiringSoon } from "@/lib/validations/kyc.schema";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useNavigate } from "react-router-dom";
 
 // Helper function to mask document ID for security
 const maskDocumentId = (id: string | null) => {
@@ -21,6 +23,8 @@ const maskDocumentId = (id: string | null) => {
 export function IdentityVerification() {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { canUseGovernmentIdKYC, canUseKiltKYC, isFree, isLoading: subscriptionLoading } = useSubscription();
   const {
     kycProfile,
     loading,
@@ -35,8 +39,19 @@ export function IdentityVerification() {
     checkDiditStatus,
   } = useKYC();
 
-  const [selectedProvider, setSelectedProvider] = useState<KYCProvider>('didit');
+  const canUseGovId = canUseGovernmentIdKYC();
+  const canUseKilt = canUseKiltKYC();
+
+  // Default to KILT for FREE users, Government ID for PRO+
+  const [selectedProvider, setSelectedProvider] = useState<KYCProvider>(canUseGovId ? 'didit' : 'kilt');
   const [selectedLevel, setSelectedLevel] = useState<OpenAPIVerificationLevel>('basic');
+
+  // Update default selection when subscription loads
+  useEffect(() => {
+    if (!subscriptionLoading) {
+      setSelectedProvider(canUseGovId ? 'didit' : 'kilt');
+    }
+  }, [canUseGovId, subscriptionLoading]);
 
   const getStatusBadge = (status: string, provider?: string) => {
     // Show provider in badge for verified status - use "Government ID" for didit
@@ -164,43 +179,76 @@ export function IdentityVerification() {
             <Label className="text-base font-medium">Choose Verification Method</Label>
             
             <RadioGroup value={selectedProvider} onValueChange={(value) => setSelectedProvider(value as KYCProvider)}>
-              {/* Government ID Option - FREE & Recommended */}
-              <div className="flex items-start space-x-3 p-4 border-2 border-primary/50 rounded-lg hover:bg-muted/50 cursor-pointer bg-primary/5">
-                <RadioGroupItem value="didit" id="didit" className="mt-1" />
+              {/* Government ID Option - PRO+ only */}
+              <div className={`flex items-start space-x-3 p-4 border-2 rounded-lg transition-colors ${
+                canUseGovId 
+                  ? 'border-primary/50 hover:bg-muted/50 cursor-pointer bg-primary/5' 
+                  : 'border-muted opacity-60 cursor-not-allowed'
+              }`}>
+                <RadioGroupItem value="didit" id="didit" className="mt-1" disabled={!canUseGovId} />
                 <div className="flex-1 space-y-2">
-                  <Label htmlFor="didit" className="cursor-pointer">
-                    <div className="flex items-center gap-2">
+                  <Label htmlFor="didit" className={canUseGovId ? "cursor-pointer" : "cursor-not-allowed"}>
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Gift className="w-4 h-4 text-green-600" />
                       <span className="font-medium">Full Identity Verification</span>
-                      <Badge className="bg-green-500 text-white text-xs">Get Your Verified Badge</Badge>
-                      <Badge variant="outline" className="text-xs">Recommended</Badge>
+                      {canUseGovId ? (
+                        <>
+                          <Badge className="bg-green-500 text-white text-xs">Get Your Verified Badge</Badge>
+                          <Badge variant="outline" className="text-xs">Recommended</Badge>
+                        </>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs">
+                          <Lock className="w-3 h-3 mr-1" />
+                          PRO
+                        </Badge>
+                      )}
                     </div>
                   </Label>
                   <p className="text-xs text-muted-foreground">
                     ID verification with AI-powered document scanning
                   </p>
-                  <p className="text-xs text-green-600 font-medium">
-                    ✓ Fast and easy. Use your ID, passport or resident card.
-                  </p>
+                  {canUseGovId ? (
+                    <p className="text-xs text-green-600 font-medium">
+                      ✓ Fast and easy. Use your ID, passport or resident card.
+                    </p>
+                  ) : (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-xs text-primary"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate('/pricing');
+                      }}
+                    >
+                      Upgrade to PRO for Government ID verification →
+                    </Button>
+                  )}
                 </div>
               </div>
 
-
-              {/* KILT Option */}
-              <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer">
-                <RadioGroupItem value="kilt" id="kilt" className="mt-1" />
-                <div className="flex-1">
-                  <Label htmlFor="kilt" className="cursor-pointer">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-primary" />
-                      <span className="font-medium">KILT Protocol Identification</span>
-                    </div>
-                  </Label>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Blockchain-based decentralized identity (requires Sporran Wallet)
-                  </p>
+              {/* KILT Option - Available for all */}
+              {canUseKilt && (
+                <div className={`flex items-start space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer ${
+                  isFree ? 'border-primary/50 bg-primary/5' : ''
+                }`}>
+                  <RadioGroupItem value="kilt" id="kilt" className="mt-1" />
+                  <div className="flex-1">
+                    <Label htmlFor="kilt" className="cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                        <span className="font-medium">KILT Protocol Identification</span>
+                        {isFree && (
+                          <Badge variant="outline" className="text-xs">Available on Free</Badge>
+                        )}
+                      </div>
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Blockchain-based decentralized identity (requires Sporran Wallet)
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
             </RadioGroup>
           </div>
         )}
