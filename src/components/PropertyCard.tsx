@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MapPin, Edit, Mail, Archive, Users, Home, Image as ImageIcon, Eye, Ticket, Wrench, Banknote, Zap } from "lucide-react";
+import { MapPin, Edit, Mail, Archive, Users, Home, Image as ImageIcon, Eye, Ticket, Wrench, Banknote, Zap, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -331,6 +331,24 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
             >
               <Wrench className="h-4 w-4" />
               {t("properties.maintenance")}
+            </Button>
+          </CardFooter>
+        )}
+
+        {/* Manager Actions for Free Properties */}
+        {isManager && tenantStatus?.status === "free" && (
+          <CardFooter className="border-t bg-muted/50 pt-4">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/properties/${property.id}/tenants?tab=contracts&action=newTenancy`);
+              }}
+              className="w-full gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              {t("tenancy.wizard.newTenancy")}
             </Button>
           </CardFooter>
         )}

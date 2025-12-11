@@ -229,19 +229,6 @@ export function RentalTermsCard({
                 {isDraft ? t("common.draft") : t("common.sent")}
               </Badge>
             )}
-            {/* Setup button - always visible for managers when allowed, disabled when tenant is active */}
-            {isManager && !isReadOnly && onStartSetup && !showPendingSetup && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={onStartSetup}
-                disabled={!canSetupNewTenancy}
-                className="gap-1"
-              >
-                <Plus className="h-3 w-3" />
-                {t("tenancy.wizard.newTenancy")}
-              </Button>
-            )}
           </div>
         </div>
         {/* Subtitle showing current tenant status for managers */}
@@ -504,19 +491,23 @@ export function RentalTermsCard({
 
         {/* EMPTY STATE */}
         {!showPendingSetup && !hasRentalData && (
-          <div className="text-center py-4 text-muted-foreground">
-            <FileSignature className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">{t("contracts.noRentalTerms")}</p>
-            {isManager && canSetupNewTenancy && onStartSetup && (
+          <div className="flex flex-col items-center justify-center py-8">
+            {isManager && canSetupNewTenancy && onStartSetup ? (
               <Button 
                 variant="outline" 
-                size="sm" 
                 onClick={onStartSetup}
-                className="mt-3 gap-2"
+                className="h-24 w-24 flex flex-col items-center justify-center gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5"
               >
-                <Plus className="h-4 w-4" />
-                {t("tenancy.wizard.newTenancy")}
+                <Plus className="h-8 w-8" />
+                <span className="text-xs text-center font-medium leading-tight">
+                  {t("tenancy.wizard.newTenancy")}
+                </span>
               </Button>
+            ) : (
+              <>
+                <FileSignature className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm text-muted-foreground">{t("contracts.noRentalTerms")}</p>
+              </>
             )}
           </div>
         )}
