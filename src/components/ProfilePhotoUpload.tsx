@@ -209,8 +209,9 @@ export function ProfilePhotoUpload({
           {previewUrl && !disabled && (
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
+              className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30"
               onClick={handleRemove}
             >
               <X className="w-3.5 h-3.5 mr-1.5" />

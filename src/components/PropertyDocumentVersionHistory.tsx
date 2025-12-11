@@ -70,7 +70,7 @@ export default function PropertyDocumentVersionHistory({
                 <Download className="h-3 w-3" />
               </Button>
               {onDelete && (
-                <Button variant="destructive" size="icon" onClick={() => onDelete(version)}>
+                <Button variant="outline" size="icon" className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30" onClick={() => onDelete(version)}>
                   <Trash2 className="h-3 w-3" />
                 </Button>
               )}

@@ -164,8 +164,8 @@ const AttachmentCard = ({ attachment, getFileUrl, onImageClick, onDelete }: any)
       {onDelete && (
         <Button
           size="icon"
-          variant="destructive"
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
+          variant="outline"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7 border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30"
           onClick={onDelete}
         >
           <X className="h-4 w-4" />
@@ -203,8 +203,8 @@ const VideoCard = ({ attachment, getFileUrl, onDelete }: any) => {
       {onDelete && (
         <Button
           size="icon"
-          variant="destructive"
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
+          variant="outline"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7 border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30"
           onClick={onDelete}
         >
           <X className="h-4 w-4" />
