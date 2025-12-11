@@ -493,16 +493,15 @@ export function RentalTermsCard({
         {!showPendingSetup && !hasRentalData && (
           <div className="flex flex-col items-center justify-center py-8">
             {isManager && canSetupNewTenancy && onStartSetup ? (
-              <Button 
-                variant="outline" 
-                onClick={onStartSetup}
-                className="h-24 w-24 flex flex-col items-center justify-center gap-2 border-dashed border-2 hover:border-primary hover:bg-primary/5"
-              >
-                <Plus className="h-8 w-8" />
-                <span className="text-xs text-center font-medium leading-tight">
-                  {t("tenancy.wizard.newTenancy")}
-                </span>
-              </Button>
+      <Button 
+        variant="default"
+        size="lg"
+        onClick={onStartSetup}
+        className="h-16 sm:h-20 px-8 sm:px-12 text-base sm:text-lg gap-2"
+      >
+        <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
+        {t("tenancy.wizard.newTenancy")}
+      </Button>
             ) : (
               <>
                 <FileSignature className="h-8 w-8 mx-auto mb-2 opacity-50" />
