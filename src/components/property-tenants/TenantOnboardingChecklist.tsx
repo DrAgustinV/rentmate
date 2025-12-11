@@ -186,7 +186,7 @@ export function TenantOnboardingChecklist({
     <Card className="border-primary/20 bg-primary/5">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2">
             {allComplete ? (
               <PartyPopper className="h-5 w-5 text-green-500" />
             ) : (

@@ -306,7 +306,7 @@ export default function Rentals() {
                 <CardHeader className="pb-2">
                   <div className="flex items-center gap-2">
                     <AlertCircle className="h-5 w-5 text-accent" />
-                    <CardTitle className="text-lg">{t('rentals.completeSetup')}</CardTitle>
+                    <CardTitle>{t('rentals.completeSetup')}</CardTitle>
                   </div>
                   <CardDescription>{tenancy.property_title}</CardDescription>
                 </CardHeader>
@@ -332,7 +332,7 @@ export default function Rentals() {
           {invitations.map((invitation) => (
             <Card key={invitation.id} className="border-accent/50">
               <CardHeader>
-                <CardTitle className="text-lg">{invitation.property_title}</CardTitle>
+                <CardTitle>{invitation.property_title}</CardTitle>
                 <CardDescription>
                   Invited on {format(new Date(invitation.created_at), "PPP")}
                 </CardDescription>

@@ -88,9 +88,9 @@ export function ContactInfoCard({
       return (
         <Card className="card-shine">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <User className="h-4 w-4" />
-              {t("contracts.tenantInfo")}
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            {t("contracts.tenantInfo")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -120,8 +120,8 @@ export function ContactInfoCard({
     return (
       <Card className="card-shine">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <User className="h-4 w-4" />
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
             {t("contracts.tenantInfo")}
           </CardTitle>
         </CardHeader>
@@ -208,8 +208,8 @@ export function ContactInfoCard({
     return (
       <Card className="card-shine">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <User className="h-4 w-4" />
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
             {t("contracts.managerInfo")}
           </CardTitle>
         </CardHeader>
@@ -240,14 +240,14 @@ export function ContactInfoCard({
   return (
     <Card className="card-shine">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <User className="h-4 w-4" />
-          {t("contracts.managerInfo")}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-start gap-3">
-          <Avatar className="h-12 w-12">
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            {t("contracts.managerInfo")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-start gap-3">
+            <Avatar className="h-12 w-12">
             <AvatarImage src={avatarUrl || undefined} alt={getManagerName()} />
             <AvatarFallback className="bg-primary/10 text-primary font-medium">
               {getManagerInitials()}

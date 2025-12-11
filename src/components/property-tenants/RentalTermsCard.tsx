@@ -213,8 +213,8 @@ export function RentalTermsCard({
     <Card className={`card-shine ${getCardStyles()}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <FileSignature className="h-4 w-4" />
+          <CardTitle className="flex items-center gap-2">
+            <FileSignature className="h-5 w-5" />
             {showPendingSetup 
               ? t("tenancy.wizard.tenancySetup")
               : t("contracts.rentalTerms")
