@@ -4,16 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Ticket, Users, Settings, Paintbrush, Languages, BarChart3, Key, CreditCard, Crown, Mail } from "lucide-react";
+import { Building2, Ticket, Users, Settings, Paintbrush, Languages, BarChart3, Key, CreditCard, Mail } from "lucide-react";
 import { PropertiesTable } from "@/components/admin/PropertiesTable";
 import { TicketsTable } from "@/components/admin/TicketsTable";
-import { UsersTable } from "@/components/admin/UsersTable";
+import { UsersManagement } from "@/components/admin/UsersManagement";
 import { SystemSettings } from "@/components/admin/SystemSettings";
 import { BrandSettings } from "@/components/admin/BrandSettings";
 import { LanguageSettings } from "@/components/admin/LanguageSettings";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
 import { SubscriptionPlansManagement } from "@/components/admin/SubscriptionPlansManagement";
-import { SubscriptionsManagement } from "@/components/admin/SubscriptionsManagement";
 import { EnterpriseContactRequests } from "@/components/admin/EnterpriseContactRequests";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -70,7 +69,7 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="users" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-11">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="users">
               <Users className="mr-2 h-4 w-4" />
               {t('admin.users')}
@@ -86,10 +85,6 @@ export default function Admin() {
             <TabsTrigger value="plans">
               <CreditCard className="mr-2 h-4 w-4" />
               Plans
-            </TabsTrigger>
-            <TabsTrigger value="subscriptions">
-              <Crown className="mr-2 h-4 w-4" />
-              Subscriptions
             </TabsTrigger>
             <TabsTrigger value="enterprise">
               <Mail className="mr-2 h-4 w-4" />
@@ -118,15 +113,7 @@ export default function Admin() {
           </TabsList>
 
           <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('admin.userManagement')}</CardTitle>
-                <CardDescription>{t('admin.userManagementDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UsersTable />
-              </CardContent>
-            </Card>
+            <UsersManagement />
           </TabsContent>
 
           <TabsContent value="properties">
@@ -155,10 +142,6 @@ export default function Admin() {
 
           <TabsContent value="plans">
             <SubscriptionPlansManagement />
-          </TabsContent>
-
-          <TabsContent value="subscriptions">
-            <SubscriptionsManagement />
           </TabsContent>
 
           <TabsContent value="enterprise">

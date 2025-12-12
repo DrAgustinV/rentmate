@@ -20,38 +20,40 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Gift, Loader2 } from "lucide-react";
+import { Gift, Crown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-interface GrantProAccessDialogProps {
+interface GrantAccessDialogProps {
   userId: string;
   currentPlanSlug: string;
+  targetPlan: "pro" | "enterprise";
 }
 
-export function GrantProAccessDialog({ userId, currentPlanSlug }: GrantProAccessDialogProps) {
+export function GrantAccessDialog({ userId, currentPlanSlug, targetPlan }: GrantAccessDialogProps) {
   const [open, setOpen] = useState(false);
   const [duration, setDuration] = useState("30");
   const [reason, setReason] = useState("");
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
+  const isPro = targetPlan === "pro";
+  const planLabel = isPro ? "Pro" : "Enterprise";
+  const Icon = isPro ? Gift : Crown;
+
   const grantAccessMutation = useMutation({
     mutationFn: async () => {
-      // Get the admin user ID
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Get the Pro plan ID
-      const { data: proPlan, error: planError } = await supabase
+      const { data: targetPlanData, error: planError } = await supabase
         .from("subscription_plans")
         .select("id")
-        .eq("slug", "pro")
+        .eq("slug", targetPlan)
         .single();
 
-      if (planError || !proPlan) throw new Error("Pro plan not found");
+      if (planError || !targetPlanData) throw new Error(`${planLabel} plan not found`);
 
-      // Get current subscription
       const { data: currentSub, error: subError } = await supabase
         .from("user_subscriptions")
         .select("id, plan_id")
@@ -60,15 +62,13 @@ export function GrantProAccessDialog({ userId, currentPlanSlug }: GrantProAccess
 
       if (subError) throw subError;
 
-      // Calculate end date
       const currentPeriodEnd = new Date();
       currentPeriodEnd.setDate(currentPeriodEnd.getDate() + parseInt(duration));
 
-      // Update subscription
       const { error: updateError } = await supabase
         .from("user_subscriptions")
         .update({
-          plan_id: proPlan.id,
+          plan_id: targetPlanData.id,
           subscription_type: "admin_grant",
           status: "active",
           current_period_start: new Date().toISOString(),
@@ -82,19 +82,18 @@ export function GrantProAccessDialog({ userId, currentPlanSlug }: GrantProAccess
 
       if (updateError) throw updateError;
 
-      // Log to subscription history
       await supabase.from("subscription_history").insert({
         user_id: userId,
         from_plan_id: currentSub.plan_id,
-        to_plan_id: proPlan.id,
+        to_plan_id: targetPlanData.id,
         change_reason: "admin_grant",
         changed_by: user.id,
-        metadata: { duration_days: parseInt(duration), reason },
+        metadata: { duration_days: parseInt(duration), reason, target_plan: targetPlan },
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-subscriptions"] });
-      toast.success(`Pro access granted for ${duration} days`);
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success(`${planLabel} access granted for ${duration} days`);
       setOpen(false);
       setDuration("30");
       setReason("");
@@ -104,19 +103,22 @@ export function GrantProAccessDialog({ userId, currentPlanSlug }: GrantProAccess
     },
   });
 
+  const isDisabled = currentPlanSlug === targetPlan || 
+    (targetPlan === "pro" && currentPlanSlug === "enterprise");
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline" disabled={currentPlanSlug === "pro"}>
-          <Gift className="h-4 w-4 mr-1" />
-          Grant Pro
+        <Button size="sm" variant="outline" disabled={isDisabled} className="whitespace-nowrap">
+          <Icon className="h-4 w-4 mr-1" />
+          {planLabel}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Grant Pro Access</DialogTitle>
+          <DialogTitle>Grant {planLabel} Access</DialogTitle>
           <DialogDescription>
-            Give this user temporary Pro access. They will be automatically downgraded when the duration expires.
+            Give this user temporary {planLabel} access. They will be automatically downgraded when the duration expires.
           </DialogDescription>
         </DialogHeader>
 
