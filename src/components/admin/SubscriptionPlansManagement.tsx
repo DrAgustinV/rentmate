@@ -279,6 +279,7 @@ export function SubscriptionPlansManagement() {
       limitations_display: typeof plan.limitations_display === 'object' ? plan.limitations_display : {},
       slug: plan.slug,
     });
+    setEditingPlan(plan.id);
   };
 
   const handleSave = (planId: string) => {
