@@ -96,7 +96,7 @@ export function SubscriptionManager() {
   const isEnterprise = subscription.plan === "enterprise";
   const isFree = subscription.plan === "free";
   const isActive = subscription.status === "active" || subscription.status === "trialing";
-  const signaturesPercent = subscription.usage.signatures_used && subscription.features.digital_signatures_per_year
+  const signaturesPercent = subscription.usage?.signatures_used && subscription.features.digital_signatures_per_year
     ? (subscription.usage.signatures_used / subscription.features.digital_signatures_per_year) * 100
     : 0;
 
@@ -196,13 +196,13 @@ export function SubscriptionManager() {
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-medium">{t("subscription.digitalSignaturesLabel")}</p>
                 <p className="text-sm text-muted-foreground">
-                  {subscription.usage.signatures_used} / {subscription.features.digital_signatures_per_year}
+                  {subscription.usage?.signatures_used ?? 0} / {subscription.features.digital_signatures_per_year}
                 </p>
               </div>
               <Progress value={signaturesPercent} className="h-2" />
-              {subscription.usage.remaining <= 20 && subscription.features.digital_signatures_per_year > 0 && (
+              {(subscription.usage?.remaining ?? subscription.features.digital_signatures_per_year) <= 20 && subscription.features.digital_signatures_per_year > 0 && (
                 <p className="text-sm text-orange-600 mt-1">
-                  {subscription.usage.remaining} {t("subscription.signaturesRemaining")}
+                  {subscription.usage?.remaining ?? subscription.features.digital_signatures_per_year} {t("subscription.signaturesRemaining")}
                 </p>
               )}
             </div>
