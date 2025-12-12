@@ -179,12 +179,6 @@ export default function ImportRepairShops() {
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </Breadcrumb>
-              <h1 className="text-2xl font-semibold leading-none tracking-tight">
-                Bulk import repair shops
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Upload the CSV template to quickly add multiple repair contacts.
-              </p>
             </div>
             <Button
               variant="outline"
