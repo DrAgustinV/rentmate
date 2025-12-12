@@ -7,9 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Search, Filter } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Calendar, Search, Filter, LayoutGrid, List } from "lucide-react";
 import { ScheduleStandardTaskDialog } from "./ScheduleStandardTaskDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface StandardTemplate {
   id: string;
@@ -27,10 +29,15 @@ interface StandardTasksSectionProps {
 
 export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) {
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<StandardTemplate | null>(null);
+  const [userViewMode, setUserViewMode] = useState<"grid" | "list" | null>(null);
+
+  // Use user's choice if set, otherwise use responsive default
+  const viewMode = userViewMode ?? (isMobile ? "grid" : "list");
 
   const { data: standardTemplates, isLoading } = useQuery({
     queryKey: ["standard-maintenance-templates"],
@@ -95,7 +102,7 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
   return (
     <>
       <div className="space-y-4">
-        {/* Search and Filter */}
+        {/* Search, Filter, and View Toggle */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -121,52 +128,124 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
                 ))}
               </SelectContent>
             </Select>
+            {/* View Toggle */}
+            <div className="flex border rounded-md">
+              <Button
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                size="icon"
+                onClick={() => setUserViewMode("grid")}
+                className="rounded-r-none"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="icon"
+                onClick={() => setUserViewMode("list")}
+                className="rounded-l-none"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Templates Grid */}
+        {/* Templates Display */}
         {filteredTemplates && filteredTemplates.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredTemplates.map((template) => (
-              <Card key={template.id} className="card-shine flex flex-col">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <CardTitle className="text-base line-clamp-2">{template.title}</CardTitle>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    <Badge variant="secondary" className="text-xs">
-                      {template.category}
-                    </Badge>
-                    <Badge variant="outline" className={`text-xs ${typeColors[template.type as keyof typeof typeColors]}`}>
-                      {template.type}
-                    </Badge>
-                    <Badge variant="outline" className={`text-xs ${priorityColors[template.priority as keyof typeof priorityColors]}`}>
-                      {template.priority}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pb-3 flex-1">
-                  <CardDescription className="text-xs line-clamp-3">
-                    {template.description}
-                  </CardDescription>
-                  <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    <span className="capitalize">{t("maintenance.standardTask.suggestedFrequency") || "Suggested"}: {template.suggested_frequency}</span>
-                  </div>
-                </CardContent>
-                <CardFooter className="pt-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => handleScheduleClick(template)}
-                  >
-                    {t("maintenance.standardTask.schedule") || "Schedule"}
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          viewMode === "grid" ? (
+            // Grid/Card View
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredTemplates.map((template) => (
+                <Card key={template.id} className="card-shine flex flex-col">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <CardTitle className="text-base line-clamp-2">{template.title}</CardTitle>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Badge variant="secondary" className="text-xs">
+                        {template.category}
+                      </Badge>
+                      <Badge variant="outline" className={`text-xs ${typeColors[template.type as keyof typeof typeColors]}`}>
+                        {template.type}
+                      </Badge>
+                      <Badge variant="outline" className={`text-xs ${priorityColors[template.priority as keyof typeof priorityColors]}`}>
+                        {template.priority}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-3 flex-1">
+                    <CardDescription className="text-xs line-clamp-3">
+                      {template.description}
+                    </CardDescription>
+                    <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      <span className="capitalize">{t("maintenance.standardTask.suggestedFrequency") || "Suggested"}: {template.suggested_frequency}</span>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="pt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => handleScheduleClick(template)}
+                    >
+                      {t("maintenance.standardTask.schedule") || "Schedule"}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            // List/Table View
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("common.title") || "Title"}</TableHead>
+                    <TableHead>{t("common.category") || "Category"}</TableHead>
+                    <TableHead>{t("common.type") || "Type"}</TableHead>
+                    <TableHead>{t("common.priority") || "Priority"}</TableHead>
+                    <TableHead>{t("maintenance.standardTask.frequency") || "Frequency"}</TableHead>
+                    <TableHead className="text-right">{t("common.actions") || "Actions"}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTemplates.map((template) => (
+                    <TableRow key={template.id}>
+                      <TableCell className="font-medium">{template.title}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">
+                          {template.category}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`text-xs ${typeColors[template.type as keyof typeof typeColors]}`}>
+                          {template.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`text-xs ${priorityColors[template.priority as keyof typeof priorityColors]}`}>
+                          {template.priority}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="capitalize text-muted-foreground">
+                        {template.suggested_frequency}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleScheduleClick(template)}
+                        >
+                          {t("maintenance.standardTask.schedule") || "Schedule"}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )
         ) : (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
