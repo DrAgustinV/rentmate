@@ -173,7 +173,7 @@ export function UsersManagement() {
     if (!type) return <Badge variant="outline">Free</Badge>;
     
     const typeMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
-      stripe: { label: "Stripe", variant: "default" },
+      stripe: { label: "Paid", variant: "default" },
       admin_grant: { label: "Admin Grant", variant: "secondary" },
       free: { label: "Free", variant: "outline" },
     };
