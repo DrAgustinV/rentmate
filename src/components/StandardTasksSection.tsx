@@ -95,15 +95,6 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
   return (
     <>
       <div className="space-y-4">
-        <div>
-          <h2 className="text-xl font-semibold mb-1 flex items-center gap-2">
-            📚 {t("maintenance.sections.standardTasks") || "Standard Maintenance Tasks"}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {t("maintenance.sections.standardTasksDescription") || "Pre-loaded maintenance tasks ready to schedule"}
-          </p>
-        </div>
-
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
