@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Check, X, Plus, Trash2, Copy, Languages, AlertCircle } from "lucide-react";
+import { Loader2, Save, Check, X, Plus, Trash2, Copy, Languages, AlertCircle, RefreshCw, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguageSettings } from "@/hooks/useLanguageSettings";
 import { AVAILABLE_LANGUAGES } from "@/lib/i18n/languages.config";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface FeatureEditorProps {
   features: Record<string, string[]>;
@@ -235,8 +236,30 @@ export function SubscriptionPlansManagement() {
     },
   });
 
+  const [syncingPlanId, setSyncingPlanId] = useState<string | null>(null);
+
+  const syncToStripeMutation = useMutation({
+    mutationFn: async (planId: string) => {
+      setSyncingPlanId(planId);
+      const { data, error } = await supabase.functions.invoke("sync-stripe-prices", {
+        body: { planId },
+      });
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["subscription-plans"] });
+      toast.success("Synced to Stripe successfully");
+      setSyncingPlanId(null);
+    },
+    onError: (error) => {
+      toast.error(`Stripe sync failed: ${error.message}`);
+      setSyncingPlanId(null);
+    },
+  });
+
   const handleEdit = (plan: any) => {
-    setEditingPlan(plan.id);
     const featureLimits = typeof plan.feature_limits === 'object' ? plan.feature_limits : {};
     setFormData({
       name: plan.name,
@@ -339,6 +362,13 @@ export function SubscriptionPlansManagement() {
                         <Languages className="h-3 w-3 mr-1" />
                         {status.translated}/{status.total}
                       </Badge>
+                      {plan.slug !== 'free' && (
+                        plan.stripe_price_id_monthly && plan.stripe_price_id_annual ? (
+                          <Badge variant="success"><Check className="h-3 w-3 mr-1" />Stripe Synced</Badge>
+                        ) : (
+                          <Badge variant="outline"><AlertCircle className="h-3 w-3 mr-1" />Not Synced</Badge>
+                        )
+                      )}
                     </CardTitle>
                     <CardDescription>{plan.description}</CardDescription>
                   </div>
@@ -353,6 +383,30 @@ export function SubscriptionPlansManagement() {
                         onCheckedChange={() => toggleAvailability(plan.id, plan.is_available_for_signup)}
                       />
                     </div>
+                    {plan.slug !== 'free' && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => syncToStripeMutation.mutate(plan.id)}
+                              disabled={syncingPlanId === plan.id}
+                            >
+                              {syncingPlanId === plan.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                              ) : (
+                                <RefreshCw className="h-4 w-4 mr-1" />
+                              )}
+                              Sync to Stripe
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Creates/updates Stripe prices from database values</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                     {editingPlan === plan.id ? (
                       <div className="flex gap-2">
                         <Button size="sm" onClick={() => handleSave(plan.id)}>
@@ -577,6 +631,37 @@ export function SubscriptionPlansManagement() {
                         </Badge>
                       </div>
                     </div>
+                    {plan.slug !== 'free' && (
+                      <div className="border-t pt-4">
+                        <p className="text-sm font-medium mb-2">Stripe Integration</p>
+                        <div className="grid gap-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Product ID:</span>
+                            {plan.stripe_product_id ? (
+                              <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{plan.stripe_product_id}</code>
+                            ) : (
+                              <span className="text-muted-foreground italic">Not created</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Monthly Price ID:</span>
+                            {plan.stripe_price_id_monthly ? (
+                              <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{plan.stripe_price_id_monthly}</code>
+                            ) : (
+                              <span className="text-muted-foreground italic">Not created</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Annual Price ID:</span>
+                            {plan.stripe_price_id_annual ? (
+                              <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{plan.stripe_price_id_annual}</code>
+                            ) : (
+                              <span className="text-muted-foreground italic">Not created</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
