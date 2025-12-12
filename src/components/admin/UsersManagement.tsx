@@ -37,6 +37,7 @@ interface UserWithSubscription {
     plan_name: string;
     status: string;
     subscription_type: string;
+    current_period_end: string | null;
   } | null;
 }
 
@@ -72,6 +73,7 @@ export function UsersManagement() {
           user_id,
           status,
           subscription_type,
+          current_period_end,
           plan:subscription_plans(name, slug)
         `);
 
@@ -89,6 +91,7 @@ export function UsersManagement() {
             plan_name: (userSub.plan as any)?.name || "Free",
             status: userSub.status,
             subscription_type: userSub.subscription_type,
+            current_period_end: userSub.current_period_end,
           } : null,
         };
       });
@@ -272,11 +275,15 @@ export function UsersManagement() {
                           userId={user.id} 
                           currentPlanSlug={user.subscription?.plan_slug || "free"}
                           targetPlan="pro"
+                          subscriptionType={user.subscription?.subscription_type}
+                          currentPeriodEnd={user.subscription?.current_period_end}
                         />
                         <GrantAccessDialog 
                           userId={user.id} 
                           currentPlanSlug={user.subscription?.plan_slug || "free"}
                           targetPlan="enterprise"
+                          subscriptionType={user.subscription?.subscription_type}
+                          currentPeriodEnd={user.subscription?.current_period_end}
                         />
                         <Select
                           onValueChange={(role: UserRole) =>
