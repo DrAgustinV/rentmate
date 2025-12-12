@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRepairShops } from "@/hooks/useRepairShops";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { CreateRepairShopDrawer } from "@/components/CreateRepairShopDrawer";
 import { EditRepairShopDrawer } from "@/components/EditRepairShopDrawer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Phone, Mail, MapPin, Wrench } from "lucide-react";
+import { Search, Phone, Mail, MapPin, Wrench, LayoutGrid, List } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -23,8 +24,13 @@ export function RepairShopsSection() {
   const navigate = useNavigate();
   const { repairShops, isLoading } = useRepairShops();
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [showInactive, setShowInactive] = useState(false);
+  const [userViewMode, setUserViewMode] = useState<"grid" | "list" | null>(null);
+
+  // Use user's choice if set, otherwise use responsive default
+  const viewMode = userViewMode ?? (isMobile ? "grid" : "list");
 
   const filteredShops = repairShops.filter((shop) => {
     const matchesSearch =
@@ -66,7 +72,7 @@ export function RepairShopsSection() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -76,12 +82,33 @@ export function RepairShopsSection() {
             className="pl-10"
           />
         </div>
-        <Button
-          variant={showInactive ? "default" : "outline"}
-          onClick={() => setShowInactive(!showInactive)}
-        >
-          {showInactive ? t("repairShops.showActiveOnly") : t("repairShops.showAll")}
-        </Button>
+        <div className="flex gap-2 items-center">
+          <Button
+            variant={showInactive ? "default" : "outline"}
+            onClick={() => setShowInactive(!showInactive)}
+          >
+            {showInactive ? t("repairShops.showActiveOnly") : t("repairShops.showAll")}
+          </Button>
+          {/* View Toggle */}
+          <div className="flex border rounded-md">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setUserViewMode("grid")}
+              className="rounded-r-none"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setUserViewMode("list")}
+              className="rounded-l-none"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
 
       {filteredShops.length === 0 ? (
@@ -100,124 +127,126 @@ export function RepairShopsSection() {
         />
       ) : (
         <>
-          {/* Mobile Card View */}
-          <div className="md:hidden space-y-4">
-            {filteredShops.map((shop) => (
-              <Card key={shop.id} className={!shop.is_active ? "opacity-60" : ""}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="font-semibold">{shop.company_name}</h3>
-                      {shop.contact_person && (
-                        <p className="text-sm text-muted-foreground">
-                          {shop.contact_person}
-                        </p>
-                      )}
+          {viewMode === "grid" ? (
+            // Grid/Card View
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredShops.map((shop) => (
+                <Card key={shop.id} className={`card-shine ${!shop.is_active ? "opacity-60" : ""}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h3 className="font-semibold">{shop.company_name}</h3>
+                        {shop.contact_person && (
+                          <p className="text-sm text-muted-foreground">
+                            {shop.contact_person}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        {!shop.is_active && (
+                          <Badge variant="secondary">{t("repairShops.inactive")}</Badge>
+                        )}
+                        <EditRepairShopDrawer repairShop={shop} />
+                      </div>
                     </div>
-                    <div className="flex gap-1">
-                      {!shop.is_active && (
-                        <Badge variant="secondary">{t("repairShops.inactive")}</Badge>
-                      )}
-                      <EditRepairShopDrawer repairShop={shop} />
-                    </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <a href={`tel:${shop.phone}`} className="hover:underline">
-                        {shop.phone}
-                      </a>
-                    </div>
-                    {shop.email && (
+                    <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <a href={`mailto:${shop.email}`} className="hover:underline">
-                          {shop.email}
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <a href={`tel:${shop.phone}`} className="hover:underline">
+                          {shop.phone}
                         </a>
                       </div>
-                    )}
-                    {shop.city && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span>{shop.city}</span>
+                      {shop.email && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <a href={`mailto:${shop.email}`} className="hover:underline">
+                            {shop.email}
+                          </a>
+                        </div>
+                      )}
+                      {shop.city && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span>{shop.city}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {shop.specializations && shop.specializations.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-3">
+                        {shop.specializations.map((spec) => (
+                          <Badge key={spec} variant="outline" className="text-xs">
+                            {spec}
+                          </Badge>
+                        ))}
                       </div>
                     )}
-                  </div>
-
-                  {shop.specializations && shop.specializations.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-3">
-                      {shop.specializations.map((spec) => (
-                        <Badge key={spec} variant="outline" className="text-xs">
-                          {spec}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Desktop Table View */}
-          <div className="hidden md:block border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("repairShops.companyName")}</TableHead>
-                  <TableHead>{t("repairShops.contactPerson")}</TableHead>
-                  <TableHead>{t("repairShops.phone")}</TableHead>
-                  <TableHead>{t("repairShops.specializations")}</TableHead>
-                  <TableHead>{t("repairShops.status")}</TableHead>
-                  <TableHead className="text-right">{t("common.edit")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredShops.map((shop) => (
-                  <TableRow
-                    key={shop.id}
-                    className={!shop.is_active ? "opacity-60" : ""}
-                  >
-                    <TableCell className="font-medium">{shop.company_name}</TableCell>
-                    <TableCell>{shop.contact_person || "-"}</TableCell>
-                    <TableCell>
-                      <a href={`tel:${shop.phone}`} className="hover:underline">
-                        {shop.phone}
-                      </a>
-                    </TableCell>
-                    <TableCell>
-                      {shop.specializations && shop.specializations.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {shop.specializations.slice(0, 2).map((spec) => (
-                            <Badge key={spec} variant="outline" className="text-xs">
-                              {spec}
-                            </Badge>
-                          ))}
-                          {shop.specializations.length > 2 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{shop.specializations.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {shop.is_active ? (
-                        <Badge variant="default">{t("repairShops.active")}</Badge>
-                      ) : (
-                        <Badge variant="secondary">{t("repairShops.inactive")}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <EditRepairShopDrawer repairShop={shop} />
-                    </TableCell>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            // List/Table View
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("repairShops.companyName")}</TableHead>
+                    <TableHead>{t("repairShops.contactPerson")}</TableHead>
+                    <TableHead>{t("repairShops.phone")}</TableHead>
+                    <TableHead>{t("repairShops.specializations")}</TableHead>
+                    <TableHead>{t("repairShops.status")}</TableHead>
+                    <TableHead className="text-right">{t("common.edit")}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredShops.map((shop) => (
+                    <TableRow
+                      key={shop.id}
+                      className={!shop.is_active ? "opacity-60" : ""}
+                    >
+                      <TableCell className="font-medium">{shop.company_name}</TableCell>
+                      <TableCell>{shop.contact_person || "-"}</TableCell>
+                      <TableCell>
+                        <a href={`tel:${shop.phone}`} className="hover:underline">
+                          {shop.phone}
+                        </a>
+                      </TableCell>
+                      <TableCell>
+                        {shop.specializations && shop.specializations.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {shop.specializations.slice(0, 2).map((spec) => (
+                              <Badge key={spec} variant="outline" className="text-xs">
+                                {spec}
+                              </Badge>
+                            ))}
+                            {shop.specializations.length > 2 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{shop.specializations.length - 2}
+                              </Badge>
+                            )}
+                          </div>
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {shop.is_active ? (
+                          <Badge variant="default">{t("repairShops.active")}</Badge>
+                        ) : (
+                          <Badge variant="secondary">{t("repairShops.inactive")}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <EditRepairShopDrawer repairShop={shop} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </>
       )}
     </div>
