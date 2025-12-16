@@ -304,7 +304,17 @@ const TicketDetail = () => {
           <CardContent>
             <CommentsList comments={comments} />
             {!["resolved", "cancelled"].includes(ticket.status) && (
-              <CommentInput ticketId={ticket.id} isManager={isManager} />
+              <CommentInput 
+                ticketId={ticket.id} 
+                isManager={isManager} 
+                ticketContext={{
+                  title: ticket.title,
+                  type: ticket.type,
+                  priority: ticket.priority,
+                  description: ticket.description,
+                  recentComments: comments.map((c: any) => ({ comment: c.comment }))
+                }}
+              />
             )}
           </CardContent>
         </Card>

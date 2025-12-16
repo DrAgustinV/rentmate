@@ -11,7 +11,7 @@ import { propertyBaseSchema } from "@/lib/validations";
 import { usePropertyMutations } from "@/hooks/useProperties";
 import { useSubscription } from "@/hooks/useSubscription";
 import { z } from "zod";
-import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Loader2, Upload, X, Image as ImageIcon, Sparkles } from "lucide-react";
 import { CountrySelect } from "@/components/ui/country-select";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -31,10 +31,39 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
   const [description, setDescription] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
   const { trackEvent } = useAnalyticsContext();
   const { createProperty } = usePropertyMutations();
   const { t } = useLanguage();
   const { getPropertyLimit, isFree, isPro } = useSubscription();
+
+  const handleGenerateDescription = async () => {
+    if (!title.trim()) {
+      toast.error(t('ai.titleRequired'));
+      return;
+    }
+    
+    setGeneratingDescription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-assistant', {
+        body: {
+          type: 'property_description',
+          data: { title, address, city, country }
+        }
+      });
+      
+      if (error) throw error;
+      if (data?.text) {
+        setDescription(data.text);
+        toast.success(t('ai.descriptionGenerated'));
+      }
+    } catch (error: any) {
+      console.error('AI generation error:', error);
+      toast.error(t('ai.generationError'));
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -292,7 +321,24 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="description">Description</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateDescription}
+                disabled={generatingDescription || !title.trim()}
+                className="h-7 text-xs"
+              >
+                {generatingDescription ? (
+                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3 w-3 mr-1" />
+                )}
+                {t('ai.generate')}
+              </Button>
+            </div>
             <Textarea
               id="description"
               value={description}
