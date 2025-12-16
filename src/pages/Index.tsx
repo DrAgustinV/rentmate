@@ -10,6 +10,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { useRef } from "react";
@@ -83,39 +85,41 @@ return (
       </div>
 
       {/* Feature Carousel */}
-      <div className="max-w-3xl mx-auto mb-20">
+      <div className="max-w-5xl mx-auto mb-20 px-12">
         <Carousel
           plugins={[autoplayPlugin.current]}
           opts={{
-            align: "center",
+            align: "start",
             loop: true,
           }}
           className="w-full"
         >
-          <CarouselContent className="-ml-4">
+          <CarouselContent className="-ml-3">
             {carouselItems.map((item, index) => {
               const title = item.title[language] || item.title['en'] || '';
               const description = item.description[language] || item.description['en'] || '';
               
               return (
-                <CarouselItem key={index} className="pl-4 basis-full">
-                  <div className="bg-card/90 backdrop-blur-sm border border-border rounded-xl overflow-hidden shadow-card hover-lift">
-                    <div className="h-48 md:h-64 overflow-hidden">
+                <CarouselItem key={index} className="pl-3 basis-full sm:basis-1/2 lg:basis-1/3">
+                  <div className="bg-card/90 backdrop-blur-sm border border-border rounded-xl overflow-hidden shadow-card hover-lift h-full">
+                    <div className="h-32 md:h-40 overflow-hidden">
                       <img 
                         src={item.image_url} 
                         alt={title}
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <div className="p-6 md:p-8 text-center">
-                      <h3 className="text-xl md:text-2xl font-semibold mb-3">{title}</h3>
-                      <p className="text-muted-foreground">{description}</p>
+                    <div className="p-4 text-center">
+                      <h3 className="text-base md:text-lg font-semibold mb-2 line-clamp-1">{title}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
                     </div>
                   </div>
                 </CarouselItem>
               );
             })}
           </CarouselContent>
+          <CarouselPrevious className="hidden sm:flex" />
+          <CarouselNext className="hidden sm:flex" />
         </Carousel>
       </div>
 
