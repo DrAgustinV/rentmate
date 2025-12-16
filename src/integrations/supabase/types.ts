@@ -1942,8 +1942,11 @@ export type Database = {
       subscription_usage: {
         Row: {
           created_at: string
+          government_id_verifications_used: number
           id: string
+          last_gov_id_overage_billed_at: string | null
           last_overage_billed_at: string | null
+          overage_government_id_used: number
           overage_signatures_used: number
           reset_at: string
           signatures_used: number
@@ -1953,8 +1956,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          government_id_verifications_used?: number
           id?: string
+          last_gov_id_overage_billed_at?: string | null
           last_overage_billed_at?: string | null
+          overage_government_id_used?: number
           overage_signatures_used?: number
           reset_at: string
           signatures_used?: number
@@ -1964,8 +1970,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          government_id_verifications_used?: number
           id?: string
+          last_gov_id_overage_billed_at?: string | null
           last_overage_billed_at?: string | null
+          overage_government_id_used?: number
           overage_signatures_used?: number
           reset_at?: string
           signatures_used?: number
@@ -2927,6 +2936,22 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_gov_id_used: {
+        Args: { p_amount?: number; p_user_id: string; p_year: number }
+        Returns: undefined
+      }
+      increment_overage_gov_id: {
+        Args: { p_amount?: number; p_user_id: string; p_year: number }
+        Returns: undefined
+      }
+      increment_overage_signatures: {
+        Args: { p_amount?: number; p_user_id: string; p_year: number }
+        Returns: undefined
+      }
+      increment_signatures_used: {
+        Args: { p_amount?: number; p_user_id: string; p_year: number }
+        Returns: undefined
       }
       is_property_manager: {
         Args: { _property_id: string; _user_id: string }
