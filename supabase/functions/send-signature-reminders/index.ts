@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
 
     const { data: pendingSignatures, error: fetchError } = await supabase
       .from('contract_signatures')
-      .select('id, qualified_signature_session_id, tenant_signer_id, reminder_count, last_reminder_sent_at, expires_at')
+      .select('id, qualified_signature_session_id, tenant_signer_id, qualified_signature_metadata, reminder_count, last_reminder_sent_at, expires_at')
       .not('manager_signed_at', 'is', null)
       .is('tenant_signed_at', null)
       .eq('workflow_status', 'in_progress')
@@ -71,10 +71,16 @@ Deno.serve(async (req) => {
       processedCount++;
 
       try {
-        const { qualified_signature_session_id: signatureRequestId, tenant_signer_id: tenantSignerId } = signature;
+        const signatureRequestId = signature.qualified_signature_session_id;
+        // Fallback to metadata if main column is null
+        let tenantSignerId = signature.tenant_signer_id;
+        if (!tenantSignerId && signature.qualified_signature_metadata?.tenant_signer_id) {
+          tenantSignerId = signature.qualified_signature_metadata.tenant_signer_id;
+          console.log(`[send-signature-reminders] Using tenant_signer_id from metadata fallback for signature ${signature.id}`);
+        }
 
         if (!signatureRequestId || !tenantSignerId) {
-          console.log(`[send-signature-reminders] Skipping signature ${signature.id} - missing YouSign IDs`);
+          console.log(`[send-signature-reminders] Skipping signature ${signature.id} - missing YouSign IDs (metadata checked)`);
           continue;
         }
 
