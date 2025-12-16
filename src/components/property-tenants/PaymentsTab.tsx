@@ -125,9 +125,7 @@ export function PaymentsTab({
                     <div className="flex items-center gap-4 text-sm">
                       <span className="font-semibold">€{(agreement.rent_amount_cents / 100).toFixed(2)}/mo</span>
                       <span className="text-muted-foreground">Day {agreement.payment_day}</span>
-                      {agreement.tenant_iban && (
-                        <span className="text-muted-foreground font-mono">****{agreement.tenant_iban.slice(-4)}</span>
-                      )}
+                      {/* SEPA IBAN display hidden - backend code preserved for future use */}
                       <Badge variant={agreement.is_active ? "default" : "secondary"} className="text-xs">
                         {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
                       </Badge>

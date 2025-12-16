@@ -158,19 +158,18 @@ export function TenantOnboardingChecklist({
     });
   }
 
-  // IBAN setup (only if automated payments)
-  // For now, always show if there's a rent agreement
-  if (rentAgreement) {
-    items.push({
-      id: "iban",
-      label: t("onboarding.checklist.bankSetup"),
-      description: t("onboarding.checklist.bankSetupDesc"),
-      isRequired: false, // Optional
-      isCompleted: !!rentAgreement.tenant_iban,
-      action: !rentAgreement.tenant_iban ? onSwitchToPayments : undefined,
-      actionLabel: t("onboarding.checklist.setupBank"),
-    });
-  }
+  // SEPA IBAN setup hidden - backend code preserved for future use
+  // if (rentAgreement) {
+  //   items.push({
+  //     id: "iban",
+  //     label: t("onboarding.checklist.bankSetup"),
+  //     description: t("onboarding.checklist.bankSetupDesc"),
+  //     isRequired: false, // Optional
+  //     isCompleted: !!rentAgreement.tenant_iban,
+  //     action: !rentAgreement.tenant_iban ? onSwitchToPayments : undefined,
+  //     actionLabel: t("onboarding.checklist.setupBank"),
+  //   });
+  // }
 
   // Don't show checklist if no items or all complete
   if (items.length === 0) return null;

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FolderOpen, Wrench, FileText, ClipboardList, Settings, Plus, CreditCard } from "lucide-react";
+import { FolderOpen, Wrench, FileText, ClipboardList, Settings, Plus } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { StandardTasksSection } from "@/components/StandardTasksSection";
 import { RepairShopsSection } from "@/components/RepairShopsSection";
@@ -16,9 +16,10 @@ import { toast } from "sonner";
 import { CreateStandardMaintenanceDialog } from "@/components/CreateStandardMaintenanceDialog";
 import { CreatePropertyTemplateDialog } from "@/components/CreatePropertyTemplateDialog";
 import { GlobalTemplatesList } from "@/components/GlobalTemplatesList";
-import { StripeConnectOnboarding } from "@/components/payments/StripeConnectOnboarding";
+// SEPA bank-to-bank payments UI hidden - backend code preserved for future use
+// import { StripeConnectOnboarding } from "@/components/payments/StripeConnectOnboarding";
 
-type ConfigTab = "maintenance" | "templates" | "repair-shops" | "payments" | "defaults";
+type ConfigTab = "maintenance" | "templates" | "repair-shops" | "defaults";
 
 export default function Configuration() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -172,7 +173,7 @@ export default function Configuration() {
         className="w-full"
       >
 
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="maintenance" className="gap-2">
             <ClipboardList className="h-4 w-4" />
             <span className="hidden sm:inline">{t("configuration.tabs.maintenance")}</span>
@@ -188,11 +189,7 @@ export default function Configuration() {
             <span className="hidden sm:inline">{t("configuration.tabs.repairShops")}</span>
             <span className="sm:hidden">Shops</span>
           </TabsTrigger>
-          <TabsTrigger value="payments" className="gap-2">
-            <CreditCard className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("configuration.tabs.payments")}</span>
-            <span className="sm:hidden">Payments</span>
-          </TabsTrigger>
+          {/* SEPA payments tab hidden - backend code preserved for future use */}
           <TabsTrigger value="defaults" className="gap-2">
             <Settings className="h-4 w-4" />
             <span className="hidden sm:inline">{t("configuration.tabs.defaults")}</span>
@@ -244,9 +241,7 @@ export default function Configuration() {
           <RepairShopsSection />
         </TabsContent>
 
-        <TabsContent value="payments" className="space-y-4">
-          <StripeConnectOnboarding />
-        </TabsContent>
+        {/* SEPA payments tab content hidden - backend code preserved for future use */}
 
         <TabsContent value="defaults" className="space-y-4">
           <Card>
