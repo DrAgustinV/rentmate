@@ -118,12 +118,22 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Get YouSign signature request ID
+    // Get YouSign signature request ID with fallback to metadata
     const signatureRequestId = signature.qualified_signature_session_id;
-    const tenantSignerId = signature.tenant_signer_id;
+    let tenantSignerId = signature.tenant_signer_id;
+
+    // Fallback to metadata if main column is null
+    if (!tenantSignerId && signature.qualified_signature_metadata?.tenant_signer_id) {
+      tenantSignerId = signature.qualified_signature_metadata.tenant_signer_id;
+      console.log('[send-yousign-reminder] Using tenant_signer_id from metadata fallback');
+    }
 
     if (!signatureRequestId || !tenantSignerId) {
-      console.error('[send-yousign-reminder] Missing YouSign IDs:', { signatureRequestId, tenantSignerId });
+      console.error('[send-yousign-reminder] Missing YouSign IDs:', { 
+        signatureRequestId, 
+        tenantSignerId,
+        metadataTenantSignerId: signature.qualified_signature_metadata?.tenant_signer_id 
+      });
       return new Response(
         JSON.stringify({ error: 'YouSign signature request or tenant signer ID not found' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
