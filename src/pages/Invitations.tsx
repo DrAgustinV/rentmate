@@ -567,7 +567,7 @@ export default function Invitations() {
         <AlertDialog open={!!autoAcceptInvitation} onOpenChange={(open) => !open && setAutoAcceptInvitation(null)}>
           <AlertDialogContent className="max-w-2xl">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl">Welcome to {autoAcceptInvitation?.properties?.title}!</AlertDialogTitle>
+              <AlertDialogTitle className="text-2xl">Welcome to {autoAcceptInvitation?.properties?.title || "your new property"}!</AlertDialogTitle>
               <AlertDialogDescription className="space-y-4">
                 {autoAcceptInvitation?.properties?.images?.[0] && (
                   <AspectRatio ratio={16 / 9} className="mt-4">
