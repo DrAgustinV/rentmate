@@ -2906,6 +2906,7 @@ export type Database = {
         Args: { p_agreement_id: string; p_months_ahead?: number }
         Returns: number
       }
+      get_auth_user_email: { Args: never; Returns: string }
       get_properties_status_indicators: {
         Args: { p_property_ids: string[] }
         Returns: {
