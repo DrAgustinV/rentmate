@@ -980,6 +980,7 @@ export const es = {
     activityTimelineDesc: "Rastrea todos los cambios y actualizaciones",
     uploadHintPhotos: "Máx {size}MB cada una, hasta {count} fotos",
     uploadHintVideo: "Máx {size}MB",
+    send: "Enviar",
   },
   utilities: {
     title: "Servicios",
@@ -1911,5 +1912,14 @@ export const es = {
     objectProcessingReason: "Describe a qué procesamiento te opones y los motivos de tu objeción...",
     // Tenant
     tenantEmail: "inquilino@ejemplo.com",
+  },
+  ai: {
+    generate: "Generar",
+    draft: "Borrador",
+    titleRequired: "Por favor ingresa un título de propiedad primero",
+    noTicketContext: "No se puede generar respuesta sin contexto del ticket",
+    descriptionGenerated: "Descripción generada exitosamente",
+    responseGenerated: "Respuesta generada exitosamente",
+    generationError: "Error al generar contenido. Por favor intenta de nuevo.",
   },
 };

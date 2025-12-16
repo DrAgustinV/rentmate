@@ -870,6 +870,7 @@ export const en = {
     activityTimelineDesc: "Track all changes and updates",
     uploadHintPhotos: "Max {size}MB each, up to {count} photos",
     uploadHintVideo: "Max {size}MB",
+    send: "Send",
   },
   propertyTenants: {
     tabs: {
@@ -1719,5 +1720,14 @@ export const en = {
     objectProcessingReason: "Describe what processing you object to and the reasons for your objection...",
     // Tenant
     tenantEmail: "tenant@example.com",
+  },
+  ai: {
+    generate: "Generate",
+    draft: "Draft",
+    titleRequired: "Please enter a property title first",
+    noTicketContext: "Unable to generate response without ticket context",
+    descriptionGenerated: "Description generated successfully",
+    responseGenerated: "Response drafted successfully",
+    generationError: "Failed to generate content. Please try again.",
   },
 };

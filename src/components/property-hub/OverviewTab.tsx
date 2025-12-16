@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { Save, Archive, Plus, Pencil, Users, Mail } from "lucide-react";
+import { Save, Archive, Plus, Pencil, Users, Mail, Sparkles, Loader2 } from "lucide-react";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { cn } from "@/lib/utils";
 import { usePropertyMutations } from "@/hooks/useProperties";
@@ -60,6 +60,35 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
   >("sold");
   const [archiveNotes, setArchiveNotes] = useState("");
   const [propertyPhotoUrl, setPropertyPhotoUrl] = useState<string | undefined>();
+  const [generatingDescription, setGeneratingDescription] = useState(false);
+
+  const handleGenerateDescription = async () => {
+    if (!title.trim()) {
+      toast.error(t('ai.titleRequired'));
+      return;
+    }
+    
+    setGeneratingDescription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-assistant', {
+        body: {
+          type: 'property_description',
+          data: { title, address, city, country }
+        }
+      });
+      
+      if (error) throw error;
+      if (data?.text) {
+        setDescription(data.text);
+        toast.success(t('ai.descriptionGenerated'));
+      }
+    } catch (error: any) {
+      console.error('AI generation error:', error);
+      toast.error(t('ai.generationError'));
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
 
   // Update state when property changes
   useEffect(() => {
@@ -270,7 +299,26 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
           <Separator />
 
           <div className="space-y-2">
-            <Label htmlFor="description">{t("properties.description")}</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="description">{t("properties.description")}</Label>
+              {isEditing && userRole?.isManager && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerateDescription}
+                  disabled={generatingDescription || !title.trim()}
+                  className="h-7 text-xs"
+                >
+                  {generatingDescription ? (
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3 w-3 mr-1" />
+                  )}
+                  {t('ai.generate')}
+                </Button>
+              )}
+            </div>
             {userRole?.isManager ? (
               <Textarea
                 id="description"

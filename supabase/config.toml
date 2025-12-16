@@ -116,3 +116,7 @@ verify_jwt = false  # Public endpoint for token validation
 # Pay-as-you-go Overage Billing
 [functions.charge-overage]
 verify_jwt = true  # Requires user authentication for billing
+
+# AI Assistant - Property descriptions and smart comment responses
+[functions.ai-assistant]
+verify_jwt = true  # Requires user authentication
