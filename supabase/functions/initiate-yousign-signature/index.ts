@@ -206,6 +206,7 @@ serve(async (req) => {
         workflow_status: 'pending',
         qualified_signature_provider: 'yousign',
         qualified_signature_session_id: signatureRequest.id,
+        tenant_signer_id: tenantSigner.id,
         qualified_signature_metadata: {
           yousign_request_id: signatureRequest.id,
           yousign_document_id: uploadedDoc.id,

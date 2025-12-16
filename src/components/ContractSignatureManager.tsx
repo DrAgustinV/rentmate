@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { FileSignature, CheckCircle2, Clock, Shield, AlertCircle, X, FileText, Upload } from "lucide-react";
+import { FileSignature, CheckCircle2, Clock, Shield, AlertCircle, X, FileText, Upload, Bell, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { QualifiedSignatureFlow } from "@/components/signature/QualifiedSignatureFlow";
@@ -39,6 +39,9 @@ interface ContractSignature {
   tenant_embed_slug: string | null;
   qualified_signature_provider: string | null;
   source_document_id: string | null;
+  // Reminder tracking fields
+  last_reminder_sent_at: string | null;
+  reminder_count: number | null;
 }
 
 interface ContractSignatureManagerProps {
@@ -63,6 +66,7 @@ export const ContractSignatureManager = ({
   const { toast } = useToast();
   const { canCreateSignature, isPro } = useSubscription();
   const [loading, setLoading] = useState(false);
+  const [reminderLoading, setReminderLoading] = useState(false);
   const [signature, setSignature] = useState<ContractSignature | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [showSigningForm, setShowSigningForm] = useState(false);
@@ -254,6 +258,64 @@ export const ContractSignatureManager = ({
         variant: 'destructive',
       });
     }
+  };
+
+  const handleSendReminder = async () => {
+    if (!signature?.id) return;
+    
+    setReminderLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-yousign-reminder', {
+        body: { tenancyId }
+      });
+
+      if (error) throw error;
+
+      if (!data?.success) {
+        toast({
+          title: t('common.error'),
+          description: data?.error || t('contractSignature.reminder.error'),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: t('contractSignature.reminder.reminderSent'),
+        description: t('contractSignature.reminder.success'),
+      });
+
+      // Refresh signature data to update reminder count
+      await loadSignature();
+    } catch (error: any) {
+      console.error('Error sending reminder:', error);
+      toast({
+        title: t('common.error'),
+        description: error.message || t('contractSignature.reminder.error'),
+        variant: "destructive",
+      });
+    } finally {
+      setReminderLoading(false);
+    }
+  };
+
+  // Check if reminder can be sent (1-hour cooldown)
+  const canSendReminder = () => {
+    if (!signature?.last_reminder_sent_at) return true;
+    const lastSent = new Date(signature.last_reminder_sent_at);
+    const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    return lastSent < hourAgo;
+  };
+
+  // Get time until next reminder is available
+  const getNextReminderTime = () => {
+    if (!signature?.last_reminder_sent_at) return null;
+    const lastSent = new Date(signature.last_reminder_sent_at);
+    const nextAvailable = new Date(lastSent.getTime() + 60 * 60 * 1000);
+    const now = new Date();
+    if (nextAvailable <= now) return null;
+    const diffMinutes = Math.ceil((nextAvailable.getTime() - now.getTime()) / (60 * 1000));
+    return `${diffMinutes} min`;
   };
 
   const getSignatureMethodBadge = (method: string | null) => {
@@ -540,6 +602,48 @@ export const ContractSignatureManager = ({
           </div>
         )}
       </div>
+
+      {/* Send Reminder Button - Manager can send when they've signed but tenant hasn't */}
+      {!isCompleted && managerSigned && !tenantSigned && isManager && (
+        <div className="space-y-2 pt-2 border-t">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">
+              {t('contractSignature.reminder.waitingForTenant')}
+            </span>
+            {signature.reminder_count !== null && signature.reminder_count > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                {t('contractSignature.reminder.reminderCount')
+                  .replace('{count}', String(signature.reminder_count))
+                  .replace('{max}', '3')}
+              </Badge>
+            )}
+          </div>
+          {signature.last_reminder_sent_at && (
+            <p className="text-xs text-muted-foreground">
+              {t('contractSignature.reminder.lastSentAt')}: {format(new Date(signature.last_reminder_sent_at), 'PPP p')}
+            </p>
+          )}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleSendReminder}
+            disabled={reminderLoading || !canSendReminder()}
+            className="w-full"
+          >
+            {reminderLoading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Bell className="h-4 w-4 mr-2" />
+            )}
+            {reminderLoading 
+              ? t('contractSignature.reminder.sending')
+              : !canSendReminder() 
+                ? t('contractSignature.reminder.cooldownMessage').replace('{time}', getNextReminderTime() || '')
+                : t('contractSignature.reminder.sendReminder')
+            }
+          </Button>
+        </div>
+      )}
 
       {/* Sign Now Buttons */}
       {!isCompleted && (

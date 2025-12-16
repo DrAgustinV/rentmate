@@ -155,6 +155,17 @@ export const en = {
       clave: "Cl@ve Authentication",
       qualifiedSignature: "Qualified Signature",
     },
+    reminder: {
+      sendReminder: "Send Reminder",
+      reminderSent: "Reminder Sent",
+      lastSentAt: "Last reminder sent",
+      reminderCount: "{count} of {max} reminders sent",
+      cooldownMessage: "Can send another reminder in {time}",
+      waitingForTenant: "Waiting for tenant to sign",
+      sending: "Sending reminder...",
+      success: "Reminder sent successfully to tenant",
+      error: "Failed to send reminder",
+    },
   },
   search: {
     placeholder: "Search properties...",
