@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -12,16 +12,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface Invitation {
   id: string;
@@ -41,7 +31,6 @@ export default function Invitations() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [autoAcceptInvitation, setAutoAcceptInvitation] = useState<Invitation | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -51,19 +40,22 @@ export default function Invitations() {
   const [invitationPreview, setInvitationPreview] = useState<Invitation | null>(null);
   const [showDecisionPage, setShowDecisionPage] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  const autoAcceptTriggeredRef = useRef(false);
 
   useEffect(() => {
     checkAuth();
   }, []);
 
+  // Auto-accept invitation when token is present in URL
   useEffect(() => {
     const token = searchParams.get('token');
-    if (token && !loading && invitations.length > 0 && !autoAcceptInvitation) {
+    if (token && !loading && invitations.length > 0 && !autoAcceptTriggeredRef.current) {
       const invitation = invitations.find(inv => inv.token === token);
       if (invitation) {
-        setAutoAcceptInvitation(invitation);
-        // Clear token from sessionStorage after using it
+        autoAcceptTriggeredRef.current = true;
         sessionStorage.removeItem('invitation_token');
+        // Auto-accept immediately
+        handleAccept(invitation.id, invitation.property_id);
       }
     }
   }, [searchParams, loading, invitations]);
@@ -306,7 +298,6 @@ export default function Invitations() {
       });
     } finally {
       setProcessingId(null);
-      setAutoAcceptInvitation(null);
     }
   };
 
@@ -563,49 +554,6 @@ export default function Invitations() {
           </div>
         )}
 
-        {/* Auto-Accept Dialog */}
-        <AlertDialog open={!!autoAcceptInvitation} onOpenChange={(open) => !open && setAutoAcceptInvitation(null)}>
-          <AlertDialogContent className="max-w-2xl">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl">Welcome to {autoAcceptInvitation?.properties?.title || "your new property"}!</AlertDialogTitle>
-              <AlertDialogDescription className="space-y-4">
-                {autoAcceptInvitation?.properties?.images?.[0] && (
-                  <AspectRatio ratio={16 / 9} className="mt-4">
-                    <img
-                      src={autoAcceptInvitation.properties.images[0]}
-                      alt={autoAcceptInvitation.properties.title}
-                      className="object-cover w-full h-full rounded-md"
-                    />
-                  </AspectRatio>
-                )}
-                <div className="space-y-2 text-left pt-4">
-                  {autoAcceptInvitation?.properties?.address && (
-                    <p className="flex items-center gap-2 text-foreground">
-                      <MapPin className="h-4 w-4" />
-                      {autoAcceptInvitation.properties.address}
-                    </p>
-                  )}
-                  <p className="text-muted-foreground">
-                    Accept this invitation to access your property dashboard, submit maintenance requests, and manage your tenancy.
-                  </p>
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Maybe Later</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  if (autoAcceptInvitation) {
-                    handleAccept(autoAcceptInvitation.id, autoAcceptInvitation.property_id);
-                    setAutoAcceptInvitation(null);
-                  }
-                }}
-              >
-                Accept & Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </AppLayout>
   );
