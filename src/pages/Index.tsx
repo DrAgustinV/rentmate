@@ -19,8 +19,8 @@ import { useBrandSettings, type CarouselItem as CarouselItemType } from "@/hooks
 const defaultCarouselItems: CarouselItemType[] = [
   {
     image_url: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&auto=format&fit=crop",
-    title: { en: "Automated Rent Collection", es: "Cobro Automático de Alquiler" },
-    description: { en: "Collect rent automatically via SEPA Direct Debit", es: "Cobra el alquiler automáticamente mediante SEPA Direct Debit" },
+    title: { en: "Simple Payment Tracking", es: "Seguimiento de Pagos Simple" },
+    description: { en: "Track rent payments and never miss a due date", es: "Sigue los pagos de alquiler y nunca pierdas una fecha" },
   },
   {
     image_url: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&auto=format&fit=crop",

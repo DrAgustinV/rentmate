@@ -237,24 +237,7 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                           )}
                         </Button>
                       )}
-                      {/* Manager: Retry failed payment */}
-                      {isManager && payment.status === 'failed' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRetryPayment(payment.id)}
-                          disabled={retrying === payment.id}
-                        >
-                          {retrying === payment.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <RefreshCw className="h-4 w-4 mr-2" />
-                              {t("common.retry")}
-                            </>
-                          )}
-                        </Button>
-                      )}
+                      {/* SEPA Retry button hidden - backend code preserved for future use */}
                       {/* No actions for paid payments */}
                       {payment.status === 'paid' && (
                         <span className="text-sm text-muted-foreground">—</span>

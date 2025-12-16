@@ -390,8 +390,8 @@ export const es = {
         description: "Firma contratos de alquiler con firmas digitales legalmente vinculantes y verificación KYC.",
       },
       automated: {
-        title: "Cobro de Alquiler Automatizado",
-        description: "Configura pagos recurrentes y olvídate de perseguir el alquiler con Débito Directo SEPA.",
+        title: "Seguimiento de Pagos Simple",
+        description: "Rastrea pagos de alquiler, fechas de vencimiento e historial de pagos en un solo lugar.",
       },
       realtime: {
         title: "Actualizaciones en Tiempo Real",

@@ -331,8 +331,8 @@ export const en = {
         description: "Sign rental agreements with legally-binding digital signatures and KYC verification.",
       },
       automated: {
-        title: "Automated Rent Collection",
-        description: "Set up recurring payments and never chase rent again with SEPA Direct Debit.",
+        title: "Simple Payment Tracking",
+        description: "Track rent payments, due dates, and payment history all in one place.",
       },
       realtime: {
         title: "Real-Time Updates",
