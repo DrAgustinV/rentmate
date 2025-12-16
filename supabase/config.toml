@@ -97,6 +97,12 @@ verify_jwt = true  # Manager initiates YouSign signature
 [functions.yousign-webhook]
 verify_jwt = false  # Public webhook endpoint from YouSign
 
+[functions.send-yousign-reminder]
+verify_jwt = true  # Manager sends manual signature reminder
+
+[functions.send-signature-reminders]
+verify_jwt = false  # Cron job - automated signature reminders
+
 [functions.send-welcome-email]
 verify_jwt = true  # Requires user authentication to send welcome email
 

@@ -270,6 +270,17 @@ export class YouSignClient {
   }
 
   /**
+   * Send a reminder to a signer who hasn't signed yet
+   */
+  async sendReminder(signatureRequestId: string, signerId: string): Promise<void> {
+    await this.request<void>(
+      'POST',
+      `/signature_requests/${signatureRequestId}/signers/${signerId}/send_reminder`,
+      {}
+    );
+  }
+
+  /**
    * Verify webhook signature
    */
   static async verifyWebhookSignature(payload: string, signature: string, secret: string): Promise<boolean> {

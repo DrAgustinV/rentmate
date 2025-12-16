@@ -229,6 +229,7 @@ export type Database = {
           initiated_at: string
           initiated_by: string
           kyc_enforced: boolean | null
+          last_reminder_sent_at: string | null
           manager_embed_slug: string | null
           manager_signature_data: Json | null
           manager_signature_ip: string | null
@@ -239,6 +240,7 @@ export type Database = {
           qualified_signature_metadata: Json | null
           qualified_signature_provider: string | null
           qualified_signature_session_id: string | null
+          reminder_count: number | null
           signature_method: string | null
           signed_document_url: string | null
           signing_method_provider: string | null
@@ -249,6 +251,7 @@ export type Database = {
           tenant_signature_ip: string | null
           tenant_signature_method: string | null
           tenant_signed_at: string | null
+          tenant_signer_id: string | null
           updated_at: string
           workflow_id: string | null
           workflow_status: string
@@ -269,6 +272,7 @@ export type Database = {
           initiated_at?: string
           initiated_by: string
           kyc_enforced?: boolean | null
+          last_reminder_sent_at?: string | null
           manager_embed_slug?: string | null
           manager_signature_data?: Json | null
           manager_signature_ip?: string | null
@@ -279,6 +283,7 @@ export type Database = {
           qualified_signature_metadata?: Json | null
           qualified_signature_provider?: string | null
           qualified_signature_session_id?: string | null
+          reminder_count?: number | null
           signature_method?: string | null
           signed_document_url?: string | null
           signing_method_provider?: string | null
@@ -289,6 +294,7 @@ export type Database = {
           tenant_signature_ip?: string | null
           tenant_signature_method?: string | null
           tenant_signed_at?: string | null
+          tenant_signer_id?: string | null
           updated_at?: string
           workflow_id?: string | null
           workflow_status?: string
@@ -309,6 +315,7 @@ export type Database = {
           initiated_at?: string
           initiated_by?: string
           kyc_enforced?: boolean | null
+          last_reminder_sent_at?: string | null
           manager_embed_slug?: string | null
           manager_signature_data?: Json | null
           manager_signature_ip?: string | null
@@ -319,6 +326,7 @@ export type Database = {
           qualified_signature_metadata?: Json | null
           qualified_signature_provider?: string | null
           qualified_signature_session_id?: string | null
+          reminder_count?: number | null
           signature_method?: string | null
           signed_document_url?: string | null
           signing_method_provider?: string | null
@@ -329,6 +337,7 @@ export type Database = {
           tenant_signature_ip?: string | null
           tenant_signature_method?: string | null
           tenant_signed_at?: string | null
+          tenant_signer_id?: string | null
           updated_at?: string
           workflow_id?: string | null
           workflow_status?: string

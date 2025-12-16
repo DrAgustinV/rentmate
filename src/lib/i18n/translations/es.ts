@@ -155,6 +155,17 @@ export const es = {
       clave: "Autenticación Cl@ve",
       qualifiedSignature: "Firma Cualificada",
     },
+    reminder: {
+      sendReminder: "Enviar Recordatorio",
+      reminderSent: "Recordatorio Enviado",
+      lastSentAt: "Último recordatorio enviado",
+      reminderCount: "{count} de {max} recordatorios enviados",
+      cooldownMessage: "Puede enviar otro recordatorio en {time}",
+      waitingForTenant: "Esperando firma del inquilino",
+      sending: "Enviando recordatorio...",
+      success: "Recordatorio enviado exitosamente al inquilino",
+      error: "Error al enviar el recordatorio",
+    },
   },
   header: {
     dashboard: "Panel",
