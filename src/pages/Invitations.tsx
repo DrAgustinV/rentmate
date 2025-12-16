@@ -191,18 +191,22 @@ export default function Invitations() {
       if (!user) throw new Error("Not authenticated");
 
       // Get user's profile for email
-      const { data: userProfile } = await supabase
+      const { data: userProfile, error: profileReadError } = await supabase
         .from("profiles")
         .select("email")
         .eq("id", user.id)
         .single();
 
-      // Mark email as verified - clicking invitation link proves email ownership
-      await supabase
+      if (profileReadError) throw profileReadError;
+
+      // CRITICAL: Accepting an invitation MUST verify the user's email.
+      // Clicking the unique invitation link proves email ownership.
+      const { error: verifyEmailError } = await supabase
         .from("profiles")
         .update({ email_verified: true })
         .eq("id", user.id);
 
+      if (verifyEmailError) throw verifyEmailError;
       // Add user as tenant with active status
       const { data: newTenancy, error: tenantError } = await supabase
         .from("property_tenants")
