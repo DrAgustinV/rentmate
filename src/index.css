@@ -180,9 +180,9 @@ All colors MUST be HSL.
   }
   
   .card-shine {
-    @apply transition-all duration-300 ease-out;
-    @apply bg-primary/[0.04] border border-primary/10 shadow-sm;
-    @apply hover:shadow-md hover:border-primary/25 hover:-translate-y-0.5 hover:bg-primary/[0.06];
+    @apply transition-colors duration-200 ease-out;
+    @apply border border-border/50;
+    @apply hover:border-primary/30 hover:bg-primary/[0.03];
   }
   
   .shimmer {

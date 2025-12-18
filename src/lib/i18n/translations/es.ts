@@ -756,6 +756,8 @@ export const es = {
       allClear: "Todo en orden",
       noData: "Sin datos",
     },
+    useTemplate: "Usar Plantilla",
+    createTemplatesInConfiguration: "Crea plantillas de contrato en Configuración → Plantillas para usarlas aquí",
   },
   propertyTenants: {
     overviewTab: "Resumen",
@@ -1134,6 +1136,7 @@ export const es = {
       utilitiesDesc: "Define quién es responsable de cada servicio",
       review: "Revisar y Confirmar",
       reviewDesc: "Revisa la configuración del arrendamiento antes de enviar la invitación",
+      requirements: "Requisitos",
     },
   },
   invitations: {

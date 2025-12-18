@@ -672,6 +672,12 @@ export const en = {
       allClear: "All clear",
       noData: "No data",
     },
+    useTemplate: "Use Template",
+    selectTemplates: "Select templates to copy to this tenancy",
+    copySelected: "Copy Selected",
+    noTemplatesAvailable: "No property templates available to copy",
+    templatesCopied: "Templates copied successfully",
+    createTemplatesInConfiguration: "Create contract templates in Configuration → Templates to use them here",
   },
   maintenance: {
     title: "Maintenance",
@@ -1043,6 +1049,7 @@ export const en = {
       utilitiesDesc: "Define who is responsible for each utility",
       review: "Review & Confirm",
       reviewDesc: "Review the tenancy setup before sending the invitation",
+      requirements: "Requirements",
     },
   },
   invitations: {
