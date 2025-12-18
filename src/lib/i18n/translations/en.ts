@@ -54,7 +54,7 @@ export const en = {
   locale: "en-US",
   verification: {
     email: "Email",
-    kyc: "KYC",
+    kyc: "ID",
     phone: "Phone",
   },
   rent: {
@@ -136,7 +136,7 @@ export const en = {
     checkingKYC: "Checking verification status...",
     kycRequiredForDock: "Identity verification required",
     kycOptional: "Identity Verification is Optional",
-    kycEnhancement: "Complete KILT KYC for blockchain-verified identity (optional enhancement)",
+    kycEnhancement: "Complete KILT verification for blockchain-verified identity (optional enhancement)",
     kycVerified: "Identity Verified",
     kycNotVerified: "Identity Not Verified",
     standardSignature: "Standard E-Signature",
@@ -1603,6 +1603,26 @@ export const en = {
       signaturesUsed: "Signatures used",
       signaturesRemaining: "remaining this year",
       unlimited: "Unlimited",
+    },
+    whyUpgrade: {
+      title: "Why Upgrade to Pro?",
+      description: "Unlock powerful features to scale your property management",
+      signatures: {
+        title: "100 Digital Signatures per Year",
+        description: "Create legally-binding contracts with tenants",
+      },
+      payments: {
+        title: "Automated Payment Collection",
+        description: "Collect rent automatically via Stripe Connect",
+      },
+      kyc: {
+        title: "Identity Verification",
+        description: "Verify tenant identities with government ID",
+      },
+      support: {
+        title: "Priority Support",
+        description: "Get help faster with dedicated support",
+      },
     },
   },
   pricing: {
