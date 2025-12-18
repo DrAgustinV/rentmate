@@ -19,6 +19,8 @@ import {
   X,
   FileText,
   ClipboardCheck,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
@@ -52,6 +54,9 @@ interface Invitation {
   status: string;
   expires_at: string;
   created_at: string;
+  decline_reason?: string | null;
+  declined_at?: string | null;
+  tenancy_requirements_id?: string | null;
 }
 
 interface TenancyDocument {
@@ -88,6 +93,10 @@ interface ContractsTabProps {
   onEndTenancy?: (tenant: Tenant) => void;
   onFinalizeTenancy?: (tenant: Tenant) => void;
   setCancellingInvitation?: (invitation: Invitation | null) => void;
+  // Declined invitation callbacks
+  onEditAndResend?: (invitation: Invitation) => void;
+  onDismissInvitation?: (invitation: Invitation) => void;
+  isDismissing?: boolean;
 }
 
 export function ContractsTab({
@@ -108,6 +117,9 @@ export function ContractsTab({
   onEndTenancy,
   onFinalizeTenancy,
   setCancellingInvitation,
+  onEditAndResend,
+  onDismissInvitation,
+  isDismissing,
 }: ContractsTabProps) {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
@@ -150,21 +162,29 @@ export function ContractsTab({
     enabled: !!currentTenant,
   });
 
-  // Invitations query (manager only)
+  // Invitations query (manager only) - includes pending and recently declined
   const { data: invitations } = useQuery({
     queryKey: ["invitations", propertyId],
     queryFn: async () => {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
       const { data, error } = await supabase
         .from("invitations")
-        .select("*")
+        .select("id, email, status, expires_at, created_at, decline_reason, declined_at, tenancy_requirements_id")
         .eq("property_id", propertyId)
-        .eq("status", "pending")
-        .gt("expires_at", new Date().toISOString());
+        .in("status", ["pending", "declined"])
+        .or(`expires_at.gt.${new Date().toISOString()},declined_at.gt.${thirtyDaysAgo.toISOString()}`)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Invitation[];
     },
     enabled: !!propertyId && userRole?.isManager,
   });
+
+  // Separate pending and declined invitations
+  const pendingInvitations = invitations?.filter(inv => inv.status === 'pending') || [];
+  const declinedInvitations = invitations?.filter(inv => inv.status === 'declined') || [];
 
   // Tenancy history (manager only)
   const { data: tenancyHistory } = useQuery({
@@ -594,15 +614,15 @@ export function ContractsTab({
       )}
 
       {/* 6. Pending Invitations (Manager Only) */}
-      {userRole?.isManager && invitations && invitations.length > 0 && (
+      {userRole?.isManager && pendingInvitations.length > 0 && (
         <>
           <Separator />
           <div className="space-y-3">
             <h3 className="font-semibold text-sm">
-              {t("dialogs.manageTenants.pendingInvitations")} ({invitations.length})
+              {t("dialogs.manageTenants.pendingInvitations")} ({pendingInvitations.length})
             </h3>
             <div className="space-y-2">
-              {invitations.map((inv) => (
+              {pendingInvitations.map((inv) => (
                 <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
                     <p className="font-medium">{inv.email}</p>
@@ -614,6 +634,74 @@ export function ContractsTab({
                   <Button variant="ghost" size="sm" onClick={() => setCancellingInvitation?.(inv)}>
                     <X className="h-4 w-4" />
                   </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 7. Declined Invitations (Manager Only) */}
+      {userRole?.isManager && declinedInvitations.length > 0 && (
+        <>
+          <Separator />
+          <div className="space-y-3">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              {t("invitations.declinedInvitations")} ({declinedInvitations.length})
+            </h3>
+            <div className="space-y-3">
+              {declinedInvitations.map((inv) => (
+                <div key={inv.id} className="p-4 border border-destructive/30 rounded-lg bg-destructive/5 space-y-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium truncate">{inv.email}</p>
+                        <Badge variant="destructive" className="text-xs">
+                          {t("invitations.declined")}
+                        </Badge>
+                      </div>
+                      {inv.declined_at && (
+                        <p className="text-xs text-muted-foreground">
+                          {t("invitations.declinedOn")}: {formatDate(inv.declined_at)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {inv.decline_reason && (
+                    <div className="p-3 bg-background/50 rounded border">
+                      <p className="text-sm italic text-muted-foreground">
+                        "{inv.decline_reason}"
+                      </p>
+                    </div>
+                  )}
+                  {!inv.decline_reason && (
+                    <p className="text-xs text-muted-foreground italic">
+                      {t("invitations.noReasonProvided")}
+                    </p>
+                  )}
+                  
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onEditAndResend?.(inv)}
+                      className="flex-1"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-2" />
+                      {t("invitations.editAndResend")}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDismissInvitation?.(inv)}
+                      disabled={isDismissing}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      {t("invitations.dismiss")}
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

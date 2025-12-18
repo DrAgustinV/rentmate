@@ -12,6 +12,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
+import { DeclineInvitationDialog } from "@/components/DeclineInvitationDialog";
 
 interface Invitation {
   id: string;
@@ -41,6 +42,9 @@ export default function Invitations() {
   const [showDecisionPage, setShowDecisionPage] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const autoAcceptTriggeredRef = useRef(false);
+  
+  // Decline dialog state
+  const [declineDialogInvitation, setDeclineDialogInvitation] = useState<Invitation | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -305,7 +309,7 @@ export default function Invitations() {
     }
   };
 
-  const handleDecline = async (invitationId: string) => {
+  const handleDecline = async (invitationId: string, reason?: string) => {
     setProcessingId(invitationId);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -313,7 +317,11 @@ export default function Invitations() {
 
       const { error } = await supabase
         .from("invitations")
-        .update({ status: "declined" })
+        .update({ 
+          status: "declined",
+          decline_reason: reason || null,
+          declined_at: new Date().toISOString(),
+        })
         .eq("id", invitationId);
 
       if (error) throw error;
@@ -324,6 +332,7 @@ export default function Invitations() {
       });
 
       setInvitations(invitations.filter((inv) => inv.id !== invitationId));
+      setDeclineDialogInvitation(null);
     } catch (error: any) {
       toast({
         title: t('common.error'),
@@ -540,14 +549,10 @@ export default function Invitations() {
                       <Button
                         size="lg"
                         variant="ghost"
-                        onClick={() => handleDecline(invitation.id)}
+                        onClick={() => setDeclineDialogInvitation(invitation)}
                         disabled={processingId === invitation.id}
                       >
-                        {processingId === invitation.id ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <XCircle className="mr-2 h-4 w-4" />
-                        )}
+                        <XCircle className="mr-2 h-4 w-4" />
                         {t('invitations.decline')}
                       </Button>
                     </div>
@@ -559,6 +564,15 @@ export default function Invitations() {
         )}
 
       </div>
+
+      {/* Decline Invitation Dialog */}
+      <DeclineInvitationDialog
+        open={!!declineDialogInvitation}
+        onOpenChange={(open) => !open && setDeclineDialogInvitation(null)}
+        propertyTitle={declineDialogInvitation?.properties?.title || t('invitations.property')}
+        onConfirm={(reason) => declineDialogInvitation && handleDecline(declineDialogInvitation.id, reason)}
+        isProcessing={processingId === declineDialogInvitation?.id}
+      />
     </AppLayout>
   );
 }
