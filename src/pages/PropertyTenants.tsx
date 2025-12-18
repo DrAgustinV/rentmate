@@ -56,6 +56,9 @@ interface Invitation {
   status: string;
   expires_at: string;
   created_at: string;
+  decline_reason?: string | null;
+  declined_at?: string | null;
+  tenancy_requirements_id?: string | null;
 }
 
 const createInviteSchema = (t: (key: string) => string) =>
@@ -99,6 +102,9 @@ export default function PropertyTenants() {
   const [showTenancyWizard, setShowTenancyWizard] = useState(false);
   const [finalizingTenant, setFinalizingTenant] = useState<Tenant | null>(null);
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
+  const [dismissingInvitation, setDismissingInvitation] = useState<Invitation | null>(null);
+  const [editingInvitation, setEditingInvitation] = useState<Invitation | null>(null);
+  const [wizardInitialData, setWizardInitialData] = useState<TenancyRequirement | null>(null);
 
   // Essential queries that are needed upfront
   const { data: property, isLoading: propertyLoading } = useQuery({
@@ -472,6 +478,113 @@ export default function PropertyTenants() {
     }
   };
 
+  // Handle Edit & Resend for declined invitations
+  const handleEditAndResend = async (invitation: Invitation) => {
+    try {
+      // Fetch the tenancy requirements for this declined invitation
+      const { data: requirement, error } = await supabase
+        .from('tenancy_requirements')
+        .select('*')
+        .eq('property_id', propertyId)
+        .eq('tenant_email', invitation.email)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (requirement) {
+        setWizardInitialData(requirement as TenancyRequirement);
+        setEditingInvitation(invitation);
+      } else {
+        // No existing requirement, just open wizard with email pre-filled
+        setWizardInitialData({ tenant_email: invitation.email } as TenancyRequirement);
+        setEditingInvitation(invitation);
+      }
+      setShowTenancyWizard(true);
+    } catch (error: any) {
+      sonnerToast.error(error.message || t('common.error'));
+    }
+  };
+
+  // Handle dismiss declined invitation
+  const dismissInvitationMutation = useMutation({
+    mutationFn: async (invitation: Invitation) => {
+      // Mark invitation as cancelled
+      const { error: invError } = await supabase
+        .from('invitations')
+        .update({ status: 'cancelled' })
+        .eq('id', invitation.id);
+      if (invError) throw invError;
+
+      // Delete associated tenancy requirements
+      const { error: reqError } = await supabase
+        .from('tenancy_requirements')
+        .delete()
+        .eq('property_id', propertyId)
+        .eq('tenant_email', invitation.email);
+      if (reqError) throw reqError;
+    },
+    onSuccess: () => {
+      sonnerToast.success(t('invitations.dismissSuccess'));
+      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
+      queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
+      setDismissingInvitation(null);
+    },
+    onError: (error: any) => {
+      sonnerToast.error(error.message || t('common.error'));
+    },
+  });
+
+  // Handle wizard submit for edit & resend flow
+  const handleWizardSubmitWithResend = async (data: CreateTenancyRequirementInput) => {
+    try {
+      if (editingInvitation && wizardInitialData?.id) {
+        // Update existing requirement
+        const { error: updateError } = await supabase
+          .from('tenancy_requirements')
+          .update({
+            tenant_email: data.tenant_email,
+            require_email_verification: data.require_email_verification,
+            require_kyc_verification: data.require_kyc_verification,
+            require_phone_verification: data.require_phone_verification,
+            contract_method: data.contract_method,
+            selected_template_id: data.selected_template_id,
+            rent_amount_cents: data.rent_amount_cents,
+            currency: data.currency,
+            security_deposit_cents: data.security_deposit_cents,
+            payment_day: data.payment_day,
+            start_date: data.start_date,
+            end_date: data.end_date,
+            utilities_config: data.utilities_config as any,
+            status: 'draft',
+          })
+          .eq('id', wizardInitialData.id);
+        if (updateError) throw updateError;
+        
+        // Mark old invitation as cancelled
+        const { error: cancelError } = await supabase
+          .from('invitations')
+          .update({ status: 'cancelled' })
+          .eq('id', editingInvitation.id);
+        if (cancelError) throw cancelError;
+        
+        queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
+        queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
+        setShowTenancyWizard(false);
+        setEditingInvitation(null);
+        setWizardInitialData(null);
+        sonnerToast.success(t('tenancy.wizard.setupSaved') || 'Tenancy setup saved. Send invitation when ready.');
+      } else {
+        // Create new requirement (same as normal flow)
+        await createRequirement.mutateAsync(data);
+        queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
+        setShowTenancyWizard(false);
+        sonnerToast.success(t('tenancy.wizard.setupSaved') || 'Tenancy setup saved. Send invitation when ready.');
+      }
+    } catch (error: any) {
+      sonnerToast.error(error.message || t('common.error'));
+    }
+  };
+
   // Tenancy mutations
   const endTenancyMutation = useMutation({
     mutationFn: async ({ tenantId, plannedEndDate }: { tenantId: string; plannedEndDate: string }) => {
@@ -639,6 +752,9 @@ export default function PropertyTenants() {
                   }}
                   onFinalizeTenancy={(tenant) => setFinalizingTenant(tenant)}
                   setCancellingInvitation={setCancellingInvitation}
+                  onEditAndResend={handleEditAndResend}
+                  onDismissInvitation={setDismissingInvitation}
+                  isDismissing={dismissInvitationMutation.isPending}
                 />
               </TabsContent>
 
@@ -732,13 +848,40 @@ export default function PropertyTenants() {
       {/* Tenancy Setup Wizard */}
       <CreateTenancyWizard
         open={showTenancyWizard}
-        onOpenChange={setShowTenancyWizard}
+        onOpenChange={(open) => {
+          setShowTenancyWizard(open);
+          if (!open) {
+            setEditingInvitation(null);
+            setWizardInitialData(null);
+          }
+        }}
         propertyId={propertyId!}
         propertyCountry={property?.country}
         templates={templates}
-        onSubmit={handleWizardSubmit}
+        onSubmit={editingInvitation ? handleWizardSubmitWithResend : handleWizardSubmit}
         isSubmitting={createRequirement.isPending}
+        initialData={wizardInitialData}
       />
+
+      {/* Dismiss Invitation Dialog */}
+      <AlertDialog open={!!dismissingInvitation} onOpenChange={() => setDismissingInvitation(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("invitations.dismissDialog.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("invitations.dismissDialog.description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => dismissingInvitation && dismissInvitationMutation.mutate(dismissingInvitation)}
+            >
+              {t("invitations.dismissDialog.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }

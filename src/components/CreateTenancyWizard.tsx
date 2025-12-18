@@ -60,6 +60,19 @@ interface CreateTenancyWizardProps {
   templates?: Array<{ id: string; document_title: string }>;
   onSubmit: (data: CreateTenancyRequirementInput) => Promise<void>;
   isSubmitting?: boolean;
+  initialData?: {
+    tenant_email?: string;
+    rent_amount_cents?: number | null;
+    currency?: string | null;
+    security_deposit_cents?: number | null;
+    payment_day?: number | null;
+    start_date?: string | null;
+    end_date?: string | null;
+    contract_method?: string | null;
+    require_email_verification?: boolean | null;
+    require_kyc_verification?: boolean | null;
+    utilities_config?: Record<string, string> | null;
+  } | null;
 }
 
 const STEPS = [
@@ -79,6 +92,7 @@ export function CreateTenancyWizard({
   templates = [],
   onSubmit,
   isSubmitting = false,
+  initialData,
 }: CreateTenancyWizardProps) {
   const { t } = useLanguage();
   const { canUseGovernmentIdKYC, isFree } = useSubscription();
@@ -100,19 +114,19 @@ export function CreateTenancyWizard({
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      tenant_email: '',
-      require_email_verification: true,
-      require_kyc_verification: false,
+      tenant_email: initialData?.tenant_email || '',
+      require_email_verification: initialData?.require_email_verification ?? true,
+      require_kyc_verification: initialData?.require_kyc_verification ?? false,
       require_phone_verification: false,
-      contract_method: 'manual',
+      contract_method: (initialData?.contract_method as 'digital' | 'manual' | 'none') || 'manual',
       selected_template_id: null,
-      rent_amount: '',
-      currency: 'EUR',
-      security_deposit: '',
-      payment_day: '1',
-      start_date: '',
-      end_date: '',
-      utilities_config: {
+      rent_amount: initialData?.rent_amount_cents ? (initialData.rent_amount_cents / 100).toString() : '',
+      currency: initialData?.currency || 'EUR',
+      security_deposit: initialData?.security_deposit_cents ? (initialData.security_deposit_cents / 100).toString() : '',
+      payment_day: initialData?.payment_day?.toString() || '1',
+      start_date: initialData?.start_date || '',
+      end_date: initialData?.end_date || '',
+      utilities_config: (initialData?.utilities_config as Record<string, UtilityConfig>) || {
         electricity: 'not_applicable',
         water: 'not_applicable',
         gas: 'not_applicable',
@@ -122,6 +136,34 @@ export function CreateTenancyWizard({
       },
     },
   });
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    if (open && initialData) {
+      form.reset({
+        tenant_email: initialData.tenant_email || '',
+        require_email_verification: initialData.require_email_verification ?? true,
+        require_kyc_verification: initialData.require_kyc_verification ?? false,
+        require_phone_verification: false,
+        contract_method: (initialData.contract_method as 'digital' | 'manual' | 'none') || 'manual',
+        selected_template_id: null,
+        rent_amount: initialData.rent_amount_cents ? (initialData.rent_amount_cents / 100).toString() : '',
+        currency: initialData.currency || 'EUR',
+        security_deposit: initialData.security_deposit_cents ? (initialData.security_deposit_cents / 100).toString() : '',
+        payment_day: initialData.payment_day?.toString() || '1',
+        start_date: initialData.start_date || '',
+        end_date: initialData.end_date || '',
+        utilities_config: (initialData.utilities_config as Record<string, UtilityConfig>) || {
+          electricity: 'not_applicable',
+          water: 'not_applicable',
+          gas: 'not_applicable',
+          internet: 'not_applicable',
+          heating: 'not_applicable',
+          trash: 'not_applicable',
+        },
+      });
+    }
+  }, [open, initialData, form]);
 
   const handleNext = async () => {
     const fieldsToValidate = getFieldsForStep(currentStep);

@@ -657,6 +657,8 @@ export type Database = {
       invitations: {
         Row: {
           created_at: string
+          decline_reason: string | null
+          declined_at: string | null
           email: string
           expires_at: string
           id: string
@@ -668,6 +670,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          decline_reason?: string | null
+          declined_at?: string | null
           email: string
           expires_at: string
           id?: string
@@ -679,6 +683,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          decline_reason?: string | null
+          declined_at?: string | null
           email?: string
           expires_at?: string
           id?: string
