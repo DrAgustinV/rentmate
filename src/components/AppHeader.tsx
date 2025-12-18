@@ -36,9 +36,28 @@ export function AppHeader() {
   const { brandName, logoUrl, logoAlt } = useBrand();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        // Verify session is still valid on server
+        const { error: userError } = await supabase.auth.getUser();
+        if (userError?.message?.includes('session_not_found') || 
+            userError?.message?.includes('invalid') ||
+            userError?.message?.includes('expired')) {
+          // Zombie session detected - clear it
+          console.warn("Stale session detected, clearing...");
+          localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');
+          setUser(null);
+          return;
+        }
+        setUser(session.user);
+      } else {
+        setUser(null);
+      }
+    };
+
+    checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
@@ -82,7 +101,18 @@ export function AppHeader() {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.warn("Sign out error (clearing local state anyway):", error.message);
+        // Force clear local storage if server-side session is already gone
+        localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');
+      }
+    } catch (err) {
+      console.warn("Sign out failed (clearing local state):", err);
+      localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');
+    }
+    setUser(null);
     navigate("/auth");
   };
 
