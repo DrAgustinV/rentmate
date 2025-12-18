@@ -84,7 +84,7 @@ export const es = {
       },
       verification: {
         title: "Inquilinos Verificados",
-        description: "Identidades verificadas con KYC para tu tranquilidad",
+        description: "Identidades verificadas para tu tranquilidad",
       },
     },
     managers: {
@@ -1648,7 +1648,7 @@ export const es = {
     addTemplate: "Agregar Plantilla",
     defaultsTitle: "Configuración Predeterminada",
     defaultsDescription: "Establecer valores predeterminados para nuevos contratos de alquiler",
-    requireKYCTitle: "Requerir Verificación de Identidad (KYC)",
+    requireKYCTitle: "Requerir Verificación de Identidad",
     requireKYCDesc: "Requerir que los inquilinos verifiquen su identidad antes de firmar contratos",
     defaultDepositTitle: "Depósito de Seguridad Predeterminado",
     defaultDepositPlaceholder: "0",
