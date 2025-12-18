@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Receipt, CheckCircle2, Clock, Loader2, Upload, Eye, RefreshCw } from 'lucide-react';
+import { DollarSign, CheckCircle2, Clock, Loader2, Upload, Eye, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ProofOfPaymentUpload } from '@/components/ProofOfPaymentUpload';
@@ -164,7 +164,7 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
     <div className="space-y-4">
       {!hasPayments ? (
         <EmptyState
-          icon={Receipt}
+          icon={DollarSign}
           title={t("payments.emptyStates.noHistory")}
           description={hasRentAgreement ? t("payments.emptyStates.noPaymentsDesc") : t("payments.emptyStates.waitingForAgreement")}
           variant="info"

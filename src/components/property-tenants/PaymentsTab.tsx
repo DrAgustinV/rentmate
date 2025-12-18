@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Receipt, Plus, Clock } from "lucide-react";
+import { Euro, Plus, Clock } from "lucide-react";
 import { useState } from "react";
 import { CreateRentAgreementDrawer } from "@/components/CreateRentAgreementDrawer";
 import { EditRentAgreementDrawer } from "@/components/EditRentAgreementDrawer";
@@ -112,7 +112,7 @@ export function PaymentsTab({
             </div>
           ) : !rentAgreements || rentAgreements.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground space-y-2 border rounded-lg">
-              <Receipt className="h-10 w-10 mx-auto opacity-50" />
+              <Euro className="h-10 w-10 mx-auto opacity-50" />
               <p className="text-sm">{t("rentAgreements.noAgreements")}</p>
               <p className="text-xs">{t("rentAgreements.createFirst")}</p>
             </div>

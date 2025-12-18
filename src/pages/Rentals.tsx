@@ -5,7 +5,7 @@ import { AppLayout } from "@/components/layouts/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Handshake, Building, Users, Calendar, Receipt, Mail, Bell, AlertCircle } from "lucide-react";
+import { Handshake, Building, Users, Calendar, DollarSign, Mail, Bell, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -415,7 +415,7 @@ export default function Rentals() {
                   
                   {tenancy.rent_amount_cents > 0 && (
                     <div className="flex items-center gap-2">
-                      <Receipt className="h-4 w-4 text-muted-foreground" />
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">
                           {formatCurrency(tenancy.rent_amount_cents, tenancy.currency)}

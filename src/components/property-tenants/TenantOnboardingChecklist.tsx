@@ -11,7 +11,7 @@ import {
   Mail,
   Shield,
   FileSignature,
-  Receipt,
+  Banknote,
   ChevronRight,
   PartyPopper,
 } from "lucide-react";
@@ -226,7 +226,7 @@ export function TenantOnboardingChecklist({
                 ) : item.id === "contract" ? (
                   <FileSignature className="h-5 w-5" />
                 ) : (
-                  <Receipt className="h-5 w-5" />
+                  <Banknote className="h-5 w-5" />
                 )}
               </div>
               <div>
