@@ -20,7 +20,7 @@ import {
   Mail, 
   Shield, 
   FileSignature, 
-  Banknote, 
+  Receipt, 
   Zap, 
   CheckCircle2, 
   ChevronRight, 
@@ -67,7 +67,7 @@ const STEPS = [
   { id: 'tenant', label: 'Tenant', icon: Mail },
   { id: 'verification', label: 'Verification', icon: Shield },
   { id: 'contract', label: 'Contract', icon: FileSignature },
-  { id: 'rent', label: 'Rent', icon: Banknote },
+  { id: 'rent', label: 'Rent', icon: Receipt },
   { id: 'utilities', label: 'Utilities', icon: Zap },
   { id: 'review', label: 'Review', icon: CheckCircle2 },
 ] as const;
@@ -481,7 +481,7 @@ export function CreateTenancyWizard({
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Banknote className="h-5 w-5" />
+                    <Receipt className="h-5 w-5" />
                     {t('tenancy.wizard.rent') || 'Rent & Deposits'}
                   </CardTitle>
                   <CardDescription>
@@ -712,7 +712,7 @@ export function CreateTenancyWizard({
                   {form.watch('rent_amount') && (
                     <div className="p-3 bg-muted/50 rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
-                        <Banknote className="h-4 w-4 text-muted-foreground" />
+                        <Receipt className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium text-sm">{t('tenancy.wizard.rent') || 'Rent'}</span>
                       </div>
                       <p className="text-sm">

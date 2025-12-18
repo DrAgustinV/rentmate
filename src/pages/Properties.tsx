@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Building, Archive, Upload, Banknote, Zap, Ticket, Wrench, ImageIcon } from "lucide-react";
+import { Plus, Building, Archive, Upload, Receipt, Zap, Ticket, Wrench, ImageIcon } from "lucide-react";
 import { PropertyCard, PropertyStatusIndicators } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
@@ -203,7 +203,7 @@ export default function Properties() {
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Banknote className={cn(
+            <Receipt className={cn(
               "h-3.5 w-3.5 cursor-help transition-colors",
               !indicators?.rent_has_data ? "text-muted-foreground/40" :
               indicators.rent_overdue ? "text-red-500" : "text-green-500"
