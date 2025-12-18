@@ -11,7 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Upload,
-  Copy,
   Download,
   ChevronDown,
   Trash2,
@@ -25,7 +24,6 @@ import { cn } from "@/lib/utils";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
 import { ContractSignatureManager } from "@/components/ContractSignatureManager";
-import { CopyTemplatesDialog } from "@/components/CopyTemplatesDialog";
 import { RentalTermsCard } from "./RentalTermsCard";
 import { ContactInfoCard } from "./ContactInfoCard";
 import { TenantOnboardingChecklist } from "./TenantOnboardingChecklist";
@@ -113,7 +111,6 @@ export function ContractsTab({
   const queryClient = useQueryClient();
   
   const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
-  const [copyTemplatesOpen, setCopyTemplatesOpen] = useState(false);
   const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
   const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
   const [expandedTenancyId, setExpandedTenancyId] = useState<string | null>(null);
@@ -335,6 +332,25 @@ export function ContractsTab({
     );
   }
 
+  // Check if contract is locked (signing initiated or completed)
+  const { data: contractSignature } = useQuery({
+    queryKey: ["contract-signature-status", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant) return null;
+      const { data } = await supabase
+        .from("contract_signatures")
+        .select("workflow_status")
+        .eq("tenancy_id", currentTenant.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!currentTenant?.id,
+  });
+
+  const isContractLocked = !!contractSignature?.workflow_status;
+
   return (
     <div className="space-y-6">
       {/* 0. Tenant Onboarding Checklist (tenant only, shows only when items pending) */}
@@ -353,8 +369,18 @@ export function ContractsTab({
         />
       )}
 
-      {/* 1. Rental Terms Card (always shows - merges rental terms + tenancy setup) */}
-      <RentalTermsCard 
+      {/* 1. Tenant Information Card (TOP) */}
+      <ContactInfoCard
+        propertyId={propertyId}
+        currentTenant={currentTenant}
+        userRole={userRole}
+        isReadOnly={isReadOnly}
+        onEditTenant={onEditTenant}
+        onEndTenancy={onEndTenancy}
+      />
+
+      {/* 2. Rental Terms Card (SECOND) */}
+      <RentalTermsCard
         propertyId={propertyId} 
         tenancyId={currentTenant?.id}
         tenantEmail={currentTenant?.email}
@@ -372,34 +398,31 @@ export function ContractsTab({
         isResending={isResending}
       />
 
-      {/* 2. Tenancy Documents Card (merged: documents list + digital signature) */}
+      {/* 3. Contract Card (THIRD) */}
       {currentTenant && (
         <Card className="card-shine" id="contract-signature-section">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                {t("properties.tenancyDocuments")}
+                {t("properties.contract") || "Contract"}
               </CardTitle>
               <div className="flex items-center gap-2">
-                {isReadOnly && (
+                {isContractLocked && (
+                  <Badge variant="secondary" className="text-xs">
+                    🔒 {t("properties.contractLocked") || "Locked"}
+                  </Badge>
+                )}
+                {isReadOnly && !isContractLocked && (
                   <Badge variant="secondary" className="text-xs">
                     {t("properties.readOnlyAccess")}
                   </Badge>
                 )}
-                {!isReadOnly && !uploadDocumentOpen && !selectedParentDoc && (
-                  <>
-                    {userRole?.isManager && (
-                      <Button variant="outline" size="sm" onClick={() => setCopyTemplatesOpen(true)}>
-                        <Copy className="h-4 w-4 mr-2" />
-                        {t("properties.useTemplate")}
-                      </Button>
-                    )}
-                    <Button variant="outline" size="sm" onClick={() => setUploadDocumentOpen(true)}>
-                      <Upload className="h-4 w-4 mr-2" />
-                      {t("properties.uploadTenancyDocument")}
-                    </Button>
-                  </>
+                {!isReadOnly && !isContractLocked && !uploadDocumentOpen && !selectedParentDoc && userRole?.isManager && (
+                  <Button variant="outline" size="sm" onClick={() => setUploadDocumentOpen(true)}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    {t("properties.uploadContract") || "Upload Contract"}
+                  </Button>
                 )}
               </div>
             </div>
@@ -478,12 +501,13 @@ export function ContractsTab({
                               <Button variant="ghost" size="sm" onClick={() => downloadDocument(latestDoc)} title={t("common.download")}>
                                 <Download className="h-3 w-3" />
                               </Button>
-                              {!isReadOnly && (
+                              {!isReadOnly && !isContractLocked && (
                                 <>
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => setSelectedParentDoc({ id: latestDoc.id, title })}
+                                    title={t("properties.uploadNewVersion") || "Upload new version"}
                                   >
                                     <Upload className="h-3 w-3" />
                                   </Button>
@@ -492,6 +516,7 @@ export function ContractsTab({
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => deleteDocumentMutation.mutate(latestDoc.id)}
+                                      title={t("common.delete")}
                                     >
                                       <Trash2 className="h-3 w-3" />
                                     </Button>
@@ -556,15 +581,6 @@ export function ContractsTab({
         </Card>
       )}
 
-      {/* 3. Contact Info Card (always shows) */}
-      <ContactInfoCard
-        propertyId={propertyId}
-        currentTenant={currentTenant}
-        userRole={userRole}
-        isReadOnly={isReadOnly}
-        onEditTenant={onEditTenant}
-        onEndTenancy={onEndTenancy}
-      />
 
       {/* 6. Pending Invitations (Manager Only) */}
       {userRole?.isManager && invitations && invitations.length > 0 && (
@@ -668,15 +684,6 @@ export function ContractsTab({
         </>
       )}
 
-      {/* Copy Templates Dialog */}
-      {currentTenant && (
-        <CopyTemplatesDialog
-          open={copyTemplatesOpen}
-          onOpenChange={setCopyTemplatesOpen}
-          propertyId={propertyId}
-          tenancyId={currentTenant.id}
-        />
-      )}
     </div>
   );
 }

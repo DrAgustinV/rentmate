@@ -680,6 +680,9 @@ export const en = {
     noTemplatesAvailable: "No property templates available to copy",
     templatesCopied: "Templates copied successfully",
     createTemplatesInConfiguration: "Create contract templates in Configuration → Templates to use them here",
+    contract: "Contract",
+    contractLocked: "Locked",
+    uploadContract: "Upload Contract",
   },
   maintenance: {
     title: "Maintenance",
@@ -895,7 +898,7 @@ export const en = {
   propertyTenants: {
     tabs: {
       tenants: "Tenants",
-      contracts: "Contracts",
+      contracts: "Tenants",
       payments: "Payments",
       utilities: "Utilities",
       tickets: "Tickets",
@@ -1499,6 +1502,8 @@ export const en = {
     signatureStatus: "Signature Status",
     managerSignature: "Manager",
     tenantSignature: "Tenant",
+    manager: "Manager",
+    tenant: "Tenant",
     requestExpiration: "Request Expiration",
   },
   repairShops: {

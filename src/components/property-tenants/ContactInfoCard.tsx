@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
-import { BadgeCheck, Mail, Phone, User, Edit, CalendarX } from "lucide-react";
+import { BadgeCheck, Mail, Phone, User, CalendarX } from "lucide-react";
 
 interface Tenant {
   id: string;
@@ -164,24 +164,16 @@ export function ContactInfoCard({
                 )}
               </div>
             </div>
-            {!isReadOnly && (
-              <div className="flex gap-2 flex-shrink-0">
-                <Button variant="outline" size="sm" onClick={() => onEditTenant?.(currentTenant)}>
-                  <Edit className="h-3 w-3 mr-1" />
-                  {t("common.edit")}
-                </Button>
-                {currentTenant.tenancy_status === 'active' && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => onEndTenancy?.(currentTenant)}
-                    className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30"
-                  >
-                    <CalendarX className="h-3 w-3 mr-1" />
-                    {t("dialogs.manageTenants.endTenancy")}
-                  </Button>
-                )}
-              </div>
+            {!isReadOnly && currentTenant.tenancy_status === 'active' && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => onEndTenancy?.(currentTenant)}
+                className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30 flex-shrink-0"
+              >
+                <CalendarX className="h-3 w-3 mr-1" />
+                {t("dialogs.manageTenants.endTenancy")}
+              </Button>
             )}
           </div>
         </CardContent>

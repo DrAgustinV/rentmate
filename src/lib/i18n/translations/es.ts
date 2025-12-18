@@ -760,6 +760,9 @@ export const es = {
     },
     useTemplate: "Usar Plantilla",
     createTemplatesInConfiguration: "Crea plantillas de contrato en Configuración → Plantillas para usarlas aquí",
+    contract: "Contrato",
+    contractLocked: "Bloqueado",
+    uploadContract: "Subir Contrato",
   },
   propertyTenants: {
     overviewTab: "Resumen",
@@ -770,7 +773,7 @@ export const es = {
     documentsTab: "Documentos",
     tabs: {
       tenants: "Inquilinos",
-      contracts: "Contratos",
+      contracts: "Inquilinos",
       payments: "Pagos",
       utilities: "Servicios",
       tickets: "Tickets",
@@ -1586,6 +1589,8 @@ export const es = {
     signatureStatus: "Estado de Firma",
     managerSignature: "Propietario",
     tenantSignature: "Inquilino",
+    manager: "Propietario",
+    tenant: "Inquilino",
     requestExpiration: "Vencimiento de Solicitud",
   },
   repairShops: {

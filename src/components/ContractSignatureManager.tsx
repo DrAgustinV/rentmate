@@ -561,115 +561,82 @@ export const ContractSignatureManager = ({
         />
       )}
 
-      {/* Signature Status - Compact Badge Layout */}
+      {/* Signature Status - Compact Single Line Layout */}
       <div className="pt-2 border-t">
-        <p className="text-xs text-muted-foreground mb-2">{t('contracts.signatureStatus')}</p>
-        <div className="flex flex-wrap gap-2">
-          {/* Manager Badge */}
-          <Badge 
-            variant={managerSigned ? "default" : "outline"} 
-            className={`text-xs ${managerSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
-          >
-            {managerSigned ? (
-              <CheckCircle2 className="h-3 w-3 mr-1" />
-            ) : (
-              <Clock className="h-3 w-3 mr-1" />
-            )}
-            {t('contracts.managerSignature')}
-          </Badge>
-          {/* Tenant Badge */}
-          <Badge 
-            variant={tenantSigned ? "default" : "outline"} 
-            className={`text-xs ${tenantSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
-          >
-            {tenantSigned ? (
-              <CheckCircle2 className="h-3 w-3 mr-1" />
-            ) : (
-              <Clock className="h-3 w-3 mr-1" />
-            )}
-            {t('contracts.tenantSignature')}
-          </Badge>
-        </div>
-        
-        {/* Request Expiration - Inline */}
-        {signature.expires_at && !isCompleted && (
-          <div className="flex items-center gap-2 mt-3">
-            <span className="text-xs text-muted-foreground">{t('contracts.requestExpiration')}:</span>
-            <Badge variant="outline" className="text-xs">
-              <Clock className="h-3 w-3 mr-1" />
-              {format(new Date(signature.expires_at), 'PPP')}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Status Label + Badges */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{t('contracts.signatureStatus')}:</span>
+            <Badge 
+              variant={managerSigned ? "default" : "outline"} 
+              className={`text-xs ${managerSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
+            >
+              {managerSigned ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Clock className="h-3 w-3 mr-1" />}
+              {t('contracts.manager')}
+            </Badge>
+            <Badge 
+              variant={tenantSigned ? "default" : "outline"} 
+              className={`text-xs ${tenantSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
+            >
+              {tenantSigned ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Clock className="h-3 w-3 mr-1" />}
+              {t('contracts.tenant')}
             </Badge>
           </div>
-        )}
-      </div>
-
-      {/* Send Reminder Button - Manager can send when they've signed but tenant hasn't */}
-      {!isCompleted && managerSigned && !tenantSigned && isManager && (
-        <div className="space-y-2 pt-2 border-t">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">
-              {t('contractSignature.reminder.waitingForTenant')}
-            </span>
-            {signature.reminder_count !== null && signature.reminder_count > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {t('contractSignature.reminder.reminderCount')
-                  .replace('{count}', String(signature.reminder_count))
-                  .replace('{max}', '3')}
-              </Badge>
+          
+          {/* Expiration - Inline */}
+          {signature.expires_at && !isCompleted && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span>|</span>
+              <Clock className="h-3 w-3" />
+              <span>{format(new Date(signature.expires_at), 'MMM d, yyyy')}</span>
+            </div>
+          )}
+          
+          {/* Action Buttons - Inline */}
+          <div className="flex items-center gap-2 ml-auto">
+            {/* Initiate Signature Button (when manager hasn't signed yet) */}
+            {!managerSigned && isManager && isQualifiedSignature && !showSigningForm && (
+              <Button size="sm" variant="default" onClick={() => setShowSigningForm(true)}>
+                <Shield className="h-3 w-3 mr-1" />
+                {t('contractSignature.signNow') || 'Sign Now'}
+              </Button>
+            )}
+            {/* Sign Button for Tenant */}
+            {!tenantSigned && !isManager && isQualifiedSignature && !showSigningForm && (
+              <Button size="sm" variant="default" onClick={() => setShowSigningForm(true)}>
+                <Shield className="h-3 w-3 mr-1" />
+                {t('contractSignature.signNow') || 'Sign Now'}
+              </Button>
+            )}
+            {/* Send Reminder Button */}
+            {!isCompleted && managerSigned && !tenantSigned && isManager && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSendReminder}
+                disabled={reminderLoading || !canSendReminder()}
+                title={!canSendReminder() ? t('contractSignature.reminder.cooldownMessage').replace('{time}', getNextReminderTime() || '') : ''}
+              >
+                {reminderLoading ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Bell className="h-3 w-3" />
+                )}
+                <span className="ml-1 hidden sm:inline">{t('contractSignature.reminder.sendReminder')}</span>
+              </Button>
             )}
           </div>
-          {signature.last_reminder_sent_at && (
-            <p className="text-xs text-muted-foreground">
-              {t('contractSignature.reminder.lastSentAt')}: {format(new Date(signature.last_reminder_sent_at), 'PPP p')}
-            </p>
-          )}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleSendReminder}
-            disabled={reminderLoading || !canSendReminder()}
-            className="w-full"
-          >
-            {reminderLoading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Bell className="h-4 w-4 mr-2" />
-            )}
-            {reminderLoading 
-              ? t('contractSignature.reminder.sending')
-              : !canSendReminder() 
-                ? t('contractSignature.reminder.cooldownMessage').replace('{time}', getNextReminderTime() || '')
-                : t('contractSignature.reminder.sendReminder')
-            }
-          </Button>
         </div>
-      )}
-
-      {/* Sign Now Buttons */}
-      {!isCompleted && (
-        <>
-          {!managerSigned && isManager && isQualifiedSignature && !showSigningForm && (
-            <Button 
-              size="sm" 
-              onClick={() => setShowSigningForm(true)} 
-              className="w-full"
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              {t('contractSignature.signNow') || 'Sign Now'}
-            </Button>
-          )}
-          {!tenantSigned && !isManager && isQualifiedSignature && !showSigningForm && (
-            <Button 
-              size="sm" 
-              onClick={() => setShowSigningForm(true)} 
-              className="w-full"
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              {t('contractSignature.signNow') || 'Sign Now'}
-            </Button>
-          )}
-        </>
-      )}
+        
+        {/* Reminder count info - subtle text below */}
+        {!isCompleted && managerSigned && !tenantSigned && isManager && signature.reminder_count !== null && signature.reminder_count > 0 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {t('contractSignature.reminder.reminderCount')
+              .replace('{count}', String(signature.reminder_count))
+              .replace('{max}', '3')}
+          </p>
+        )}
+      </div>
 
       {/* Download completed contract */}
       {isCompleted && signature.signed_document_url && (
