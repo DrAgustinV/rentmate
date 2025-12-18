@@ -44,6 +44,27 @@ export function ContactInfoCard({
   const { t } = useLanguage();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
+  // CRITICAL: Show loading state when userRole is still being determined
+  // This prevents showing tenant view to managers during initial load
+  if (userRole === undefined) {
+    return (
+      <Card className="card-shine">
+        <CardHeader className="pb-3">
+          <Skeleton className="h-5 w-40" />
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-start gap-3">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-48" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // For tenants: fetch manager info
   const { data: managerInfo, isLoading: managerLoading } = useQuery({
     queryKey: ["property-manager", propertyId],
