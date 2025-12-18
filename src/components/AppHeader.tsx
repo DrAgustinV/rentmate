@@ -18,7 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck, Building, Handshake, Users, DollarSign } from "lucide-react";
+import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck, Building, Handshake, Users } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";

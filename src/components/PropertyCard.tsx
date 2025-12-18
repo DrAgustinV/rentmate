@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MapPin, Edit, Mail, Archive, Users, Home, Image as ImageIcon, Eye, Ticket, Wrench, Banknote, Zap, Plus } from "lucide-react";
+import { MapPin, Edit, Mail, Archive, Users, Home, Image as ImageIcon, Eye, Ticket, Wrench, Zap, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -207,19 +207,6 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
                 {isManager && (
                   <TooltipProvider>
                     <div className="flex items-center gap-1.5 mt-1">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Banknote className={cn(
-                            "h-3 w-3 cursor-help transition-colors",
-                            !statusIndicators?.rent_has_data ? "text-muted-foreground/40" :
-                            statusIndicators.rent_overdue ? "text-red-500" : "text-green-500"
-                          )} />
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">
-                          {t("properties.rentPayments")}
-                        </TooltipContent>
-                      </Tooltip>
-
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Zap className={cn(

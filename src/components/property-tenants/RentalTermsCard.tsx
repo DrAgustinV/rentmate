@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from "@/lib/dateUtils";
 import { TenancyRequirement, UtilitiesConfig } from "@/hooks/useTenancyRequirements";
 import {
-  Banknote,
   Shield,
   Calendar,
   CalendarDays,
@@ -255,7 +254,6 @@ export function RentalTermsCard({
             {/* Details grid - condensed */}
             <div className="grid grid-cols-3 gap-2 text-sm">
               <div className="flex items-center gap-1.5">
-                <Banknote className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <span className="font-medium truncate">
                   {formatCurrency(pendingRequirement.rent_amount_cents, pendingRequirement.currency || 'EUR')}
                 </span>
@@ -377,7 +375,6 @@ export function RentalTermsCard({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Banknote className="h-3 w-3" />
                   {t("tenancy.wizard.monthlyRent")}
                 </div>
                 <p className="font-semibold">{formatCurrency(rentAmountCents, currency)}</p>
