@@ -40,12 +40,11 @@ export function AppHeader() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        // Verify session is still valid on server
+        // Verify session is still valid on server - but be conservative
         const { error: userError } = await supabase.auth.getUser();
-        if (userError?.message?.includes('session_not_found') || 
-            userError?.message?.includes('invalid') ||
-            userError?.message?.includes('expired')) {
-          // Zombie session detected - clear it
+        // Only clear for explicit session_not_found errors (status 403)
+        // Avoid clearing on network errors or other transient issues
+        if (userError?.message?.toLowerCase().includes('session_not_found')) {
           console.warn("Stale session detected, clearing...");
           localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');
           setUser(null);
