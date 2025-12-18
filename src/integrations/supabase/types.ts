@@ -892,7 +892,6 @@ export type Database = {
           legal_name: string | null
           manager_iban: string | null
           phone: string | null
-          require_kyc_for_contracts: boolean | null
           sepa_creditor_identifier: string | null
           updated_at: string
         }
@@ -924,7 +923,6 @@ export type Database = {
           legal_name?: string | null
           manager_iban?: string | null
           phone?: string | null
-          require_kyc_for_contracts?: boolean | null
           sepa_creditor_identifier?: string | null
           updated_at?: string
         }
@@ -956,7 +954,6 @@ export type Database = {
           legal_name?: string | null
           manager_iban?: string | null
           phone?: string | null
-          require_kyc_for_contracts?: boolean | null
           sepa_creditor_identifier?: string | null
           updated_at?: string
         }
@@ -973,17 +970,12 @@ export type Database = {
           description: string | null
           id: string
           images: string[] | null
-          last_modified_by: string | null
           manager_id: string
-          modification_reason: string | null
           postal_code: string | null
-          previous_property_id: string | null
-          require_kyc_for_contracts: boolean | null
           state_province: string | null
           status: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at: string
-          videos: string[] | null
         }
         Insert: {
           address?: string | null
@@ -995,17 +987,12 @@ export type Database = {
           description?: string | null
           id?: string
           images?: string[] | null
-          last_modified_by?: string | null
           manager_id: string
-          modification_reason?: string | null
           postal_code?: string | null
-          previous_property_id?: string | null
-          require_kyc_for_contracts?: boolean | null
           state_province?: string | null
           status?: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at?: string
-          videos?: string[] | null
         }
         Update: {
           address?: string | null
@@ -1017,27 +1004,14 @@ export type Database = {
           description?: string | null
           id?: string
           images?: string[] | null
-          last_modified_by?: string | null
           manager_id?: string
-          modification_reason?: string | null
           postal_code?: string | null
-          previous_property_id?: string | null
-          require_kyc_for_contracts?: boolean | null
           state_province?: string | null
           status?: Database["public"]["Enums"]["property_status"]
           title?: string
           updated_at?: string
-          videos?: string[] | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "properties_previous_property_id_fkey"
-            columns: ["previous_property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       property_documents: {
         Row: {
@@ -1147,6 +1121,7 @@ export type Database = {
           started_at: string
           tenancy_status: string | null
           tenant_id: string
+          videos: string[] | null
         }
         Insert: {
           created_at?: string
@@ -1159,6 +1134,7 @@ export type Database = {
           started_at?: string
           tenancy_status?: string | null
           tenant_id: string
+          videos?: string[] | null
         }
         Update: {
           created_at?: string
@@ -1171,6 +1147,7 @@ export type Database = {
           started_at?: string
           tenancy_status?: string | null
           tenant_id?: string
+          videos?: string[] | null
         }
         Relationships: [
           {

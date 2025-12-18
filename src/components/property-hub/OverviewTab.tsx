@@ -278,6 +278,36 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
                   )}
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="stateProvince">{t("properties.stateProvince")}</Label>
+                  {userRole?.isManager ? (
+                    <Input
+                      id="stateProvince"
+                      value={stateProvince}
+                      onChange={(e) => setStateProvince(e.target.value)}
+                      disabled={!isEditing}
+                      placeholder={t("properties.stateProvincePlaceholder")}
+                    />
+                  ) : (
+                    <p className="text-sm py-2">{stateProvince || "-"}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="postalCode">{t("properties.postalCode")}</Label>
+                  {userRole?.isManager ? (
+                    <Input
+                      id="postalCode"
+                      value={postalCode}
+                      onChange={(e) => setPostalCode(e.target.value)}
+                      disabled={!isEditing}
+                      placeholder={t("properties.postalCodePlaceholder")}
+                    />
+                  ) : (
+                    <p className="text-sm py-2">{postalCode || "-"}</p>
+                  )}
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label>{t("properties.status")}</Label>
                 <div className="flex items-center gap-2">
