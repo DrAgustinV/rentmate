@@ -21,7 +21,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import {
-  ArrowLeft,
   AlertTriangle,
 } from "lucide-react";
 import { z } from "zod";
@@ -78,7 +77,7 @@ export default function PropertyTenants() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Extract navigation state
-  const { tenancyId, tenancyStatus, fromRentals } = location.state || {};
+  const { tenancyId, tenancyStatus } = location.state || {};
   const isReadOnly = tenancyStatus === 'historic';
 
   // Get active tab from URL or default to 'overview'
@@ -550,25 +549,6 @@ export default function PropertyTenants() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Back Button */}
-        <div className="flex items-center gap-4">
-          {fromRentals ? (
-            <Button variant="ghost" size="sm" onClick={() => navigate('/rentals')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              {t("rentals.backToRentals")}
-            </Button>
-          ) : (
-            <Button variant="ghost" size="sm" onClick={() => navigate('/properties')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              {t("common.back")}
-            </Button>
-          )}
-          <div>
-            <h1 className="text-3xl font-bold">{property.title}</h1>
-            <p className="text-muted-foreground">{t("propertyHub.subtitle")}</p>
-          </div>
-        </div>
-
         {/* Read-Only Warning for Archived Tenancies */}
         {isReadOnly && (
           <Alert variant="destructive">
