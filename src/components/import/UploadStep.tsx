@@ -79,13 +79,6 @@ export function UploadStep({ onFileSelect, importType, setImportType }: UploadSt
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Import Properties & Tenants</h2>
-        <p className="text-muted-foreground">
-          Upload a CSV file to bulk import your property portfolio
-        </p>
-      </div>
-
       <div className="space-y-4">
         <div>
           <label className="text-sm font-medium mb-3 block">Choose Import Type</label>
