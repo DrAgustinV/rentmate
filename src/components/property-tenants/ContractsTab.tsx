@@ -323,15 +323,6 @@ export function ContractsTab({
         : currentTenant.email)
     : undefined;
 
-  if (docsLoading && currentTenant) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-20 w-full" />
-      </div>
-    );
-  }
-
   // Check if contract is locked (signing initiated or completed)
   const { data: contractSignature } = useQuery({
     queryKey: ["contract-signature-status", currentTenant?.id],
@@ -350,6 +341,15 @@ export function ContractsTab({
   });
 
   const isContractLocked = !!contractSignature?.workflow_status;
+
+  if (docsLoading && currentTenant) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-20 w-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
