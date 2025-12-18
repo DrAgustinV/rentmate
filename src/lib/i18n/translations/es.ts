@@ -1044,6 +1044,9 @@ export const es = {
     resendInvitation: "Reenviar Invitación",
     departing: "Saliendo",
     incoming: "Entrando",
+    historic: "Histórico",
+    viewingHistoric: "Viendo arrendamiento histórico (solo lectura)",
+    viewAllHistory: "más",
     transitionInProgress: "Transición de inquilino en progreso",
     wizard: {
       title: "Nueva Configuración de Arrendamiento",
