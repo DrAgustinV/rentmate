@@ -960,6 +960,7 @@ export const en = {
     historic: "Historic",
     viewingHistoric: "Viewing historic tenancy (read-only)",
     viewAllHistory: "more",
+    current: "Current",
     transitionInProgress: "Tenant transition in progress",
     wizard: {
       title: "New Tenancy Setup",
