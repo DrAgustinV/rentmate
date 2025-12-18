@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Building, Archive, Upload, Banknote, Zap, Ticket, Wrench } from "lucide-react";
+import { Plus, Building, Archive, Upload, Banknote, Zap, Ticket, Wrench, ImageIcon } from "lucide-react";
 import { PropertyCard, PropertyStatusIndicators } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
@@ -30,9 +30,10 @@ export default function Properties() {
   const [propertyView, setPropertyView] = useState<"active" | "ending_tenancy" | "archived">("active");
   const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "alphabetical">("newest");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "alphabetical" | "status">("newest");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [statusIndicators, setStatusIndicators] = useState<Record<string, PropertyStatusIndicators>>({});
+  const [propertyPhotoUrls, setPropertyPhotoUrls] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -70,13 +71,18 @@ export default function Properties() {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       } else if (sortBy === "oldest") {
         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      } else if (sortBy === "status") {
+        // Sort by occupancy: properties with tenants first, then vacant
+        const aHasTenant = statusIndicators[a.id]?.rent_has_data ? 0 : 1;
+        const bHasTenant = statusIndicators[b.id]?.rent_has_data ? 0 : 1;
+        return aHasTenant - bHasTenant;
       } else {
         return (a.title || "").localeCompare(b.title || "");
       }
     });
 
     return filtered;
-  }, [properties, propertyView, debouncedSearch, sortBy]);
+  }, [properties, propertyView, debouncedSearch, sortBy, statusIndicators]);
 
   const activeProperties = properties.filter((p) => p.status === "active");
   const endingTenancyProperties = properties.filter((p) => p.status === "ending_tenancy");
@@ -108,6 +114,32 @@ export default function Properties() {
     };
 
     fetchStatusIndicators();
+  }, [propertiesData]);
+
+  // Fetch photo URLs for all properties
+  useEffect(() => {
+    const fetchPhotoUrls = async () => {
+      const propertyList = propertiesData?.properties;
+      if (!propertyList || propertyList.length === 0) return;
+      
+      const urls: Record<string, string> = {};
+      const photosToFetch = propertyList.filter(p => p.images?.[0]);
+      
+      await Promise.all(
+        photosToFetch.map(async (property) => {
+          const { data } = await supabase.storage
+            .from('property-photos')
+            .createSignedUrl(property.images![0], 3600);
+          if (data) {
+            urls[property.id] = data.signedUrl;
+          }
+        })
+      );
+      
+      setPropertyPhotoUrls(urls);
+    };
+
+    fetchPhotoUrls();
   }, [propertiesData]);
 
   useEffect(() => {
@@ -333,6 +365,7 @@ export default function Properties() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-14">{t('properties.photo')}</TableHead>
                 <TableHead>{t('properties.propertyTitle')}</TableHead>
                 <TableHead className="hidden md:table-cell">{t('properties.address')}</TableHead>
                 <TableHead>{t('properties.status')}</TableHead>
@@ -347,6 +380,19 @@ export default function Properties() {
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => navigate(`/properties/${property.id}/tenants`)}
                 >
+                  <TableCell className="w-14">
+                    {propertyPhotoUrls[property.id] ? (
+                      <img 
+                        src={propertyPhotoUrls[property.id]} 
+                        alt={property.title}
+                        className="w-10 h-10 rounded object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell className="font-medium">{property.title}</TableCell>
                   <TableCell className="hidden md:table-cell text-muted-foreground">
                     {property.address ? `${property.address}, ${property.city || ''}` : '-'}

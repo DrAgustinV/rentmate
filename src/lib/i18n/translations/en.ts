@@ -173,6 +173,7 @@ export const en = {
     newest: "Newest first",
     oldest: "Oldest first",
     alphabetical: "A-Z",
+    byStatus: "By occupancy",
     gridView: "Grid view",
     listView: "List view",
     status: "Status",
@@ -595,6 +596,7 @@ export const en = {
   properties: {
     title: "Properties",
     description: "Manage your property portfolio",
+    photo: "Photo",
     myProperties: "My Properties",
     createProperty: "Create Property",
     noProperties: "No Properties Yet",
