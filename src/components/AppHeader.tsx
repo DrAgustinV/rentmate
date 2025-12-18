@@ -18,7 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck, Building, Handshake, FolderOpen, Users, DollarSign } from "lucide-react";
+import { Home, Menu, Settings, LogOut, UserCircle, Bell, ShieldCheck, Building, Handshake, Users, DollarSign } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -265,10 +265,6 @@ export function AppHeader() {
     { path: "/properties", label: t('properties.title'), icon: Building },
     { path: "/rentals", label: t('rentals.title'), icon: Handshake, badge: !isManager ? pendingInvitations : undefined },
   ];
-  
-  if (isManager) {
-    navLinks.push({ path: "/configuration", label: t('configuration.title'), icon: FolderOpen });
-  }
 
   if (isAdmin) {
     navLinks.push({ path: "/admin", label: t('header.admin'), icon: ShieldCheck });
@@ -322,6 +318,12 @@ export function AppHeader() {
                 <UserCircle className="mr-2 h-4 w-4" />
                 {t('account.profile')}
               </DropdownMenuItem>
+              {isManager && (
+                <DropdownMenuItem onClick={() => navigate("/configuration")}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  {t('configuration.title')}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
@@ -367,6 +369,32 @@ export function AppHeader() {
                     ) : null}
                   </Button>
                 ))}
+              </div>
+              <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                <Button
+                  variant={isActive("/account") ? "default" : "ghost"}
+                  className="justify-start gap-2"
+                  onClick={() => {
+                    navigate("/account");
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <UserCircle className="h-4 w-4" />
+                  {t('account.profile')}
+                </Button>
+                {isManager && (
+                  <Button
+                    variant={isActive("/configuration") ? "default" : "ghost"}
+                    className="justify-start gap-2"
+                    onClick={() => {
+                      navigate("/configuration");
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <Settings className="h-4 w-4" />
+                    {t('configuration.title')}
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   className="justify-start gap-2 text-destructive hover:text-destructive"
