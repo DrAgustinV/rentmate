@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { translations, Language, Translations } from '@/lib/i18n/translations';
+import { translations, Language, PartialTranslations } from '@/lib/i18n/translations/index';
 import { en } from '@/lib/i18n/translations/en';
 import { useUserPreferences } from './UserPreferencesContext';
 

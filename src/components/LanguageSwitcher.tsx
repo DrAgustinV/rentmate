@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Language } from "@/lib/i18n/translations";
+import { Language } from "@/lib/i18n/translations/index";
 import { AVAILABLE_LANGUAGES } from "@/lib/i18n/languages.config";
 import { useLanguageSettings } from "@/hooks/useLanguageSettings";
 
