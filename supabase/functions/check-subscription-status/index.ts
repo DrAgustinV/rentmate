@@ -28,11 +28,36 @@ serve(async (req) => {
 
     // Authenticate user
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
+    if (!authHeader) {
+      logStep("No authorization header, returning free tier");
+      return new Response(
+        JSON.stringify({
+          plan: "free",
+          status: "active",
+          features: {},
+          usage: { signatures_used: 0, signatures_limit: 0, overage: 0, remaining: 0 },
+          session_error: "No authorization header"
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
     
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError || !user) throw new Error("User not authenticated");
+    
+    if (userError || !user) {
+      logStep("Session invalid, returning free tier", { error: userError?.message });
+      return new Response(
+        JSON.stringify({
+          plan: "free",
+          status: "active",
+          features: {},
+          usage: { signatures_used: 0, signatures_limit: 0, overage: 0, remaining: 0 },
+          session_error: userError?.message || "User not authenticated"
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
     logStep("User authenticated", { userId: user.id });
 
     // Get user's subscription using helper function

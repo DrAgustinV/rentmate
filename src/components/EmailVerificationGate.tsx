@@ -187,7 +187,16 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.warn("Sign out error (clearing local state anyway):", error.message);
+        localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');
+      }
+    } catch (err) {
+      console.warn("Sign out failed (clearing local state):", err);
+      localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');
+    }
     navigate("/auth");
   };
 
