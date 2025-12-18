@@ -20,6 +20,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertTriangle,
+  History,
 } from "lucide-react";
 import { z } from "zod";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
@@ -149,15 +150,15 @@ export default function PropertyTenants() {
     enabled: !!propertyId,
   });
 
-  // Fetch active tenants for currentTenant logic (lightweight query)
-  const { data: activeTenants } = useQuery({
-    queryKey: ["active-tenants-basic", propertyId],
+  // Fetch all tenants including historic for switcher (lightweight query)
+  const { data: allTenants } = useQuery({
+    queryKey: ["all-tenants-basic", propertyId],
     queryFn: async () => {
       const { data: tenancies, error: tenanciesError } = await supabase
         .from("property_tenants")
         .select("id, tenant_id, tenancy_status, started_at, ended_at, planned_ending_date, notes")
         .eq("property_id", propertyId)
-        .in("tenancy_status", ["active", "ending_tenancy"])
+        .in("tenancy_status", ["active", "ending_tenancy", "historic"])
         .order("started_at", { ascending: false });
 
       if (tenanciesError) throw tenanciesError;
@@ -187,21 +188,25 @@ export default function PropertyTenants() {
   });
 
   // Find focused tenant if tenancyId provided, otherwise use selected tenant or first active tenant
-  const focusedTenant = activeTenants?.find((t) => t.id === tenancyId);
-  const selectedTenant = activeTenants?.find((t) => t.id === selectedTenantId);
-  const currentTenant = focusedTenant || selectedTenant || (activeTenants && activeTenants.length > 0 ? activeTenants[0] : null);
+  const focusedTenant = allTenants?.find((t) => t.id === tenancyId);
+  const selectedTenant = allTenants?.find((t) => t.id === selectedTenantId);
+  // Prefer active/ending tenants over historic for initial selection
+  const activeTenants = allTenants?.filter(t => t.tenancy_status !== 'historic') || [];
+  const currentTenant = focusedTenant || selectedTenant || (activeTenants.length > 0 ? activeTenants[0] : allTenants?.[0] || null);
 
-  // Auto-select first tenant when tenants load
+  // Check if viewing historic tenancy (for read-only mode)
+  const isHistoricView = currentTenant?.tenancy_status === 'historic';
+
+  // Auto-select first non-historic tenant when tenants load
   useEffect(() => {
-    if (activeTenants && activeTenants.length > 0 && !selectedTenantId) {
-      setSelectedTenantId(activeTenants[0].id);
+    if (allTenants && allTenants.length > 0 && !selectedTenantId) {
+      const firstActive = allTenants.find(t => t.tenancy_status !== 'historic');
+      setSelectedTenantId(firstActive?.id || allTenants[0].id);
     }
-  }, [activeTenants, selectedTenantId]);
+  }, [allTenants, selectedTenantId]);
 
-  // Check if we have parallel tenancy transition (both departing and incoming tenant)
-  const hasParallelTransition = activeTenants && activeTenants.length > 1 && 
-    activeTenants.some(t => t.tenancy_status === 'ending_tenancy') && 
-    activeTenants.some(t => t.tenancy_status === 'active');
+  // Check if we should show the tenant switcher (multiple tenants including historic)
+  const shouldShowTenantSwitcher = allTenants && allTenants.length > 1;
 
   // Tenancy Requirements Hook
   const { createRequirement, requirements, deleteRequirement } = useTenancyRequirements(propertyId!);
@@ -574,10 +579,18 @@ export default function PropertyTenants() {
         {/* Property Name Header */}
         <h1 className="text-2xl font-bold">{property?.title}</h1>
 
-        {/* Tenant Switcher for Parallel Transitions */}
-        {userRole?.isManager && hasParallelTransition && activeTenants && currentTenant && (
+        {/* Historic Tenancy Read-Only Banner */}
+        {isHistoricView && (
+          <Alert variant="default" className="border-muted-foreground/30 bg-muted/30">
+            <History className="h-4 w-4" />
+            <AlertTitle className="text-muted-foreground">{t("tenancy.viewingHistoric")}</AlertTitle>
+          </Alert>
+        )}
+
+        {/* Tenant Switcher for Multiple Tenants */}
+        {userRole?.isManager && shouldShowTenantSwitcher && allTenants && currentTenant && (
           <TenantSwitcher
-            tenants={activeTenants}
+            tenants={allTenants}
             selectedTenantId={currentTenant.id}
             onSelectTenant={setSelectedTenantId}
           />

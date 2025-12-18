@@ -957,6 +957,9 @@ export const en = {
     resendInvitation: "Resend Invitation",
     departing: "Departing",
     incoming: "Incoming",
+    historic: "Historic",
+    viewingHistoric: "Viewing historic tenancy (read-only)",
+    viewAllHistory: "more",
     transitionInProgress: "Tenant transition in progress",
     wizard: {
       title: "New Tenancy Setup",
