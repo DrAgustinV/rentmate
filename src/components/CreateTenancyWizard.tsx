@@ -71,7 +71,7 @@ interface CreateTenancyWizardProps {
     contract_method?: string | null;
     require_email_verification?: boolean | null;
     require_kyc_verification?: boolean | null;
-    utilities_config?: Record<string, string> | null;
+    utilities_config?: UtilitiesConfig | Record<string, unknown> | null;
   } | null;
 }
 
