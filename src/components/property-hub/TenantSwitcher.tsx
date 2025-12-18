@@ -27,8 +27,6 @@ export function TenantSwitcher({ tenants, selectedTenantId, onSelectTenant }: Te
   const { t } = useLanguage();
   const [showAllHistoric, setShowAllHistoric] = useState(false);
 
-  if (tenants.length <= 1) return null;
-
   const getTenantName = (tenant: Tenant) => {
     if (tenant.first_name && tenant.last_name) {
       return `${tenant.first_name} ${tenant.last_name}`;

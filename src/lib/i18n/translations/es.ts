@@ -1047,6 +1047,7 @@ export const es = {
     historic: "Histórico",
     viewingHistoric: "Viendo arrendamiento histórico (solo lectura)",
     viewAllHistory: "más",
+    current: "Actual",
     transitionInProgress: "Transición de inquilino en progreso",
     wizard: {
       title: "Nueva Configuración de Arrendamiento",

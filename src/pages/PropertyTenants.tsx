@@ -206,7 +206,7 @@ export default function PropertyTenants() {
   }, [allTenants, selectedTenantId]);
 
   // Check if we should show the tenant switcher (multiple tenants including historic)
-  const shouldShowTenantSwitcher = allTenants && allTenants.length > 1;
+  // Always show tenant switcher when there are tenants for discoverability
 
   // Tenancy Requirements Hook
   const { createRequirement, requirements, deleteRequirement } = useTenancyRequirements(propertyId!);
@@ -588,7 +588,7 @@ export default function PropertyTenants() {
         )}
 
         {/* Tenant Switcher for Multiple Tenants */}
-        {userRole?.isManager && shouldShowTenantSwitcher && allTenants && currentTenant && (
+        {userRole?.isManager && allTenants && allTenants.length > 0 && currentTenant && (
           <TenantSwitcher
             tenants={allTenants}
             selectedTenantId={currentTenant.id}
