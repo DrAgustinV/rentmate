@@ -37,7 +37,7 @@ const defaultCarouselItems: CarouselItemType[] = [
   {
     image_url: "https://images.unsplash.com/photo-1633265486064-086b219458ec?w=800&auto=format&fit=crop",
     title: { en: "Verified Tenants", es: "Inquilinos Verificados" },
-    description: { en: "KYC verification for trusted tenancies", es: "Verificación KYC para arrendamientos de confianza" },
+    description: { en: "ID verification for trusted tenancies", es: "Verificación de identidad para arrendamientos de confianza" },
   },
 ];
 

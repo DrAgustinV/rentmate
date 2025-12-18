@@ -84,7 +84,7 @@ export const en = {
       },
       verification: {
         title: "Verified Tenants",
-        description: "KYC-verified identities for peace of mind",
+        description: "ID-verified identities for peace of mind",
       },
     },
     managers: {
@@ -340,7 +340,7 @@ export const en = {
       title: "Simplify Your Property Management",
       secure: {
         title: "Secure Digital Contracts",
-        description: "Sign rental agreements with legally-binding digital signatures and KYC verification.",
+        description: "Sign rental agreements with legally-binding digital signatures and ID verification.",
       },
       automated: {
         title: "Simple Payment Tracking",
@@ -823,7 +823,7 @@ export const en = {
     addTemplate: "Add Template",
     defaultsTitle: "Default Settings",
     defaultsDescription: "Set default values for new rent agreements",
-    requireKYCTitle: "Require Identity Verification (KYC)",
+    requireKYCTitle: "Require ID Verification",
     requireKYCDesc: "Require tenants to verify identity before signing contracts",
     defaultDepositTitle: "Default Security Deposit",
     defaultDepositPlaceholder: "0",

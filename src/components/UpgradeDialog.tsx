@@ -44,7 +44,7 @@ export function UpgradeDialog({
       "100 digital signatures per year",
       "Automated payment collection",
       "Document templates",
-      "KYC verification",
+      "ID verification",
       "Priority support",
     ],
     enterprise: [
