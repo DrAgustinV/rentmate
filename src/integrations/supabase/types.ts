@@ -607,6 +607,53 @@ export type Database = {
           },
         ]
       }
+      inspection_items: {
+        Row: {
+          condition: Database["public"]["Enums"]["condition_rating"] | null
+          created_at: string
+          id: string
+          inspection_id: string
+          notes: string | null
+          photos: string[] | null
+          room_name: string
+          room_order: number
+          updated_at: string
+          videos: string[] | null
+        }
+        Insert: {
+          condition?: Database["public"]["Enums"]["condition_rating"] | null
+          created_at?: string
+          id?: string
+          inspection_id: string
+          notes?: string | null
+          photos?: string[] | null
+          room_name: string
+          room_order?: number
+          updated_at?: string
+          videos?: string[] | null
+        }
+        Update: {
+          condition?: Database["public"]["Enums"]["condition_rating"] | null
+          created_at?: string
+          id?: string
+          inspection_id?: string
+          notes?: string | null
+          photos?: string[] | null
+          room_name?: string
+          room_order?: number
+          updated_at?: string
+          videos?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_items_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "tenancy_inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           created_at: string
@@ -2021,6 +2068,142 @@ export type Database = {
           },
         ]
       }
+      tenancy_inspections: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          id: string
+          inspection_date: string
+          inspection_type: Database["public"]["Enums"]["inspection_type"]
+          manager_id: string | null
+          manager_signature_data: Json | null
+          manager_signed_at: string | null
+          notes: string | null
+          overall_condition: string | null
+          pdf_generated_at: string | null
+          pdf_url: string | null
+          property_id: string
+          status: Database["public"]["Enums"]["inspection_status"]
+          template_document_id: string | null
+          tenancy_id: string
+          tenant_id: string | null
+          tenant_signature_data: Json | null
+          tenant_signed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          inspection_date?: string
+          inspection_type: Database["public"]["Enums"]["inspection_type"]
+          manager_id?: string | null
+          manager_signature_data?: Json | null
+          manager_signed_at?: string | null
+          notes?: string | null
+          overall_condition?: string | null
+          pdf_generated_at?: string | null
+          pdf_url?: string | null
+          property_id: string
+          status?: Database["public"]["Enums"]["inspection_status"]
+          template_document_id?: string | null
+          tenancy_id: string
+          tenant_id?: string | null
+          tenant_signature_data?: Json | null
+          tenant_signed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          inspection_date?: string
+          inspection_type?: Database["public"]["Enums"]["inspection_type"]
+          manager_id?: string | null
+          manager_signature_data?: Json | null
+          manager_signed_at?: string | null
+          notes?: string | null
+          overall_condition?: string | null
+          pdf_generated_at?: string | null
+          pdf_url?: string | null
+          property_id?: string
+          status?: Database["public"]["Enums"]["inspection_status"]
+          template_document_id?: string | null
+          tenancy_id?: string
+          tenant_id?: string | null
+          tenant_signature_data?: Json | null
+          tenant_signed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenancy_inspections_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_inspections_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_inspections_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_inspections_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_inspections_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_inspections_template_document_id_fkey"
+            columns: ["template_document_id"]
+            isOneToOne: false
+            referencedRelation: "property_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_inspections_tenancy_id_fkey"
+            columns: ["tenancy_id"]
+            isOneToOne: false
+            referencedRelation: "property_tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_inspections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenancy_inspections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenancy_requirements: {
         Row: {
           contract_method: string | null
@@ -2942,11 +3125,18 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      condition_rating: "excellent" | "good" | "fair" | "poor" | "damaged"
       delete_reason:
         | "sold"
         | "no_longer_managing"
         | "merged_with_other_property"
         | "other"
+      inspection_status:
+        | "draft"
+        | "in_progress"
+        | "pending_signatures"
+        | "completed"
+      inspection_type: "move_in" | "move_out"
       invitation_status:
         | "pending"
         | "accepted"
@@ -3103,12 +3293,20 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      condition_rating: ["excellent", "good", "fair", "poor", "damaged"],
       delete_reason: [
         "sold",
         "no_longer_managing",
         "merged_with_other_property",
         "other",
       ],
+      inspection_status: [
+        "draft",
+        "in_progress",
+        "pending_signatures",
+        "completed",
+      ],
+      inspection_type: ["move_in", "move_out"],
       invitation_status: [
         "pending",
         "accepted",

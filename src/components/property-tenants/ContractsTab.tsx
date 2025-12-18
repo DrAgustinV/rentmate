@@ -18,6 +18,7 @@ import {
   Clock,
   X,
   FileText,
+  ClipboardCheck,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ import { RentalTermsCard } from "./RentalTermsCard";
 import { ContactInfoCard } from "./ContactInfoCard";
 import { TenantOnboardingChecklist } from "./TenantOnboardingChecklist";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
+import { InspectionCard } from "@/components/inspection";
 
 interface Tenant {
   id: string;
@@ -581,6 +583,15 @@ export function ContractsTab({
         </Card>
       )}
 
+      {/* 5. Property Inspections Card */}
+      {currentTenant && (
+        <InspectionCard
+          tenancyId={currentTenant.id}
+          propertyId={propertyId}
+          isManager={userRole?.isManager || false}
+          isReadOnly={isReadOnly}
+        />
+      )}
 
       {/* 6. Pending Invitations (Manager Only) */}
       {userRole?.isManager && invitations && invitations.length > 0 && (
