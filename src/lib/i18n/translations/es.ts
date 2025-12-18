@@ -54,7 +54,7 @@ export const es = {
   locale: "es-ES",
   verification: {
     email: "Correo",
-    kyc: "KYC",
+    kyc: "Identidad",
     phone: "Teléfono",
   },
   rent: {
@@ -136,7 +136,7 @@ export const es = {
     checkingKYC: "Verificando estado de verificación...",
     kycRequiredForDock: "Verificación de identidad requerida",
     kycOptional: "La Verificación de Identidad es Opcional",
-    kycEnhancement: "Complete KILT KYC para identidad verificada en blockchain (mejora opcional)",
+    kycEnhancement: "Complete la verificación KILT para identidad verificada en blockchain (mejora opcional)",
     kycVerified: "Identidad Verificada",
     kycNotVerified: "Identidad No Verificada",
     standardSignature: "Firma Electrónica Estándar",
@@ -399,7 +399,7 @@ export const es = {
       title: "Simplifica la Gestión de tus Propiedades",
       secure: {
         title: "Contratos Digitales Seguros",
-        description: "Firma contratos de alquiler con firmas digitales legalmente vinculantes y verificación KYC.",
+        description: "Firma contratos de alquiler con firmas digitales legalmente vinculantes y verificación de identidad.",
       },
       automated: {
         title: "Seguimiento de Pagos Simple",
