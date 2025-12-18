@@ -8,17 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { UserCircle, Globe, ShieldCheck, Crown, Download, Trash2, AlertTriangle } from "lucide-react";
+import { UserCircle, ShieldCheck, Crown, Download, Trash2, AlertTriangle, Palette } from "lucide-react";
+import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Language } from "@/lib/i18n/translations";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,11 +30,6 @@ import { ChangePassword } from "@/components/auth/ChangePassword";
 import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
 import { useSearchParams } from "react-router-dom";
 
-const languages: { code: Language; label: string; flag: string }[] = [
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
-];
-
 export default function Account() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -53,8 +42,7 @@ export default function Account() {
   const [exporting, setExporting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletionScheduled, setDeletionScheduled] = useState<string | null>(null);
-  const { t, language, changeLanguage } = useLanguage();
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
+  const { t } = useLanguage();
   const defaultTab = searchParams.get("tab") || "profile";
 
   useEffect(() => {
@@ -92,7 +80,6 @@ export default function Account() {
         setAvatarUrl(data.avatar_url);
         setKycStatus(data.kyc_status);
       }
-      setSelectedLanguage(language);
     } catch (error: any) {
       toast({
         title: t('common.error'),
@@ -119,10 +106,6 @@ export default function Account() {
         .eq("id", user.id);
 
       if (error) throw error;
-
-      if (selectedLanguage !== language) {
-        await changeLanguage(selectedLanguage);
-      }
 
       toast({
         title: t('common.success'),
@@ -255,10 +238,14 @@ export default function Account() {
         </div>
 
         <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile">
               <UserCircle className="h-4 w-4 mr-2" />
               {t('account.profile')}
+            </TabsTrigger>
+            <TabsTrigger value="appearance">
+              <Palette className="h-4 w-4 mr-2" />
+              {t('settings.appearance')}
             </TabsTrigger>
             <TabsTrigger value="subscription">
               <Crown className="h-4 w-4 mr-2" />
@@ -270,7 +257,7 @@ export default function Account() {
             </TabsTrigger>
             <TabsTrigger value="privacy">
               <AlertTriangle className="h-4 w-4 mr-2" />
-              Privacy & Data
+              {t('settings.privacyData')}
             </TabsTrigger>
           </TabsList>
 
@@ -337,40 +324,25 @@ export default function Account() {
 
                 <Separator />
 
-                <div className="space-y-2">
-                  <Label htmlFor="language">{t('settings.languageLabel')}</Label>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {t('settings.languageDesc')}
-                  </p>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        <Globe className="mr-2 h-4 w-4" />
-                        {languages.find(l => l.code === selectedLanguage)?.flag} {languages.find(l => l.code === selectedLanguage)?.label}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-full">
-                      {languages.map((lang) => (
-                        <DropdownMenuItem
-                          key={lang.code}
-                          onClick={() => setSelectedLanguage(lang.code)}
-                          className={selectedLanguage === lang.code ? 'bg-accent' : ''}
-                        >
-                          <span className="mr-2">{lang.flag}</span>
-                          {lang.label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <Separator />
-
                 <div className="flex justify-end">
                   <Button onClick={handleSaveProfile} disabled={saving}>
                     {saving ? t('settings.saving') : t('settings.saveChanges')}
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="appearance" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('settings.appearance')}</CardTitle>
+                <CardDescription>
+                  {t('settings.appearanceDesc')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AppearanceSettings />
               </CardContent>
             </Card>
           </TabsContent>
