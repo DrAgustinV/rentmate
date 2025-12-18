@@ -392,7 +392,7 @@ export function ContractsTab({
                     {userRole?.isManager && (
                       <Button variant="outline" size="sm" onClick={() => setCopyTemplatesOpen(true)}>
                         <Copy className="h-4 w-4 mr-2" />
-                        {t("properties.copyTemplates")}
+                        {t("properties.useTemplate")}
                       </Button>
                     )}
                     <Button variant="outline" size="sm" onClick={() => setUploadDocumentOpen(true)}>

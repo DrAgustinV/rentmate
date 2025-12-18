@@ -252,99 +252,82 @@ export function RentalTermsCard({
               <span className="font-medium">{pendingRequirement.tenant_email}</span>
             </div>
 
-            {/* Details grid */}
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="flex items-center gap-2">
-                <Banknote className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <span className="text-muted-foreground">{t("rent.amount")}: </span>
-                  <span className="font-medium">
-                    {formatCurrency(pendingRequirement.rent_amount_cents, pendingRequirement.currency || 'EUR')}
-                  </span>
-                </div>
+            {/* Details grid - condensed */}
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              <div className="flex items-center gap-1.5">
+                <Banknote className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="font-medium truncate">
+                  {formatCurrency(pendingRequirement.rent_amount_cents, pendingRequirement.currency || 'EUR')}
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <span className="text-muted-foreground">{t("rent.deposit")}: </span>
-                  <span className="font-medium">
-                    {formatCurrency(pendingRequirement.security_deposit_cents, pendingRequirement.currency || 'EUR')}
-                  </span>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <Shield className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="font-medium truncate">
+                  {formatCurrency(pendingRequirement.security_deposit_cents, pendingRequirement.currency || 'EUR')}
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <span className="text-muted-foreground">{t("tenancy.startDate")}: </span>
-                  <span className="font-medium">
-                    {pendingRequirement.start_date 
-                      ? format(new Date(pendingRequirement.start_date), 'MMM d, yyyy')
-                      : '-'}
-                  </span>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="font-medium">
+                  {pendingRequirement.payment_day ? `Day ${pendingRequirement.payment_day}` : '-'}
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <span className="text-muted-foreground">{t("rent.paymentDay")}: </span>
-                  <span className="font-medium">
-                    {pendingRequirement.payment_day ? `${pendingRequirement.payment_day}` : '-'}
-                  </span>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="font-medium truncate">
+                  {pendingRequirement.start_date 
+                    ? format(new Date(pendingRequirement.start_date), 'MMM d, yyyy')
+                    : '-'}
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <span className="text-muted-foreground">{t("contracts.method")}: </span>
-                  <span className="font-medium">{getContractMethodLabel(pendingRequirement.contract_method, t)}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <span className="text-muted-foreground">{t("utilities.title")}: </span>
-                  <span className="font-medium">
-                    {(() => {
-                      const utils = getUtilitiesSummary(pendingRequirement.utilities_config as UtilitiesConfig);
-                      if (utils.tenantPays === 0 && utils.managerPays === 0) return '-';
-                      const parts = [];
-                      if (utils.tenantPays > 0) parts.push(`${utils.tenantPays} ${t("tenants.tenant").toLowerCase()}`);
-                      if (utils.managerPays > 0) parts.push(`${utils.managerPays} ${t("properties.tenant").toLowerCase()}`);
-                      return parts.join(', ');
-                    })()}
-                  </span>
-                </div>
+              <div className="flex items-center gap-1.5 col-span-2">
+                <Zap className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="font-medium truncate">
+                  {(() => {
+                    const utils = getUtilitiesSummary(pendingRequirement.utilities_config as UtilitiesConfig);
+                    if (utils.tenantPays === 0 && utils.managerPays === 0) return '-';
+                    const parts = [];
+                    if (utils.tenantPays > 0) parts.push(`${utils.tenantPays} tenant`);
+                    if (utils.managerPays > 0) parts.push(`${utils.managerPays} manager`);
+                    return parts.join(', ');
+                  })()}
+                </span>
               </div>
             </div>
 
-            {/* Verification Requirements */}
-            <div className="flex items-center gap-3 pt-2">
-              <span className="text-xs text-muted-foreground">{t("tenancy.verification")}:</span>
-              <div className="flex items-center gap-2">
-                {pendingRequirement.require_email_verification && (
-                  <div className="flex items-center gap-1 text-xs">
-                    <Mail className="h-3 w-3 text-primary" />
-                    <span>{t("verification.email")}</span>
-                  </div>
-                )}
-                {pendingRequirement.require_kyc_verification && (
-                  <div className="flex items-center gap-1 text-xs">
-                    <CheckCircle2 className="h-3 w-3 text-primary" />
-                    <span>{t("verification.kyc")}</span>
-                  </div>
-                )}
-                {pendingRequirement.require_phone_verification && (
-                  <div className="flex items-center gap-1 text-xs">
-                    <Phone className="h-3 w-3 text-primary" />
-                    <span>{t("verification.phone")}</span>
-                  </div>
-                )}
-                {!pendingRequirement.require_email_verification && 
-                 !pendingRequirement.require_kyc_verification && 
-                 !pendingRequirement.require_phone_verification && (
-                  <span className="text-xs text-muted-foreground">{t("common.none")}</span>
-                )}
-              </div>
+            {/* Requirements (Contract + Verification) - Combined */}
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <span className="text-xs text-muted-foreground">{t("tenancy.wizard.requirements")}:</span>
+              {pendingRequirement.contract_method && (
+                <Badge variant="secondary" className="text-xs">
+                  <FileText className="h-3 w-3 mr-1" />
+                  {getContractMethodLabel(pendingRequirement.contract_method, t)}
+                </Badge>
+              )}
+              {pendingRequirement.require_email_verification && (
+                <Badge variant="outline" className="text-xs">
+                  <Mail className="h-3 w-3 mr-1" />
+                  {t("verification.email")}
+                </Badge>
+              )}
+              {pendingRequirement.require_kyc_verification && (
+                <Badge variant="outline" className="text-xs">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  {t("verification.kyc")}
+                </Badge>
+              )}
+              {pendingRequirement.require_phone_verification && (
+                <Badge variant="outline" className="text-xs">
+                  <Phone className="h-3 w-3 mr-1" />
+                  {t("verification.phone")}
+                </Badge>
+              )}
+              {!pendingRequirement.contract_method && 
+               !pendingRequirement.require_email_verification && 
+               !pendingRequirement.require_kyc_verification && 
+               !pendingRequirement.require_phone_verification && (
+                <span className="text-xs text-muted-foreground">{t("common.none")}</span>
+              )}
             </div>
 
             {/* Action buttons */}
@@ -425,37 +408,32 @@ export function RentalTermsCard({
               </div>
             </div>
 
-            {/* Contract Method */}
-            {contractMethod && (
+            {/* Requirements (Contract + Verification) - Combined */}
+            {(contractMethod || requireEmailVerification !== undefined || requireKycVerification !== undefined || requirePhoneVerification !== undefined) && (
               <div className="pt-2 border-t">
-                <div className="flex items-center gap-2 text-sm">
-                  <FileSignature className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{t("tenancy.wizard.contractMethod")}:</span>
-                  <Badge variant="secondary">{getContractMethodLabel(contractMethod, t)}</Badge>
-                </div>
-              </div>
-            )}
-
-            {/* Verification Requirements */}
-            {(requireEmailVerification !== undefined || requireKycVerification !== undefined || requirePhoneVerification !== undefined) && (
-              <div className="pt-2 border-t">
-                <p className="text-xs text-muted-foreground mb-2">{t("tenancy.wizard.verificationRequirements")}</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("tenancy.wizard.requirements")}</p>
                 <div className="flex flex-wrap gap-2">
-                  {requireEmailVerification !== undefined && (
-                    <Badge variant={requireEmailVerification ? "default" : "outline"} className="text-xs">
-                      {requireEmailVerification ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                  {contractMethod && (
+                    <Badge variant="secondary" className="text-xs">
+                      <FileSignature className="h-3 w-3 mr-1" />
+                      {getContractMethodLabel(contractMethod, t)}
+                    </Badge>
+                  )}
+                  {requireEmailVerification && (
+                    <Badge variant="default" className="text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" />
                       {t("verification.email")}
                     </Badge>
                   )}
-                  {requireKycVerification !== undefined && (
-                    <Badge variant={requireKycVerification ? "default" : "outline"} className="text-xs">
-                      {requireKycVerification ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                  {requireKycVerification && (
+                    <Badge variant="default" className="text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" />
                       {t("verification.kyc")}
                     </Badge>
                   )}
-                  {requirePhoneVerification !== undefined && (
-                    <Badge variant={requirePhoneVerification ? "default" : "outline"} className="text-xs">
-                      {requirePhoneVerification ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                  {requirePhoneVerification && (
+                    <Badge variant="default" className="text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" />
                       {t("verification.phone")}
                     </Badge>
                   )}

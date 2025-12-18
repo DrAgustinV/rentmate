@@ -578,20 +578,17 @@ export default function PropertyTenants() {
           </Alert>
         )}
 
-        {/* Tabs Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("propertyHub.title")}</CardTitle>
-            <CardDescription>{t("propertyHub.description")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">{t("propertyHub.overview")}</TabsTrigger>
-                <TabsTrigger value="contracts">{t("propertyTenants.tabs.contracts")}</TabsTrigger>
-                <TabsTrigger value="payments">{t("propertyTenants.tabs.payments")}</TabsTrigger>
-                <TabsTrigger value="tickets">{t("propertyTenants.tabs.tickets")}</TabsTrigger>
-              </TabsList>
+        {/* Property Name Header */}
+        <h1 className="text-2xl font-bold">{property?.title}</h1>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">{t("propertyHub.overview")}</TabsTrigger>
+            <TabsTrigger value="contracts">{t("propertyTenants.tabs.contracts")}</TabsTrigger>
+            <TabsTrigger value="payments">{t("propertyTenants.tabs.payments")}</TabsTrigger>
+            <TabsTrigger value="tickets">{t("propertyTenants.tabs.tickets")}</TabsTrigger>
+          </TabsList>
 
               <TabsContent value="overview" className="mt-6">
                 <OverviewTab
@@ -642,9 +639,7 @@ export default function PropertyTenants() {
                 <TicketsTab propertyId={propertyId!} tenancyId={currentTenant?.id} />
               </TabsContent>
 
-            </Tabs>
-          </CardContent>
-        </Card>
+        </Tabs>
       </div>
 
       {/* End Tenancy Dialog with Date Picker */}
