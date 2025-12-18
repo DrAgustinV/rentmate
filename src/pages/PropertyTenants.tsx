@@ -3,8 +3,6 @@ import { useParams, useNavigate, useLocation, useSearchParams } from "react-rout
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layouts/AppLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -34,6 +32,7 @@ import { CreateTenancyWizard } from '@/components/CreateTenancyWizard';
 import { EndTenancyDialog } from "@/components/EndTenancyDialog";
 import { EditTenantDialog } from "@/components/EditTenantDialog";
 import { toast as sonnerToast } from 'sonner';
+import { TenantSwitcher } from "@/components/property-hub/TenantSwitcher";
 
 interface Tenant {
   id: string;
@@ -98,6 +97,7 @@ export default function PropertyTenants() {
   const [endingTenant, setEndingTenant] = useState<Tenant | null>(null);
   const [showTenancyWizard, setShowTenancyWizard] = useState(false);
   const [finalizingTenant, setFinalizingTenant] = useState<Tenant | null>(null);
+  const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
 
   // Essential queries that are needed upfront
   const { data: property, isLoading: propertyLoading } = useQuery({
@@ -186,9 +186,22 @@ export default function PropertyTenants() {
     enabled: !!propertyId,
   });
 
-  // Find focused tenant if tenancyId provided, otherwise get first active tenant
+  // Find focused tenant if tenancyId provided, otherwise use selected tenant or first active tenant
   const focusedTenant = activeTenants?.find((t) => t.id === tenancyId);
-  const currentTenant = focusedTenant || (activeTenants && activeTenants.length > 0 ? activeTenants[0] : null);
+  const selectedTenant = activeTenants?.find((t) => t.id === selectedTenantId);
+  const currentTenant = focusedTenant || selectedTenant || (activeTenants && activeTenants.length > 0 ? activeTenants[0] : null);
+
+  // Auto-select first tenant when tenants load
+  useEffect(() => {
+    if (activeTenants && activeTenants.length > 0 && !selectedTenantId) {
+      setSelectedTenantId(activeTenants[0].id);
+    }
+  }, [activeTenants, selectedTenantId]);
+
+  // Check if we have parallel tenancy transition (both departing and incoming tenant)
+  const hasParallelTransition = activeTenants && activeTenants.length > 1 && 
+    activeTenants.some(t => t.tenancy_status === 'ending_tenancy') && 
+    activeTenants.some(t => t.tenancy_status === 'active');
 
   // Tenancy Requirements Hook
   const { createRequirement, requirements, deleteRequirement } = useTenancyRequirements(propertyId!);
@@ -560,6 +573,15 @@ export default function PropertyTenants() {
 
         {/* Property Name Header */}
         <h1 className="text-2xl font-bold">{property?.title}</h1>
+
+        {/* Tenant Switcher for Parallel Transitions */}
+        {userRole?.isManager && hasParallelTransition && activeTenants && currentTenant && (
+          <TenantSwitcher
+            tenants={activeTenants}
+            selectedTenantId={currentTenant.id}
+            onSelectTenant={setSelectedTenantId}
+          />
+        )}
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>

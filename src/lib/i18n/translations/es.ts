@@ -1042,6 +1042,9 @@ export const es = {
     verification: "Verificación",
     sendInvitation: "Enviar Invitación",
     resendInvitation: "Reenviar Invitación",
+    departing: "Saliendo",
+    incoming: "Entrando",
+    transitionInProgress: "Transición de inquilino en progreso",
     wizard: {
       title: "Nueva Configuración de Arrendamiento",
       leaseDates: "Fechas del Arrendamiento",

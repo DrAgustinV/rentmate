@@ -955,6 +955,9 @@ export const en = {
     verification: "Verification",
     sendInvitation: "Send Invitation",
     resendInvitation: "Resend Invitation",
+    departing: "Departing",
+    incoming: "Incoming",
+    transitionInProgress: "Tenant transition in progress",
     wizard: {
       title: "New Tenancy Setup",
       leaseDates: "Lease Dates",
