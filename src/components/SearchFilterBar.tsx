@@ -14,8 +14,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 interface SearchFilterBarProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  sortBy: 'newest' | 'oldest' | 'alphabetical';
-  onSortChange: (value: 'newest' | 'oldest' | 'alphabetical') => void;
+  sortBy: 'newest' | 'oldest' | 'alphabetical' | 'status';
+  onSortChange: (value: 'newest' | 'oldest' | 'alphabetical' | 'status') => void;
   viewMode?: 'grid' | 'list';
   onViewModeChange?: (value: 'grid' | 'list') => void;
 }
@@ -51,6 +51,7 @@ export function SearchFilterBar({
             <SelectItem value="newest">{t('search.newest')}</SelectItem>
             <SelectItem value="oldest">{t('search.oldest')}</SelectItem>
             <SelectItem value="alphabetical">{t('search.alphabetical')}</SelectItem>
+            <SelectItem value="status">{t('search.byStatus')}</SelectItem>
           </SelectContent>
         </Select>
         

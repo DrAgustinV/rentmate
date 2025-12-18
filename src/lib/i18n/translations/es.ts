@@ -191,6 +191,7 @@ export const es = {
     newest: "Más recientes primero",
     oldest: "Más antiguos primero",
     alphabetical: "A-Z",
+    byStatus: "Por ocupación",
     gridView: "Vista de cuadrícula",
     listView: "Vista de lista",
     status: "Estado",
