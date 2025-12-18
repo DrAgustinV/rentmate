@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Search, Filter, LayoutGrid, List } from "lucide-react";
+import { Calendar, Search, Filter, LayoutGrid, List, Plus } from "lucide-react";
 import { ScheduleStandardTaskDialog } from "./ScheduleStandardTaskDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -25,9 +25,10 @@ interface StandardTemplate {
 
 interface StandardTasksSectionProps {
   propertyId: string;
+  onAddTask?: () => void;
 }
 
-export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) {
+export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSectionProps) {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
@@ -107,20 +108,20 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={t("maintenance.standardTask.searchPlaceholder") || "Search tasks..."}
+              placeholder={t("maintenance.standardTask.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center flex-wrap">
             <Filter className="h-4 w-4 text-muted-foreground hidden sm:block" />
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder={t("maintenance.standardTask.allCategories") || "All Categories"} />
+                <SelectValue placeholder={t("maintenance.standardTask.allCategories")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("maintenance.standardTask.allCategories") || "All Categories"}</SelectItem>
+                <SelectItem value="all">{t("maintenance.standardTask.allCategories")}</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -147,6 +148,12 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
                 <List className="h-4 w-4" />
               </Button>
             </div>
+            {onAddTask && (
+              <Button onClick={onAddTask} className="ml-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                {t("configuration.addMaintenanceTask")}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -179,7 +186,7 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
                     </CardDescription>
                     <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      <span className="capitalize">{t("maintenance.standardTask.suggestedFrequency") || "Suggested"}: {template.suggested_frequency}</span>
+                      <span className="capitalize">{t("maintenance.standardTask.suggestedFrequency")}: {template.suggested_frequency}</span>
                     </div>
                   </CardContent>
                   <CardFooter className="pt-3">
@@ -189,7 +196,7 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
                       className="w-full"
                       onClick={() => handleScheduleClick(template)}
                     >
-                      {t("maintenance.standardTask.schedule") || "Schedule"}
+                      {t("maintenance.standardTask.schedule")}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -201,12 +208,12 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("common.title") || "Title"}</TableHead>
-                    <TableHead>{t("common.category") || "Category"}</TableHead>
-                    <TableHead>{t("common.type") || "Type"}</TableHead>
-                    <TableHead>{t("common.priority") || "Priority"}</TableHead>
-                    <TableHead>{t("maintenance.standardTask.frequency") || "Frequency"}</TableHead>
-                    <TableHead className="text-right">{t("common.actions") || "Actions"}</TableHead>
+                    <TableHead>{t("common.title")}</TableHead>
+                    <TableHead>{t("common.category")}</TableHead>
+                    <TableHead>{t("common.type")}</TableHead>
+                    <TableHead>{t("common.priority")}</TableHead>
+                    <TableHead>{t("maintenance.standardTask.frequency")}</TableHead>
+                    <TableHead className="text-right">{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -237,7 +244,7 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
                           size="sm"
                           onClick={() => handleScheduleClick(template)}
                         >
-                          {t("maintenance.standardTask.schedule") || "Schedule"}
+                          {t("maintenance.standardTask.schedule")}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -249,7 +256,7 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
         ) : (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
-              <p>{t("maintenance.standardTask.noTemplates") || "No standard templates match your search."}</p>
+              <p>{t("maintenance.standardTask.noTemplates")}</p>
             </CardContent>
           </Card>
         )}

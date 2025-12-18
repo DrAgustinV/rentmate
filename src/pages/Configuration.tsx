@@ -198,23 +198,10 @@ export default function Configuration() {
         </TabsList>
 
         <TabsContent value="maintenance" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Standard Maintenance Tasks</CardTitle>
-                <CardDescription>
-                  Schedule maintenance task for your property.
-                </CardDescription>
-              </div>
-              <Button onClick={() => setCreateMaintenanceOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                {t('configuration.addMaintenanceTask')}
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <StandardTasksSection propertyId="" />
-            </CardContent>
-          </Card>
+          <StandardTasksSection 
+            propertyId="" 
+            onAddTask={() => setCreateMaintenanceOpen(true)}
+          />
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-4">

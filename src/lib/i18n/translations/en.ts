@@ -50,6 +50,10 @@ export const en = {
     actions: "Actions",
     draft: "Draft",
     sent: "Sent",
+    title: "Title",
+    category: "Category",
+    type: "Type",
+    priority: "Priority",
   },
   locale: "en-US",
   verification: {
@@ -726,6 +730,14 @@ export const en = {
       deleteConfirmDesc: "This will permanently delete this maintenance template. This action cannot be undone.",
       deleteFailed: "Failed to delete template",
       updateFailed: "Failed to update template",
+    },
+    standardTask: {
+      searchPlaceholder: "Search tasks...",
+      allCategories: "All Categories",
+      suggestedFrequency: "Suggested",
+      schedule: "Schedule",
+      noTemplates: "No standard templates match your search.",
+      frequency: "Frequency",
     },
     scheduledTasks: {
       title: "Scheduled Maintenance Tasks",

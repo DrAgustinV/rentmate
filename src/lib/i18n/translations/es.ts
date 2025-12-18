@@ -50,6 +50,10 @@ export const es = {
     actions: "Acciones",
     draft: "Borrador",
     sent: "Enviado",
+    title: "Título",
+    category: "Categoría",
+    type: "Tipo",
+    priority: "Prioridad",
   },
   locale: "es-ES",
   verification: {
@@ -821,6 +825,14 @@ export const es = {
       deleteConfirmDesc: "Esto eliminará permanentemente esta plantilla de mantenimiento. Esta acción no se puede deshacer.",
       deleteFailed: "Error al eliminar plantilla",
       updateFailed: "Error al actualizar plantilla",
+    },
+    standardTask: {
+      searchPlaceholder: "Buscar tareas...",
+      allCategories: "Todas las Categorías",
+      suggestedFrequency: "Sugerido",
+      schedule: "Programar",
+      noTemplates: "No hay plantillas que coincidan con tu búsqueda.",
+      frequency: "Frecuencia",
     },
     frequency: {
       daily: "Diario",
