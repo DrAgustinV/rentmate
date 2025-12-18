@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Sun, Moon, Monitor, Type, Calendar, Globe } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Language } from '@/lib/i18n/translations';
+import { Language } from '@/lib/i18n/translations/index';
 import { AVAILABLE_LANGUAGES } from '@/lib/i18n/languages.config';
 
 export const AppearanceSettings = () => {

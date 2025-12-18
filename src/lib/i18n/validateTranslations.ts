@@ -1,4 +1,4 @@
-import { translations } from './translations';
+import { translations } from './translations/index';
 import { AVAILABLE_LANGUAGES } from './languages.config';
 
 type TranslationPath = string;

@@ -11,7 +11,7 @@ import { UserCircle, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Language } from "@/lib/i18n/translations";
+import { Language } from "@/lib/i18n/translations/index";
 import {
   DropdownMenu,
   DropdownMenuContent,
