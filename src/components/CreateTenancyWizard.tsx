@@ -315,7 +315,7 @@ export function CreateTenancyWizard({
                           <div className="flex items-center gap-3">
                             <Shield className="h-5 w-5 text-muted-foreground" />
                             <div>
-                              <Label className="font-medium">{t('tenancy.wizard.kycVerification') || 'Identity Verification'}</Label>
+                              <Label className="font-medium">{t('tenancy.wizard.kycVerification') || 'ID Verification'}</Label>
                               <p className="text-sm text-muted-foreground">
                                 {t('tenancy.wizard.kycVerificationDesc') || 'Tenant must verify their identity'}
                               </p>
@@ -327,21 +327,20 @@ export function CreateTenancyWizard({
                           />
                         </div>
                         
-                        {/* Show info about available KYC methods based on plan */}
+                        {/* Show info about available ID verification methods based on plan */}
                         {field.value && (
                           <Alert className="bg-muted/50">
                             <Info className="h-4 w-4" />
                             <AlertDescription className="text-sm">
                               {canUseGovId ? (
                                 <>
-                                  <span className="font-medium">Available methods:</span> Government ID verification and KILT Protocol
+                                  <span className="font-medium">{t('tenancy.wizard.availableMethod') || 'Available method'}:</span> {t('tenancy.wizard.governmentIdVerification') || 'Government ID verification'}
                                 </>
                               ) : (
                                 <>
-                                  <span className="font-medium">Available method:</span> KILT Protocol (blockchain-based)
-                                  <span className="block mt-1 text-xs text-muted-foreground">
+                                  <span className="block text-muted-foreground">
                                     <Lock className="h-3 w-3 inline mr-1" />
-                                    Upgrade to PRO for Government ID verification
+                                    {t('tenancy.wizard.upgradeForIdVerification') || 'Upgrade to PRO for ID verification'}
                                   </span>
                                 </>
                               )}
