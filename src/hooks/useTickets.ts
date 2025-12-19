@@ -8,15 +8,16 @@ interface TicketFilters {
   propertyId?: string;
   status?: 'open' | 'in_progress' | 'resolved' | 'cancelled';
   type?: 'maintenance' | 'repair' | 'inspection' | 'request' | 'issue' | 'incident' | 'cleaning' | 'other';
+  hasSourceTemplate?: boolean;
   page?: number;
   pageSize?: number;
 }
 
 export function useTickets(filters: TicketFilters = {}) {
-  const { propertyId, status, type, page = 1, pageSize = 10 } = filters;
+  const { propertyId, status, type, hasSourceTemplate, page = 1, pageSize = 10 } = filters;
 
   return useQuery({
-    queryKey: [TICKETS_QUERY_KEY, propertyId, status, type, page, pageSize],
+    queryKey: [TICKETS_QUERY_KEY, propertyId, status, type, hasSourceTemplate, page, pageSize],
     queryFn: async () => {
       let query = supabase
         .from('tickets')
@@ -39,6 +40,12 @@ export function useTickets(filters: TicketFilters = {}) {
         query = query.eq('type', type);
       }
 
+      // Filter by source template (maintenance vs issues)
+      if (hasSourceTemplate === true) {
+        query = query.not('source_template_id', 'is', null);
+      } else if (hasSourceTemplate === false) {
+        query = query.is('source_template_id', null);
+      }
       // Pagination
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
