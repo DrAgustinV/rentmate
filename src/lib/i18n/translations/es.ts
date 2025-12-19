@@ -593,6 +593,23 @@ export const es = {
     tenant: "Inquilino",
     amount: "Monto",
     availableAfterStart: "Disponible después del inicio del arrendamiento",
+    autoReminders: "Recordatorios automáticos",
+    remindersEnabled: "Recordatorios de pago activados",
+    remindersDisabled: "Recordatorios de pago desactivados",
+    generatingSchedule: "Generando calendario de pagos...",
+    markPaidBtn: "Marcar Pagado",
+    uploadProofBtn: "Subir Comprobante",
+    reviewBtn: "Revisar",
+    toasts: {
+      markedPaid: "Pago marcado como pagado",
+      collectionInitiated: "Cobro de pago iniciado",
+      retryFailed: "Error al reintentar pago",
+    },
+    emptyStates: {
+      noHistory: "Sin Historial de Pagos",
+      noPaymentsDesc: "Los pagos aparecerán aquí una vez que se genere el calendario de alquiler",
+      waitingForAgreement: "Crea un contrato de alquiler para comenzar a rastrear pagos",
+    },
     statistics: {
       noData: "Sin datos disponibles",
       totalPaid: "Total Pagado",

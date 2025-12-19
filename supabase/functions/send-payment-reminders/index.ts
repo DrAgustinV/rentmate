@@ -164,25 +164,27 @@ const handler = async (req: Request): Promise<Response> => {
     const overdueCheckDate = new Date(today);
     overdueCheckDate.setDate(overdueCheckDate.getDate() - overdueFrequency);
 
-    // Fetch upcoming payments (due in X days)
+    // Fetch upcoming payments (due in X days) - only for agreements with reminders enabled
     const { data: upcomingPayments, error: upcomingError } = await supabase
       .from("rent_payments")
-      .select("*")
+      .select("*, rent_agreements!inner(auto_reminders_enabled)")
       .eq("status", "pending")
       .gte("payment_due_date", today.toISOString().split("T")[0])
-      .lte("payment_due_date", upcomingDate.toISOString().split("T")[0]);
+      .lte("payment_due_date", upcomingDate.toISOString().split("T")[0])
+      .neq("rent_agreements.auto_reminders_enabled", false);
 
     if (upcomingError) {
       console.error("Error fetching upcoming payments:", upcomingError);
       throw upcomingError;
     }
 
-    // Fetch overdue payments
+    // Fetch overdue payments - only for agreements with reminders enabled
     const { data: overduePayments, error: overdueError } = await supabase
       .from("rent_payments")
-      .select("*")
+      .select("*, rent_agreements!inner(auto_reminders_enabled)")
       .in("status", ["pending", "overdue"])
-      .lt("payment_due_date", today.toISOString().split("T")[0]);
+      .lt("payment_due_date", today.toISOString().split("T")[0])
+      .neq("rent_agreements.auto_reminders_enabled", false);
 
     if (overdueError) {
       console.error("Error fetching overdue payments:", overdueError);

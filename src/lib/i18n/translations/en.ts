@@ -582,6 +582,23 @@ export const en = {
     tenant: "Tenant",
     amount: "Amount",
     availableAfterStart: "Available after tenancy starts",
+    autoReminders: "Automatic reminders",
+    remindersEnabled: "Payment reminders enabled",
+    remindersDisabled: "Payment reminders disabled",
+    generatingSchedule: "Generating payment schedule...",
+    markPaidBtn: "Mark Paid",
+    uploadProofBtn: "Upload Proof",
+    reviewBtn: "Review",
+    toasts: {
+      markedPaid: "Payment marked as paid",
+      collectionInitiated: "Payment collection initiated",
+      retryFailed: "Failed to retry payment",
+    },
+    emptyStates: {
+      noHistory: "No Payment History",
+      noPaymentsDesc: "Payments will appear here once the rent schedule is generated",
+      waitingForAgreement: "Create a rent agreement to start tracking payments",
+    },
     statistics: {
       noData: "No data available",
       totalPaid: "Total Paid",
