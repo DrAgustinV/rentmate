@@ -100,7 +100,7 @@ export function InspectionCard({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2">
               <ClipboardCheck className="h-5 w-5" />
               Property Inspections
             </CardTitle>
