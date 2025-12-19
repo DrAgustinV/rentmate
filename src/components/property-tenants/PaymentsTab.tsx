@@ -1,10 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Plus, Clock, Bell, BellOff } from "lucide-react";
 import { useState } from "react";
 import { CreateRentAgreementDrawer } from "@/components/CreateRentAgreementDrawer";
@@ -98,20 +96,49 @@ export function PaymentsTab({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>{t("propertyHub.rentPayments")}</CardTitle>
-            {isManager && !currentAgreement && (
-              <CreateRentAgreementDrawer
-                propertyId={propertyId}
-                activeTenant={{
-                  id: currentTenant.id,
-                  tenant_id: currentTenant.tenant_id,
-                  profiles: {
-                    first_name: currentTenant.first_name,
-                    last_name: currentTenant.last_name,
-                    email: currentTenant.email,
-                  }
-                }}
-              />
-            )}
+            <div className="flex items-center gap-3">
+              {/* Auto Reminders Toggle - Manager Only, only if agreement exists */}
+              {isManager && currentAgreement && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2">
+                        {(currentAgreement as any).auto_reminders_enabled !== false ? (
+                          <Bell className="h-4 w-4 text-primary" />
+                        ) : (
+                          <BellOff className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <Switch
+                          checked={(currentAgreement as any).auto_reminders_enabled !== false}
+                          onCheckedChange={(checked) => 
+                            toggleRemindersMutation.mutate({ agreementId: currentAgreement.id, enabled: checked })
+                          }
+                          disabled={toggleRemindersMutation.isPending}
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t("payments.autoReminders")}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {/* Create button - Manager Only, no agreement */}
+              {isManager && !currentAgreement && (
+                <CreateRentAgreementDrawer
+                  propertyId={propertyId}
+                  activeTenant={{
+                    id: currentTenant.id,
+                    tenant_id: currentTenant.tenant_id,
+                    profiles: {
+                      first_name: currentTenant.first_name,
+                      last_name: currentTenant.last_name,
+                      email: currentTenant.email,
+                    }
+                  }}
+                />
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -125,55 +152,12 @@ export function PaymentsTab({
               <p className="text-xs">{t("rentAgreements.createFirst")}</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {rentAgreements
-                .filter(agreement => agreement.tenancy_id === currentTenant.id)
-                .map((agreement) => (
-                  <div key={agreement.id} className="space-y-3">
-                    <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="font-semibold">€{(agreement.rent_amount_cents / 100).toFixed(2)}/mo</span>
-                        <span className="text-muted-foreground">Day {agreement.payment_day}</span>
-                        <Badge variant={agreement.is_active ? "default" : "secondary"} className="text-xs">
-                          {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    {/* Auto Reminders Toggle - Manager Only */}
-                    {isManager && agreement.is_active && (
-                      <div className="flex items-center justify-between px-3 py-2 border rounded-lg bg-muted/20">
-                        <div className="flex items-center gap-2">
-                          {(agreement as any).auto_reminders_enabled !== false ? (
-                            <Bell className="h-4 w-4 text-primary" />
-                          ) : (
-                            <BellOff className="h-4 w-4 text-muted-foreground" />
-                          )}
-                          <Label htmlFor={`reminders-${agreement.id}`} className="text-sm cursor-pointer">
-                            {t("payments.autoReminders")}
-                          </Label>
-                        </div>
-                        <Switch
-                          id={`reminders-${agreement.id}`}
-                          checked={(agreement as any).auto_reminders_enabled !== false}
-                          onCheckedChange={(checked) => 
-                            toggleRemindersMutation.mutate({ agreementId: agreement.id, enabled: checked })
-                          }
-                          disabled={toggleRemindersMutation.isPending}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              
-              {/* Payment History */}
-              <RentPaymentHistory 
-                propertyId={propertyId} 
-                isManager={isManager}
-                hasRentAgreement={!!currentAgreement}
-                rentAgreementId={currentAgreement?.id}
-              />
-            </div>
+            <RentPaymentHistory 
+              propertyId={propertyId} 
+              isManager={isManager}
+              hasRentAgreement={!!currentAgreement}
+              rentAgreementId={currentAgreement?.id}
+            />
           )}
         </CardContent>
       </Card>
