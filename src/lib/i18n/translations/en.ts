@@ -906,6 +906,20 @@ export const en = {
     uploadHintPhotos: "Max {size}MB each, up to {count} photos",
     uploadHintVideo: "Max {size}MB",
     send: "Send",
+    typeFilter: {
+      all: "All Tasks",
+      issues: "Issues",
+      maintenance: "Maintenance",
+    },
+    newIssue: "New Issue",
+    scheduleMaintenance: "Schedule Maintenance",
+    selectTemplate: "Select",
+    maintenanceTask: "Scheduled Maintenance",
+    issueTask: "Tenant Issue",
+    templatePicker: {
+      title: "Schedule Maintenance Task",
+      description: "Choose a task from the standard library to schedule for this property",
+    },
   },
   propertyTenants: {
     tabs: {

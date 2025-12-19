@@ -4,30 +4,35 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Pencil, AlertCircle, Clock } from "lucide-react";
+import { Plus, Pencil, AlertCircle, Clock, User, Wrench } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTickets } from "@/hooks/useTickets";
 import { useTenancyStarted } from "@/hooks/useTenancyStarted";
 import { CreateTicketDialog } from "@/components/CreateTicketDialog";
+import { StandardTemplatePickerDialog } from "@/components/StandardTemplatePickerDialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TicketsTabProps {
   propertyId: string;
   tenancyId?: string;
+  isManager?: boolean;
 }
 
-export function TicketsTab({ propertyId, tenancyId }: TicketsTabProps) {
+export function TicketsTab({ propertyId, tenancyId, isManager }: TicketsTabProps) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "issues" | "maintenance">("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   
   const { isStarted, formattedStartDate, isLoading: tenancyLoading } = useTenancyStarted(propertyId, tenancyId);
   
   const { data, isLoading } = useTickets({
     propertyId,
     status: statusFilter === "all" ? undefined : statusFilter as any,
+    hasSourceTemplate: typeFilter === "all" ? undefined : typeFilter === "maintenance",
     pageSize: 20,
   });
 
@@ -66,41 +71,84 @@ export function TicketsTab({ propertyId, tenancyId }: TicketsTabProps) {
         </div>
       )}
 
-      {/* Header with filter and New Ticket button */}
-      <div className="flex items-center justify-between gap-4">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder={t("tickets.all")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("tickets.all")}</SelectItem>
-            <SelectItem value="open">{t("tickets.open")}</SelectItem>
-            <SelectItem value="in_progress">{t("tickets.inProgress")}</SelectItem>
-            <SelectItem value="resolved">{t("tickets.resolved")}</SelectItem>
-          </SelectContent>
-        </Select>
-        
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <Button 
-                  size="sm" 
-                  onClick={() => setCreateDialogOpen(true)}
-                  disabled={!isStarted}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  {t("tickets.newTicket")}
-                </Button>
-              </span>
-            </TooltipTrigger>
-            {!isStarted && formattedStartDate && (
-              <TooltipContent>
-                <p>{t("tickets.availableAfterStart")} {formattedStartDate}</p>
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
+      {/* Header with filters and action buttons */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Type filter */}
+          <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder={t("tickets.typeFilter.all")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("tickets.typeFilter.all")}</SelectItem>
+              <SelectItem value="issues">{t("tickets.typeFilter.issues")}</SelectItem>
+              <SelectItem value="maintenance">{t("tickets.typeFilter.maintenance")}</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {/* Status filter */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder={t("tickets.all")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("tickets.all")}</SelectItem>
+              <SelectItem value="open">{t("tickets.open")}</SelectItem>
+              <SelectItem value="in_progress">{t("tickets.inProgress")}</SelectItem>
+              <SelectItem value="resolved">{t("tickets.resolved")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button 
+                    size="sm" 
+                    onClick={() => setCreateDialogOpen(true)}
+                    disabled={!isStarted}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t("tickets.newIssue")}
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!isStarted && formattedStartDate && (
+                <TooltipContent>
+                  <p>{t("tickets.availableAfterStart")} {formattedStartDate}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Schedule Maintenance button - managers only */}
+          {isManager && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setTemplatePickerOpen(true)}
+                      disabled={!isStarted}
+                    >
+                      <Wrench className="h-4 w-4 mr-2" />
+                      {t("tickets.scheduleMaintenance")}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {!isStarted && formattedStartDate && (
+                  <TooltipContent>
+                    <p>{t("tickets.availableAfterStart")} {formattedStartDate}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       </div>
       
       {/* Tickets table */}
@@ -109,6 +157,7 @@ export function TicketsTab({ propertyId, tenancyId }: TicketsTabProps) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[40px]"></TableHead>
                 <TableHead>{t("tickets.title")}</TableHead>
                 <TableHead className="w-[120px]">{t("tickets.status")}</TableHead>
                 <TableHead className="w-[60px]"></TableHead>
@@ -117,6 +166,24 @@ export function TicketsTab({ propertyId, tenancyId }: TicketsTabProps) {
             <TableBody>
               {tickets.map((ticket) => (
                 <TableRow key={ticket.id}>
+                  <TableCell>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          {ticket.source_template_id ? (
+                            <Wrench className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <User className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {ticket.source_template_id 
+                            ? t("tickets.maintenanceTask") 
+                            : t("tickets.issueTask")}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
                   <TableCell className="font-medium">{ticket.title}</TableCell>
                   <TableCell>
                     <Badge className={statusColors[ticket.status] || ""}>
@@ -141,7 +208,7 @@ export function TicketsTab({ propertyId, tenancyId }: TicketsTabProps) {
         <div className="text-center py-8 border rounded-lg card-shine">
           <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-3 opacity-50" />
           <p className="text-sm text-muted-foreground">
-            {statusFilter === "all" 
+            {statusFilter === "all" && typeFilter === "all"
               ? t("tickets.noTickets") 
               : t("tickets.noTicketsWithStatus")}
           </p>
@@ -151,6 +218,12 @@ export function TicketsTab({ propertyId, tenancyId }: TicketsTabProps) {
       <CreateTicketDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
+        propertyId={propertyId}
+      />
+
+      <StandardTemplatePickerDialog
+        open={templatePickerOpen}
+        onOpenChange={setTemplatePickerOpen}
         propertyId={propertyId}
       />
     </div>

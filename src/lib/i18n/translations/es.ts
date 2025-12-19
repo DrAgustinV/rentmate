@@ -1002,6 +1002,20 @@ export const es = {
     uploadHintPhotos: "Máx {size}MB cada una, hasta {count} fotos",
     uploadHintVideo: "Máx {size}MB",
     send: "Enviar",
+    typeFilter: {
+      all: "Todas las Tareas",
+      issues: "Incidencias",
+      maintenance: "Mantenimiento",
+    },
+    newIssue: "Nueva Incidencia",
+    scheduleMaintenance: "Programar Mantenimiento",
+    selectTemplate: "Seleccionar",
+    maintenanceTask: "Mantenimiento Programado",
+    issueTask: "Incidencia del Inquilino",
+    templatePicker: {
+      title: "Programar Tarea de Mantenimiento",
+      description: "Elige una tarea de la biblioteca estándar para programar en esta propiedad",
+    },
   },
   utilities: {
     title: "Servicios",

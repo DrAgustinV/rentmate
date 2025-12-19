@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar, Search, Filter, LayoutGrid, List, Plus } from "lucide-react";
-import { ScheduleStandardTaskDialog } from "./ScheduleStandardTaskDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -33,8 +32,6 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<StandardTemplate | null>(null);
   const [userViewMode, setUserViewMode] = useState<"grid" | "list" | null>(null);
 
   // Use user's choice if set, otherwise use responsive default
@@ -81,11 +78,6 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
     const matchesCategory = selectedCategory === "all" || template.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
-
-  const handleScheduleClick = (template: StandardTemplate) => {
-    setSelectedTemplate(template);
-    setScheduleDialogOpen(true);
-  };
 
   if (isLoading) {
     return (
@@ -189,16 +181,6 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
                       <span className="capitalize">{t("maintenance.standardTask.suggestedFrequency")}: {template.suggested_frequency}</span>
                     </div>
                   </CardContent>
-                  <CardFooter className="pt-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => handleScheduleClick(template)}
-                    >
-                      {t("maintenance.standardTask.schedule")}
-                    </Button>
-                  </CardFooter>
                 </Card>
               ))}
             </div>
@@ -213,7 +195,6 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
                     <TableHead>{t("common.type")}</TableHead>
                     <TableHead>{t("common.priority")}</TableHead>
                     <TableHead>{t("maintenance.standardTask.frequency")}</TableHead>
-                    <TableHead className="text-right">{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -238,15 +219,6 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
                       <TableCell className="capitalize text-muted-foreground">
                         {template.suggested_frequency}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleScheduleClick(template)}
-                        >
-                          {t("maintenance.standardTask.schedule")}
-                        </Button>
-                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -261,13 +233,6 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
           </Card>
         )}
       </div>
-
-      <ScheduleStandardTaskDialog
-        open={scheduleDialogOpen}
-        onOpenChange={setScheduleDialogOpen}
-        standardTemplate={selectedTemplate}
-        propertyId={propertyId}
-      />
     </>
   );
 }
