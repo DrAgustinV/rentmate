@@ -1040,6 +1040,7 @@ export const es = {
     addUtilityBill: "Agregar Factura de Servicio",
     paymentHistory: "Historial de Pagos de Servicios",
     noPayments: "Aún no hay pagos de servicios",
+    noPaymentsDesc: "Los pagos de servicios aparecerán aquí una vez que se agreguen facturas",
     uploadProof: "Subir Comprobante",
     reviewProof: "Revisar Comprobante",
     approve: "Aprobar",
