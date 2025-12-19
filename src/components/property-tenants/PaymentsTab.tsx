@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Clock, Bell, BellOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreateRentAgreementDrawer } from "@/components/CreateRentAgreementDrawer";
 import { RentPaymentHistory } from "@/components/payments/RentPaymentHistory";
 import { UtilityPaymentHistory } from "@/components/payments/UtilityPaymentHistory";
@@ -42,6 +42,7 @@ export function PaymentsTab({
   const { t } = useLanguage();
   const isManager = userRole?.isManager || false;
   const [createUtilityDialogOpen, setCreateUtilityDialogOpen] = useState(false);
+  const [managerId, setManagerId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // Check if tenancy has started
@@ -49,6 +50,22 @@ export function PaymentsTab({
 
   // Lazy-loaded queries - only fetched when PaymentsTab is rendered
   const { data: rentAgreements, isLoading: agreementsLoading } = useRentAgreements(propertyId);
+
+  // Fetch manager ID for the property (needed when tenant creates utility bill)
+  useEffect(() => {
+    const fetchManagerId = async () => {
+      const { data } = await supabase
+        .from('properties')
+        .select('manager_id')
+        .eq('id', propertyId)
+        .single();
+      
+      if (data) {
+        setManagerId(data.manager_id);
+      }
+    };
+    fetchManagerId();
+  }, [propertyId]);
 
   // Mutation to toggle auto reminders
   const toggleRemindersMutation = useMutation({
@@ -80,6 +97,9 @@ export function PaymentsTab({
   }
 
   const currentAgreement = rentAgreements?.find(ra => ra.tenancy_id === currentTenant.id && ra.is_active);
+
+  // Tenant can add utility bills when tenancy is active
+  const canAddUtilityBill = !isManager && isStarted && managerId;
 
   return (
     <div className="space-y-6">
@@ -167,27 +187,14 @@ export function PaymentsTab({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>{t("propertyHub.utilityPayments")}</CardTitle>
-            {isManager && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>
-                      <Button 
-                        onClick={() => setCreateUtilityDialogOpen(true)}
-                        disabled={!isStarted}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        {t("utilities.addUtilityBill")}
-                      </Button>
-                    </span>
-                  </TooltipTrigger>
-                  {!isStarted && formattedStartDate && (
-                    <TooltipContent>
-                      <p>{t("payments.availableAfterStart")} {formattedStartDate}</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
+            {/* Add Bill button - Tenant only when tenancy is active */}
+            {canAddUtilityBill && (
+              <Button 
+                onClick={() => setCreateUtilityDialogOpen(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {t("utilities.addUtilityBill")}
+              </Button>
             )}
           </div>
         </CardHeader>
@@ -200,12 +207,15 @@ export function PaymentsTab({
       </Card>
 
       {/* Utility Payment Dialog */}
-      <CreateUtilityPaymentDialog
-        open={createUtilityDialogOpen}
-        onOpenChange={setCreateUtilityDialogOpen}
-        propertyId={propertyId}
-        tenantId={currentTenant.tenant_id}
-      />
+      {managerId && (
+        <CreateUtilityPaymentDialog
+          open={createUtilityDialogOpen}
+          onOpenChange={setCreateUtilityDialogOpen}
+          propertyId={propertyId}
+          tenantId={currentTenant.tenant_id}
+          managerId={managerId}
+        />
+      )}
     </div>
   );
 }

@@ -1,13 +1,15 @@
+import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useUtilityPayments } from "@/hooks/useUtilityPayments";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useUtilityPayments, useUtilityPaymentMutations } from "@/hooks/useUtilityPayments";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { FileText, Upload, CheckCircle, XCircle, Clock } from "lucide-react";
-import { useState } from "react";
+import { CheckCircle2, Clock, Loader2, Upload, Eye, FileText } from "lucide-react";
 import { UtilityProofUpload } from "./UtilityProofUpload";
 import { UtilityProofReview } from "./UtilityProofReview";
+import { EmptyState } from "@/components/EmptyState";
 
 interface UtilityPaymentHistoryProps {
   propertyId: string;
@@ -17,15 +19,16 @@ interface UtilityPaymentHistoryProps {
 export function UtilityPaymentHistory({ propertyId, isManager }: UtilityPaymentHistoryProps) {
   const { t } = useLanguage();
   const { data: payments, isLoading } = useUtilityPayments(propertyId);
+  const { markAsPaid } = useUtilityPaymentMutations();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [markingId, setMarkingId] = useState<string | null>(null);
 
   const formatCurrency = (cents: number, currency: string = 'EUR') => {
-    return new Intl.NumberFormat('de-DE', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    }).format(cents / 100);
+    const amount = cents / 100;
+    const symbols: Record<string, string> = { eur: '€', usd: '$', gbp: '£' };
+    return `${symbols[currency] || currency.toUpperCase()} ${amount.toFixed(2)}`;
   };
 
   const getUtilityLabel = (type: string, customName?: string) => {
@@ -33,31 +36,20 @@ export function UtilityPaymentHistory({ propertyId, isManager }: UtilityPaymentH
     return t(`utilities.types.${type}`);
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { variant: 'outline' as const, label: t('utilities.status.pending') },
-      paid: { variant: 'default' as const, label: t('utilities.status.paid') },
-      overdue: { variant: 'destructive' as const, label: t('utilities.status.overdue') },
-    };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
-  const getProofReviewBadge = (status: string) => {
-    const icons = {
-      pending: <Clock className="h-3 w-3" />,
-      approved: <CheckCircle className="h-3 w-3" />,
-      rejected: <XCircle className="h-3 w-3" />,
-    };
-    const variants = {
-      pending: 'outline' as const,
-      approved: 'default' as const,
-      rejected: 'destructive' as const,
-    };
+  // Simplified status badge matching RentPaymentHistory
+  const getSimpleStatusBadge = (status: string) => {
+    if (status === 'paid') {
+      return (
+        <Badge variant="default" className="flex items-center gap-1 bg-green-600 hover:bg-green-700">
+          <CheckCircle2 className="h-3 w-3" />
+          {t("payments.status.paid")}
+        </Badge>
+      );
+    }
     return (
-      <Badge variant={variants[status as keyof typeof variants]} className="flex items-center gap-1">
-        {icons[status as keyof typeof icons]}
-        {t(`utilities.proofReview.${status}`)}
+      <Badge variant="secondary" className="flex items-center gap-1">
+        <Clock className="h-3 w-3" />
+        {t("payments.status.due")}
       </Badge>
     );
   };
@@ -72,6 +64,15 @@ export function UtilityPaymentHistory({ propertyId, isManager }: UtilityPaymentH
     setReviewDialogOpen(true);
   };
 
+  const handleMarkAsPaid = async (paymentId: string) => {
+    setMarkingId(paymentId);
+    try {
+      await markAsPaid.mutateAsync(paymentId);
+    } finally {
+      setMarkingId(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -83,54 +84,95 @@ export function UtilityPaymentHistory({ propertyId, isManager }: UtilityPaymentH
 
   if (!payments || payments.length === 0) {
     return (
-      <div className="py-8 text-center text-muted-foreground">
-        {t("utilities.noPayments")}
-      </div>
+      <EmptyState
+        icon={FileText}
+        title={t("utilities.noPayments")}
+        description={t("utilities.noPaymentsDesc")}
+        variant="info"
+      />
     );
   }
 
   return (
     <>
-      <div className="space-y-3">
-        {payments.map((payment) => (
-          <div
-            key={payment.id}
-            className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
-          >
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("utilities.utilityType")}</TableHead>
+              <TableHead>{t("common.dueDate")}</TableHead>
+              <TableHead>{t("common.amount")}</TableHead>
+              <TableHead>{t("common.status")}</TableHead>
+              <TableHead>{t("common.actions")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {payments.map((payment) => (
+              <TableRow key={payment.id}>
+                <TableCell className="font-medium">
                   {getUtilityLabel(payment.utility_type, payment.custom_utility_name)}
-                </span>
-                {getStatusBadge(payment.status)}
-                {payment.proof_of_payment_url && getProofReviewBadge(payment.proof_review_status)}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {format(new Date(payment.billing_period_start), 'dd/MM/yyyy')} - {format(new Date(payment.billing_period_end), 'dd/MM/yyyy')} • {t("utilities.dueDate")}: {format(new Date(payment.payment_due_date), 'dd/MM/yyyy')}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="text-right font-semibold">
-                {formatCurrency(payment.amount_cents, payment.currency)}
-              </div>
-
-              {!isManager && payment.status === 'pending' && !payment.proof_of_payment_url && (
-                <Button size="sm" variant="outline" onClick={() => handleUploadClick(payment)}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  {t("utilities.uploadProof")}
-                </Button>
-              )}
-
-              {isManager && payment.proof_of_payment_url && payment.proof_review_status === 'pending' && (
-                <Button size="sm" variant="outline" onClick={() => handleReviewClick(payment)}>
-                  {t("utilities.reviewProof")}
-                </Button>
-              )}
-            </div>
-          </div>
-        ))}
+                </TableCell>
+                <TableCell>
+                  {format(new Date(payment.payment_due_date), 'PP')}
+                </TableCell>
+                <TableCell className="font-medium">
+                  {formatCurrency(payment.amount_cents, payment.currency)}
+                </TableCell>
+                <TableCell>
+                  {getSimpleStatusBadge(payment.status)}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    {/* Tenant: Upload proof */}
+                    {!isManager && payment.status !== 'paid' && !payment.proof_of_payment_url && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUploadClick(payment)}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        {t("payments.markPaidBtn")}
+                      </Button>
+                    )}
+                    {/* Manager: Review proof */}
+                    {isManager && payment.proof_of_payment_url && payment.proof_review_status === 'pending' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleReviewClick(payment)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        {t("payments.reviewBtn")}
+                      </Button>
+                    )}
+                    {/* Manager: Mark as paid directly */}
+                    {isManager && payment.status !== 'paid' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleMarkAsPaid(payment.id)}
+                        disabled={markingId === payment.id}
+                      >
+                        {markingId === payment.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            {t("payments.markPaidBtn")}
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    {/* No actions for paid payments */}
+                    {payment.status === 'paid' && (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {selectedPayment && (

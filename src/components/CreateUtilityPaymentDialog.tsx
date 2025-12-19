@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUtilityPaymentMutations } from "@/hooks/useUtilityPayments";
-import { supabase } from "@/integrations/supabase/client";
 
 interface CreateUtilityPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   propertyId: string;
   tenantId: string;
+  managerId: string;
 }
 
 const utilityTypes = ['electricity', 'gas', 'water', 'internet', 'heating', 'trash', 'other'] as const;
@@ -22,6 +22,7 @@ export function CreateUtilityPaymentDialog({
   onOpenChange,
   propertyId,
   tenantId,
+  managerId,
 }: CreateUtilityPaymentDialogProps) {
   const { t } = useLanguage();
   const { createPayment } = useUtilityPaymentMutations();
@@ -33,14 +34,11 @@ export function CreateUtilityPaymentDialog({
   const [dueDate, setDueDate] = useState("");
 
   const handleSubmit = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
     createPayment.mutate(
       {
         property_id: propertyId,
         tenant_id: tenantId,
-        manager_id: user.id,
+        manager_id: managerId,
         utility_type: utilityType,
         custom_utility_name: utilityType === 'other' ? customName : undefined,
         amount_cents: Math.round(parseFloat(amount) * 100),

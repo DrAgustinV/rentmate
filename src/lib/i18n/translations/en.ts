@@ -953,6 +953,7 @@ export const en = {
     addUtilityBill: "Add Utility Bill",
     paymentHistory: "Utility Payment History",
     noPayments: "No utility payments yet",
+    noPaymentsDesc: "Utility payments will appear here once bills are added",
     uploadProof: "Upload Proof",
     reviewProof: "Review Proof",
     approve: "Approve",

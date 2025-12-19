@@ -168,10 +168,40 @@ export function useUtilityPaymentMutations() {
     },
   });
 
+  const markAsPaid = useMutation({
+    mutationFn: async (paymentId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('utility_payments')
+        .update({
+          status: 'paid',
+          payment_date: new Date().toISOString().split('T')[0],
+          manager_reviewed_by: user.id,
+          manager_reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', paymentId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
+      toast.success('Utility payment marked as paid');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to mark as paid: ${error.message}`);
+    },
+  });
+
   return {
     createPayment,
     updatePayment,
     uploadProof,
     reviewProof,
+    markAsPaid,
   };
 }
