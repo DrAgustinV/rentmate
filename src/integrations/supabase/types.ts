@@ -1402,6 +1402,7 @@ export type Database = {
       }
       rent_agreements: {
         Row: {
+          auto_reminders_enabled: boolean | null
           created_at: string
           currency: string
           deposit_return_days: number | null
@@ -1426,6 +1427,7 @@ export type Database = {
           utilities_tenant_responsible: string | null
         }
         Insert: {
+          auto_reminders_enabled?: boolean | null
           created_at?: string
           currency?: string
           deposit_return_days?: number | null
@@ -1450,6 +1452,7 @@ export type Database = {
           utilities_tenant_responsible?: string | null
         }
         Update: {
+          auto_reminders_enabled?: boolean | null
           created_at?: string
           currency?: string
           deposit_return_days?: number | null

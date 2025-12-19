@@ -1,12 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Plus, Clock, Bell, BellOff } from "lucide-react";
 import { useState } from "react";
 import { CreateRentAgreementDrawer } from "@/components/CreateRentAgreementDrawer";
-import { EditRentAgreementDrawer } from "@/components/EditRentAgreementDrawer";
 import { RentPaymentHistory } from "@/components/payments/RentPaymentHistory";
 import { UtilityPaymentHistory } from "@/components/payments/UtilityPaymentHistory";
 import { CreateUtilityPaymentDialog } from "@/components/CreateUtilityPaymentDialog";
@@ -15,6 +16,7 @@ import { useRentAgreements } from "@/hooks/useRentAgreements";
 import { useTenancyStarted } from "@/hooks/useTenancyStarted";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 
 interface Tenant {
   id: string;
@@ -42,6 +44,7 @@ export function PaymentsTab({
   const { t } = useLanguage();
   const isManager = userRole?.isManager || false;
   const [createUtilityDialogOpen, setCreateUtilityDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   // Check if tenancy has started
   const { isStarted, formattedStartDate } = useTenancyStarted(propertyId, currentTenant?.id);
@@ -49,19 +52,23 @@ export function PaymentsTab({
   // Lazy-loaded queries - only fetched when PaymentsTab is rendered
   const { data: rentAgreements, isLoading: agreementsLoading } = useRentAgreements(propertyId);
 
-  const { data: contractSignatures } = useQuery({
-    queryKey: ['contract-signatures', propertyId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('contract_signatures')
-        .select('tenancy_id, workflow_status')
-        .eq('property_id', propertyId)
-        .in('workflow_status', ['pending', 'in_progress']);
+  // Mutation to toggle auto reminders
+  const toggleRemindersMutation = useMutation({
+    mutationFn: async ({ agreementId, enabled }: { agreementId: string; enabled: boolean }) => {
+      const { error } = await supabase
+        .from('rent_agreements')
+        .update({ auto_reminders_enabled: enabled })
+        .eq('id', agreementId);
       
       if (error) throw error;
-      return data;
     },
-    enabled: !!propertyId,
+    onSuccess: (_, { enabled }) => {
+      queryClient.invalidateQueries({ queryKey: ['rent-agreements', propertyId] });
+      toast.success(enabled ? t("payments.remindersEnabled") : t("payments.remindersDisabled"));
+    },
+    onError: (error: any) => {
+      toast.error(error.message);
+    },
   });
 
   // Show for both managers and tenants
@@ -73,6 +80,8 @@ export function PaymentsTab({
       </div>
     );
   }
+
+  const currentAgreement = rentAgreements?.find(ra => ra.tenancy_id === currentTenant.id && ra.is_active);
 
   return (
     <div className="space-y-6">
@@ -89,7 +98,7 @@ export function PaymentsTab({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>{t("propertyHub.rentPayments")}</CardTitle>
-            {isManager && !rentAgreements?.some(ra => ra.tenancy_id === currentTenant.id && ra.is_active) && (
+            {isManager && !currentAgreement && (
               <CreateRentAgreementDrawer
                 propertyId={propertyId}
                 activeTenant={{
@@ -120,20 +129,39 @@ export function PaymentsTab({
               {rentAgreements
                 .filter(agreement => agreement.tenancy_id === currentTenant.id)
                 .map((agreement) => (
-                  <div key={agreement.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="font-semibold">€{(agreement.rent_amount_cents / 100).toFixed(2)}/mo</span>
-                      <span className="text-muted-foreground">Day {agreement.payment_day}</span>
-                      {/* SEPA IBAN display hidden - backend code preserved for future use */}
-                      <Badge variant={agreement.is_active ? "default" : "secondary"} className="text-xs">
-                        {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
-                      </Badge>
+                  <div key={agreement.id} className="space-y-3">
+                    <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="font-semibold">€{(agreement.rent_amount_cents / 100).toFixed(2)}/mo</span>
+                        <span className="text-muted-foreground">Day {agreement.payment_day}</span>
+                        <Badge variant={agreement.is_active ? "default" : "secondary"} className="text-xs">
+                          {agreement.is_active ? t("rentAgreements.active") : t("rentAgreements.pending")}
+                        </Badge>
+                      </div>
                     </div>
-                    {isManager && (
-                      <EditRentAgreementDrawer 
-                        agreement={agreement}
-                        isContractSigning={!!contractSignatures?.some(sig => sig.tenancy_id === agreement.tenancy_id)}
-                      />
+                    
+                    {/* Auto Reminders Toggle - Manager Only */}
+                    {isManager && agreement.is_active && (
+                      <div className="flex items-center justify-between px-3 py-2 border rounded-lg bg-muted/20">
+                        <div className="flex items-center gap-2">
+                          {(agreement as any).auto_reminders_enabled !== false ? (
+                            <Bell className="h-4 w-4 text-primary" />
+                          ) : (
+                            <BellOff className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <Label htmlFor={`reminders-${agreement.id}`} className="text-sm cursor-pointer">
+                            {t("payments.autoReminders")}
+                          </Label>
+                        </div>
+                        <Switch
+                          id={`reminders-${agreement.id}`}
+                          checked={(agreement as any).auto_reminders_enabled !== false}
+                          onCheckedChange={(checked) => 
+                            toggleRemindersMutation.mutate({ agreementId: agreement.id, enabled: checked })
+                          }
+                          disabled={toggleRemindersMutation.isPending}
+                        />
+                      </div>
                     )}
                   </div>
                 ))}
@@ -142,7 +170,8 @@ export function PaymentsTab({
               <RentPaymentHistory 
                 propertyId={propertyId} 
                 isManager={isManager}
-                hasRentAgreement={rentAgreements.some(ra => ra.tenancy_id === currentTenant.id)}
+                hasRentAgreement={!!currentAgreement}
+                rentAgreementId={currentAgreement?.id}
               />
             </div>
           )}

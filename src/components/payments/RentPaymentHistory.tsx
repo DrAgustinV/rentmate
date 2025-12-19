@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle2, Clock, Loader2, Upload, Eye, RefreshCw, FileText } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, Upload, Eye, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ProofOfPaymentUpload } from '@/components/ProofOfPaymentUpload';
@@ -39,18 +39,19 @@ interface RentPaymentHistoryProps {
   propertyId: string;
   isManager: boolean;
   hasRentAgreement?: boolean;
+  rentAgreementId?: string;
 }
 
-export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = true }: RentPaymentHistoryProps) {
+export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = true, rentAgreementId }: RentPaymentHistoryProps) {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
   const [payments, setPayments] = useState<RentPayment[]>([]);
   const [marking, setMarking] = useState<string | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewPayment, setReviewPayment] = useState<RentPayment | null>(null);
-  const [retrying, setRetrying] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPayments();
@@ -73,10 +74,52 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
       }));
       
       setPayments(mappedPayments);
+
+      // If no payments and we have a rent agreement, generate them on-demand
+      if (mappedPayments.length === 0 && rentAgreementId) {
+        await ensurePaymentsExist();
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const ensurePaymentsExist = async () => {
+    if (!rentAgreementId) return;
+    
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ensure-rent-payments', {
+        body: { rent_agreement_id: rentAgreementId },
+      });
+
+      if (error) throw error;
+
+      if (data?.generated > 0) {
+        console.log(`Generated ${data.generated} payment records`);
+        // Refetch payments after generation
+        const { data: newPayments, error: fetchError } = await supabase
+          .from('rent_payments')
+          .select('*')
+          .eq('property_id', propertyId)
+          .order('payment_due_date', { ascending: false });
+
+        if (fetchError) throw fetchError;
+        
+        const mappedPayments: RentPayment[] = (newPayments || []).map(p => ({
+          ...p,
+          proof_review_status: (p.proof_review_status as 'pending' | 'approved' | 'rejected') || 'pending',
+        }));
+        
+        setPayments(mappedPayments);
+      }
+    } catch (error: any) {
+      console.error('Error ensuring payments:', error);
+      // Don't show toast for generation errors - silently fail
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -103,26 +146,10 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
     }
   };
 
-  const handleRetryPayment = async (paymentId: string) => {
-    setRetrying(paymentId);
-    try {
-      const { data, error } = await supabase.functions.invoke('collect-rent-payment', {
-        body: { payment_id: paymentId },
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        toast.success(t("payments.toasts.collectionInitiated"));
-        fetchPayments();
-      } else {
-        toast.error(data.message || t("payments.toasts.retryFailed"));
-      }
-    } catch (error: any) {
-      toast.error(error.message || t("payments.toasts.retryFailed"));
-    } finally {
-      setRetrying(null);
-    }
+  const handleTenantMarkAsPaid = async (paymentId: string) => {
+    // For tenants, open the upload dialog instead of just marking as paid
+    setSelectedPaymentId(paymentId);
+    setUploadDialogOpen(true);
   };
 
   const formatCurrency = (cents: number, currency: string) => {
@@ -149,11 +176,13 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
     );
   };
 
-  if (loading) {
+  if (loading || generating) {
     return (
       <div className="py-8 flex flex-col items-center justify-center gap-4">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
+        <p className="text-sm text-muted-foreground">
+          {generating ? t("payments.generatingSchedule") : t("common.loading")}
+        </p>
       </div>
     );
   }
@@ -194,18 +223,15 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      {/* Tenant: Upload proof for unpaid payments */}
-                      {!isManager && payment.status !== 'paid' && !payment.proof_of_payment_url && (
+                      {/* Tenant: Mark as Paid (opens upload dialog) */}
+                      {!isManager && payment.status !== 'paid' && (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            setSelectedPaymentId(payment.id);
-                            setUploadDialogOpen(true);
-                          }}
+                          onClick={() => handleTenantMarkAsPaid(payment.id)}
                         >
                           <Upload className="h-4 w-4 mr-2" />
-                          {t("payments.uploadProofBtn")}
+                          {t("payments.markPaidBtn")}
                         </Button>
                       )}
                       {/* Manager: Review proof */}
@@ -222,8 +248,8 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                           {t("payments.reviewBtn")}
                         </Button>
                       )}
-                      {/* Manager: Mark as paid */}
-                      {isManager && payment.status !== 'paid' && !payment.proof_of_payment_url && (
+                      {/* Manager: Mark as paid directly */}
+                      {isManager && payment.status !== 'paid' && (
                         <Button
                           size="sm"
                           variant="outline"
@@ -233,11 +259,13 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                           {marking === payment.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
-                            t("payments.markPaidBtn")
+                            <>
+                              <CheckCircle2 className="h-4 w-4 mr-2" />
+                              {t("payments.markPaidBtn")}
+                            </>
                           )}
                         </Button>
                       )}
-                      {/* SEPA Retry button hidden - backend code preserved for future use */}
                       {/* No actions for paid payments */}
                       {payment.status === 'paid' && (
                         <span className="text-sm text-muted-foreground">—</span>

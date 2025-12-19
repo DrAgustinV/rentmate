@@ -117,6 +117,10 @@ verify_jwt = false  # Public endpoint for token validation
 [functions.charge-overage]
 verify_jwt = true  # Requires user authentication for billing
 
+# On-demand rent payment generation
+[functions.ensure-rent-payments]
+verify_jwt = true  # Requires user authentication
+
 # AI Assistant - Property descriptions and smart comment responses
 [functions.ai-assistant]
 verify_jwt = true  # Requires user authentication
