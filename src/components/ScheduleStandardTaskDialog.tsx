@@ -103,18 +103,30 @@ export function ScheduleStandardTaskDialog({
 
       if (templateError) throw templateError;
 
-      // Check if start date is today or in the past
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const scheduleStart = new Date(startDate);
-      scheduleStart.setHours(0, 0, 0, 0);
+      // Always create the first ticket immediately with scheduled_date
+      const { error: ticketError } = await supabase
+        .from("tickets")
+        .insert({
+          property_id: propertyId,
+          title: standardTemplate.title,
+          description: standardTemplate.description,
+          type: standardTemplate.type as any,
+          priority: standardTemplate.priority as any,
+          status: "open",
+          created_by: userData.user.id,
+          source_template_id: template.id,
+          scheduled_date: format(startDate, "yyyy-MM-dd"),
+        });
 
-      const shouldCreateImmediateTicket = scheduleStart <= today;
-      const nextRunDate = shouldCreateImmediateTicket 
-        ? calculateNextRunDate(startDate, frequency)
-        : startDate;
+      if (ticketError) {
+        console.error("Error creating initial ticket:", ticketError);
+        // Don't throw - schedule is still valid
+      }
 
-      // Create recurring schedule with correct next_run_date
+      // Set next_run_date to the NEXT occurrence after start date
+      const nextRunDate = calculateNextRunDate(startDate, frequency);
+
+      // Create recurring schedule
       const { error: scheduleError } = await supabase
         .from("recurring_schedules")
         .insert({
@@ -129,27 +141,6 @@ export function ScheduleStandardTaskDialog({
         });
 
       if (scheduleError) throw scheduleError;
-
-      // Create the first ticket immediately if start date is today or earlier
-      if (shouldCreateImmediateTicket) {
-        const { error: ticketError } = await supabase
-          .from("tickets")
-          .insert({
-            property_id: propertyId,
-            title: standardTemplate.title,
-            description: standardTemplate.description,
-            type: standardTemplate.type as any,
-            priority: standardTemplate.priority as any,
-            status: "open",
-            created_by: userData.user.id,
-            source_template_id: template.id,
-          });
-
-        if (ticketError) {
-          console.error("Error creating initial ticket:", ticketError);
-          // Don't throw - schedule is still valid
-        }
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks-with-schedules"] });

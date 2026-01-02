@@ -962,6 +962,8 @@ export const en = {
       title: "Schedule Maintenance Task",
       description: "Choose a task from the standard library to schedule for this property",
     },
+    scheduledFor: "Scheduled",
+    upcoming: "Upcoming",
   },
   propertyTenants: {
     tabs: {

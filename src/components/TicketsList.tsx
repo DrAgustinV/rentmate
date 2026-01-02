@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate } from "@/lib/dateUtils";
-import { RotateCw } from "lucide-react";
+import { RotateCw, Calendar } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Ticket {
@@ -14,6 +14,7 @@ interface Ticket {
   priority: string;
   type: string;
   created_at: string;
+  scheduled_date?: string | null;
   source_template_id?: string | null;
   properties: { id: string; title: string } | null;
   ticket_templates?: { title: string } | null;
@@ -98,12 +99,18 @@ export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: 
             >
               <TableCell className="font-mono text-sm">{ticket.ticket_number}</TableCell>
               <TableCell className="font-medium">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {ticket.title}
                   {showRecurringBadge && ticket.source_template_id && (
                     <Badge variant="outline" className="flex items-center gap-1">
                       <RotateCw className="h-3 w-3" />
                       {t('tickets.recurring')}
+                    </Badge>
+                  )}
+                  {ticket.scheduled_date && new Date(ticket.scheduled_date) > new Date() && (
+                    <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                      <Calendar className="h-3 w-3" />
+                      {t('tickets.scheduledFor') || 'Scheduled'}: {formatDate(ticket.scheduled_date)}
                     </Badge>
                   )}
                 </div>

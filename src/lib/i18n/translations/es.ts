@@ -1051,6 +1051,8 @@ export const es = {
       title: "Programar Tarea de Mantenimiento",
       description: "Elige una tarea de la biblioteca estándar para programar en esta propiedad",
     },
+    scheduledFor: "Programado",
+    upcoming: "Próximo",
   },
   utilities: {
     title: "Servicios",
