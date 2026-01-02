@@ -63,6 +63,20 @@ export function ScheduleStandardTaskDialog({
     other: "bg-gray-500/10 text-gray-500 border-gray-500/20",
   };
 
+  // Helper to calculate next run date after creating immediate ticket
+  const calculateNextRunDate = (currentDate: Date, freq: string): Date => {
+    const nextDate = new Date(currentDate);
+    switch (freq) {
+      case "daily": nextDate.setDate(nextDate.getDate() + 1); break;
+      case "weekly": nextDate.setDate(nextDate.getDate() + 7); break;
+      case "monthly": nextDate.setMonth(nextDate.getMonth() + 1); break;
+      case "quarterly": nextDate.setMonth(nextDate.getMonth() + 3); break;
+      case "yearly": nextDate.setFullYear(nextDate.getFullYear() + 1); break;
+      default: nextDate.setDate(nextDate.getDate() + 1);
+    }
+    return nextDate;
+  };
+
   const scheduleTaskMutation = useMutation({
     mutationFn: async () => {
       if (!standardTemplate || !startDate || !frequency) {
@@ -89,7 +103,18 @@ export function ScheduleStandardTaskDialog({
 
       if (templateError) throw templateError;
 
-      // Create recurring schedule
+      // Check if start date is today or in the past
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const scheduleStart = new Date(startDate);
+      scheduleStart.setHours(0, 0, 0, 0);
+
+      const shouldCreateImmediateTicket = scheduleStart <= today;
+      const nextRunDate = shouldCreateImmediateTicket 
+        ? calculateNextRunDate(startDate, frequency)
+        : startDate;
+
+      // Create recurring schedule with correct next_run_date
       const { error: scheduleError } = await supabase
         .from("recurring_schedules")
         .insert({
@@ -99,14 +124,37 @@ export function ScheduleStandardTaskDialog({
           frequency,
           start_date: format(startDate, "yyyy-MM-dd"),
           end_date: endDate ? format(endDate, "yyyy-MM-dd") : null,
-          next_run_date: format(startDate, "yyyy-MM-dd"),
+          next_run_date: format(nextRunDate, "yyyy-MM-dd"),
           is_active: isActive,
         });
 
       if (scheduleError) throw scheduleError;
+
+      // Create the first ticket immediately if start date is today or earlier
+      if (shouldCreateImmediateTicket) {
+        const { error: ticketError } = await supabase
+          .from("tickets")
+          .insert({
+            property_id: propertyId,
+            title: standardTemplate.title,
+            description: standardTemplate.description,
+            type: standardTemplate.type as any,
+            priority: standardTemplate.priority as any,
+            status: "open",
+            created_by: userData.user.id,
+            source_template_id: template.id,
+          });
+
+        if (ticketError) {
+          console.error("Error creating initial ticket:", ticketError);
+          // Don't throw - schedule is still valid
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks-with-schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["property-tickets"] });
       toast({
         title: t("maintenance.scheduleStandard.success") || "Task scheduled",
         description: t("maintenance.scheduleStandard.successDescription") || "The maintenance task has been scheduled successfully.",
