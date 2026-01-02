@@ -85,22 +85,22 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
       if (tenantStatus?.status === "occupied") {
         return {
           variant: "success" as const,
-          text: t("properties.active"),
+          text: t("properties.status.active"),
         };
       } else {
         // Free or invited - use brand primary color
         return {
           variant: "default" as const,
-          text: t("properties.free"),
+          text: t("properties.occupancy.free"),
         };
       }
     } else if (property.status === "ending_tenancy") {
       return {
         variant: "warning" as const,
-        text: t("properties.endingTenancy"),
+        text: t("properties.status.ending_tenancy"),
       };
     } else {
-      return { variant: "secondary" as const, text: t("properties.inactive") };
+      return { variant: "secondary" as const, text: t("properties.status.archived") };
     }
   };
 
