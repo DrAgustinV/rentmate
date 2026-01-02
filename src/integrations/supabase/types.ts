@@ -2580,6 +2580,7 @@ export type Database = {
           resolution_notes: string | null
           resolved_at: string | null
           resolved_by: string | null
+          scheduled_date: string | null
           source_template_id: string | null
           status: Database["public"]["Enums"]["ticket_status"]
           ticket_number: string
@@ -2598,6 +2599,7 @@ export type Database = {
           resolution_notes?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
+          scheduled_date?: string | null
           source_template_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           ticket_number?: string
@@ -2616,6 +2618,7 @@ export type Database = {
           resolution_notes?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
+          scheduled_date?: string | null
           source_template_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           ticket_number?: string
