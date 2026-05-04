@@ -1,5 +1,10 @@
-import { translations } from './translations/index';
-import { AVAILABLE_LANGUAGES } from './languages.config';
+// import { translations } from './translations/index';
+// ✅ Correct - access the exports properly
+const translationsModule = await import('./translations/index.ts');
+const translations = translationsModule.default || translationsModule;
+
+import { AVAILABLE_LANGUAGES } from './languages.config.ts';
+
 
 type TranslationPath = string;
 

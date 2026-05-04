@@ -60,11 +60,24 @@ return (
   <div className="min-h-screen flex flex-col">
     <AppHeader />
     
-    {/* Background Image with Overlay */}
-    <div
+    {/* Background Video with Overlay */}
+    <video
+      autoPlay
+      muted
+      loop
+      playsInline
+      className="absolute inset-0 w-full h-full object-cover opacity-50"
+    >
+      <source src="/hero-bg.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+    
+    {/* Background Image with Overlay - COMMENTED OUT */}
+    {/* <div
       className="absolute inset-0 bg-cover bg-center opacity-50"
       style={{ backgroundImage: `url(${heroProperty})` }}
-    />
+    /> */}
+    
     <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/20" />
     <div className="container mx-auto px-4 py-16 relative z-10 pt-24">
       <div className="text-center mb-16 animate-fade-in">
@@ -84,8 +97,8 @@ return (
             </div>
       </div>
 
-      {/* Feature Carousel */}
-      <div className="max-w-5xl mx-auto mb-20 px-12">
+      {/* Feature Carousel - COMMENTED OUT */}
+      {/* <div className="max-w-5xl mx-auto mb-20 px-12">
         <Carousel
           plugins={[autoplayPlugin.current]}
           opts={{
@@ -121,7 +134,7 @@ return (
           <CarouselPrevious className="hidden sm:flex" />
           <CarouselNext className="hidden sm:flex" />
         </Carousel>
-      </div>
+      </div> */}
 
       {/* For Property Managers */}
       <div id="managers" className="text-center mb-8 scroll-mt-24">

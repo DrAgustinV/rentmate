@@ -1,0 +1,127 @@
+The user is asking a strategic/research question: what's needed to close RentMate as an MVP — focus on stabilization, not new features, and identify what to defer if too complex.
+
+This is a research + planning question, not an implementation task. But the user explicitly asked "what would be needed" — so a structured plan/assessment is the right format. No code changes proposed; this is a roadmap.
+
+Let me synthesize from what I know about the project (memory + file structure):
+
+Already built and working:
+
+Auth (signup/login/email verification, Google OAuth, password reset)
+Property management (CRUD, photos, documents, templates)
+Tenant invitations (auto-accept flow)
+Tenancy setup wizard + parallel transitions + historic access
+Rent agreements + payments (Stripe Connect)
+Utility payments
+Tickets + maintenance (unified view, recurring schedules, templates)
+Inspections (move-in/out, dual signature)
+Digital signatures: DocuSeal (AES) + YouSign (QES)
+KYC: Didit.me primary
+Subscriptions: FREE/PRO with Stripe, admin grants, pay-as-you-go overage
+Admin panel (users, properties, tickets, plans, brand, carousel, analytics)
+i18n (EN/ES active, 12 configured)
+GDPR data export + deletion
+Brand customization
+
+
+Known weak / incomplete areas (from memory + project knowledge):
+
+GDPR partial — missing legal docs polish
+Pro/Enterprise "Coming Soon" labels still in UI per project knowledge
+AutoFirma hidden, OpenAPI QES disabled — fine, already excluded
+KILT / OpenAPI IDV secondary providers — could defer
+Only EN/ES active out of 12 languages
+SEPA bank-to-bank hidden but code present
+Plan structure: (1) MVP definition, (2) must-fix before launch, (3) defer/hide list, (4) QA pass checklist, (5) launch ops. Keep concise.
+
+RentMate MVP Closeout Plan
+1. What "MVP" means here
+Single-tenant-per-property B2B SaaS where a manager can: create a property → invite a tenant → sign a contract → collect rent → handle tickets/maintenance → end tenancy. Everything else is a "nice to have."
+
+2. Must-fix before launch (blockers)
+Stability & QA
+Full end-to-end smoke test on production domain (rentmate.me) for both manager and tenant flows
+Verify all email templates render correctly (invitation, verification, password reset, payment reminders)
+Check Stripe Connect onboarding works in live mode (currently likely test mode)
+Confirm webhook endpoints (Stripe, YouSign) are receiving events on prod
+Run Supabase linter, fix any error-level findings
+
+Run security scan, address criticals only
+Legal / GDPR (partial today)
+Verify Privacy Policy, Terms, Cookie Policy, DPA pages have correct company details (not placeholder text)
+Confirm "Export my data" and "Delete my account" both work end-to-end
+Cookie consent banner appears for new visitors
+Subscription billing
+
+
+Project knowledge says "Pro/Enterprise not yet available for signup" — decide: enable PRO checkout for MVP, or keep FREE-only and hide pricing CTAs
+
+If enabling PRO: confirm Stripe products synced, test one real subscription cycle + one overage charge
+If FREE-only: hide /pricing PRO button, change to "Contact us"
+
+Critical bugs from recent sessions
+Confirm the recent fix for "scheduled tickets for future dates not showing" works end-to-end
+
+3. Features to hide / defer from MVP
+These exist in code but add risk. Hide via feature flag or remove the entry point:
+Feature
+Recommendation
+Reason
+KILT Protocol KYC
+Hide (keep code)
+Blockchain extra; Didit covers MVP
+OpenAPI IDV (KYC)
+AutoFirma signature
+Keep hidden
+Languages beyond EN/ES
+Hide selector options
+Only ship EN+ES
+SEPA bank-to-bank
+Already hidden ✓
+Keep hidden
+
+Enterprise plan signup
+"Contact sales" form only
+No self-serve
+
+AI assistant
+Decide: ship or hide
+If unproven, hide the entry point
+
+Repair shops module
+Optional — keep if working, hide if buggy
+Not core to rent flow
+
+Inspections (move-in/out)
+Keep if tested, else hide
+Complex dual-signature; risky if broken
+
+4. QA pass checklist (the actual work)
+Manager journey (1 hour):
+Sign up → verify email → create property → upload photo + document
+Run Tenancy Setup Wizard → send invitation
+Receive invitation as test tenant → accept → verify ID → sign contract
+Generate first month's rent payment → tenant pays via Stripe → manager sees payment
+Tenant submits ticket → manager closes it
+
+End tenancy → confirm historic access works
+Tenant journey (30 min): mirror of above from tenant side.
+Admin journey (15 min): view users, grant a subscription, view analytics, manage carousel.
+Edge cases: password reset, account deletion, data export, declined invitation, parallel tenancy transition.
+
+5. Launch ops
+Confirm custom domain rentmate.me SSL valid
+Confirm Resend domain verified for noreply@ and send@
+Set up basic uptime monitoring (external ping)
+Backup strategy: confirm Supabase auto-backups enabled
+Decide on a soft-launch user list (5-10 friendly managers) before public
+
+6. Estimated effort
+Hide deferred features + copy fixes: 0.5 day
+Full QA pass + bug fixes found: 2-3 days
+Stripe live-mode + webhook verification: 0.5 day
+Legal page polish: 0.5 day
+Realistic MVP-ready: ~4-5 working days of focused stabilization, no new features.
+
+Recommended next step
+
+Pick one: (a) start with the QA pass and log bugs, or (b) first hide deferred features so QA is scoped to MVP-only surface. I'd recommend (b) first, then (a) — narrower test surface means fewer false-positive bugs.
