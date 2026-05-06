@@ -1,0 +1,1830 @@
+Key,English Value
+about.efficiency,Eficiencia
+about.efficiencyDesc,Flujos de trabajo optimizados que ahorran tiempo y reducen la carga administrativa.
+about.maintenanceScheduling,Programación de Mantenimiento
+about.maintenanceSchedulingDesc,Planifica y programa tareas de mantenimiento recurrentes para mantener tus propiedades en las mejores condiciones.
+about.missionSubtitle,Simplificando la gestión de propiedades para todos
+about.missionText,"FlatMate es una plataforma moderna de gestión de propiedades diseñada para optimizar la comunicación entre administradores de propiedades e inquilinos. Nuestro objetivo es hacer que la gestión de propiedades sea simple, eficiente y transparente para todas las partes involucradas."
+about.ourMission,Nuestra Misión
+about.ourValues,Nuestros Valores
+about.propertyManagement,Gestión de Propiedades
+about.propertyManagementDesc,"Gestiona múltiples propiedades, rastrea inquilinos y mantén documentos de propiedades en una plataforma centralizada."
+about.realtimeCommunication,Comunicación en Tiempo Real
+about.realtimeCommunicationDesc,Mantente conectado con inquilinos y administradores de propiedades a través de nuestras herramientas de comunicación integradas.
+about.reliability,Confiabilidad
+about.reliabilityDesc,Una plataforma confiable en la que puedes confiar para gestionar tus propiedades.
+about.ticketManagement,Gestión de Tickets
+about.ticketManagementDesc,"Crea, rastrea y resuelve solicitudes de mantenimiento y problemas de manera eficiente con nuestro sistema intuitivo de tickets."
+about.title,Acerca de FlatMate
+about.transparency,Transparencia
+about.transparencyDesc,Comunicación clara y visibilidad en todas las actividades relacionadas con la propiedad.
+about.whatWeOffer,Lo Que Ofrecemos
+account.comingSoon,Próximamente
+account.identity,Verificación de Identidad
+account.myAccount,Mi Cuenta
+account.photoHint,"JPG, PNG o WEBP. Máximo 5MB."
+account.photoInvalidType,Por favor sube un archivo de imagen
+account.photoRemoved,Foto de perfil eliminada
+account.photoTooLarge,La imagen debe ser menor a 5MB
+account.photoUploaded,Foto de perfil actualizada
+account.plansCredits,Planes y Créditos
+account.profile,Perfil
+account.profilePhoto,Foto de Perfil
+account.removePhoto,Eliminar
+account.uploadPhoto,Subir Foto
+active,Activo
+admin.actions,Acciones
+admin.addRole,Agregar rol
+admin.address,Dirección
+admin.adminRole,Administrador
+admin.allProperties,Todas las Propiedades
+admin.allPropertiesDesc,Ver y gestionar todas las propiedades del sistema
+admin.allTickets,Todos los Tickets
+admin.allTicketsDesc,Ver y gestionar todos los tickets de todas las propiedades
+admin.analytics.activeSessions,Sesiones Activas
+admin.analytics.allTime,Todo el tiempo
+admin.analytics.description,"Seguimiento de análisis de visitantes, métricas de uso y comportamiento del usuario"
+admin.analytics.deviceBreakdown,Desglose por Dispositivo
+admin.analytics.deviceBreakdownDesc,Distribución de visitantes por tipo de dispositivo
+admin.analytics.devices,Dispositivos
+admin.analytics.events,Eventos
+admin.analytics.geography,Geografía
+admin.analytics.last30Days,Últimos 30 días
+admin.analytics.last7Days,Últimos 7 días
+admin.analytics.last90Days,Últimos 90 días
+admin.analytics.pageViews,Visitas a Páginas
+admin.analytics.tab,Análisis
+admin.analytics.title,Panel de Análisis
+admin.analytics.topCountries,Principales Países
+admin.analytics.topCountriesDesc,Distribución de visitantes por país
+admin.analytics.topEvents,Principales Eventos
+admin.analytics.topEventsDesc,Eventos activados con mayor frecuencia
+admin.analytics.totalEvents,Eventos Totales
+admin.analytics.totalVisitors,Visitantes Totales
+admin.analytics.traffic,Tráfico
+admin.analytics.trafficOverTime,Tráfico a lo Largo del Tiempo
+admin.analytics.trafficOverTimeDesc,Ver visitas a páginas y visitantes únicos a lo largo del tiempo
+admin.analytics.visitors,Visitantes
+admin.cancelDelete,Cancelar
+admin.cannotDeleteSelf,No puedes eliminar tu propia cuenta
+admin.confirmDelete,Confirmar Eliminación
+admin.created,Creado
+admin.dashboardTitle,Panel de Administración
+admin.deleteUser,Eliminar Usuario
+admin.deleteUserWarning,Esto eliminará permanentemente a este usuario y todos sus datos.
+admin.description,"Gestiona usuarios, propiedades, tickets y configuración del sistema"
+admin.email,Correo Electrónico
+admin.joined,Registrado
+admin.kiltSetup,Configuración KILT
+admin.kiltSetupDesc,Generar credenciales de prueba para integración de testnet KILT (solo desarrollo)
+admin.kiltSetupTitle,Configuración de Protocolo KILT
+admin.loading,Cargando
+admin.loadingProperties,Cargando propiedades...
+admin.loadingTickets,Cargando tickets...
+admin.loadingUsers,Cargando usuarios...
+admin.manager,Administrador
+admin.name,Nombre
+admin.openKiltSetup,Abrir Configuración KILT
+admin.phone,Teléfono
+admin.priority,Prioridad
+admin.properties,Propiedades
+admin.propertyTitle,Título
+admin.roleAddedError,Error al agregar rol
+admin.roleAddedSuccess,Rol agregado exitosamente
+admin.roles,Roles
+admin.settings,Configuración
+admin.status,Estado
+admin.systemSettings,Configuración del Sistema
+admin.systemSettingsDesc,Configurar ajustes y límites del sistema
+admin.ticketNumber,Ticket #
+admin.tickets,Tickets
+admin.type,Tipo
+admin.userDeletedError,Error al eliminar usuario
+admin.userDeletedSuccess,Usuario eliminado exitosamente
+admin.userManagement,Gestión de Usuarios
+admin.userManagementDesc,Ver todos los usuarios y gestionar sus roles
+admin.userRole,Usuario
+admin.users,Usuarios
+ai.descriptionGenerated,Descripción generada exitosamente
+ai.draft,Borrador
+ai.generate,Generar
+ai.generationError,Error al generar contenido. Por favor intenta de nuevo.
+ai.noTicketContext,No se puede generar respuesta sin contexto del ticket
+ai.responseGenerated,Respuesta generada exitosamente
+ai.titleRequired,Por favor ingresa un título de propiedad primero
+auth.accountDetected,Cuenta detectada
+auth.accountDetectedDesc,¡Encontramos tu cuenta! Inicia sesión para aceptar tu invitación de propiedad.
+auth.alreadyHaveAccount,¿Ya tienes una cuenta?
+auth.authenticationFailed,Error de autenticación
+auth.backToHome,Volver al inicio
+auth.backToSignIn,Volver a iniciar sesión
+auth.cannotSignInUnconfirmed,Correo no confirmado. Por favor revisa tu correo y haz clic en el enlace de confirmación.
+auth.changePassword,Cambiar contraseña
+auth.checkEmailForReset,Revisa tu correo para el enlace de restablecimiento
+auth.checkInboxAndSpam,Revisa tu bandeja de entrada y spam.
+auth.checkYourEmail,¡Revisa tu correo!
+auth.clickToActivate,Haz clic en el enlace para activar tu cuenta.
+auth.confirmPassword,Confirmar contraseña
+auth.confirmationLinkSent,Hemos enviado un enlace de confirmación a
+auth.confirmationResent,Correo de confirmación reenviado
+auth.continueWithGoogle,Continuar con Google
+auth.createAccount,Crear cuenta
+auth.currentPassword,Contraseña actual
+auth.email,Correo electrónico
+auth.emailAlreadyVerified,Tu email ya está verificado
+auth.emailConfirmationRequired,Por favor confirma tu correo
+auth.emailConfirmationSent,Revisa tu correo para el enlace de confirmación
+auth.emailNotConfirmed,Por favor confirma tu correo antes de iniciar sesión
+auth.emailNotYetVerified,Email aún no verificado. Revisa tu bandeja de entrada.
+auth.emailVerified,¡Email verificado!
+auth.emailVerifiedDesc,Tu email ha sido verificado. Redirigiendo a la app...
+auth.emailVerifiedTitle,¡Email Verificado!
+auth.errorCheckingAuth,Error al verificar el estado de autenticación
+auth.firstName,Nombre
+auth.forgotPassword,¿Olvidaste tu contraseña?
+auth.getStarted,Comienza con tu gestión de propiedades
+auth.goToApp,Ir a la App
+auth.iVerifiedCheckNow,Ya verifiqué - comprobar ahora
+auth.invalidCredentials,Correo o contraseña inválidos
+auth.invalidResetToken,Enlace de restablecimiento inválido o expirado
+auth.invalidToken,El enlace de verificación es inválido o ya fue usado.
+auth.lastName,Apellido
+auth.linkExpired,Enlace Expirado
+auth.linkExpiredDesc,Este enlace de verificación ha expirado. Por favor solicita uno nuevo.
+auth.linkExpiresIn24Hours,El enlace expira en 24 horas.
+auth.networkError,Error de red. Por favor verifica tu conexión.
+auth.newPassword,Nueva contraseña
+auth.noAccountDetected,Cuenta no encontrada
+auth.noAccountDetectedDesc,No encontramos una cuenta con tu correo electrónico. Vamos a crear una para aceptar tu invitación.
+auth.noAccountYet,¿No tienes cuenta todavía?
+auth.noVerificationToken,Sin Token de Verificación
+auth.noVerificationTokenDesc,Por favor usa el enlace de verificación de tu email.
+auth.orContinueWith,o continuar con
+auth.password,Contraseña
+auth.passwordChangeFailed,Error al cambiar la contraseña
+auth.passwordChanged,Contraseña cambiada con éxito
+auth.passwordRequirements,Debe tener al menos 8 caracteres
+auth.passwordResetSuccess,¡Contraseña actualizada con éxito!
+auth.passwordTooShort,La contraseña debe tener al menos 8 caracteres
+auth.passwordsDoNotMatch,Las contraseñas no coinciden
+auth.pleaseWait,Por favor espera mientras verificamos tu email.
+auth.rateLimitExceeded,Demasiadas solicitudes. Por favor intenta de nuevo en 1 hora.
+auth.requestNewLink,Solicitar Nuevo Enlace
+auth.resendConfirmation,Reenviar correo de confirmación
+auth.resendVerificationEmail,Reenviar Email de Verificación
+auth.resetLinkSent,¡Enlace de restablecimiento enviado!
+auth.resetPassword,Restablecer contraseña
+auth.resetPasswordDesc,Ingresa tu correo para recibir un enlace de restablecimiento
+auth.resetPasswordTitle,Restablece tu contraseña
+auth.resetTokenExpired,Este enlace de restablecimiento ha expirado. Solicita uno nuevo.
+auth.sendResetLink,Enviar enlace de restablecimiento
+auth.setNewPassword,Establecer nueva contraseña
+auth.signIn,Iniciar sesión
+auth.signInFailed,Error al iniciar sesión
+auth.signInHere,Inicia sesión aquí
+auth.signInSuccess,¡Sesión iniciada con éxito!
+auth.signInToContinue,Inicia sesión para continuar a tu panel
+auth.signOut,Cerrar Sesión
+auth.signUp,Registrarse
+auth.signUpFailed,Error al crear cuenta
+auth.signUpHere,Regístrate aquí
+auth.signUpSuccess,¡Cuenta creada con éxito!
+auth.trustBadge,Confiado por gestores de propiedades en toda Europa
+auth.userAlreadyRegistered,Este correo ya está registrado
+auth.valueProps.automated.description,"Rastrea pagos de alquiler, fechas de vencimiento e historial de pagos en un solo lugar."
+auth.valueProps.automated.title,Seguimiento de Pagos Simple
+auth.valueProps.realtime.description,"Rastrea solicitudes de mantenimiento, pagos y comunicaciones en un solo lugar."
+auth.valueProps.realtime.title,Actualizaciones en Tiempo Real
+auth.valueProps.secure.description,Firma contratos de alquiler con firmas digitales legalmente vinculantes y verificación de identidad.
+auth.valueProps.secure.title,Contratos Digitales Seguros
+auth.valueProps.title,Simplifica la Gestión de tus Propiedades
+auth.verificationEmailFailed,Error al enviar email de verificación
+auth.verificationEmailSent,¡Email de verificación enviado!
+auth.verificationFailed,Verificación Fallida
+auth.verificationSentTo,Enviamos un enlace de verificación a
+auth.verifyYourEmail,Verifica Tu Email
+auth.verifyingEmail,Verificando tu email...
+auth.weakPassword,"Contraseña muy débil. Usa una mezcla de letras, números y símbolos."
+auth.welcomeBack,Bienvenido de nuevo
+buttons.documents,Documentos
+buttons.inviteTenant,Invitar Inquilino
+buttons.maintenance,Mantenimiento
+buttons.manageTenants,Gestionar Inquilinos
+buttons.tickets,Tickets
+buttons.viewAll,Ver Todo
+common.acceptAll,Aceptar Todas las Cookies
+common.actions,Acciones
+common.amount,Monto
+common.archive,Archivar
+common.back,Atrás
+common.cancel,Cancelar
+common.category,Categoría
+common.close,Cerrar
+common.comingSoon,Próximamente
+common.confirm,Confirmar
+common.cookieConsent,Consentimiento de Cookies
+common.cookieMessage,"Usamos cookies para mejorar tu experiencia. Al continuar visitando este sitio, aceptas nuestro uso de cookies."
+common.create,Crear
+common.creating,Creando...
+common.days,días
+common.delete,Eliminar
+common.download,Descargar
+common.draft,Borrador
+common.dueDate,Fecha de Vencimiento
+common.edit,Editar
+common.error,Error
+common.filter,Filtrar
+common.in,en
+common.loading,Cargando...
+common.month,mes
+common.na,N/D
+common.next,Siguiente
+common.no,No
+common.none,Ninguno
+common.notAuthenticated,No autenticado
+common.of,de
+common.open,Abrir
+common.optional,Opcional
+common.priority,Prioridad
+common.rejectNonEssential,Rechazar No Esenciales
+common.retry,Reintentar
+common.save,Guardar
+common.search,Buscar
+common.sent,Enviado
+common.status,Estado
+common.submit,Enviar
+common.success,Éxito
+common.title,Título
+common.today,Hoy
+common.tomorrow,Mañana
+common.type,Tipo
+common.unknown,Desconocido
+common.update,Actualizar
+common.upload,Subir
+common.uploading,Subiendo...
+common.user,Usuario
+common.validationError,Error de Validación
+common.yes,Sí
+configuration.addMaintenanceTask,Agregar Tarea de Mantenimiento
+configuration.addTemplate,Agregar Plantilla
+configuration.defaultDepositHelper,"Ingrese el monto del depósito de seguridad predeterminado (p. ej., 1000 para €1,000.00)"
+configuration.defaultDepositPlaceholder,0
+configuration.defaultDepositTitle,Depósito de Seguridad Predeterminado
+configuration.defaultsDescription,Establecer valores predeterminados para nuevos contratos de alquiler
+configuration.defaultsTitle,Configuración Predeterminada
+configuration.documentTemplatesDesc,Plantillas de documentos reutilizables para propiedades
+configuration.documentTemplatesHelper,Cree plantillas de documentos que se pueden copiar a propiedades. Estas plantillas están disponibles en todas sus propiedades.
+configuration.documentTemplatesTitle,Plantillas de Documentos
+configuration.electricityBillDesc,Requerir comprobante de pago de factura de electricidad cada mes
+configuration.electricityBillTitle,Verificación Mensual de Factura de Electricidad
+configuration.pageDescription,Administre la configuración y valores predeterminados de gestión de propiedades
+configuration.pageTitle,Configuración
+configuration.paymentConfirmDesc,Requerir que el inquilino confirme los pagos mensuales de alquiler
+configuration.paymentConfirmTitle,Confirmación de Pago Mensual
+configuration.requireKYCDesc,Requerir que los inquilinos verifiquen su identidad antes de firmar contratos
+configuration.requireKYCTitle,Requerir Verificación de Identidad
+configuration.saveDefaults,Guardar Valores Predeterminados
+configuration.saving,Guardando...
+configuration.standardMaintenanceDesc,Cree plantillas de tareas de mantenimiento reutilizables que se pueden aplicar a cualquier propiedad
+configuration.standardMaintenanceTitle,Plantillas de Mantenimiento Estándar
+configuration.tabs.defaults,Valores Predeterminados
+configuration.tabs.maintenance,Mantenimiento Estándar
+configuration.tabs.payments,Pagos
+configuration.tabs.repairShops,Talleres de Reparación
+configuration.tabs.templates,Plantillas de Documentos
+configuration.title,Configuración
+configuration.waterBillDesc,Requerir comprobante de pago de factura de agua cada mes
+configuration.waterBillTitle,Verificación Mensual de Factura de Agua
+contractSignature.blockchainVerified,Identidad Blockchain Verificada
+contractSignature.checkingKYC,Verificando estado de verificación...
+contractSignature.completeVerificationLink,Completar Verificación en Configuración
+contractSignature.description,Firma de contratos de alquiler de forma segura con firma electrónica cualificada eIDAS
+contractSignature.downloadContract,Contrato Firmado Disponible
+contractSignature.error,Error al enviar el recordatorio
+contractSignature.expiresOn,La solicitud de firma expira
+contractSignature.initiate,Iniciar Firma Digital
+contractSignature.initiated,Proceso de firma iniciado
+contractSignature.kycEnhancement,Complete la verificación KILT para identidad verificada en blockchain (mejora opcional)
+contractSignature.kycNotVerified,Identidad No Verificada
+contractSignature.kycOptional,La Verificación de Identidad es Opcional
+contractSignature.kycRequiredForDock,Verificación de identidad requerida
+contractSignature.kycVerified,Identidad Verificada
+contractSignature.managerKYCRequired,Debes completar la verificación de identidad antes de firmar contratos.
+contractSignature.managerSignature,Firma del Propietario
+contractSignature.methods.certificadoDigital,Certificado Digital (FNMT)
+contractSignature.methods.clave,Autenticación Cl@ve
+contractSignature.methods.qualifiedSignature,Firma Cualificada
+contractSignature.reminder.lastSentAt,Último recordatorio enviado
+contractSignature.reminder.reminderSent,Recordatorio Enviado
+contractSignature.reminder.sendReminder,Enviar Recordatorio
+contractSignature.requireKYCDescription,"Cuando está habilitado, ambas partes deben completar KILT KYC antes de firmar"
+contractSignature.requireKYCTitle,Requerir Verificación de Identidad
+contractSignature.sending,Enviando recordatorio...
+contractSignature.signNow,Firmar Ahora
+contractSignature.signed,Firma completada
+contractSignature.signedOn,Firmado el
+contractSignature.standardSignature,Firma Electrónica Estándar
+contractSignature.status.cancelled,Cancelado
+contractSignature.status.completed,Completado
+contractSignature.status.failed,Fallido
+contractSignature.status.inProgress,En Proceso
+contractSignature.status.pending,Pendiente
+contractSignature.success,Recordatorio enviado exitosamente al inquilino
+contractSignature.tenantKYCRequired,El inquilino debe completar la verificación de identidad antes de firmar.
+contractSignature.tenantSignature,Firma del Inquilino
+contractSignature.title,Firma Digital del Contrato
+contractSignature.verificationRequired,Verificación Requerida
+contractSignature.waitingForManager,Esperando a que el propietario inicie el proceso de firma
+contractSignature.waitingForTenant,Esperando firma del inquilino
+contracts.manager,Propietario
+contracts.managerInfo,Administrador de Propiedad
+contracts.managerSignature,Propietario
+contracts.method,Método de Contrato
+contracts.noManagerInfo,Información del administrador no disponible
+contracts.noRentalTerms,Sin términos de alquiler configurados
+contracts.rentalTerms,Términos de Alquiler
+contracts.requestExpiration,Vencimiento de Solicitud
+contracts.signatureStatus,Estado de Firma
+contracts.tenant,Inquilino
+contracts.tenantInfo,Información del Inquilino
+contracts.tenantSignature,Inquilino
+createFirst,Cree un acuerdo de alquiler para comenzar a cobrar pagos de alquiler
+dashboard.active,Activo
+dashboard.allPropertiesArchived,Todas las propiedades están archivadas
+dashboard.archived,Archivado
+dashboard.createProperty,Crear Propiedad
+dashboard.getStarted,Comienza creando una propiedad o aceptando invitaciones de inquilino
+dashboard.manageProperties,Gestionar Propiedades
+dashboard.managePropertiesDesc,Crea y gestiona tus propias propiedades
+dashboard.myProperties,Mis Propiedades
+dashboard.myPropertiesDesc,Propiedades que gestionas
+dashboard.noActiveProperties,No hay propiedades activas
+dashboard.noArchivedProperties,No hay propiedades archivadas aún
+dashboard.noProperties,No se encontraron propiedades
+dashboard.tenantAccess,Acceso de Inquilino
+dashboard.tenantAccessDesc,Aún no has sido añadido a ninguna propiedad. Contacta a tu administrador de propiedades para obtener acceso.
+dashboard.tenantProperties,Propiedades como Inquilino
+dashboard.title,Panel
+dialogs.allowedTypes,"Permitido: PDF, DOC, DOCX, ODT, XLS, XLSX, ODS, TXT"
+dialogs.archiveProperty.activePropertyExists,No se puede crear nueva propiedad. Ya existe una propiedad activa en esta dirección.
+dialogs.archiveProperty.archive,Archivar
+dialogs.archiveProperty.archiving,Archivando...
+dialogs.archiveProperty.createNewProperty,Mantener la propiedad activa y disponible para el próximo inquilino
+dialogs.archiveProperty.descriptionArchive,Archivar esta propiedad permanentemente.
+dialogs.archiveProperty.descriptionEndTenancy,Termina el arrendamiento actual y opcionalmente crea una nueva propiedad activa para el próximo inquilino.
+dialogs.archiveProperty.endTenancy,Terminar Arrendamiento
+dialogs.archiveProperty.endingTenancy,Finalizando Arrendamiento...
+dialogs.archiveProperty.endingTenancyExists,No se puede terminar el arrendamiento. Otra propiedad en esta dirección ya está en estado \
+dialogs.archiveProperty.notesLabel,Notas Adicionales (Opcional)
+dialogs.archiveProperty.notesPlaceholder,Agrega información adicional...
+dialogs.archiveProperty.reasonLabel,Razón para Terminar el Arrendamiento *
+dialogs.archiveProperty.reasonMerged,Fusionada con Otra Propiedad
+dialogs.archiveProperty.reasonNoLonger,Ya No Se Gestiona
+dialogs.archiveProperty.reasonOther,Otra
+dialogs.archiveProperty.reasonPlaceholder,Selecciona una razón
+dialogs.archiveProperty.reasonRequired,Se requiere una razón
+dialogs.archiveProperty.reasonSold,Vendida
+dialogs.archiveProperty.success,Propiedad archivada exitosamente
+dialogs.archiveProperty.successArchive,Propiedad archivada exitosamente.
+dialogs.archiveProperty.successEndTenancy,Arrendamiento terminado. Propiedad movida al estado \
+dialogs.archiveProperty.successWithNew,Arrendamiento terminado y nueva propiedad activa creada.
+dialogs.archiveProperty.titleArchive,Archivar
+dialogs.archiveProperty.titleEndTenancy,Terminar Arrendamiento
+dialogs.archiveProperty.warningMessageArchive,Esto archivará permanentemente al inquilino. Todos los datos serán de solo lectura.
+dialogs.archiveProperty.warningMessageEndTenancy,Los inquilinos tendrán acceso de solo lectura. La propiedad pasará al estado \
+dialogs.archiveProperty.warningTitleArchive,Advertencia
+dialogs.archiveProperty.warningTitleEndTenancy,Importante
+dialogs.confirmAccountDeletion,Confirmar Eliminación de Cuenta
+dialogs.confirmAccountDeletionDesc,Tu cuenta será eliminada en 14 días. Puedes cancelar en cualquier momento antes.
+dialogs.contactEnterpriseSales,Contactar Ventas Enterprise
+dialogs.contactEnterpriseSalesDesc,Cuéntanos sobre tus necesidades y nuestro equipo creará una solución personalizada para ti.
+dialogs.createNewProperty,Crear Nueva Propiedad
+dialogs.createNewTicket,Crear Nuevo Ticket
+dialogs.createNewTicketDesc,Envía un nuevo ticket para un problema o solicitud de propiedad.
+dialogs.createProperty.addressLabel,Dirección
+dialogs.createProperty.addressPlaceholder,Calle Principal 123
+dialogs.createProperty.cancel,Cancelar
+dialogs.createProperty.create,Crear Propiedad
+dialogs.createProperty.creating,Creando...
+dialogs.createProperty.descriptionLabel,Descripción
+dialogs.createProperty.descriptionPlaceholder,Hermosa propiedad con vistas al mar...
+dialogs.createProperty.success,Propiedad creada exitosamente
+dialogs.createProperty.title,Crear Nueva Propiedad
+dialogs.createProperty.titleLabel,Título de la Propiedad *
+dialogs.createProperty.titlePlaceholder,Villa Frente al Mar
+dialogs.createProperty.titleRequired,El título es requerido
+dialogs.createProperty.titleTooLong,El título debe tener menos de 100 caracteres
+dialogs.createProperty.validationError,Error de Validación
+dialogs.createRecurringSchedule,Crear Programación Recurrente
+dialogs.createTicket.cancel,Cancelar
+dialogs.createTicket.characters,caracteres
+dialogs.createTicket.create,Crear Ticket
+dialogs.createTicket.created,Ticket creado
+dialogs.createTicket.createdDesc,Tu ticket ha sido creado exitosamente.
+dialogs.createTicket.description,Envía un nuevo ticket para un problema o solicitud de propiedad.
+dialogs.createTicket.descriptionLabel,Descripción *
+dialogs.createTicket.descriptionPlaceholder,Descripción detallada del problema o solicitud
+dialogs.createTicket.missingFields,Campos faltantes
+dialogs.createTicket.missingFieldsDesc,Por favor completa todos los campos requeridos.
+dialogs.createTicket.priorityLabel,Prioridad *
+dialogs.createTicket.propertyLabel,Propiedad *
+dialogs.createTicket.propertyPlaceholder,Selecciona propiedad
+dialogs.createTicket.title,Crear Nuevo Ticket
+dialogs.createTicket.titleLabel,Título *
+dialogs.createTicket.titlePlaceholder,Breve descripción del problema
+dialogs.createTicket.typeLabel,Tipo *
+dialogs.creating,Creando...
+dialogs.deleteAccount,Eliminar Cuenta
+dialogs.deleteAccountDesc,Esto te navegará a la configuración de Privacidad de la Cuenta donde puedes solicitar la eliminación con todos los detalles sobre qué se eliminará y qué se conservará.
+dialogs.deleteMaintenanceTask,Eliminar Tarea de Mantenimiento
+dialogs.deleteMaintenanceTaskDesc,¿Estás seguro de que quieres eliminar esta tarea? Esto también eliminará todas las programaciones y tickets generados asociados. Esta acción no se puede deshacer.
+dialogs.deleteProperty.archive,Archivar Propiedad
+dialogs.deleteProperty.archiving,Archivando...
+dialogs.deleteProperty.description,Esto marcará la propiedad como inactiva. Puedes verla en la sección de propiedades archivadas.
+dialogs.deleteProperty.notesLabel,Notas Adicionales (Opcional)
+dialogs.deleteProperty.notesPlaceholder,Agrega información adicional...
+dialogs.deleteProperty.reasonLabel,Razón para Archivar *
+dialogs.deleteProperty.reasonMerged,Fusionada con Otra Propiedad
+dialogs.deleteProperty.reasonNoLonger,Ya No Se Gestiona
+dialogs.deleteProperty.reasonOther,Otra
+dialogs.deleteProperty.reasonPlaceholder,Selecciona una razón
+dialogs.deleteProperty.reasonSold,Vendida
+dialogs.deleteProperty.title,Archivar Propiedad
+dialogs.deleteProperty.warningMessage,Archivar esta propiedad afectará las invitaciones pendientes y el acceso de los inquilinos.
+dialogs.deleteProperty.warningTitle,Advertencia
+dialogs.descriptionOptional,Descripción (Opcional)
+dialogs.descriptionPlaceholder,Agregar una descripción para esta plantilla...
+dialogs.dragDropFile,"Arrastre y suelte un archivo aquí, o haga clic para seleccionar"
+dialogs.editProperty.save,Guardar Cambios
+dialogs.editProperty.saving,Guardando...
+dialogs.editProperty.success,Propiedad actualizada exitosamente
+dialogs.editProperty.title,Editar Propiedad
+dialogs.editRentAgreement,Editar Contrato de Alquiler
+dialogs.editRentAgreementDesc,Actualiza los detalles del contrato de alquiler. El inquilino será notificado de los cambios.
+dialogs.endTenancy.confirm,Confirmar Fecha de Fin
+dialogs.endTenancy.description,Establece una fecha de fin planificada. Puedes configurar un nuevo inquilino en paralelo.
+dialogs.endTenancy.parallelSetupHint,"Después de establecer la fecha de fin, puedes comenzar a configurar un nuevo inquilino desde la pestaña Resumen."
+dialogs.endTenancy.pickDate,Seleccionar fecha de fin
+dialogs.endTenancy.selectEndDate,Fecha de Fin Planificada
+dialogs.endTenancy.tenantLabel,Inquilino
+dialogs.endTenancy.title,Terminar Arrendamiento
+dialogs.enterVerificationCode,Ingresa el Código de Verificación
+dialogs.fileTypeNotAllowed,"Tipo de archivo no permitido. Por favor, suba un archivo de documento."
+dialogs.grantProAccess,Otorgar Acceso Pro
+dialogs.grantProAccessDesc,Dar a este usuario acceso Pro temporal. Será degradado automáticamente cuando expire la duración.
+dialogs.inviteTenant.alreadyInvited,Ya se ha enviado una invitación a este correo electrónico
+dialogs.inviteTenant.alreadyTenant,Este usuario ya es inquilino de esta propiedad
+dialogs.inviteTenant.cancel,Cancelar
+dialogs.inviteTenant.emailLabel,Correo Electrónico
+dialogs.inviteTenant.emailPlaceholder,inquilino@ejemplo.com
+dialogs.inviteTenant.emailWarning,Invitación creada pero el envío de correo falló. La invitación se guardó y puede reenviarse más tarde.
+dialogs.inviteTenant.helpText,"Si el usuario existe, será añadido inmediatamente. De lo contrario, recibirá una invitación."
+dialogs.inviteTenant.send,Enviar Invitación
+dialogs.inviteTenant.sending,Enviando...
+dialogs.inviteTenant.sent,Invitación Enviada
+dialogs.inviteTenant.sentDesc,Se ha enviado una invitación a
+dialogs.inviteTenant.title,Invitar Inquilino a
+dialogs.manageTenants.added,Añadido
+dialogs.manageTenants.cancel,Cancelar
+dialogs.manageTenants.cancelInvitation,Cancelar Invitación
+dialogs.manageTenants.cancelInvitationDesc,¿Estás seguro de que quieres cancelar la invitación a
+dialogs.manageTenants.cancelInvitationMessage,Ya no podrán aceptar esta invitación.
+dialogs.manageTenants.cancelInvitationTitle,¿Cancelar Invitación?
+dialogs.manageTenants.currentTenants,Inquilinos Actuales
+dialogs.manageTenants.description,Inquilinos asignados a
+dialogs.manageTenants.emailFailed,Error al reenviar email
+dialogs.manageTenants.emailResent,Email reenviado
+dialogs.manageTenants.emailResentDesc,El email de invitación ha sido enviado nuevamente
+dialogs.manageTenants.endTenancy,Terminar Arrendamiento
+dialogs.manageTenants.endTenancyMessage,Esto marcará el arrendamiento como terminando para
+dialogs.manageTenants.endTenancyTitle,¿Terminar Arrendamiento?
+dialogs.manageTenants.expires,Expira
+dialogs.manageTenants.finalize,Finalizar
+dialogs.manageTenants.finalizeMessage,Esto terminará permanentemente el arrendamiento y lo moverá al historial para
+dialogs.manageTenants.finalizeTitle,¿Finalizar Arrendamiento?
+dialogs.manageTenants.invitationCancelled,Invitación cancelada
+dialogs.manageTenants.invitationCancelledDesc,ha sido cancelada
+dialogs.manageTenants.invitationTo,Invitación a
+dialogs.manageTenants.inviteNewTenant,Invitar Nuevo Inquilino
+dialogs.manageTenants.loading,Cargando inquilinos...
+dialogs.manageTenants.noTenants,Aún no hay inquilinos - invita a alguien para comenzar
+dialogs.manageTenants.pendingInvitations,Invitaciones Pendientes
+dialogs.manageTenants.propertyLifecycle,Ciclo de Vida de la Propiedad
+dialogs.manageTenants.remove,Eliminar
+dialogs.manageTenants.removeDescription,de
+dialogs.manageTenants.removeMessage,Perderán el acceso a esta propiedad.
+dialogs.manageTenants.removeTitle,¿Eliminar Inquilino?
+dialogs.manageTenants.removed,Inquilino eliminado
+dialogs.manageTenants.removedDesc,ha sido eliminado de
+dialogs.manageTenants.resend,Reenviar Email
+dialogs.manageTenants.resending,Reenviando...
+dialogs.manageTenants.sendInvitation,Enviar Invitación
+dialogs.manageTenants.tenancyEnding,El arrendamiento está finalizando. Acceso establecido en solo lectura.
+dialogs.manageTenants.tenancyFinalized,El arrendamiento ha sido finalizado y movido al historial.
+dialogs.manageTenants.title,Gestionar Inquilinos
+dialogs.pleaseEnterTitle,Por favor ingrese un título de documento
+dialogs.pleaseFillRequired,Por favor complete todos los campos requeridos
+dialogs.pleaseSelectFile,Por favor seleccione un archivo para subir
+dialogs.propertyDocuments.deleteFailed,Error al eliminar documento
+dialogs.propertyDocuments.deleteSuccess,Documento eliminado exitosamente
+dialogs.propertyDocuments.description,"Ve, sube y gestiona documentos de esta propiedad. Tanto administradores como inquilinos pueden subir documentos."
+dialogs.propertyDocuments.downloadFailed,Error al descargar documento
+dialogs.propertyDocuments.dragAndDropHint,"Arrastra y suelta un archivo aquí, o haz clic para seleccionar"
+dialogs.propertyDocuments.hideUpload,Ocultar Subida
+dialogs.propertyDocuments.loading,Cargando documentos...
+dialogs.propertyDocuments.noDocuments,No hay documentos subidos aún
+dialogs.propertyDocuments.previousVersions,Versiones Anteriores
+dialogs.propertyDocuments.seeVersions,Ver todas las versiones
+dialogs.propertyDocuments.title,Documentos de Propiedad
+dialogs.propertyDocuments.uploadNew,Subir Nuevo Documento
+dialogs.propertyDocuments.uploadNewVersion,Subir una nueva versión de este documento
+dialogs.propertyDocuments.uploadVersion,Subir Nueva Versión
+dialogs.propertyDocuments.uploadedBy,Subido por
+dialogs.propertyDocuments.versions,versiones
+dialogs.resolveTicket,Resolver Ticket
+dialogs.resolveTicketDesc,Por favor proporciona notas sobre cómo se resolvió este ticket
+dialogs.saving,Guardando...
+dialogs.selectFile,Seleccionar Archivo
+dialogs.templateName,Nombre de la Plantilla
+dialogs.templateNameHelper,Asigne a esta plantilla un nombre descriptivo que pueda reconocer más tarde
+dialogs.templateNamePlaceholder,"p. ej., Contrato de Arrendamiento Estándar, Lista de Verificación de Mudanza"
+dialogs.uploadProgress,Progreso de Subida
+dialogs.uploading,Subiendo...
+footer.about,Acerca de
+footer.help,Ayuda
+footer.privacy,Política de Privacidad
+footer.rights,Todos los derechos reservados.
+footer.terms,Términos de Servicio
+header.admin,Administrador
+header.dashboard,Panel
+header.forManagers,Para Propietarios
+header.forTenants,Para Inquilinos
+header.home,Inicio
+header.invitations,Invitaciones
+header.maintenance,Mantenimiento
+header.menu,Menú
+header.myAccount,Mi Cuenta
+header.pricing,Precios
+header.properties,Propiedades
+header.rentals,Alquileres
+header.settings,Configuración
+header.signOut,Cerrar Sesión
+header.templates,Plantillas
+header.tickets,Tickets
+help.contact.bugReport,Reportar un Error
+help.contact.description,¿No encuentras lo que buscas? Estamos aquí para ayudarte.
+help.contact.emailSupport,Soporte por Email
+help.contact.title,¿Necesitas Más Ayuda?
+help.faq.a1,Ve a la página de Propiedades y haz clic en 
+help.faq.a2,"Abre una propiedad, ve a la pestaña Contratos y haz clic en "
+help.faq.a3,Ve a Tickets y haz clic en 
+help.faq.a4,Usamos verificación de identidad gubernamental para proteger tu cuenta. Ve a Configuración > Identidad para iniciar el proceso de verificación.
+help.faq.a5,Los pagos de alquiler se cobran mediante Débito Directo SEPA. Los inquilinos autorizan los pagos al aceptar el contrato de alquiler.
+help.faq.a6,"Sí, puedes administrar propiedades ilimitadas en todos los planes. Cada propiedad tiene sus propios inquilinos, documentos e historial de mantenimiento."
+help.faq.a7,Soportamos firmas digitales compatibles con eIDAS. Ambas partes firman electrónicamente y los contratos firmados se almacenan de forma segura.
+help.faq.a8,"Sí, utilizamos cifrado y prácticas de seguridad estándar de la industria. Todos los datos están cifrados en tránsito y en reposo."
+help.faq.description,Respuestas rápidas a preguntas comunes
+help.faq.q1,¿Cómo creo una propiedad?
+help.faq.q2,¿Cómo invito a un inquilino?
+help.faq.q3,¿Cómo envío una solicitud de mantenimiento?
+help.faq.q4,¿Cómo funciona la verificación de identidad?
+help.faq.q5,¿Cómo se procesan los pagos de alquiler?
+help.faq.q6,¿Puedo administrar múltiples propiedades?
+help.faq.q7,¿Cómo funcionan los contratos digitales?
+help.faq.q8,¿Mis datos están seguros?
+help.faq.title,Preguntas Frecuentes
+help.gettingStarted.forManagers,Para Administradores de Propiedades
+help.gettingStarted.forManagersDesc,"Aprende cómo configurar propiedades, invitar inquilinos y administrar tu cartera"
+help.gettingStarted.forTenants,Para Inquilinos
+help.gettingStarted.forTenantsDesc,"Aprende cómo aceptar invitaciones, enviar solicitudes y administrar tu alquiler"
+help.gettingStarted.title,Primeros Pasos
+help.subtitle,Encuentra respuestas a preguntas comunes y aprende a usar FlatMate
+help.title,Centro de Ayuda
+iban,IBAN
+ibanConfigured,Pago Configurado
+ibanConfiguredDescription,Sus detalles de pago están configurados y activos
+ibanDescription,Su Número de Cuenta Bancaria Internacional
+inspections.completed,Completado
+inspections.createHint,Crea una inspección de entrada o salida para documentar el estado de la propiedad
+inspections.deleteDescription,Esto eliminará permanentemente esta inspección y todos sus datos. Esta acción no se puede deshacer.
+inspections.deleteTitle,¿Eliminar Inspección?
+inspections.description,Informes de estado de entrada y salida
+inspections.draft,Borrador
+inspections.inProgress,En Progreso
+inspections.loading,Cargando inspecciones...
+inspections.moveIn,Entrada
+inspections.moveOut,Salida
+inspections.newInspection,Nueva Inspección
+inspections.newMoveIn,Inspección de Entrada
+inspections.newMoveOut,Inspección de Salida
+inspections.noInspections,No hay inspecciones aún
+inspections.pendingSignatures,Firmas Pendientes
+inspections.signedByBoth,Firmado por ambas partes
+inspections.title,Inspecciones de Propiedad
+invitations.accept,Aceptar
+invitations.accepted,Invitación aceptada
+invitations.acceptedDesc,Has sido añadido como inquilino
+invitations.decline,Rechazar
+invitations.declineDialog.confirm,Rechazar Invitación
+invitations.declineDialog.description,¿Estás seguro de que deseas rechazar la invitación a
+invitations.declineDialog.reasonLabel,Motivo (opcional)
+invitations.declineDialog.reasonPlaceholder,Cuéntale al administrador por qué rechazas...
+invitations.declineDialog.title,Rechazar Invitación
+invitations.declined,Invitación rechazada
+invitations.declinedDesc,Aún puedes aceptar otras invitaciones
+invitations.declinedInvitations,Invitaciones Rechazadas
+invitations.declinedOn,Rechazada el
+invitations.description,Acepta o rechaza invitaciones de propiedades
+invitations.dismiss,Descartar
+invitations.dismissDialog.confirm,Descartar
+invitations.dismissDialog.description,Esto cancelará la invitación y eliminará la configuración del arrendamiento. El inquilino deberá ser invitado desde cero.
+invitations.dismissDialog.title,Descartar Configuración
+invitations.dismissSuccess,Configuración de invitación descartada
+invitations.editAndResend,Editar y Reenviar
+invitations.expires,Expira
+invitations.goToDashboard,Ir al Panel
+invitations.loginRequired,Inicio de Sesión Requerido
+invitations.loginRequiredDesc,Por favor inicia sesión para aceptar esta invitación
+invitations.noAddress,Sin dirección
+invitations.noPending,No hay invitaciones pendientes
+invitations.noReasonProvided,Sin motivo proporcionado
+invitations.notFound,Invitación no encontrada o expirada
+invitations.originalTerms,Términos originales
+invitations.property,Propiedad
+invitations.resendSuccess,Nueva invitación enviada con términos actualizados
+invitations.title,Invitaciones Pendientes
+issueTask,Incidencia del Inquilino
+kyc.actions.renewVerification,Renovar Verificación
+kyc.actions.startVerification,Iniciar Verificación
+kyc.actions.viewDetails,Ver Detalles de Verificación
+kyc.alerts.expired,Tu verificación ha expirado. Por favor renuévala para continuar.
+kyc.alerts.expiringSoon,Tu verificación expira pronto. Por favor renuévala para mantener el acceso.
+kyc.alerts.notStarted,Completa la verificación de identidad para aumentar la confianza con los administradores de propiedades y acceder a funciones exclusivas.
+kyc.alerts.rejected,Tu verificación no fue exitosa. Por favor intenta de nuevo o contacta a soporte.
+kyc.benefits.accessFeatures,Accede a funciones exclusivas
+kyc.benefits.privacy,Tus datos están protegidos en blockchain
+kyc.benefits.secureSignatures,Habilita firmas de contratos verificadas por blockchain
+kyc.benefits.title,¿Por qué verificar tu identidad?
+kyc.benefits.trustManager,Aumenta la confianza con los administradores de propiedades
+kyc.downloadSporran,¿No tienes Sporran? Descárgalo desde sporran.org
+kyc.errors.cannotInitiate,No se puede iniciar la verificación en este momento
+kyc.errors.fetchFailed,Error al cargar el estado de verificación
+kyc.errors.initiationFailed,Error al iniciar el proceso de verificación
+kyc.errors.initiationTitle,Error al Iniciar Verificación
+kyc.errors.notAuthenticated,Debes iniciar sesión para verificar tu identidad
+kyc.errors.profileNotFound,Perfil de usuario no encontrado
+kyc.errors.title,Error de Verificación
+kyc.errors.unknownError,Ocurrió un error desconocido
+kyc.expiresOn,Expira el
+kyc.notVerified,No verificado
+kyc.scanQRCode,Escanea este código QR con tu cartera Sporran para completar la verificación
+kyc.status.expired,Expirado
+kyc.status.inProgress,En Proceso
+kyc.status.notStarted,No Iniciado
+kyc.status.pending,Pendiente
+kyc.status.rejected,Rechazado
+kyc.status.verified,Verificado
+kyc.statusLabel,Estado de Verificación
+kyc.subtitle,Verifica tu identidad usando credenciales blockchain del Protocolo KILT
+kyc.subtitleNotVerified,Verifica tu identidad de forma segura utilizando tu documento de identidad oficial
+kyc.subtitlePending,Tu verificación está en proceso
+kyc.subtitleVerified,Tu identidad ha sido verificada
+kyc.success.completedDescription,Tu identidad ha sido verificada exitosamente
+kyc.success.completedTitle,Verificación Completa
+kyc.success.initiatedDescription,Escanea el código QR con la cartera Sporran para completar la verificación
+kyc.success.initiatedTitle,Verificación Iniciada
+kyc.title,Verificación de Identidad
+kyc.verifiedOn,Verificado el
+kyc.walletDID,DID de Cartera
+landing.carousel.contracts.description,Firma contratos legalmente vinculantes en línea
+landing.carousel.contracts.title,Contratos Digitales
+landing.carousel.maintenance.description,Rastrea y resuelve incidencias más rápido
+landing.carousel.maintenance.title,Mantenimiento Inteligente
+landing.carousel.rent.description,"Cobra el alquiler automáticamente, sin perseguir pagos"
+landing.carousel.rent.title,Alquiler Automatizado
+landing.carousel.verification.description,Identidades verificadas para tu tranquilidad
+landing.carousel.verification.title,Inquilinos Verificados
+landing.forManagers,Para Administradores de Propiedades
+landing.forTenants,Para Inquilinos
+landing.getStarted,Comenzar
+landing.headline,Simplifica la Gestión de Propiedades
+landing.managers.automatedOps.description,"Optimice el cobro de alquileres, mantenimiento y flujos de trabajo de documentos."
+landing.managers.automatedOps.title,Operaciones Automatizadas
+landing.managers.centralizedControl.description,Administre toda su cartera de propiedades y comunicaciones con inquilinos desde un solo panel.
+landing.managers.centralizedControl.title,Control Centralizado
+landing.managers.reducedRisk.description,Garantice el cumplimiento con identidades verificadas de inquilinos y contratos digitales legalmente sólidos.
+landing.managers.reducedRisk.title,Riesgo Reducido
+landing.signIn,Iniciar Sesión
+landing.tenants.effortlessRenting.description,"Gestione pagos, documentos y reportes de problemas en un solo lugar."
+landing.tenants.effortlessRenting.title,Alquiler Sin Esfuerzo
+landing.tenants.moveInReady.description,Verifique su identidad de forma segura y firme contratos digitalmente para un inicio más rápido.
+landing.tenants.moveInReady.title,Listo para Mudarse
+landing.tenants.totalTransparency.description,"Realice un seguimiento claro de los pagos de alquiler, solicitudes de mantenimiento y comunicaciones."
+landing.tenants.totalTransparency.title,Transparencia Total
+maintenance.allProperties,Todas las Propiedades
+maintenance.assignedTo,Asignado a
+maintenance.buttons.createCustomTask,Crear Tarea Personalizada
+maintenance.calendar,Calendario
+maintenance.calendarDescription,Ver y gestionar tareas de mantenimiento programadas en todas las propiedades
+maintenance.calendarView.days.fri,Vie
+maintenance.calendarView.days.mon,Lun
+maintenance.calendarView.days.sat,Sáb
+maintenance.calendarView.days.sun,Dom
+maintenance.calendarView.days.thu,Jue
+maintenance.calendarView.days.tue,Mar
+maintenance.calendarView.days.wed,Mié
+maintenance.calendarView.legend,Leyenda:
+maintenance.calendarView.navigation.next,Siguiente
+maintenance.calendarView.navigation.previous,Anterior
+maintenance.calendarView.navigation.today,Hoy
+maintenance.calendarView.nextRun,Próxima ejecución:
+maintenance.calendarView.noTasks,Aún no hay tareas de mantenimiento programadas
+maintenance.calendarView.title,Calendario de Mantenimiento
+maintenance.calendarView.upcomingTitle,Próximo Mantenimiento Programado
+maintenance.completeTask.completeButton,Marcar como Completada
+maintenance.completeTask.completing,Completando...
+maintenance.completeTask.description,"Por favor, proporciona notas sobre el trabajo completado para:"
+maintenance.completeTask.notesLabel,Notas de Finalización *
+maintenance.completeTask.notesPlaceholder,"Describe qué se hizo, problemas encontrados, piezas reemplazadas, etc..."
+maintenance.completeTask.notesRequired,Notas requeridas
+maintenance.completeTask.notesRequiredMessage,"Por favor, describe el trabajo completado"
+maintenance.completeTask.title,Completar Tarea de Mantenimiento
+maintenance.createTask,Crear Tarea
+maintenance.createTaskDialog.active,Activo
+maintenance.createTaskDialog.createButton,Crear Tarea
+maintenance.createTaskDialog.creating,Creando...
+maintenance.createTaskDialog.customTask,Tarea Personalizada
+maintenance.createTaskDialog.description,Programar una nueva tarea de mantenimiento para esta propiedad
+maintenance.createTaskDialog.descriptionLabel,Descripción *
+maintenance.createTaskDialog.descriptionPlaceholder,Describa la tarea de mantenimiento...
+maintenance.createTaskDialog.endDate,Fecha de Fin (Opcional)
+maintenance.createTaskDialog.error,Error
+maintenance.createTaskDialog.errorMessage,"Error al crear la tarea de mantenimiento. Por favor, intenta de nuevo."
+maintenance.createTaskDialog.frequencies.daily,Diaria
+maintenance.createTaskDialog.frequencies.monthly,Mensual
+maintenance.createTaskDialog.frequencies.quarterly,Trimestral
+maintenance.createTaskDialog.frequencies.weekly,Semanal
+maintenance.createTaskDialog.frequencies.yearly,Anual
+maintenance.createTaskDialog.frequency,Frecuencia
+maintenance.createTaskDialog.missingFields,Campos faltantes
+maintenance.createTaskDialog.missingFieldsMessage,"Por favor, completa todos los campos requeridos."
+maintenance.createTaskDialog.oneTime,Una vez
+maintenance.createTaskDialog.pickDate,Seleccionar fecha
+maintenance.createTaskDialog.priorities.high,Alta
+maintenance.createTaskDialog.priorities.low,Baja
+maintenance.createTaskDialog.priorities.medium,Media
+maintenance.createTaskDialog.priorities.urgent,Urgente
+maintenance.createTaskDialog.priority,Prioridad
+maintenance.createTaskDialog.recurring,Recurrente
+maintenance.createTaskDialog.scheduleDetails,Detalles de Programación
+maintenance.createTaskDialog.scheduleType,Tipo de Programación
+maintenance.createTaskDialog.scheduling,Programación
+maintenance.createTaskDialog.selectTemplate,Seleccionar Plantilla
+maintenance.createTaskDialog.selectType,Seleccionar tipo
+maintenance.createTaskDialog.startDate,Fecha de Inicio *
+maintenance.createTaskDialog.success,Tarea de mantenimiento creada
+maintenance.createTaskDialog.successMessage,Tu tarea de mantenimiento ha sido programada exitosamente.
+maintenance.createTaskDialog.targetDate,Fecha Objetivo *
+maintenance.createTaskDialog.taskDetails,Detalles de la Tarea
+maintenance.createTaskDialog.taskTitle,Título de la Tarea *
+maintenance.createTaskDialog.title,Crear Tarea de Mantenimiento
+maintenance.createTaskDialog.titleLabel,Título *
+maintenance.createTaskDialog.titlePlaceholder,Ingrese el título de la tarea
+maintenance.createTaskDialog.type,Tipo
+maintenance.createTaskDialog.types.cleaning,Limpieza
+maintenance.createTaskDialog.types.inspection,Inspección
+maintenance.createTaskDialog.types.maintenance,Mantenimiento
+maintenance.createTaskDialog.types.other,Otro
+maintenance.createTaskDialog.types.repair,Reparación
+maintenance.description,Gestionar tareas de mantenimiento de propiedades
+maintenance.dueDate,Fecha de Vencimiento
+maintenance.editTask.invalidDates,Fechas inválidas
+maintenance.editTask.invalidDatesMessage,La fecha de fin no puede ser anterior a la fecha de inicio.
+maintenance.editTask.saveButton,Guardar Cambios
+maintenance.editTask.saving,Guardando...
+maintenance.editTask.taskUpdated,Tarea actualizada
+maintenance.editTask.title,Editar Tarea de Mantenimiento
+maintenance.editTask.updateError,"Error al actualizar la tarea de mantenimiento. Por favor, intenta de nuevo."
+maintenance.editTask.updateSuccess,La tarea de mantenimiento ha sido actualizada exitosamente.
+maintenance.frequency.daily,Diario
+maintenance.frequency.monthly,Mensual
+maintenance.frequency.quarterly,Trimestral
+maintenance.frequency.weekly,Semanal
+maintenance.frequency.yearly,Anual
+maintenance.manageScheduled,Gestionar Programados
+maintenance.noTasks,No hay tareas de mantenimiento
+maintenance.noTasksDesc,Programa tareas de mantenimiento para mantener tus propiedades en óptimas condiciones
+maintenance.oneTime,Una vez
+maintenance.priority,Prioridad
+maintenance.priorityHigh,Alto
+maintenance.priorityLow,Bajo
+maintenance.priorityMedium,Medio
+maintenance.priorityUrgent,Urgente
+maintenance.recurring,Recurrente
+maintenance.scheduleStandard.activeStatus,Estado Activo
+maintenance.scheduleStandard.description,Configura la programación para esta tarea de mantenimiento.
+maintenance.scheduleStandard.endDate,Fecha de Fin
+maintenance.scheduleStandard.error,"Error al programar la tarea. Por favor, inténtalo de nuevo."
+maintenance.scheduleStandard.frequency,Frecuencia
+maintenance.scheduleStandard.missingFields,"Por favor, completa todos los campos obligatorios."
+maintenance.scheduleStandard.pickDate,Seleccionar fecha
+maintenance.scheduleStandard.scheduleButton,Programar Tarea
+maintenance.scheduleStandard.scheduleConfig,Configuración de Programación
+maintenance.scheduleStandard.selectFrequency,Seleccionar frecuencia
+maintenance.scheduleStandard.startDate,Fecha de Inicio
+maintenance.scheduleStandard.success,Tarea programada
+maintenance.scheduleStandard.successDescription,La tarea de mantenimiento ha sido programada exitosamente.
+maintenance.scheduleStandard.suggested,Sugerido
+maintenance.scheduleStandard.taskDetails,Detalles de la Tarea
+maintenance.scheduleStandard.title,Programar Tarea de Mantenimiento
+maintenance.scheduled,Programado
+maintenance.scheduledTasks.active,Activa
+maintenance.scheduledTasks.createSchedule,Programar Tarea
+maintenance.scheduledTasks.deleteConfirmDesc,Esto eliminará permanentemente esta programación recurrente. Las tareas existentes no se verán afectadas.
+maintenance.scheduledTasks.deleteConfirmTitle,Eliminar programación
+maintenance.scheduledTasks.deleteSchedule,Eliminar Programación
+maintenance.scheduledTasks.description,Gestiona programaciones de mantenimiento recurrente para esta propiedad
+maintenance.scheduledTasks.editSchedule,Editar Programación
+maintenance.scheduledTasks.endDate,Fecha de Fin (opcional)
+maintenance.scheduledTasks.frequency,Frecuencia
+maintenance.scheduledTasks.nextRun,Próxima Ejecución
+maintenance.scheduledTasks.noSchedules,Sin tareas programadas
+maintenance.scheduledTasks.noSchedulesDesc,Crea programaciones de mantenimiento recurrente para mantener tu propiedad en buen estado
+maintenance.scheduledTasks.paused,Pausada
+maintenance.scheduledTasks.startDate,Fecha de Inicio
+maintenance.scheduledTasks.template,Plantilla
+maintenance.scheduledTasks.title,Tareas de Mantenimiento Programadas
+maintenance.standardTask.allCategories,Todas las Categorías
+maintenance.standardTask.frequency,Frecuencia
+maintenance.standardTask.noTemplates,No hay plantillas que coincidan con tu búsqueda.
+maintenance.standardTask.schedule,Programar
+maintenance.standardTask.searchPlaceholder,Buscar tareas...
+maintenance.standardTask.suggestedFrequency,Sugerido
+maintenance.status,Estado
+maintenance.statusCancelled,Cancelado
+maintenance.statusCompleted,Completado
+maintenance.statusInProgress,En Progreso
+maintenance.statusOpen,Abierto
+maintenance.tabs.calendar,Calendario
+maintenance.tabs.library,Biblioteca
+maintenance.tabs.scheduled,Programados
+maintenance.taskDescription,Descripción
+maintenance.taskTitle,Título de la Tarea
+maintenance.templates.addTemplate,Agregar Plantilla
+maintenance.templates.category,Categoría
+maintenance.templates.deleteConfirmDesc,Esto eliminará permanentemente esta plantilla de mantenimiento. Esta acción no se puede deshacer.
+maintenance.templates.deleteConfirmTitle,Eliminar plantilla de mantenimiento
+maintenance.templates.deleteFailed,Error al eliminar plantilla
+maintenance.templates.deleteTemplate,Eliminar Plantilla
+maintenance.templates.description,Explora y programa tareas de mantenimiento estándar para tus propiedades
+maintenance.templates.editTemplate,Editar Plantilla
+maintenance.templates.noTemplates,No hay plantillas de mantenimiento
+maintenance.templates.noTemplatesDesc,Crea tareas de mantenimiento estándar que se pueden programar para propiedades
+maintenance.templates.suggestedFrequency,Frecuencia Sugerida
+maintenance.templates.templateDescription,Descripción
+maintenance.templates.templateName,Nombre de Plantilla
+maintenance.templates.title,Tareas de Mantenimiento Estándar
+maintenance.templates.updateFailed,Error al actualizar plantilla
+maintenance.title,Mantenimiento
+maintenanceTask,Mantenimiento Programado
+mandateStatusLabel,Estado del Mandato
+monthlyRent,Alquiler Mensual
+nav.menu,Menú
+nav.myAccount,Mi Cuenta
+nav.properties,Propiedades
+nav.rentals,Alquileres
+newIssue,Nueva Incidencia
+nextPayment,Próximo Pago
+noAgreements,No se encontraron acuerdos de alquiler
+notFound.description,La página que buscas no existe.
+notFound.goHome,Ir al Inicio
+notFound.title,Página No Encontrada
+onboarding.checklist.bankSetup,Configurar Cuenta Bancaria
+onboarding.checklist.bankSetupDesc,Agrega tu IBAN para los pagos de alquiler
+onboarding.checklist.completed,completados
+onboarding.checklist.contractSigning,Firmar Contrato de Alquiler
+onboarding.checklist.contractSigningDesc,Revisa y firma tu contrato de arrendamiento
+onboarding.checklist.emailVerification,Verificar Correo Electrónico
+onboarding.checklist.emailVerificationDesc,Confirma tu email para asegurar tu cuenta
+onboarding.checklist.identityVerification,Verificar Tu Identidad
+onboarding.checklist.identityVerificationDesc,Completa la verificación de documento de identidad
+onboarding.checklist.setupBank,Configurar
+onboarding.checklist.signContract,Firmar Contrato
+onboarding.checklist.title,Completa Tu Configuración
+onboarding.checklist.verifyEmail,Verificar Email
+onboarding.checklist.verifyIdentity,Verificar Identidad
+payments.acceptedFormats,"JPG, PNG o PDF. Máx 10MB."
+payments.amount,Monto
+payments.autoReminders,Recordatorios automáticos
+payments.availableAfterStart,Disponible después del inicio del arrendamiento
+payments.dueOn,Vence el
+payments.emptyStates.noHistory,Sin Historial de Pagos
+payments.emptyStates.noPaymentsDesc,Los pagos aparecerán aquí una vez que se genere el calendario de alquiler
+payments.emptyStates.waitingForAgreement,Crea un contrato de alquiler para comenzar a rastrear pagos
+payments.generatingSchedule,Generando calendario de pagos...
+payments.markAsPaid,Marcar como Pagado
+payments.markPaidBtn,Marcar Pagado
+payments.noPayments,Aún no hay pagos
+payments.noPaymentsDesc,Los pagos aparecerán aquí una vez que comience el cobro de alquiler
+payments.paidOn,Pagado el
+payments.paymentHistory,Historial de Pagos
+payments.proofReview.approve,Aprobar
+payments.proofReview.approved,Pago aprobado
+payments.proofReview.notes,Notas de Revisión
+payments.proofReview.notesPlaceholder,Agregar notas sobre este pago...
+payments.proofReview.reject,Rechazar
+payments.proofReview.rejected,Pago rechazado
+payments.proofReview.title,Revisar Comprobante de Pago
+payments.proofUploaded,Comprobante Subido
+payments.remindersDisabled,Recordatorios de pago desactivados
+payments.remindersEnabled,Recordatorios de pago activados
+payments.reviewBtn,Revisar
+payments.selectFile,Seleccionar archivo
+payments.statistics.nextDue,Próximo Vencimiento
+payments.statistics.noData,Sin datos disponibles
+payments.statistics.noHistory,Sin historial
+payments.statistics.noneYet,Ninguno aún
+payments.statistics.onTimeRate,Tasa de Pago a Tiempo
+payments.statistics.payments,pagos
+payments.statistics.remindersSent,Recordatorios Enviados
+payments.statistics.totalPaid,Total Pagado
+payments.statistics.totalReminders,recordatorios totales
+payments.status.due,Pendiente
+payments.status.failed,Fallido
+payments.status.overdue,Vencido
+payments.status.paid,Pagado
+payments.status.pending,Pendiente
+payments.subtitle,Gestiona los pagos de alquiler de esta propiedad
+payments.tenant,Inquilino
+payments.title,Pagos
+payments.toasts.collectionInitiated,Cobro de pago iniciado
+payments.toasts.markedPaid,Pago marcado como pagado
+payments.toasts.retryFailed,Error al reintentar pago
+payments.upcomingPayments,Pagos Próximos
+payments.uploadFailed,Error al subir comprobante
+payments.uploadProof,Subir Comprobante de Pago
+payments.uploadProofBtn,Subir Comprobante
+payments.uploadProofDesc,Sube una captura de pantalla o recibo de tu pago
+payments.uploadSuccess,Comprobante subido exitosamente
+payments.viewProof,Ver Comprobante
+pending,Pendiente
+placeholders.addComment,Agregar un comentario...
+placeholders.adminNotes,Agregar notas sobre esta solicitud...
+placeholders.brandName,RentMate
+placeholders.city,Barcelona
+placeholders.companyName,Tu Empresa
+placeholders.customDomain,rentmate.me
+placeholders.depositAmount,2000.00
+placeholders.depositReturnDays,30
+placeholders.documentDescription,Añade una descripción para este documento...
+placeholders.documentTitle,"ej., Contrato de Arrendamiento, Póliza de Seguro, Inventario"
+placeholders.email,tu@ejemplo.com
+placeholders.enterpriseMessage,Cuéntanos sobre tus necesidades de gestión de propiedades...
+placeholders.firstName,Juan
+placeholders.grantAccessReason,¿Por qué estás otorgando acceso Pro a este usuario?
+placeholders.hslColor,221 83% 53%
+placeholders.iban,ES9121000418450200051332
+placeholders.lastName,García
+placeholders.noDocuments,No hay documentos disponibles
+placeholders.objectProcessingReason,Describe a qué procesamiento te opones y los motivos de tu objeción...
+placeholders.password,••••••••
+placeholders.pasteImageUrl,O pegar URL de imagen...
+placeholders.paymentDay,1
+placeholders.phone,+34 612 345 678
+placeholders.postalCode,08001
+placeholders.propertiesCount,50
+placeholders.propertyAddress,Calle del Mar 123
+placeholders.propertyDescription,Hermosa propiedad con vistas al mar...
+placeholders.propertyTitle,Villa Frente al Mar
+placeholders.rentAmount,1000.00
+placeholders.resolutionNotes,Describe cómo se resolvió el problema...
+placeholders.restrictProcessingReason,Describe qué actividades de procesamiento deseas restringir y tu motivo...
+placeholders.searchSubscriptions,"Buscar por email, nombre o plan..."
+placeholders.selectCountry,Seleccionar país
+placeholders.selectDateFormat,Seleccionar formato de fecha
+placeholders.selectDocument,Elegir un documento...
+placeholders.selectProperty,Seleccionar propiedad
+placeholders.selectTemplate,Seleccionar una plantilla
+placeholders.selectWeekStart,Seleccionar día de inicio de semana
+placeholders.stateProvince,Cataluña
+placeholders.tenantEmail,inquilino@ejemplo.com
+placeholders.ticketDescription,Descripción detallada del problema o solicitud
+placeholders.ticketTitle,Breve descripción del problema
+placeholders.utilitiesManager,"Electricidad, Agua, Gas"
+placeholders.utilitiesTenant,"Calefacción, Internet"
+placeholders.utilityAmount,0.00
+pricing.customPricing,Precio personalizado
+pricing.dayFreeTrial,días de prueba gratis
+pricing.faq,Preguntas Frecuentes
+pricing.faqChangePlans,¿Puedo cambiar de plan después?
+pricing.faqChangePlansAnswer,"Sí, puedes actualizar o cambiar tu plan en cualquier momento. Los cambios se aplican inmediatamente y prorratearemos los cargos."
+pricing.faqFreeTrial,¿Hay una prueba gratuita?
+pricing.faqFreeTrialAnswer,¡Sí! El plan Pro incluye 14 días de prueba gratis. No se requiere tarjeta de crédito para empezar.
+pricing.faqSignatureLimit,¿Qué pasa si excedo mi límite de firmas?
+pricing.faqSignatureLimitAnswer,Las firmas adicionales se facturan a €2 por firma. Te notificaremos cuando alcances el 80% de tu límite.
+pricing.mostPopular,Más Popular
+pricing.subtitle,Elige el plan perfecto para tus necesidades de gestión inmobiliaria
+privacy.contactUs,Contáctenos
+privacy.contactUsText,"Si tiene preguntas sobre esta Política de Privacidad, contáctenos en"
+privacy.cookiesTracking,Cookies y Seguimiento
+privacy.cookiesTrackingDesc,Usamos cookies y tecnologías de seguimiento similares para rastrear la actividad en nuestra plataforma y almacenar cierta información para mejorar su experiencia.
+privacy.dataSecurity,Seguridad de Datos
+privacy.dataSecurityText,"Implementamos medidas de seguridad técnicas y organizativas apropiadas para proteger su información personal. Sin embargo, ningún método de transmisión por Internet es 100% seguro, y no podemos garantizar la seguridad absoluta."
+privacy.howWeUse,Cómo Usamos Su Información
+privacy.howWeUseList1,"Para proporcionar, operar y mantener nuestros servicios"
+privacy.howWeUseList2,Para mejorar y personalizar su experiencia
+privacy.howWeUseList3,Para comunicarnos con usted sobre actualizaciones y soporte
+privacy.howWeUseList4,Para procesar transacciones y enviar información relacionada
+privacy.howWeUseList5,Para monitorear y analizar patrones de uso
+privacy.howWeUseList6,Para detectar y prevenir fraudes y abusos
+privacy.infoWeCollect,Información que Recopilamos
+privacy.introText,FlatMate (
+privacy.introduction,Introducción
+privacy.lastUpdated,Última actualización
+privacy.personalInfo,Información Personal
+privacy.personalInfoDesc,"Recopilamos información personal que usted nos proporciona, como nombre, dirección de correo electrónico, número de teléfono e información de propiedad cuando se registra para obtener una cuenta o usa nuestros servicios."
+privacy.title,Política de Privacidad
+privacy.usageData,Datos de Uso
+privacy.usageDataDesc,"Recopilamos automáticamente cierta información cuando usa nuestra plataforma, incluida su dirección IP, tipo de navegador, tiempos de acceso y páginas vistas."
+privacy.yourRights,Sus Derechos
+privacy.yourRightsIntro,"Dependiendo de su ubicación, puede tener ciertos derechos con respecto a su información personal:"
+privacy.yourRightsList1,El derecho a acceder a sus datos personales
+privacy.yourRightsList2,El derecho a rectificar datos inexactos
+privacy.yourRightsList3,El derecho a solicitar la eliminación de sus datos
+privacy.yourRightsList4,El derecho a restringir u objetar el procesamiento de datos
+privacy.yourRightsList5,El derecho a la portabilidad de datos
+profile.description,Gestionar tu información personal
+profile.title,Perfil
+properties.active,Activo
+properties.addTenant,Agregar Inquilino
+properties.address,Dirección
+properties.archive,Archivar
+properties.archiveConfirmDesc,Esto archivará la propiedad. Puedes desarchivarla más tarde.
+properties.archiveFailed,Error al archivar propiedad
+properties.archiveNotes,Notas adicionales (opcional)
+properties.archiveNotesPlaceholder,Agrega cualquier detalle adicional...
+properties.archiveProperty,Archivar Propiedad
+properties.archivePropertyDescription,Esta propiedad no tiene inquilinos activos. ¿Estás seguro de que quieres archivarla? Puedes restaurarla más tarde desde propiedades archivadas.
+properties.archivePropertyTitle,Archivar Propiedad
+properties.archivePropertyWarning,Esta propiedad no tiene inquilinos activos. Puedes archivarla si ya no está en uso.
+properties.archivePropertyWithTenantDescription,Advertencia: Esta propiedad tiene un inquilino activo. ¿Estás seguro de que quieres archivarla? Esto afectará su arrendamiento. Puedes restaurarla más tarde desde propiedades archivadas.
+properties.archivePropertyWithTenantWarning,Advertencia: Esta propiedad tiene un inquilino activo
+properties.archiveReason,Razón para archivar
+properties.archiveReasonMerged,Fusionada con Otra Propiedad
+properties.archiveReasonNoLongerManaging,Ya No Se Gestiona
+properties.archiveReasonOther,Otra
+properties.archiveReasonSold,Vendida
+properties.archiveReasons.merged,Fusionada con Otra Propiedad
+properties.archiveReasons.noLongerManaging,Ya No Se Gestiona
+properties.archiveReasons.other,Otra
+properties.archiveReasons.sold,Vendida
+properties.archived,Archivado
+properties.archivedDetails,Detalles del Archivo
+properties.archivedOn,Archivado
+properties.archivedProperties,Propiedades Archivadas
+properties.canSetupNewTenantParallel,Puedes configurar un nuevo inquilino mientras el arrendamiento actual está terminando.
+properties.city,Ciudad
+properties.cityPlaceholder,"ej. Madrid, Barcelona"
+properties.confirmArchive,Confirmar Archivo
+properties.contract,Contrato
+properties.contractLocked,Bloqueado
+properties.contractsTab,Contratos
+properties.copySelected,Copiar Seleccionados
+properties.copyTemplates,Copiar Plantillas
+properties.country,País
+properties.countryPlaceholder,Seleccionar país
+properties.createProperty,Crear Propiedad
+properties.createTemplatesInConfiguration,Crea plantillas de contrato en Configuración → Plantillas para usarlas aquí
+properties.created,Creado
+properties.currentTenancy,Arrendamiento Actual
+properties.currentTenant,Inquilino Actual
+properties.deleteProperty,Eliminar Propiedad
+properties.description,Gestiona tu cartera de propiedades
+properties.descriptionPlaceholder,Agregar descripción de propiedad...
+properties.documentDeleteError,Error al eliminar documento
+properties.documentDeleted,Documento eliminado exitosamente
+properties.documentUploadFailed,Error al subir documento
+properties.documentUploaded,Documento subido exitosamente
+properties.documents,Documentos
+properties.documentsCount,documentos
+properties.documentsTab,Documentos
+properties.downloadError,Error al descargar documento
+properties.edit,Editar
+properties.editProperty,Editar Propiedad
+properties.editPropertyDescription,Actualizar detalles e información de la propiedad
+properties.free,Libre
+properties.freeToRent,Libre para Alquilar
+properties.getStarted,Comienza creando una propiedad o aceptando invitaciones de inquilino
+properties.goToOverview,Ir a Resumen
+properties.hideDocuments,Ocultar Documentos
+properties.inactive,Inactivo
+properties.invitationPending,Invitación Pendiente
+properties.invitationSentTo,Invitación enviada a
+properties.inviteAdditionalTenant,Invitar Inquilino Adicional
+properties.inviteNewTenant,Invitar Nuevo Inquilino
+properties.inviteTenant,Inquilinos
+properties.inviteTenantButton,Invitar Inquilino
+properties.inviteTenantToGetStarted,Invita a un inquilino para comenzar a gestionar esta propiedad
+properties.invited,Invitado
+properties.maintenance,Mantenimiento
+properties.maintenanceTasks,Tareas de Mantenimiento
+properties.manageTenantDescription,"Gestionar inquilinos, invitaciones y documentos de arrendamiento"
+properties.manageTenants,Gestionar Inquilinos
+properties.myProperties,Mis Propiedades
+properties.myTickets,Mis Tickets
+properties.noActiveTenant,No hay inquilino activo
+properties.noDescription,No se proporcionó descripción
+properties.noDocuments,No hay documentos
+properties.noDocumentsDesc,Sube documentos de la propiedad como contratos y garantías
+properties.noDocumentsYet,Aún no se han subido documentos
+properties.noProperties,No hay Propiedades Aún
+properties.noPropertiesDesc,Comienza creando tu primera propiedad
+properties.noTemplates,Aún no hay plantillas de propiedad
+properties.noTemplatesAvailable,No hay plantillas de propiedad disponibles para copiar
+properties.noTenancyDocuments,No hay documentos de arrendamiento
+properties.noTenancyHistory,No hay arrendamientos anteriores
+properties.noTenant,Sin inquilino actual
+properties.noTenants,Aún no hay inquilinos
+properties.noTenantsYet,Aún No Hay Inquilinos
+properties.notFound,Propiedad no encontrada
+properties.notes,Notas
+properties.occupancy.free,Libre
+properties.occupancy.occupied,Ocupado
+properties.openError,Error al abrir documento
+properties.openTenantManagement,Abrir Gestión de Inquilinos
+properties.openTickets,Tickets Abiertos
+properties.overview,Resumen
+properties.pastTenancies,Arrendamientos Pasados
+properties.paymentsTab,Pagos
+properties.pending,pendiente
+properties.photo,Foto
+properties.photoHint,"JPG, PNG o WEBP. Máx 5MB."
+properties.photoUploaded,Foto de propiedad subida exitosamente
+properties.postalCode,Código Postal
+properties.postalCodePlaceholder,"ej. 28001, 08001"
+properties.propertyAddress,Dirección
+properties.propertyArchived,Propiedad archivada
+properties.propertyCity,Ciudad
+properties.propertyCountry,País
+properties.propertyCreated,Propiedad creada exitosamente
+properties.propertyDescription,Descripción
+properties.propertyDetails,Detalles de la Propiedad
+properties.propertyDocuments.deleteFailed,Error al eliminar documento
+properties.propertyDocuments.deleteSuccess,Documento eliminado exitosamente
+properties.propertyDocuments.dragAndDropHint,Arrastra y suelta o haz clic para subir
+properties.propertyDocuments.previousVersions,Versiones Anteriores
+properties.propertyDocuments.seeVersions,Ver Versiones
+properties.propertyDocuments.uploadNewVersion,Subir nueva versión
+properties.propertyDocuments.versions,versiones
+properties.propertyHub,Centro de Propiedad
+properties.propertyInformation,Información de la Propiedad
+properties.propertyIsFree,Propiedad Libre
+properties.propertyNotFound,Propiedad no encontrada
+properties.propertyNotFoundDesc,Esta propiedad puede haber sido eliminada o no tienes acceso a ella
+properties.propertyPostalCode,Código Postal
+properties.propertyTemplates,Plantillas de Documentos de Propiedad
+properties.propertyTemplatesDescription,"Plantillas de documentos reutilizables para esta propiedad, p.e. contratos"
+properties.propertyTitle,Título
+properties.propertyUnarchived,Propiedad desarchivada
+properties.propertyUpdated,Propiedad actualizada exitosamente
+properties.quickActions,Acciones Rápidas
+properties.readOnlyAccess,Acceso de solo lectura
+properties.reason,Razón
+properties.removeTenant,Eliminar Inquilino
+properties.rentPayments,Pagos de Alquiler
+properties.scheduledMaintenance,Mantenimiento Programado
+properties.selectReason,Selecciona una razón
+properties.selectTemplates,Seleccionar plantillas para copiar a este arrendamiento
+properties.setupFromOverview,Configura tu primer arrendamiento desde la pestaña Resumen.
+properties.stateProvince,Estado/Provincia
+properties.stateProvincePlaceholder,"ej. Madrid, Cataluña"
+properties.status.active,Activo
+properties.status.archived,Archivado
+properties.status.ending_tenancy,Finalizando Arrendamiento
+properties.statusIndicators.allClear,Todo en orden
+properties.statusIndicators.maintenance,Mantenimiento
+properties.statusIndicators.noData,Sin datos
+properties.statusIndicators.openTickets,Tickets abiertos
+properties.statusIndicators.overduePayments,Pagos vencidos
+properties.statusIndicators.pendingMaintenance,Mantenimiento pendiente
+properties.statusIndicators.rent,Alquiler
+properties.statusIndicators.tickets,Tickets
+properties.statusIndicators.utilities,Servicios
+properties.statusLabel,Estado
+properties.streetAddress,Dirección
+properties.templatesCopied,Plantillas copiadas exitosamente
+properties.tenancyDocuments,Documentos de Arrendamiento
+properties.tenancyDocumentsDescription,Documentos relacionados con tu arrendamiento
+properties.tenancyDuration,Duración
+properties.tenancyEnded,Finalizado
+properties.tenancyEnding,Arrendamiento Terminando Pronto
+properties.tenancyHistory,Historial de Arrendamientos
+properties.tenancyStarted,Iniciado
+properties.tenant,Inquilino
+properties.tenantInvited,Inquilino invitado exitosamente
+properties.tenantProperties,Propiedades como Inquilino
+properties.tenantRemoved,Inquilino eliminado exitosamente
+properties.tenants,Inquilinos
+properties.tenantsTab,Inquilinos
+properties.tickets,Tickets
+properties.ticketsTab,Tickets
+properties.title,Propiedades
+properties.titleRequired,El título de la propiedad es obligatorio
+properties.unarchiveProperty,Desarchivar Propiedad
+properties.updateError,Error al actualizar propiedad
+properties.updateSuccess,Propiedad actualizada exitosamente
+properties.uploadContract,Subir Contrato
+properties.uploadNewVersion,Subir nueva versión
+properties.uploadPhoto,Subir Foto
+properties.uploadTemplate,Subir Plantilla
+properties.uploadTenancyDocument,Subir Documento de Arrendamiento
+properties.uploading,Subiendo...
+properties.useTemplate,Usar Plantilla
+properties.utilitiesTab,Servicios
+properties.utilityPayments,Pagos de Servicios
+properties.validationError,Por favor verifica los errores en el formulario
+properties.viewDocuments,Ver Documentos
+properties.viewMaintenance,Ver Mantenimiento
+properties.viewProperty,Ver Propiedad
+properties.viewTickets,Ver Tickets
+propertyHub.description,"Resumen, inquilinos, contratos, pagos y documentos"
+propertyHub.documents,Plantillas
+propertyHub.overview,Resumen
+propertyHub.rentPayments,Pagos de Alquiler
+propertyHub.subtitle,Gestiona todos los aspectos de esta propiedad
+propertyHub.title,Centro de Propiedad
+propertyHub.utilityPayments,Pagos de Servicios
+propertyTenants.contractsTab,Contratos
+propertyTenants.documentsTab,Documentos
+propertyTenants.overviewTab,Resumen
+propertyTenants.paymentsTab,Pagos
+propertyTenants.tabs.contracts,Inquilinos
+propertyTenants.tabs.payments,Pagos
+propertyTenants.tabs.tenants,Inquilinos
+propertyTenants.tabs.tickets,Tickets
+propertyTenants.tabs.utilities,Servicios
+propertyTenants.ticketsTab,Tickets
+propertyTenants.utilitiesTab,Servicios
+provideResolutionNotes,Por favor proporciona notas sobre cómo se resolvió este ticket
+rent.amount,Monto del Alquiler
+rent.dayOfMonth,Día del Mes
+rent.deposit,Depósito de Seguridad
+rent.paymentDay,Día de Pago
+rentAgreement.currency,Moneda
+rentAgreement.endDate,Fecha de Fin
+rentAgreement.paymentDay,Día de Pago
+rentAgreement.rentAmount,Alquiler Mensual
+rentAgreement.securityDeposit,Depósito de Seguridad
+rentAgreement.startDate,Fecha de Inicio
+rentAgreements.createAgreement,Crear Acuerdo de Alquiler
+rentAgreements.createAgreementDescription,Configurar pago mensual de alquiler para esta tenencia
+rentAgreements.currency,Moneda
+rentAgreements.endDate,Fecha de Fin
+rentAgreements.mandateErrors.accountNotFound,Configuración de pago incompleta - contacta al administrador de la propiedad
+rentAgreements.mandateErrors.createFailed,Error al crear mandato SEPA
+rentAgreements.mandateErrors.invalidIban,Formato de IBAN inválido
+rentAgreements.mandateErrors.mandateFailed,Verificación de mandato fallida - por favor intenta de nuevo
+rentAgreements.mandateStatus.active,Activo
+rentAgreements.mandateStatus.failed,Verificación Fallida
+rentAgreements.mandateStatus.inactive,Inactivo
+rentAgreements.mandateStatus.pending,Verificación Pendiente
+rentAgreements.paymentDay,Día de Pago
+rentAgreements.paymentDayDescription,Día del mes en que se cobrará el alquiler (1-28)
+rentAgreements.rentAmount,Alquiler Mensual
+rentAgreements.selectDate,Seleccionar fecha
+rentAgreements.setupPayment,Configurar Detalles de Pago
+rentAgreements.setupPaymentDescription,Proporcione su IBAN para habilitar pagos automáticos de alquiler
+rentAgreements.startDate,Fecha de Inicio
+rentAgreements.tenant,Inquilino
+rentals.allRentals,Todos los Alquileres
+rentals.archived,Archivado
+rentals.archivedTenancy,Arrendamiento Archivado
+rentals.archivedWarning,Este arrendamiento está archivado. No se pueden hacer cambios.
+rentals.backToRentals,Volver a Alquileres
+rentals.cannotEditArchived,Los arrendamientos archivados no se pueden editar
+rentals.completeSetup,Completa Tu Configuración
+rentals.contractDates,Fechas del Contrato
+rentals.currentTenancy,Arrendamiento Actual
+rentals.description,Gestionar todas las relaciones de arrendamiento
+rentals.filterByProperty,Filtrar por Propiedad
+rentals.filterByStatus,Filtrar por Estado
+rentals.invitationAccepted,Invitación aceptada
+rentals.manage,Gestionar
+rentals.managerNoRentalsHint,"Esta página muestra propiedades donde eres inquilino. Para gestionar tus propiedades, visita la página de Propiedades."
+rentals.myRentals,Mis Alquileres
+rentals.noActiveRentals,Sin Alquileres Activos
+rentals.noActiveRentalsDesc,Aún no tienes alquileres activos
+rentals.noActiveTenancies,Sin Arrendamientos Activos
+rentals.noActiveTenanciesDesc,Aún no tienes relaciones de arrendamiento activas
+rentals.noArchivedTenancies,Sin Arrendamientos Archivados
+rentals.noArchivedTenanciesDesc,No tienes arrendamientos archivados
+rentals.noEndingTenancies,Sin Arrendamientos Finalizando
+rentals.noEndingTenanciesDesc,No tienes arrendamientos que finalicen pronto
+rentals.noRentals,No se encontraron alquileres
+rentals.noRentalsDesc,No hay acuerdos de alquiler activos en este momento
+rentals.paymentStatus,Estado del Pago
+rentals.property,Propiedad
+rentals.rentAmount,Monto del Alquiler
+rentals.searchTenant,Buscar por nombre de inquilino
+rentals.status,Estado
+rentals.tenant,Inquilino
+rentals.title,Alquileres
+rentals.viewContract,Ver Contrato
+rentals.viewPayments,Ver Pagos
+repairShops.active,Activo
+repairShops.activeStatus,Estado Activo
+repairShops.addContact,Añadir Contacto
+repairShops.addContactDesc,Añadir un nuevo contacto de taller de reparación a su lista
+repairShops.address,Dirección
+repairShops.city,Ciudad
+repairShops.companyName,Nombre de la Empresa
+repairShops.contactPerson,Persona de Contacto
+repairShops.deleteConfirm,¿Eliminar contacto del taller?
+repairShops.deleteConfirmDesc,Esta acción no se puede deshacer. Se eliminará permanentemente el contacto.
+repairShops.deleteContact,Eliminar Contacto
+repairShops.description,Gestionar los contactos de talleres de reparación
+repairShops.editContact,Editar Contacto
+repairShops.editContactDesc,Actualizar información del contacto del taller de reparación
+repairShops.email,Correo Electrónico
+repairShops.inactive,Inactivo
+repairShops.licenseNumber,Número de Licencia
+repairShops.noContacts,Aún no hay contactos de talleres
+repairShops.noContactsDesc,Añade tu primer contacto de taller para comenzar
+repairShops.noResults,No se encontraron contactos
+repairShops.noResultsDesc,Intenta ajustar tu búsqueda o filtros
+repairShops.notes,Notas (Privadas)
+repairShops.phone,Teléfono
+repairShops.postalCode,Código Postal
+repairShops.searchPlaceholder,"Buscar por empresa, contacto, teléfono o especialización..."
+repairShops.showActiveOnly,Mostrar Solo Activos
+repairShops.showAll,Mostrar Todo
+repairShops.specializations,Especializaciones
+repairShops.status,Estado
+repairShops.title,Talleres de Reparación
+resolutionNotesRequired,Notas de resolución requeridas
+scheduleMaintenance,Programar Mantenimiento
+scheduledFor,Programado
+search.alphabetical,A-Z
+search.byStatus,Por ocupación
+search.gridView,Vista de cuadrícula
+search.listView,Vista de lista
+search.newest,Más recientes primero
+search.oldest,Más antiguos primero
+search.placeholder,Buscar propiedades...
+search.sortBy,Ordenar por
+search.status,Estado
+selectTemplate,Seleccionar
+send,Enviar
+sepaConsent,Autorizo el débito directo SEPA
+sepaConsentDescription,Autorizo al administrador de la propiedad a cobrar pagos de mi cuenta mediante débito directo SEPA
+settings.appearance,Apariencia
+settings.appearanceDesc,"Personaliza el tema, tamaño de fuente y formato de fecha"
+settings.appearanceDescription,Personaliza cómo se ve la aplicación
+settings.creditorIdHelp,Requerido para cobros por Débito Directo SEPA
+settings.creditorIdLabel,ID de Acreedor SEPA
+settings.creditorIdPlaceholder,ES00 000 X 0000000000
+settings.darkMode,Modo Oscuro
+settings.defaultCurrency,Moneda por Defecto
+settings.defaultPaymentDay,Día de Pago por Defecto
+settings.description,Gestiona tu configuración de cuenta
+settings.email,Correo Electrónico
+settings.emailNotifications,Notificaciones por correo
+settings.firstName,Nombre
+settings.ibanHelp,Este IBAN recibirá los pagos de alquiler de tus inquilinos
+settings.ibanLabel,Tu IBAN (para recibir alquiler)
+settings.ibanPlaceholder,ES00 0000 0000 0000 0000 0000
+settings.language,Idioma
+settings.languageDescription,Selecciona tu idioma preferido
+settings.lastName,Apellido
+settings.legalName,Nombre Legal
+settings.legalNameDescription,Nombre legal completo para contratos
+settings.lightMode,Modo Claro
+settings.notifications,Notificaciones
+settings.notificationsDescription,Configura tus preferencias de notificación
+settings.paymentSettingsSaved,Configuración de pagos guardada
+settings.paymentSettingsSavedDesc,Tu configuración de pagos ha sido actualizada
+settings.paymentSetup,Configuración de Pagos
+settings.paymentSetupDescription,Configura tus ajustes de cobro de pagos
+settings.phone,Teléfono
+settings.privacyData,Privacidad y Datos
+settings.profile,Perfil
+settings.profileDescription,Actualiza tu información personal
+settings.profileSaved,Perfil guardado
+settings.profileSavedDesc,Tu perfil ha sido actualizado exitosamente.
+settings.pushNotifications,Notificaciones push
+settings.rentDefaults,Valores por Defecto de Alquiler
+settings.rentDefaultsDescription,Establece valores por defecto para nuevos contratos de alquiler
+settings.rentDefaultsSaved,Valores de alquiler guardados
+settings.rentDefaultsSavedDesc,Los ajustes por defecto se aplicarán a nuevos contratos
+settings.savePaymentSettings,Guardar Configuración de Pagos
+settings.saveProfile,Guardar Perfil
+settings.saveRentDefaults,Guardar Valores por Defecto
+settings.smsNotifications,Notificaciones SMS
+settings.systemDefault,Por Defecto del Sistema
+settings.title,Configuración
+status,Estado
+subscription.alerts.gracePeriod,Pago fallido. El período de gracia termina el
+subscription.alerts.subscriptionEnds,La suscripción termina el
+subscription.alerts.trialEnds,La prueba termina el
+subscription.annual,Anual
+subscription.automatedPaymentsLabel,Pagos automatizados
+subscription.billedAnnually,Facturado anualmente
+subscription.billedMonthly,Facturado mensualmente
+subscription.billingLabel,Facturación
+subscription.cancelAtPeriodEnd,Se cancela el
+subscription.choosePlan,Elegir Plan
+subscription.comingSoon,Próximamente
+subscription.contactSales,Contactar Ventas
+subscription.currentPeriodEnd,Se renueva el
+subscription.currentPlan,Plan Actual
+subscription.digitalSignaturesLabel,Firmas Digitales
+subscription.enterprisePlan,Plan Enterprise
+subscription.features.advancedAnalytics,Análisis avanzado
+subscription.features.apiAccess,Acceso API
+subscription.features.automatedPayments,Pagos automatizados
+subscription.features.digitalSignatures,firmas digitales/año
+subscription.features.documentTemplates,Plantillas de documentos
+subscription.features.kycVerification,Verificación de Identidad
+subscription.features.maxProperties,propiedades
+subscription.features.maxTenanciesPerProperty,arrendamientos por propiedad
+subscription.features.whiteLabeling,Marca personalizada
+subscription.featuresLabel,Características
+subscription.freePlan,Plan Gratuito
+subscription.gracePeriodEndsAt,Período de gracia termina
+subscription.kycVerificationLabel,Verificación de Identidad
+subscription.loadError,No se pueden cargar los datos de suscripción
+subscription.manageSubscription,Gestionar Suscripción
+subscription.monthly,Mensual
+subscription.perMonth,/mes
+subscription.perYear,/año
+subscription.planDetails,Detalles del Plan
+subscription.proPlan,Plan Pro
+subscription.save20,Ahorra 20%
+subscription.signaturesPerYear,firmas/año
+subscription.signaturesRemaining,firmas restantes
+subscription.title,Suscripción
+subscription.toasts.checkoutFailed,Error al crear la sesión de pago
+subscription.toasts.openingCheckout,Abriendo checkout de Stripe...
+subscription.toasts.openingPortal,Abriendo portal de facturación...
+subscription.toasts.portalFailed,Error al abrir el portal de facturación
+subscription.trialEnd,Prueba termina el
+subscription.upgradeAnnual,Actualizar a Pro (Anual - Ahorra 20%)
+subscription.upgradeMonthly,Actualizar a Pro (Mensual)
+subscription.upgradeRequired,Actualización Requerida
+subscription.upgradeToPro,Actualizar a Pro
+subscription.usage.signaturesRemaining,restantes este año
+subscription.usage.signaturesUsed,Firmas utilizadas
+subscription.usage.title,Uso
+subscription.usage.unlimited,Ilimitado
+subscription.viewEnterprise,Contactar Ventas
+subscription.whyUpgrade.description,Desbloquea funciones potentes para escalar tu gestión de propiedades
+subscription.whyUpgrade.kyc.description,Verifica identidades de inquilinos con documento oficial
+subscription.whyUpgrade.kyc.title,Verificación de Identidad
+subscription.whyUpgrade.payments.description,Cobra el alquiler automáticamente vía Stripe Connect
+subscription.whyUpgrade.payments.title,Cobro Automatizado de Pagos
+subscription.whyUpgrade.signatures.description,Crea contratos legalmente vinculantes con inquilinos
+subscription.whyUpgrade.signatures.title,100 Firmas Digitales por Año
+subscription.whyUpgrade.support.description,Obtén ayuda más rápido con soporte dedicado
+subscription.whyUpgrade.support.title,Soporte Prioritario
+subscription.whyUpgrade.title,¿Por qué Actualizar a Pro?
+templatePicker.description,Elige una tarea de la biblioteca estándar para programar en esta propiedad
+templatePicker.title,Programar Tarea de Mantenimiento
+tenancy.current,Actual
+tenancy.departing,Saliendo
+tenancy.historic,Histórico
+tenancy.incoming,Entrando
+tenancy.resendInvitation,Reenviar Invitación
+tenancy.sendInvitation,Enviar Invitación
+tenancy.startDate,Fecha de Inicio
+tenancy.transitionInProgress,Transición de inquilino en progreso
+tenancy.verification,Verificación
+tenancy.viewAllHistory,más
+tenancy.viewingHistoric,Viendo arrendamiento histórico (solo lectura)
+tenancy.wizard.availableMethod,Método disponible
+tenancy.wizard.contract,Firma del Contrato
+tenancy.wizard.contractDesc,Elige cómo se firmará el contrato de alquiler
+tenancy.wizard.contractMethod,Método de Firma del Contrato
+tenancy.wizard.contractMethodDesc,¿Cómo se firmará el contrato de alquiler?
+tenancy.wizard.contractSettings,Configuración del Contrato
+tenancy.wizard.currency,Moneda
+tenancy.wizard.dayOfMonth,día del mes
+tenancy.wizard.digitalSignature,Firma Digital
+tenancy.wizard.digitalSignatureDesc,Firma electrónica legalmente vinculante
+tenancy.wizard.digitalStandard,Firma Digital (Estándar)
+tenancy.wizard.digitalStandardDesc,Firma electrónica avanzada (AES) - válida mundialmente
+tenancy.wizard.electricity,Electricidad
+tenancy.wizard.emailVerification,Verificación de Email
+tenancy.wizard.emailVerificationDesc,El inquilino debe verificar su dirección de correo
+tenancy.wizard.endDate,Fecha de Fin del Arrendamiento (Opcional)
+tenancy.wizard.gas,Gas
+tenancy.wizard.governmentIdVerification,Verificación con documento de identidad
+tenancy.wizard.heating,Calefacción
+tenancy.wizard.internet,Internet
+tenancy.wizard.invitationFailed,Error al enviar la invitación
+tenancy.wizard.invitationSent,Invitación Enviada
+tenancy.wizard.invitationSentDesc,El inquilino recibirá un correo con instrucciones para completar la configuración
+tenancy.wizard.kycVerification,Verificación de Identidad
+tenancy.wizard.kycVerificationDesc,El inquilino debe verificar su identidad con documento oficial
+tenancy.wizard.leaseDates,Fechas del Arrendamiento
+tenancy.wizard.manualContract,Contrato Manual/Papel
+tenancy.wizard.manualContractDesc,Contrato físico firmado en persona
+tenancy.wizard.manualSignature,Manual / Papel
+tenancy.wizard.manualSignatureDesc,Firmar físicamente y subir copia escaneada
+tenancy.wizard.monthlyRent,Alquiler Mensual
+tenancy.wizard.newTenancy,Nueva Configuración de Arrendamiento
+tenancy.wizard.no,No
+tenancy.wizard.noTemplatesAvailable,No hay plantillas disponibles
+tenancy.wizard.none,Ninguno
+tenancy.wizard.notSelected,No seleccionado
+tenancy.wizard.paymentDay,Día de Pago
+tenancy.wizard.paymentDayHelp,Día del mes en que vence el alquiler (1-28)
+tenancy.wizard.perMonth,/mes
+tenancy.wizard.phoneVerification,Verificación de Teléfono
+tenancy.wizard.phoneVerificationDesc,El inquilino debe verificar su número de teléfono
+tenancy.wizard.qualifiedSignature,Firma Cualificada
+tenancy.wizard.qualifiedSignatureDesc,Firma electrónica cualificada conforme a la UE
+tenancy.wizard.rent,Alquiler y Depósitos
+tenancy.wizard.rentAndDeposit,Detalles de Alquiler y Depósito
+tenancy.wizard.rentDesc,"Configura el monto del alquiler, calendario de pago y depósitos"
+tenancy.wizard.rentDetails,Detalles del Alquiler
+tenancy.wizard.requireEmailVerification,Requerir Verificación de Email
+tenancy.wizard.requireEmailVerificationDesc,El inquilino debe verificar su dirección de correo
+tenancy.wizard.requireKYCVerification,Requerir Verificación de Identidad
+tenancy.wizard.requireKYCVerificationDesc,El inquilino debe verificar su identidad con documento oficial
+tenancy.wizard.requirePhoneVerification,Requerir Verificación de Teléfono
+tenancy.wizard.requirePhoneVerificationDesc,El inquilino debe verificar su número de teléfono
+tenancy.wizard.requirements,Requisitos
+tenancy.wizard.review,Revisar y Confirmar
+tenancy.wizard.reviewAndConfirm,Revisar y Confirmar
+tenancy.wizard.reviewDesc,Revisa la configuración del arrendamiento antes de enviar la invitación
+tenancy.wizard.reviewDescription,Por favor revisa todos los requisitos del arrendamiento antes de enviar la invitación
+tenancy.wizard.securityDeposit,Depósito de Seguridad
+tenancy.wizard.securityDepositOptional,Depósito de Seguridad (Opcional)
+tenancy.wizard.selectTemplate,Seleccionar Plantilla de Contrato
+tenancy.wizard.selectTemplateDesc,Selecciona el documento del contrato a firmar
+tenancy.wizard.selectTemplatePlaceholder,Elegir plantilla...
+tenancy.wizard.selected,Seleccionado
+tenancy.wizard.sendInvitation,Enviar Invitación
+tenancy.wizard.sending,Enviando...
+tenancy.wizard.skipContract,Omitir Contrato
+tenancy.wizard.skipContractDesc,No se requiere contrato para este arrendamiento
+tenancy.wizard.startDate,Fecha de Inicio del Arrendamiento
+tenancy.wizard.steps.contract,Contrato
+tenancy.wizard.steps.rent,Alquiler y Depósito
+tenancy.wizard.steps.review,Revisar
+tenancy.wizard.steps.tenant,Inquilino
+tenancy.wizard.steps.utilities,Servicios
+tenancy.wizard.steps.verification,Verificación
+tenancy.wizard.subtitle,Configura todos los requisitos para el nuevo inquilino
+tenancy.wizard.tenantEmail,Correo del Inquilino
+tenancy.wizard.tenantEmailHelp,Ingresa el correo electrónico del inquilino que deseas invitar
+tenancy.wizard.tenantEmailPlaceholder,inquilino@ejemplo.com
+tenancy.wizard.tenantInfo,Información del Inquilino
+tenancy.wizard.tenantInfoDesc,Ingresa el correo electrónico del inquilino que deseas invitar
+tenancy.wizard.title,Nueva Configuración de Arrendamiento
+tenancy.wizard.trash,Recolección de Basura
+tenancy.wizard.upgradeForIdVerification,Actualiza a PRO para verificación de identidad
+tenancy.wizard.uploadTemplateHint,Sube plantillas en Configuración → Plantillas
+tenancy.wizard.utilities,Configuración de Servicios
+tenancy.wizard.utilitiesConfig,Configuración de Servicios
+tenancy.wizard.utilitiesDesc,Define quién es responsable de cada servicio
+tenancy.wizard.utilitiesSetup,Configuración de Servicios
+tenancy.wizard.utilitiesSetupDesc,Define quién es responsable de cada servicio
+tenancy.wizard.validationError,Por favor completa todos los campos requeridos
+tenancy.wizard.verification,Requisitos de Verificación
+tenancy.wizard.verificationDesc,Elige qué verificaciones debe completar el inquilino
+tenancy.wizard.verificationRequirements,Requisitos de Verificación
+tenancy.wizard.verificationSettings,Configuración de Verificación
+tenancy.wizard.water,Agua
+tenancy.wizard.yes,Sí
+tenants.active,Activo
+tenants.activeTenants,Inquilinos Activos
+tenants.addTenant,Agregar Inquilino
+tenants.currentTenant,Inquilino Actual
+tenants.currentTenants,Inquilinos Actuales
+tenants.duration,Duración
+tenants.editTenant,Editar Inquilino
+tenants.editTenantDesc,Actualizar información y estado del inquilino
+tenants.email,Correo Electrónico
+tenants.endDate,Fecha de Fin
+tenants.endReason,Razón de Finalización
+tenants.endingTenancy,Finalizando Arrendamiento
+tenants.kycVerified,Verificado
+tenants.manageTenants,Inquilinos
+tenants.manageTenantsSections,Gestionar inquilinos actuales e invitaciones
+tenants.noHistory,Sin historial
+tenants.noHistoryDesc,No hay inquilinos anteriores registrados
+tenants.noTenants,No hay inquilinos
+tenants.noTenantsDesc,No hay inquilinos asignados a esta propiedad
+tenants.pending,Pendiente
+tenants.phone,Teléfono
+tenants.plannedEndDate,Fecha de fin planificada
+tenants.since,Desde
+tenants.startDate,Fecha de Inicio
+tenants.status,Estado
+tenants.statusActive,Activo
+tenants.statusEndingTenancy,Finalizando Arrendamiento
+tenants.statusHistoric,Histórico
+tenants.statusHistoricDesc,Arrendamiento finalizado
+tenants.tenancyHistory,Historial de Arrendamientos
+tenants.tenancyStatus,Estado del Arrendamiento
+tenants.tenant,inquilino
+tenants.tenantManagementDescription,"Gestionar inquilinos, documentos y tickets relacionados con inquilinos"
+tenants.tenantNotes,Notas Internas
+tenants.tenantNotesPlaceholder,Añade notas sobre este inquilino...
+tenants.tenantStartDate,Fecha de Inicio del Arrendamiento
+tenants.tenantUpdated,Inquilino actualizado
+tenants.tenantUpdatedDesc,La información del inquilino se ha actualizado correctamente
+tenants.title,Inquilinos
+tenants.updateTenant,Actualizar Inquilino
+tenants.viewAllTickets,Ver Todos los Tickets
+terms.acceptance,Aceptación de los Términos
+terms.acceptanceText,"Al acceder y usar FlatMate, usted acepta y acuerda cumplir con estos Términos de Servicio y nuestra Política de Privacidad. Si no está de acuerdo con estos términos, por favor no use nuestros servicios."
+terms.agreementText,"Al acceder o usar FlatMate, usted acepta estar sujeto a estos Términos de Servicio y todas las leyes y regulaciones aplicables. Si no está de acuerdo con alguno de estos términos, se le prohíbe usar o acceder a esta plataforma."
+terms.agreementToTerms,Acuerdo con los Términos
+terms.changes,Cambios en los Términos
+terms.changesText,Nos reservamos el derecho de modificar estos términos en cualquier momento. Notificaremos a los usuarios de cambios significativos. El uso continuado de la plataforma después de los cambios constituye la aceptación de los nuevos términos.
+terms.changesToTerms,Cambios en los Términos
+terms.changesToTermsText,Nos reservamos el derecho de modificar estos términos en cualquier momento. Notificaremos a los usuarios de cualquier cambio material publicando los nuevos Términos de Servicio en esta página y actualizando la fecha de 
+terms.contactInfo,Información de Contacto
+terms.contactInfoText,Las preguntas sobre los Términos de Servicio deben enviarse a
+terms.intellectualProperty,Propiedad Intelectual
+terms.intellectualPropertyText,"Todo el contenido, características y funcionalidad de FlatMate son de nuestra propiedad y están protegidos por leyes internacionales de derechos de autor, marcas comerciales y otras leyes de propiedad intelectual."
+terms.lastUpdated,Última actualización
+terms.limitation,Limitación de Responsabilidad
+terms.limitationLiability,Limitación de Responsabilidad
+terms.limitationLiabilityText,"FlatMate y sus proveedores no serán responsables de ningún daño (incluidos, entre otros, daños por pérdida de datos o ganancias) que surjan del uso o la imposibilidad de usar la plataforma, incluso si hemos sido notificados de la posibilidad de dicho daño."
+terms.limitationText,"FlatMate no será responsable por ningún daño indirecto, incidental, especial, consecuente o punitivo que surja del uso o la imposibilidad de usar nuestros servicios."
+terms.prohibitedUses,Usos Prohibidos
+terms.prohibitedUsesList1,De ninguna manera que viole leyes o regulaciones aplicables
+terms.prohibitedUsesList2,Para transmitir código dañino o malicioso
+terms.prohibitedUsesList3,"Para acosar, abusar o dañar a otra persona"
+terms.prohibitedUsesList4,Para hacerse pasar por otros o intentar hacerlo
+terms.prohibitedUsesList5,Para participar en cualquier uso automatizado del sistema
+terms.prohibitedUsesText,Usted acepta no usar FlatMate:
+terms.services,Servicios
+terms.servicesText,"FlatMate proporciona una plataforma de gestión de propiedades que permite a los administradores e inquilinos gestionar propiedades, solicitudes de mantenimiento, documentos y comunicaciones. Nos reservamos el derecho de modificar, suspender o discontinuar cualquier aspecto de nuestros servicios en cualquier momento."
+terms.title,Términos de Servicio
+terms.useLicense,Licencia de Uso
+terms.useLicenseList1,Modificar o copiar los materiales
+terms.useLicenseList2,Usar los materiales para cualquier propósito comercial sin autorización
+terms.useLicenseList3,Intentar descompilar o aplicar ingeniería inversa a cualquier software
+terms.useLicenseList4,Eliminar cualquier notación de derechos de autor o propiedad
+terms.useLicenseList5,Transferir los materiales a otra persona o reflejar la plataforma
+terms.useLicenseText,"Se otorga permiso para acceder y usar temporalmente FlatMate con fines personales o comerciales de gestión de propiedades. Esta es la concesión de una licencia, no una transferencia de título, y bajo esta licencia no puede:"
+terms.userAccounts,Cuentas de Usuario
+terms.userAccountsList1,Debe proporcionar información precisa y completa al crear una cuenta
+terms.userAccountsList2,Es responsable de mantener la seguridad de su cuenta
+terms.userAccountsList3,Debe notificarnos inmediatamente cualquier acceso no autorizado
+terms.userAccountsList4,No puede compartir las credenciales de su cuenta con otros
+terms.userAccountsText,"Cuando crea una cuenta con nosotros, debe proporcionar información precisa y completa. Usted es responsable de:"
+terms.userConduct,Conducta del Usuario
+terms.userConductList1,Usar la plataforma solo para fines legales
+terms.userConductList2,Respetar los derechos y la privacidad de otros usuarios
+terms.userConductList3,No subir contenido malicioso ni intentar violar la seguridad
+terms.userConductList4,No tergiversar su identidad o autoridad
+terms.userContent,Contenido del Usuario
+terms.userContentText1,"Usted conserva la propiedad de cualquier contenido que envíe a FlatMate. Al enviar contenido, nos otorga una licencia para usar, almacenar y mostrar ese contenido según sea necesario para proporcionar nuestros servicios."
+terms.userContentText2,Usted es responsable del contenido que publica y debe asegurarse de que no viole ninguna ley ni infrinja los derechos de otros.
+tickets.activityTimeline,Línea de Tiempo de Actividad
+tickets.activityTimelineDesc,Rastrea todos los cambios y actualizaciones
+tickets.all,Todos
+tickets.attachments,Adjuntos
+tickets.attachmentsDesc,Fotos y videos relacionados con este ticket
+tickets.availableAfterStart,Los tickets se pueden crear después de que comience el alquiler el
+tickets.cancelled,Cancelado
+tickets.comments,Comentarios
+tickets.commentsDesc,Discute este ticket con tu equipo
+tickets.complaint,queja
+tickets.completedBy,Completado Por
+tickets.created,Creado
+tickets.createdBy,Creado por
+tickets.description,Gestiona tickets y solicitudes de propiedades
+tickets.high,Alto
+tickets.inProgress,En Progreso
+tickets.incident,Incidente
+tickets.issue,Problema
+tickets.low,Bajo
+tickets.maintenance,mantenimiento
+tickets.medium,Medio
+tickets.newTicket,Nuevo Ticket
+tickets.noOpenTickets,No hay tickets abiertos en este momento
+tickets.noTickets,No se encontraron tickets
+tickets.noTicketsWithStatus,No hay tickets con este estado
+tickets.open,Abierto
+tickets.openTickets,Tickets Abiertos
+tickets.openTicketsDesc,Tickets activos para esta propiedad
+tickets.priority,Prioridad
+tickets.recurring,Recurrente
+tickets.repair,reparación
+tickets.request,Solicitud
+tickets.resolutionNotes,Notas de Resolución
+tickets.resolved,Resuelto
+tickets.resolvedOn,Resuelto el
+tickets.scheduledMaintenance,Mantenimiento Programado
+tickets.status,Estado
+tickets.ticketInformation,Información del Ticket
+tickets.ticketNotFound,Ticket no encontrado
+tickets.ticketNotFoundDesc,Este ticket puede haber sido eliminado o no tienes acceso a él
+tickets.ticketNumber,Ticket #
+tickets.ticketTitle,Título
+tickets.title,Tickets
+tickets.type,Tipo
+tickets.urgent,Urgente
+toasts.attachmentDeleteFailed,Error al eliminar adjunto
+toasts.attachmentDeleted,Adjunto eliminado exitosamente
+toasts.attachmentsUploaded,Adjuntos subidos exitosamente
+toasts.carouselImageUploaded,Imagen subida
+toasts.carouselImageUploadedDesc,Imagen del carrusel subida exitosamente
+toasts.carouselSaveFailed,Error al guardar carrusel
+toasts.carouselSaved,Carrusel guardado
+toasts.carouselSavedDesc,Elementos del carrusel actualizados exitosamente
+toasts.commentAddFailed,Error al agregar comentario. Por favor intenta de nuevo.
+toasts.copiedToClipboard,Copiado al portapapeles
+toasts.credentialsGenerateFailed,Error al generar credenciales de prueba
+toasts.credentialsGenerated,Credenciales de prueba generadas exitosamente
+toasts.documentUploaded,Documento subido exitosamente
+toasts.enterSixDigitCode,Por favor ingresa un código de 6 dígitos
+toasts.enterpriseContactFailed,Error al enviar solicitud. Por favor intenta de nuevo.
+toasts.enterpriseContactSuccess,¡Gracias! Te contactaremos en 24 horas.
+toasts.failedToVerifyCode,Error al verificar código
+toasts.fileTooLarge,El archivo debe ser menor a 10MB
+toasts.imageTooLarge,La imagen debe ser menor a 5MB
+toasts.invalidFileType,Tipo de archivo no permitido. Por favor sube un documento o imagen.
+toasts.invalidImageType,"Por favor sube una imagen (JPG, PNG, WEBP) o archivo PDF"
+toasts.invalidNumber,Por favor ingresa un número positivo válido
+toasts.invalidVerificationCode,Código de verificación inválido
+toasts.invitationAccepted,Invitación aceptada
+toasts.planUpdateFailed,Error al actualizar plan
+toasts.planUpdated,Plan actualizado exitosamente
+toasts.proofUploaded,Comprobante de pago subido exitosamente
+toasts.requestUpdateFailed,Error al actualizar solicitud
+toasts.requestUpdated,Solicitud actualizada exitosamente
+toasts.scheduleCreateFailed,Error al crear programación
+toasts.scheduleCreated,Programación recurrente creada
+toasts.scheduleUpdateFailed,Error al actualizar programación
+toasts.scheduleUpdated,Programación actualizada
+toasts.selectFile,Por favor selecciona un archivo para subir
+toasts.selectTemplateAndDate,Por favor selecciona una plantilla y fecha de inicio
+toasts.settingUpdateFailed,Error al actualizar configuración
+toasts.settingUpdated,Configuración actualizada exitosamente
+toasts.signatureCompleted,Firma completada exitosamente
+toasts.taskCompleteFailed,Error al completar tarea
+toasts.taskCompleted,Tarea completada exitosamente
+toasts.taskDeleteFailed,Error al eliminar tarea
+toasts.taskDeleted,Tarea eliminada exitosamente
+toasts.ticketCreated,Ticket creado
+toasts.ticketCreatedDesc,Tu ticket ha sido creado exitosamente.
+toasts.ticketUpdateFailed,Error al actualizar ticket
+toasts.ticketUpdated,Ticket actualizado exitosamente
+toasts.uploadFailed,Error al subir
+typeFilter.all,Todas las Tareas
+typeFilter.issues,Incidencias
+typeFilter.maintenance,Mantenimiento
+upcoming,Próximo
+utilities.acceptedFormats,"Imágenes (JPG, PNG) o PDF. Máx 10MB."
+utilities.addUtilityBill,Agregar Factura de Servicio
+utilities.amount,Monto
+utilities.approve,Aprobar
+utilities.billingPeriod,Período de Facturación
+utilities.billingPeriodEnd,Fin del Período
+utilities.billingPeriodStart,Inicio del Período
+utilities.customName,Nombre Personalizado del Servicio
+utilities.customNamePlaceholder,Ingrese nombre personalizado del servicio
+utilities.dueDate,Fecha de Vencimiento
+utilities.imageLoadError,Error al cargar la imagen
+utilities.manageUtilities,Pagos de Servicios
+utilities.managerPays,Paga el propietario
+utilities.noActiveTenant,No hay inquilino activo para gestionar servicios
+utilities.noPayments,Aún no hay pagos de servicios
+utilities.noPaymentsDesc,Los pagos de servicios aparecerán aquí una vez que se agreguen facturas
+utilities.notApplicable,No aplica
+utilities.paymentDetails,Detalles del Pago
+utilities.paymentHistory,Historial de Pagos de Servicios
+utilities.proofReview.approved,Aprobado
+utilities.proofReview.pending,Revisión Pendiente
+utilities.proofReview.rejected,Rechazado
+utilities.reject,Rechazar
+utilities.reviewNotes,Notas de Revisión
+utilities.reviewNotesPlaceholder,Agregar notas sobre este pago...
+utilities.reviewProof,Revisar Comprobante
+utilities.selectProofFile,Seleccionar archivo de comprobante de pago
+utilities.status.overdue,Vencido
+utilities.status.paid,Pagado
+utilities.status.pending,Pendiente
+utilities.tenantPays,Paga el inquilino y sube comprobante
+utilities.title,Servicios
+utilities.types.electricity,Electricidad
+utilities.types.gas,Gas
+utilities.types.heating,Calefacción
+utilities.types.internet,Internet
+utilities.types.other,Otro
+utilities.types.trash,Basura
+utilities.types.water,Agua
+utilities.uploadProof,Subir Comprobante
+utilities.uploadedProof,Comprobante Subido
+utilities.utilityType,Tipo de Servicio
+verification.email,Correo
+verification.kyc,Identidad
+verification.phone,Teléfono
+viewAgreement,Ver Acuerdo

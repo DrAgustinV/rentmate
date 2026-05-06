@@ -11,12 +11,15 @@ import { CommentInput } from "@/components/ticket/CommentInput";
 import { AttachmentGallery } from "@/components/ticket/AttachmentGallery";
 import { AttachmentUpload } from "@/components/ticket/AttachmentUpload";
 import { ActivityTimeline } from "@/components/ticket/ActivityTimeline";
-import { StatusManager } from "@/components/ticket/StatusManager";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { RotateCw, FileX } from "lucide-react";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+const StatusManager = lazy(() => 
+  import("@/components/ticket/StatusManager").then(m => ({ default: m.StatusManager }))
+);
 
 const statusColors = {
   open: "bg-blue-500",
@@ -214,12 +217,16 @@ const TicketDetail = () => {
                     {ticket.priority}
                   </Badge>
                 </div>
-                <StatusManager
-                  ticketId={ticket.id}
-                  currentStatus={ticket.status}
-                  currentPriority={ticket.priority}
-                  isManager={isManager}
-                />
+                {isManager && (
+                  <Suspense fallback={<div className="h-10 w-[300px] bg-muted animate-pulse rounded" />}>
+                    <StatusManager
+                      ticketId={ticket.id}
+                      currentStatus={ticket.status}
+                      currentPriority={ticket.priority}
+                      isManager={isManager}
+                    />
+                  </Suspense>
+                )}
               </div>
             </div>
           </CardHeader>

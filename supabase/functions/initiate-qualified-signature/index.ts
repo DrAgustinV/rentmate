@@ -99,13 +99,55 @@ serve(async (req) => {
     // Fetch document record
     const { data: document, error: docError } = await supabase
       .from('property_documents')
-      .select('file_path, file_name, file_type')
+      .select('file_path, file_name, file_type, file_size_bytes')
       .eq('id', documentId)
       .eq('tenancy_id', tenancyId)
       .single();
 
     if (docError || !document) {
       throw new Error('Document not found or does not belong to this tenancy');
+    }
+
+    // Validate document for signature workflow
+    const ALLOWED_MIME_TYPES = ['application/pdf'];
+    const ALLOWED_EXTENSIONS = ['.pdf'];
+    const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+
+    // Check MIME type
+    if (!ALLOWED_MIME_TYPES.includes(document.file_type)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Invalid file type. Only PDF documents are allowed for signatures.',
+          code: 'INVALID_FILE_TYPE'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Check file extension
+    const fileExtension = document.file_name?.toLowerCase().slice(document.file_name?.lastIndexOf('.'));
+    if (!fileExtension || !ALLOWED_EXTENSIONS.includes(fileExtension)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Invalid file extension. Only .pdf files are allowed.',
+          code: 'INVALID_FILE_EXTENSION'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Check file size
+    if (document.file_size_bytes && document.file_size_bytes > MAX_FILE_SIZE_BYTES) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `File too large. Maximum allowed size is 10MB.`,
+          code: 'FILE_TOO_LARGE'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
     }
 
     // Download file from storage

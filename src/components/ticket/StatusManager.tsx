@@ -32,7 +32,7 @@ interface StatusManagerProps {
   isManager: boolean;
 }
 
-export const StatusManager = ({
+const StatusManager = ({
   ticketId,
   currentStatus,
   currentPriority,
@@ -201,3 +201,5 @@ export const StatusManager = ({
     </>
   );
 };
+
+export default StatusManager;

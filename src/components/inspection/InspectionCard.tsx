@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,38 +62,50 @@ export function InspectionCard({
     isDeleting,
   } = useInspections(tenancyId, propertyId);
 
-  const handleCreate = async (type: InspectionType) => {
+  const handleCreate = useCallback(async (type: InspectionType) => {
     const inspection = await createInspection({ type, tenancyId, propertyId });
     setSelectedInspection(inspection);
     setCreateType(null);
-  };
+  }, [createInspection, tenancyId, propertyId]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!deleteConfirm) return;
     await deleteInspection(deleteConfirm.id);
     setDeleteConfirm(null);
-  };
+  }, [deleteConfirm, deleteInspection]);
 
-  const getStatusBadge = (inspection: Inspection) => {
+  const handleOpenInspection = useCallback((inspection: Inspection) => {
+    setSelectedInspection(inspection);
+  }, []);
+
+  const handleOpenDeleteConfirm = useCallback((inspection: Inspection) => {
+    setDeleteConfirm(inspection);
+  }, []);
+
+  const handleDownloadPdf = useCallback((url: string) => {
+    window.open(url, '_blank');
+  }, []);
+
+  const getStatusBadge = useCallback((inspection: Inspection) => {
     switch (inspection.status) {
       case 'draft':
-        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Draft</Badge>;
+        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />{t('inspections.draft')}</Badge>;
       case 'in_progress':
-        return <Badge variant="outline" className="text-blue-600 border-blue-300"><AlertCircle className="h-3 w-3 mr-1" />In Progress</Badge>;
+        return <Badge variant="outline" className="text-blue-600 border-blue-300"><AlertCircle className="h-3 w-3 mr-1" />{t('inspections.inProgress')}</Badge>;
       case 'pending_signatures':
-        return <Badge variant="outline" className="text-yellow-600 border-yellow-300"><Clock className="h-3 w-3 mr-1" />Pending Signatures</Badge>;
+        return <Badge variant="outline" className="text-yellow-600 border-yellow-300"><Clock className="h-3 w-3 mr-1" />{t('inspections.pendingSignatures')}</Badge>;
       case 'completed':
-        return <Badge variant="default" className="bg-green-600"><CheckCircle className="h-3 w-3 mr-1" />Completed</Badge>;
+        return <Badge variant="default" className="bg-green-600"><CheckCircle className="h-3 w-3 mr-1" />{t('inspections.completed')}</Badge>;
       default:
         return null;
     }
-  };
+  }, [t]);
 
-  const getTypeBadge = (type: InspectionType) => {
+  const getTypeBadge = useCallback((type: InspectionType) => {
     return type === 'move_in' 
-      ? <Badge variant="outline" className="text-emerald-600 border-emerald-300">Move-In</Badge>
-      : <Badge variant="outline" className="text-orange-600 border-orange-300">Move-Out</Badge>;
-  };
+      ? <Badge variant="outline" className="text-emerald-600 border-emerald-300">{t('inspections.moveIn')}</Badge>
+      : <Badge variant="outline" className="text-orange-600 border-orange-300">{t('inspections.moveOut')}</Badge>;
+  }, [t]);
 
   return (
     <>
@@ -102,10 +114,10 @@ export function InspectionCard({
           <div>
             <CardTitle className="flex items-center gap-2">
               <ClipboardCheck className="h-5 w-5" />
-              Property Inspections
+              {t('inspections.title')}
             </CardTitle>
             <CardDescription>
-              Move-in and move-out condition reports
+              {t('inspections.description') || 'Move-in and move-out condition reports'}
             </CardDescription>
           </div>
           {isManager && !isReadOnly && (
@@ -113,15 +125,15 @@ export function InspectionCard({
               <DropdownMenuTrigger asChild>
                 <Button size="sm" disabled={isCreating}>
                   <Plus className="h-4 w-4 mr-1" />
-                  New Inspection
+                  {t('inspections.newInspection')}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleCreate('move_in')}>
-                  Move-In Inspection
+                  {t('inspections.newMoveIn')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleCreate('move_out')}>
-                  Move-Out Inspection
+                  {t('inspections.newMoveOut')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -129,18 +141,18 @@ export function InspectionCard({
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-sm text-muted-foreground">Loading inspections...</div>
+            <div className="text-sm text-muted-foreground">{t('inspections.loading')}</div>
           ) : inspections.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               <ClipboardCheck className="h-10 w-10 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No inspections yet</p>
+              <p className="text-sm">{t('inspections.noInspections')}</p>
               {isManager && !isReadOnly && (
-                <p className="text-xs mt-1">Create a move-in or move-out inspection to document property condition</p>
+                <p className="text-xs mt-1">{t('inspections.createHint')}</p>
               )}
             </div>
           ) : (
             <div className="space-y-3">
-              {inspections.map((inspection) => (
+              {useMemo(() => inspections.map((inspection) => (
                 <div 
                   key={inspection.id} 
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -155,7 +167,7 @@ export function InspectionCard({
                     </p>
                     {inspection.status === 'completed' && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Signed by both parties
+                        {t('inspections.signedByBoth')}
                       </p>
                     )}
                   </div>
@@ -163,7 +175,7 @@ export function InspectionCard({
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => setSelectedInspection(inspection)}
+                      onClick={() => handleOpenInspection(inspection)}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -171,7 +183,7 @@ export function InspectionCard({
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => window.open(inspection.pdf_url!, '_blank')}
+                        onClick={() => handleDownloadPdf(inspection.pdf_url!)}
                       >
                         <Download className="h-4 w-4" />
                       </Button>
@@ -181,14 +193,14 @@ export function InspectionCard({
                         variant="ghost" 
                         size="sm"
                         className="text-destructive hover:text-destructive"
-                        onClick={() => setDeleteConfirm(inspection)}
+                        onClick={() => handleOpenDeleteConfirm(inspection)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
                 </div>
-              ))}
+              )), [inspections, getTypeBadge, getStatusBadge, isManager, isReadOnly, handleOpenInspection, handleDownloadPdf, handleOpenDeleteConfirm])}
             </div>
           )}
         </CardContent>
@@ -209,19 +221,19 @@ export function InspectionCard({
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Inspection?</AlertDialogTitle>
+            <AlertDialogTitle>{t('inspections.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this inspection and all its data. This action cannot be undone.
+              {t('inspections.deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? t('common.deleting') || 'Deleting...' : t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

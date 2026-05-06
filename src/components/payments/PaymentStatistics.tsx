@@ -1,3 +1,4 @@
+import { useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Coins, Calendar, TrendingUp, Bell } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -21,30 +22,48 @@ interface PaymentStatisticsProps {
 export function PaymentStatistics({ payments, hasData }: PaymentStatisticsProps) {
   const { t } = useLanguage();
 
-  // Calculate statistics
-  const totalPaid = payments
-    .filter(p => p.status === 'paid')
-    .reduce((sum, p) => sum + p.amount_cents, 0) / 100;
+  const totalPaid = useMemo(() => 
+    payments
+      .filter(p => p.status === 'paid')
+      .reduce((sum, p) => sum + p.amount_cents, 0) / 100,
+    [payments]
+  );
 
-  const nextDuePayment = payments
-    .filter(p => p.status === 'pending' && new Date(p.payment_due_date) >= new Date())
-    .sort((a, b) => new Date(a.payment_due_date).getTime() - new Date(b.payment_due_date).getTime())[0];
+  const nextDuePayment = useMemo(() => 
+    payments
+      .filter(p => p.status === 'pending' && new Date(p.payment_due_date) >= new Date())
+      .sort((a, b) => new Date(a.payment_due_date).getTime() - new Date(b.payment_due_date).getTime())[0],
+    [payments]
+  );
 
-  const onTimePayments = payments.filter(p => {
-    if (p.status !== 'paid' || !p.payment_received_date) return false;
-    return new Date(p.payment_received_date) <= new Date(p.payment_due_date);
-  }).length;
+  const onTimePayments = useMemo(() => 
+    payments.filter(p => {
+      if (p.status !== 'paid' || !p.payment_received_date) return false;
+      return new Date(p.payment_received_date) <= new Date(p.payment_due_date);
+    }).length,
+    [payments]
+  );
 
-  const totalCompletedPayments = payments.filter(p => p.status === 'paid').length;
-  const onTimeRate = totalCompletedPayments > 0 
-    ? Math.round((onTimePayments / totalCompletedPayments) * 100) 
-    : null;
+  const totalCompletedPayments = useMemo(() => 
+    payments.filter(p => p.status === 'paid').length,
+    [payments]
+  );
 
-  const totalReminders = payments.reduce((sum, p) => sum + (p.reminder_count || 0), 0);
+  const onTimeRate = useMemo(() => 
+    totalCompletedPayments > 0 
+      ? Math.round((onTimePayments / totalCompletedPayments) * 100) 
+      : null,
+    [onTimePayments, totalCompletedPayments]
+  );
 
-  const formatCurrency = (amount: number) => `€${amount.toFixed(2)}`;
+  const totalReminders = useMemo(() => 
+    payments.reduce((sum, p) => sum + (p.reminder_count || 0), 0),
+    [payments]
+  );
 
-  const getNextDueInfo = () => {
+  const formatCurrency = useCallback((amount: number) => `€${amount.toFixed(2)}`, []);
+
+  const nextDueInfo = useMemo(() => {
     if (!nextDuePayment) return { text: t("payments.statistics.noData"), days: null };
     
     const daysUntil = differenceInDays(new Date(nextDuePayment.payment_due_date), new Date());
@@ -53,11 +72,9 @@ export function PaymentStatistics({ payments, hasData }: PaymentStatisticsProps)
     if (daysUntil === 1) return { text: t("common.tomorrow"), days: 1 };
     if (daysUntil > 1) return { text: `${t("common.in")} ${daysUntil} ${t("common.days")}`, days: daysUntil };
     return { text: format(new Date(nextDuePayment.payment_due_date), 'MMM d'), days: null };
-  };
+  }, [nextDuePayment, t]);
 
-  const nextDueInfo = getNextDueInfo();
-
-  const stats = [
+  const stats = useMemo(() => [
     {
       icon: Coins,
       label: t("payments.statistics.totalPaid"),
@@ -90,7 +107,7 @@ export function PaymentStatistics({ payments, hasData }: PaymentStatisticsProps)
       iconColor: totalReminders > 5 ? "text-orange-500" : "text-muted-foreground",
       bgColor: totalReminders > 5 ? "bg-orange-50 dark:bg-orange-950/20" : "bg-muted/50",
     },
-  ];
+  ], [t, hasData, formatCurrency, totalPaid, totalCompletedPayments, nextDuePayment, nextDueInfo, onTimeRate, onTimePayments, totalReminders]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

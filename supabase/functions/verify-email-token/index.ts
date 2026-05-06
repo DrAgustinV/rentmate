@@ -10,6 +10,34 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const RATE_LIMIT_WINDOW_SECONDS = 60;
+const MAX_REQUESTS_PER_WINDOW = 10;
+
+const requestCounts = new Map<string, { count: number; resetAt: number }>();
+
+const checkRateLimit = (clientIp: string): { allowed: boolean; remaining: number; resetAt: number } => {
+  const now = Date.now();
+  const windowStart = now - (RATE_LIMIT_WINDOW_SECONDS * 1000);
+  
+  const clientData = requestCounts.get(clientIp);
+  
+  if (!clientData || clientData.resetAt < now) {
+    // New window
+    const resetAt = now + (RATE_LIMIT_WINDOW_SECONDS * 1000);
+    requestCounts.set(clientIp, { count: 1, resetAt });
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1, resetAt };
+  }
+  
+  if (clientData.count >= MAX_REQUESTS_PER_WINDOW) {
+    // Rate limited
+    return { allowed: false, remaining: 0, resetAt: clientData.resetAt };
+  }
+  
+  // Increment count
+  clientData.count++;
+  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - clientData.count, resetAt: clientData.resetAt };
+};
+
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -22,12 +50,46 @@ serve(async (req: Request): Promise<Response> => {
     );
   }
 
+  // Rate limiting - use IP from forwarded headers if available
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0] || 
+                   req.headers.get("cf-connecting-ip") || 
+                   "unknown";
+  
+  const rateLimit = checkRateLimit(clientIp);
+  
+  if (!rateLimit.allowed) {
+    const waitSeconds = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
+    return new Response(
+      JSON.stringify({ 
+        error: "Too many requests. Please try again later.",
+        rate_limited: true,
+        wait_seconds: waitSeconds
+      }),
+      { 
+        status: 429, 
+        headers: { 
+          "Content-Type": "application/json",
+          "Retry-After": String(waitSeconds),
+          ...corsHeaders 
+        } 
+      }
+    );
+  }
+
   try {
     const { token } = await req.json();
 
     if (!token || typeof token !== "string") {
       return new Response(
         JSON.stringify({ error: "Token is required" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Validate token format (should be 64 character hex string)
+    if (!/^[a-f0-9]{64}$/i.test(token)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid token format" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }

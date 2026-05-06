@@ -1,0 +1,1830 @@
+Key,English Value
+about.efficiency,Efficiency
+about.efficiencyDesc,Streamlined workflows that save time and reduce administrative overhead.
+about.maintenanceScheduling,Maintenance Scheduling
+about.maintenanceSchedulingDesc,Plan and schedule recurring maintenance tasks to keep your properties in top condition.
+about.missionSubtitle,Simplifying property management for everyone
+about.missionText,"FlatMate is a modern property management platform designed to streamline communication between property managers and tenants. Our goal is to make property management simple, efficient, and transparent for all parties involved."
+about.ourMission,Our Mission
+about.ourValues,Our Values
+about.propertyManagement,Property Management
+about.propertyManagementDesc,"Manage multiple properties, track tenants, and maintain property documents in one centralized platform."
+about.realtimeCommunication,Real-Time Communication
+about.realtimeCommunicationDesc,Stay connected with tenants and property managers through our built-in communication tools.
+about.reliability,Reliability
+about.reliabilityDesc,A dependable platform you can count on for managing your properties.
+about.ticketManagement,Ticket Management
+about.ticketManagementDesc,"Create, track, and resolve maintenance requests and issues efficiently with our intuitive ticketing system."
+about.title,About FlatMate
+about.transparency,Transparency
+about.transparencyDesc,Clear communication and visibility into all property-related activities.
+about.whatWeOffer,What We Offer
+account.comingSoon,Coming Soon
+account.identity,Identity Verification
+account.myAccount,My Account
+account.photoHint,"JPG, PNG or WEBP. Max 5MB."
+account.photoInvalidType,Please upload an image file
+account.photoRemoved,Profile photo removed
+account.photoTooLarge,Image must be less than 5MB
+account.photoUploaded,Profile photo updated
+account.plansCredits,Plans & Credits
+account.profile,Profile
+account.profilePhoto,Profile Photo
+account.removePhoto,Remove
+account.uploadPhoto,Upload Photo
+active,Active
+admin.actions,Actions
+admin.addRole,Add role
+admin.address,Address
+admin.adminRole,Admin
+admin.allProperties,All Properties
+admin.allPropertiesDesc,View and manage all system properties
+admin.allTickets,All Tickets
+admin.allTicketsDesc,View and manage all tickets across properties
+admin.analytics.activeSessions,Active Sessions
+admin.analytics.allTime,All time
+admin.analytics.description,"Track visitor analytics, usage metrics, and user behavior"
+admin.analytics.deviceBreakdown,Device Breakdown
+admin.analytics.deviceBreakdownDesc,Visitor distribution by device type
+admin.analytics.devices,Devices
+admin.analytics.events,Events
+admin.analytics.geography,Geography
+admin.analytics.last30Days,Last 30 days
+admin.analytics.last7Days,Last 7 days
+admin.analytics.last90Days,Last 90 days
+admin.analytics.pageViews,Page Views
+admin.analytics.tab,Analytics
+admin.analytics.title,Analytics Dashboard
+admin.analytics.topCountries,Top Countries
+admin.analytics.topCountriesDesc,Visitor distribution by country
+admin.analytics.topEvents,Top Events
+admin.analytics.topEventsDesc,Most frequently triggered events
+admin.analytics.totalEvents,Total Events
+admin.analytics.totalVisitors,Total Visitors
+admin.analytics.traffic,Traffic
+admin.analytics.trafficOverTime,Traffic Over Time
+admin.analytics.trafficOverTimeDesc,View page views and unique visitors over time
+admin.analytics.visitors,Visitors
+admin.cancelDelete,Cancel
+admin.cannotDeleteSelf,You cannot delete your own account
+admin.confirmDelete,Confirm Delete
+admin.created,Created
+admin.dashboardTitle,Admin Dashboard
+admin.deleteUser,Delete User
+admin.deleteUserWarning,This will permanently delete this user and all their data.
+admin.description,"Manage users, properties, tickets, and system settings"
+admin.email,Email
+admin.joined,Joined
+admin.kiltSetup,KILT Setup
+admin.kiltSetupDesc,Generate test credentials for KILT testnet integration (development only)
+admin.kiltSetupTitle,KILT Protocol Setup
+admin.loading,Loading
+admin.loadingProperties,Loading properties...
+admin.loadingTickets,Loading tickets...
+admin.loadingUsers,Loading users...
+admin.manager,Manager
+admin.name,Name
+admin.openKiltSetup,Open KILT Setup
+admin.phone,Phone
+admin.priority,Priority
+admin.properties,Properties
+admin.propertyTitle,Title
+admin.roleAddedError,Failed to add role
+admin.roleAddedSuccess,Role added successfully
+admin.roles,Roles
+admin.settings,Settings
+admin.status,Status
+admin.systemSettings,System Settings
+admin.systemSettingsDesc,Configure system settings and limits
+admin.ticketNumber,Ticket #
+admin.tickets,Tickets
+admin.type,Type
+admin.userDeletedError,Failed to delete user
+admin.userDeletedSuccess,User deleted successfully
+admin.userManagement,User Management
+admin.userManagementDesc,View all users and manage their roles
+admin.userRole,User
+admin.users,Users
+ai.descriptionGenerated,Description generated successfully
+ai.draft,Draft
+ai.generate,Generate
+ai.generationError,Failed to generate content. Please try again.
+ai.noTicketContext,Unable to generate response without ticket context
+ai.responseGenerated,Response drafted successfully
+ai.titleRequired,Please enter a property title first
+auth.accountDetected,Account Detected
+auth.accountDetectedDesc,We found your account! Sign in to accept your property invitation.
+auth.alreadyHaveAccount,Already have an account?
+auth.authenticationFailed,Authentication failed
+auth.backToHome,Back to Home
+auth.backToSignIn,Back to sign in
+auth.cannotSignInUnconfirmed,Email not confirmed. Please check your email and click the confirmation link.
+auth.changePassword,Change Password
+auth.checkEmailForReset,Check your email for the reset link
+auth.checkInboxAndSpam,Check your inbox and spam folder for the verification email.
+auth.checkYourEmail,Check your email!
+auth.clickToActivate,Click the link to activate your account.
+auth.confirmPassword,Confirm Password
+auth.confirmationLinkSent,We
+auth.confirmationResent,Confirmation email resent
+auth.continueWithGoogle,Continue with Google
+auth.createAccount,Create Account
+auth.currentPassword,Current Password
+auth.email,Email
+auth.emailAlreadyVerified,Your email is already verified
+auth.emailConfirmationRequired,Please confirm your email
+auth.emailConfirmationSent,Check your email for confirmation link
+auth.emailNotConfirmed,Please confirm your email before signing in
+auth.emailNotYetVerified,Email not verified yet. Please check your inbox.
+auth.emailVerified,Email verified!
+auth.emailVerifiedDesc,Your email has been verified. Redirecting to the app...
+auth.emailVerifiedTitle,Email Verified!
+auth.errorCheckingAuth,Error checking authentication status
+auth.firstName,First Name
+auth.forgotPassword,Forgot password?
+auth.getStarted,Get started with your account
+auth.goToApp,Go to App
+auth.iVerifiedCheckNow,I verified - check now
+auth.invalidCredentials,Invalid email or password
+auth.invalidResetToken,Invalid or expired reset link
+auth.invalidToken,The verification link is invalid or has already been used.
+auth.lastName,Last Name
+auth.linkExpired,Link Expired
+auth.linkExpiredDesc,This verification link has expired. Please request a new one.
+auth.linkExpiresIn24Hours,The link expires in 24 hours.
+auth.networkError,Network error. Please check your connection.
+auth.newPassword,New Password
+auth.noAccountDetected,No Account Found
+auth.noAccountDetectedDesc,We couldn
+auth.noAccountYet,Don
+auth.noVerificationToken,No Verification Token
+auth.noVerificationTokenDesc,Please use the verification link from your email.
+auth.orContinueWith,or continue with
+auth.password,Password
+auth.passwordChangeFailed,Failed to change password
+auth.passwordChanged,Password changed successfully
+auth.passwordRequirements,Must be at least 8 characters long
+auth.passwordResetSuccess,Password updated successfully!
+auth.passwordTooShort,Password must be at least 8 characters
+auth.passwordsDoNotMatch,Passwords do not match
+auth.pleaseWait,Please wait while we verify your email address.
+auth.rateLimitExceeded,Too many requests. Please try again in 1 hour.
+auth.requestNewLink,Request New Link
+auth.resendConfirmation,Resend confirmation email
+auth.resendVerificationEmail,Resend Verification Email
+auth.resetLinkSent,Password reset link sent!
+auth.resetPassword,Reset Password
+auth.resetPasswordDesc,Enter your email to receive a reset link
+auth.resetPasswordTitle,Reset your password
+auth.resetTokenExpired,This reset link has expired. Request a new one.
+auth.sendResetLink,Send Reset Link
+auth.setNewPassword,Set New Password
+auth.signIn,Sign In
+auth.signInFailed,Failed to sign in
+auth.signInHere,Sign in here
+auth.signInSuccess,Signed in successfully!
+auth.signInToContinue,Sign in to continue
+auth.signOut,Sign Out
+auth.signUp,Sign Up
+auth.signUpFailed,Failed to create account
+auth.signUpHere,Sign up here
+auth.signUpSuccess,Account created successfully!
+auth.trustBadge,Trusted by property managers across Europe
+auth.userAlreadyRegistered,This email is already registered
+auth.valueProps.automated.description,"Track rent payments, due dates, and payment history all in one place."
+auth.valueProps.automated.title,Simple Payment Tracking
+auth.valueProps.realtime.description,"Track maintenance requests, payments, and communications in one place."
+auth.valueProps.realtime.title,Real-Time Updates
+auth.valueProps.secure.description,Sign rental agreements with legally-binding digital signatures and ID verification.
+auth.valueProps.secure.title,Secure Digital Contracts
+auth.valueProps.title,Simplify Your Property Management
+auth.verificationEmailFailed,Failed to send verification email
+auth.verificationEmailSent,Verification email sent!
+auth.verificationFailed,Verification Failed
+auth.verificationSentTo,We sent a verification link to
+auth.verifyYourEmail,Verify Your Email
+auth.verifyingEmail,Verifying your email...
+auth.weakPassword,"Password is too weak. Use a mix of letters, numbers, and symbols."
+auth.welcomeBack,Welcome Back
+buttons.documents,Documents
+buttons.inviteTenant,Invite Tenant
+buttons.maintenance,Maintenance
+buttons.manageTenants,Manage Tenants
+buttons.tickets,Tickets
+buttons.viewAll,View All
+common.acceptAll,Accept All Cookies
+common.actions,Actions
+common.amount,Amount
+common.archive,Archive
+common.back,Back
+common.cancel,Cancel
+common.category,Category
+common.close,Close
+common.comingSoon,Coming Soon
+common.confirm,Confirm
+common.cookieConsent,Cookie Consent
+common.cookieMessage,We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.
+common.create,Create
+common.creating,Creating...
+common.days,days
+common.delete,Delete
+common.download,Download
+common.draft,Draft
+common.dueDate,Due Date
+common.edit,Edit
+common.error,Error
+common.filter,Filter
+common.in,in
+common.loading,Loading...
+common.month,month
+common.na,N/A
+common.next,Next
+common.no,No
+common.none,None
+common.notAuthenticated,Not authenticated
+common.of,of
+common.open,Open
+common.optional,Optional
+common.priority,Priority
+common.rejectNonEssential,Reject Non-Essential
+common.retry,Retry
+common.save,Save
+common.search,Search
+common.sent,Sent
+common.status,Status
+common.submit,Submit
+common.success,Success
+common.title,Title
+common.today,Today
+common.tomorrow,Tomorrow
+common.type,Type
+common.unknown,Unknown
+common.update,Update
+common.upload,Upload
+common.uploading,Uploading...
+common.user,User
+common.validationError,Validation Error
+common.yes,Yes
+configuration.addMaintenanceTask,Add Maintenance Task
+configuration.addTemplate,Add Template
+configuration.defaultDepositHelper,"Enter the default security deposit amount (e.g., 1000 for €1,000.00)"
+configuration.defaultDepositPlaceholder,0
+configuration.defaultDepositTitle,Default Security Deposit
+configuration.defaultsDescription,Set default values for new rent agreements
+configuration.defaultsTitle,Default Settings
+configuration.documentTemplatesDesc,Reusable document templates for properties
+configuration.documentTemplatesHelper,Create document templates that can be copied to properties. These templates are available across all your properties.
+configuration.documentTemplatesTitle,Document Templates
+configuration.electricityBillDesc,Require proof of electricity bill payment each month
+configuration.electricityBillTitle,Electricity Bill Monthly Check
+configuration.pageDescription,Manage your property management settings and defaults
+configuration.pageTitle,Configuration
+configuration.paymentConfirmDesc,Require tenant to confirm monthly rent payments
+configuration.paymentConfirmTitle,Monthly Payment Confirmation
+configuration.requireKYCDesc,Require tenants to verify identity before signing contracts
+configuration.requireKYCTitle,Require ID Verification
+configuration.saveDefaults,Save Defaults
+configuration.saving,Saving...
+configuration.standardMaintenanceDesc,Create reusable maintenance task templates that can be applied to any property
+configuration.standardMaintenanceTitle,Standard Maintenance Templates
+configuration.tabs.defaults,Defaults
+configuration.tabs.maintenance,Standard Maintenance
+configuration.tabs.payments,Payments
+configuration.tabs.repairShops,Repair Shops
+configuration.tabs.templates,Document Templates
+configuration.title,Configuration
+configuration.waterBillDesc,Require proof of water bill payment each month
+configuration.waterBillTitle,Water Bill Monthly Check
+contractSignature.blockchainVerified,Blockchain Identity Verified
+contractSignature.checkingKYC,Checking verification status...
+contractSignature.completeVerificationLink,Complete Verification in Settings
+contractSignature.description,Securely sign rental contracts with eIDAS-qualified electronic signatures
+contractSignature.downloadContract,Signed Contract Available
+contractSignature.error,Failed to send reminder
+contractSignature.expiresOn,Signature request expires
+contractSignature.initiate,Initiate Digital Signature
+contractSignature.initiated,Signature process initiated
+contractSignature.kycEnhancement,Complete KILT verification for blockchain-verified identity (optional enhancement)
+contractSignature.kycNotVerified,Identity Not Verified
+contractSignature.kycOptional,Identity Verification is Optional
+contractSignature.kycRequiredForDock,Identity verification required
+contractSignature.kycVerified,Identity Verified
+contractSignature.managerKYCRequired,You need to complete identity verification before signing contracts.
+contractSignature.managerSignature,Manager Signature
+contractSignature.methods.certificadoDigital,Digital Certificate (FNMT)
+contractSignature.methods.clave,Cl@ve Authentication
+contractSignature.methods.qualifiedSignature,Qualified Signature
+contractSignature.reminder.lastSentAt,Last reminder sent
+contractSignature.reminder.reminderSent,Reminder Sent
+contractSignature.reminder.sendReminder,Send Reminder
+contractSignature.requireKYCDescription,"When enabled, both parties must complete KILT KYC before signing"
+contractSignature.requireKYCTitle,Require Identity Verification
+contractSignature.sending,Sending reminder...
+contractSignature.signNow,Sign Now
+contractSignature.signed,Signature completed
+contractSignature.signedOn,Signed on
+contractSignature.standardSignature,Standard E-Signature
+contractSignature.status.cancelled,Cancelled
+contractSignature.status.completed,Completed
+contractSignature.status.failed,Failed
+contractSignature.status.inProgress,In Progress
+contractSignature.status.pending,Pending
+contractSignature.success,Reminder sent successfully to tenant
+contractSignature.tenantKYCRequired,The tenant needs to complete identity verification before signing.
+contractSignature.tenantSignature,Tenant Signature
+contractSignature.title,Digital Contract Signature
+contractSignature.verificationRequired,Verification Required
+contractSignature.waitingForManager,Waiting for property manager to initiate signature process
+contractSignature.waitingForTenant,Waiting for tenant to sign
+contracts.manager,Manager
+contracts.managerInfo,Property Manager
+contracts.managerSignature,Manager
+contracts.method,Contract Method
+contracts.noManagerInfo,Manager info unavailable
+contracts.noRentalTerms,No rental terms set up
+contracts.rentalTerms,Rental Terms
+contracts.requestExpiration,Request Expiration
+contracts.signatureStatus,Signature Status
+contracts.tenant,Tenant
+contracts.tenantInfo,Tenant Information
+contracts.tenantSignature,Tenant
+createFirst,Create a rent agreement to start collecting rent payments
+dashboard.active,Active
+dashboard.allPropertiesArchived,All properties are archived
+dashboard.archived,Archived
+dashboard.createProperty,Create Property
+dashboard.getStarted,Get started by creating a property or accepting tenant invitations
+dashboard.manageProperties,Manage Properties
+dashboard.managePropertiesDesc,Create and manage your own properties
+dashboard.myProperties,My Properties
+dashboard.myPropertiesDesc,Properties you manage
+dashboard.noActiveProperties,No active properties
+dashboard.noArchivedProperties,No archived properties yet
+dashboard.noProperties,No properties found
+dashboard.tenantAccess,Tenant Access
+dashboard.tenantAccessDesc,You haven
+dashboard.tenantProperties,Tenant Properties
+dashboard.title,Dashboard
+dialogs.allowedTypes,"Allowed: PDF, DOC, DOCX, ODT, XLS, XLSX, ODS, TXT"
+dialogs.archiveProperty.activePropertyExists,Cannot create new property. An active property already exists at this address.
+dialogs.archiveProperty.archive,Archive
+dialogs.archiveProperty.archiving,Archiving...
+dialogs.archiveProperty.createNewProperty,Keep the property active and available for the next tenant
+dialogs.archiveProperty.descriptionArchive,Archive this property permanently.
+dialogs.archiveProperty.descriptionEndTenancy,End the current tenancy and optionally create a new active property for the next tenant.
+dialogs.archiveProperty.endTenancy,End Tenancy
+dialogs.archiveProperty.endingTenancy,Ending Tenancy...
+dialogs.archiveProperty.endingTenancyExists,Cannot end tenancy. Another property at this address is already in 
+dialogs.archiveProperty.notesLabel,Additional Notes (Optional)
+dialogs.archiveProperty.notesPlaceholder,Add any additional information...
+dialogs.archiveProperty.reasonLabel,Reason for Ending Tenancy *
+dialogs.archiveProperty.reasonMerged,Merged with Other Property
+dialogs.archiveProperty.reasonNoLonger,No Longer Managing
+dialogs.archiveProperty.reasonOther,Other
+dialogs.archiveProperty.reasonPlaceholder,Select a reason
+dialogs.archiveProperty.reasonRequired,Reason is required
+dialogs.archiveProperty.reasonSold,Sold
+dialogs.archiveProperty.success,Property archived successfully
+dialogs.archiveProperty.successArchive,Property archived successfully.
+dialogs.archiveProperty.successEndTenancy,Tenancy ended. Property moved to 
+dialogs.archiveProperty.successWithNew,Tenancy ended and new active property created.
+dialogs.archiveProperty.titleArchive,Archive
+dialogs.archiveProperty.titleEndTenancy,End Tenancy
+dialogs.archiveProperty.warningMessageArchive,This will permanently archive the tenant. All data will be read-only.
+dialogs.archiveProperty.warningMessageEndTenancy,Tenants will have read-only access. Property will move to 
+dialogs.archiveProperty.warningTitleArchive,Warning
+dialogs.archiveProperty.warningTitleEndTenancy,Important
+dialogs.confirmAccountDeletion,Confirm Account Deletion
+dialogs.confirmAccountDeletionDesc,Your account will be deleted in 14 days. You can cancel anytime before then.
+dialogs.contactEnterpriseSales,Contact Enterprise Sales
+dialogs.contactEnterpriseSalesDesc,Tell us about your needs and our team will create a custom solution for you.
+dialogs.createNewProperty,Create New Property
+dialogs.createNewTicket,Create New Ticket
+dialogs.createNewTicketDesc,Submit a new ticket for a property issue or request.
+dialogs.createProperty.addressLabel,Address
+dialogs.createProperty.addressPlaceholder,123 Ocean Drive
+dialogs.createProperty.cancel,Cancel
+dialogs.createProperty.create,Create Property
+dialogs.createProperty.creating,Creating...
+dialogs.createProperty.descriptionLabel,Description
+dialogs.createProperty.descriptionPlaceholder,Beautiful property with ocean views...
+dialogs.createProperty.success,Property created successfully
+dialogs.createProperty.title,Create New Property
+dialogs.createProperty.titleLabel,Property Title *
+dialogs.createProperty.titlePlaceholder,Beachfront Villa
+dialogs.createProperty.titleRequired,Title is required
+dialogs.createProperty.titleTooLong,Title must be less than 100 characters
+dialogs.createProperty.validationError,Validation Error
+dialogs.createRecurringSchedule,Create Recurring Schedule
+dialogs.createTicket.cancel,Cancel
+dialogs.createTicket.characters,characters
+dialogs.createTicket.create,Create Ticket
+dialogs.createTicket.created,Ticket created
+dialogs.createTicket.createdDesc,Your ticket has been created successfully.
+dialogs.createTicket.description,Submit a new ticket for a property issue or request.
+dialogs.createTicket.descriptionLabel,Description *
+dialogs.createTicket.descriptionPlaceholder,Detailed description of the issue or request
+dialogs.createTicket.missingFields,Missing fields
+dialogs.createTicket.missingFieldsDesc,Please fill in all required fields.
+dialogs.createTicket.priorityLabel,Priority *
+dialogs.createTicket.propertyLabel,Property *
+dialogs.createTicket.propertyPlaceholder,Select property
+dialogs.createTicket.title,Create New Ticket
+dialogs.createTicket.titleLabel,Title *
+dialogs.createTicket.titlePlaceholder,Brief description of the issue
+dialogs.createTicket.typeLabel,Type *
+dialogs.creating,Creating...
+dialogs.deleteAccount,Delete Account
+dialogs.deleteAccountDesc,This will navigate you to the Account Privacy settings where you can request account deletion with full details about what will be deleted and retained.
+dialogs.deleteMaintenanceTask,Delete Maintenance Task
+dialogs.deleteMaintenanceTaskDesc,Are you sure you want to delete this task? This will also delete all schedules and generated tickets associated with it. This action cannot be undone.
+dialogs.deleteProperty.archive,Archive Property
+dialogs.deleteProperty.archiving,Archiving...
+dialogs.deleteProperty.description,This will mark the property as inactive. You can view it in the archived properties section.
+dialogs.deleteProperty.notesLabel,Additional Notes (Optional)
+dialogs.deleteProperty.notesPlaceholder,Add any additional information...
+dialogs.deleteProperty.reasonLabel,Reason for Archiving *
+dialogs.deleteProperty.reasonMerged,Merged with Other Property
+dialogs.deleteProperty.reasonNoLonger,No Longer Managing
+dialogs.deleteProperty.reasonOther,Other
+dialogs.deleteProperty.reasonPlaceholder,Select a reason
+dialogs.deleteProperty.reasonSold,Sold
+dialogs.deleteProperty.title,Archive Property
+dialogs.deleteProperty.warningMessage,Archiving this property will affect pending invitations and tenant access.
+dialogs.deleteProperty.warningTitle,Warning
+dialogs.descriptionOptional,Description (Optional)
+dialogs.descriptionPlaceholder,Add a description for this template...
+dialogs.dragDropFile,"Drag and drop a file here, or click to select"
+dialogs.editProperty.save,Save Changes
+dialogs.editProperty.saving,Saving...
+dialogs.editProperty.success,Property updated successfully
+dialogs.editProperty.title,Edit Property
+dialogs.editRentAgreement,Edit Rent Agreement
+dialogs.editRentAgreementDesc,Update the rent agreement details. Tenant will be notified of changes.
+dialogs.endTenancy.confirm,Confirm End Date
+dialogs.endTenancy.description,Set a planned end date. You can set up a new tenant in parallel.
+dialogs.endTenancy.parallelSetupHint,"After setting the end date, you can start setting up a new tenant from the Overview tab."
+dialogs.endTenancy.pickDate,Pick end date
+dialogs.endTenancy.selectEndDate,Planned End Date
+dialogs.endTenancy.tenantLabel,Tenant
+dialogs.endTenancy.title,End Tenancy
+dialogs.enterVerificationCode,Enter Verification Code
+dialogs.fileTypeNotAllowed,File type not allowed. Please upload a document file.
+dialogs.grantProAccess,Grant Pro Access
+dialogs.grantProAccessDesc,Give this user temporary Pro access. They will be automatically downgraded when the duration expires.
+dialogs.inviteTenant.alreadyInvited,An invitation has already been sent to this email
+dialogs.inviteTenant.alreadyTenant,This user is already a tenant of this property
+dialogs.inviteTenant.cancel,Cancel
+dialogs.inviteTenant.emailLabel,Email Address
+dialogs.inviteTenant.emailPlaceholder,tenant@example.com
+dialogs.inviteTenant.emailWarning,Invitation created but email delivery failed. The invitation was saved and can be resent later.
+dialogs.inviteTenant.helpText,"If the user exists, they"
+dialogs.inviteTenant.send,Send Invitation
+dialogs.inviteTenant.sending,Sending...
+dialogs.inviteTenant.sent,Invitation Sent
+dialogs.inviteTenant.sentDesc,An invitation has been sent to
+dialogs.inviteTenant.title,Invite Tenant to
+dialogs.manageTenants.added,Added
+dialogs.manageTenants.cancel,Cancel
+dialogs.manageTenants.cancelInvitation,Cancel Invitation
+dialogs.manageTenants.cancelInvitationDesc,Are you sure you want to cancel the invitation to
+dialogs.manageTenants.cancelInvitationMessage,They will no longer be able to accept this invitation.
+dialogs.manageTenants.cancelInvitationTitle,Cancel Invitation?
+dialogs.manageTenants.currentTenants,Current Tenants
+dialogs.manageTenants.description,Tenants assigned to
+dialogs.manageTenants.emailFailed,Failed to resend email
+dialogs.manageTenants.emailResent,Email resent
+dialogs.manageTenants.emailResentDesc,The invitation email has been sent again
+dialogs.manageTenants.endTenancy,End Tenancy
+dialogs.manageTenants.endTenancyMessage,This will mark the tenancy as ending for
+dialogs.manageTenants.endTenancyTitle,End Tenancy?
+dialogs.manageTenants.expires,Expires
+dialogs.manageTenants.finalize,Finalize
+dialogs.manageTenants.finalizeMessage,This will permanently end the tenancy and move it to history for
+dialogs.manageTenants.finalizeTitle,Finalize Tenancy?
+dialogs.manageTenants.invitationCancelled,Invitation cancelled
+dialogs.manageTenants.invitationCancelledDesc,has been cancelled
+dialogs.manageTenants.invitationTo,Invitation to
+dialogs.manageTenants.inviteNewTenant,Invite New Tenant
+dialogs.manageTenants.loading,Loading tenants...
+dialogs.manageTenants.noTenants,No tenants yet - invite someone to get started
+dialogs.manageTenants.pendingInvitations,Pending Invitations
+dialogs.manageTenants.propertyLifecycle,Property Lifecycle
+dialogs.manageTenants.remove,Remove
+dialogs.manageTenants.removeDescription,from
+dialogs.manageTenants.removeMessage,They will lose access to this property.
+dialogs.manageTenants.removeTitle,Remove Tenant?
+dialogs.manageTenants.removed,Tenant removed
+dialogs.manageTenants.removedDesc,has been removed from
+dialogs.manageTenants.resend,Resend Email
+dialogs.manageTenants.resending,Resending...
+dialogs.manageTenants.sendInvitation,Send Invitation
+dialogs.manageTenants.tenancyEnding,Tenancy is ending. Access set to read-only.
+dialogs.manageTenants.tenancyFinalized,Tenancy has been finalized and moved to history.
+dialogs.manageTenants.title,Manage Tenants
+dialogs.pleaseEnterTitle,Please enter a document title
+dialogs.pleaseFillRequired,Please fill in all required fields
+dialogs.pleaseSelectFile,Please select a file to upload
+dialogs.propertyDocuments.deleteFailed,Failed to delete document
+dialogs.propertyDocuments.deleteSuccess,Document deleted successfully
+dialogs.propertyDocuments.description,"View, upload, and manage documents for this property. Both managers and tenants can upload documents."
+dialogs.propertyDocuments.downloadFailed,Failed to download document
+dialogs.propertyDocuments.dragAndDropHint,"Drag and drop a file here, or click to select"
+dialogs.propertyDocuments.hideUpload,Hide Upload
+dialogs.propertyDocuments.loading,Loading documents...
+dialogs.propertyDocuments.noDocuments,No documents uploaded yet
+dialogs.propertyDocuments.previousVersions,Previous Versions
+dialogs.propertyDocuments.seeVersions,See all versions
+dialogs.propertyDocuments.title,Property Documents
+dialogs.propertyDocuments.uploadNew,Upload New Document
+dialogs.propertyDocuments.uploadNewVersion,Upload a new version of this document
+dialogs.propertyDocuments.uploadVersion,Upload New Version
+dialogs.propertyDocuments.uploadedBy,Uploaded by
+dialogs.propertyDocuments.versions,versions
+dialogs.resolveTicket,Resolve Ticket
+dialogs.resolveTicketDesc,Please provide notes about how this ticket was resolved
+dialogs.saving,Saving...
+dialogs.selectFile,Select File
+dialogs.templateName,Template Name
+dialogs.templateNameHelper,Give this template a descriptive name you can recognize later
+dialogs.templateNamePlaceholder,"e.g., Standard Lease Agreement, Move-In Checklist"
+dialogs.uploadProgress,Upload Progress
+dialogs.uploading,Uploading...
+footer.about,About
+footer.help,Help
+footer.privacy,Privacy Policy
+footer.rights,All rights reserved.
+footer.terms,Terms of Service
+header.admin,Admin
+header.dashboard,Dashboard
+header.forManagers,For Managers
+header.forTenants,For Tenants
+header.home,Home
+header.invitations,Invitations
+header.maintenance,Maintenance
+header.menu,Menu
+header.myAccount,My Account
+header.pricing,Pricing
+header.properties,Properties
+header.rentals,Rentals
+header.settings,Settings
+header.signOut,Sign Out
+header.templates,Templates
+header.tickets,Tickets
+help.contact.bugReport,Report a Bug
+help.contact.description,Can
+help.contact.emailSupport,Email Support
+help.contact.title,Need More Help?
+help.faq.a1,Go to the Properties page and click 
+help.faq.a2,"Open a property, go to the Tenants tab, and click "
+help.faq.a3,Go to Tickets and click 
+help.faq.a4,We use KILT Protocol for blockchain-based identity verification. Go to Settings > Identity to start the verification process.
+help.faq.a5,Rent payments are collected via SEPA Direct Debit. Tenants authorize payments when accepting the rent agreement.
+help.faq.a6,"Yes, you can manage unlimited properties on all plans. Each property has its own tenants, documents, and maintenance history."
+help.faq.a7,"We support eIDAS-compliant digital signatures. Both parties sign electronically, and signed contracts are stored securely."
+help.faq.a8,"Yes, we use industry-standard encryption and security practices. All data is encrypted in transit and at rest."
+help.faq.description,Quick answers to common questions
+help.faq.q1,How do I create a property?
+help.faq.q2,How do I invite a tenant?
+help.faq.q3,How do I submit a maintenance request?
+help.faq.q4,How does identity verification work?
+help.faq.q5,How are rent payments processed?
+help.faq.q6,Can I manage multiple properties?
+help.faq.q7,How do digital contracts work?
+help.faq.q8,Is my data secure?
+help.faq.title,Frequently Asked Questions
+help.gettingStarted.forManagers,For Property Managers
+help.gettingStarted.forManagersDesc,"Learn how to set up properties, invite tenants, and manage your portfolio"
+help.gettingStarted.forTenants,For Tenants
+help.gettingStarted.forTenantsDesc,"Learn how to accept invitations, submit requests, and manage your rental"
+help.gettingStarted.title,Getting Started
+help.subtitle,Find answers to common questions and learn how to use FlatMate
+help.title,Help Center
+iban,IBAN
+ibanConfigured,Payment Set Up
+ibanConfiguredDescription,Your payment details are configured and active
+ibanDescription,Your International Bank Account Number
+inspections.completed,Completed
+inspections.createHint,Create a move-in or move-out inspection to document property condition
+inspections.deleteDescription,This will permanently delete this inspection and all its data. This action cannot be undone.
+inspections.deleteTitle,Delete Inspection?
+inspections.description,Move-in and move-out condition reports
+inspections.draft,Draft
+inspections.inProgress,In Progress
+inspections.loading,Loading inspections...
+inspections.moveIn,Move-In
+inspections.moveOut,Move-Out
+inspections.newInspection,New Inspection
+inspections.newMoveIn,Move-In Inspection
+inspections.newMoveOut,Move-Out Inspection
+inspections.noInspections,No inspections yet
+inspections.pendingSignatures,Pending Signatures
+inspections.signedByBoth,Signed by both parties
+inspections.title,Property Inspections
+invitations.accept,Accept
+invitations.accepted,Invitation accepted
+invitations.acceptedDesc,You
+invitations.decline,Decline
+invitations.declineDialog.confirm,Decline Invitation
+invitations.declineDialog.description,Are you sure you want to decline the invitation to
+invitations.declineDialog.reasonLabel,Reason (optional)
+invitations.declineDialog.reasonPlaceholder,Let the manager know why you
+invitations.declineDialog.title,Decline Invitation
+invitations.declined,Invitation declined
+invitations.declinedDesc,You can still accept other invitations
+invitations.declinedInvitations,Declined Invitations
+invitations.declinedOn,Declined on
+invitations.description,Accept or decline property invitations
+invitations.dismiss,Dismiss
+invitations.dismissDialog.confirm,Dismiss
+invitations.dismissDialog.description,This will cancel the invitation and remove the tenancy setup. The tenant will need to be invited from scratch.
+invitations.dismissDialog.title,Dismiss Invitation Setup
+invitations.dismissSuccess,Invitation setup dismissed
+invitations.editAndResend,Edit & Resend
+invitations.expires,Expires
+invitations.goToDashboard,Go to Dashboard
+invitations.loginRequired,Login Required
+invitations.loginRequiredDesc,Please login to accept this invitation
+invitations.noAddress,No address provided
+invitations.noPending,No pending invitations
+invitations.noReasonProvided,No reason provided
+invitations.notFound,Invitation not found or expired
+invitations.originalTerms,Original terms
+invitations.property,Property
+invitations.resendSuccess,New invitation sent with updated terms
+invitations.title,Pending Invitations
+issueTask,Tenant Issue
+kyc.actions.renewVerification,Renew Verification
+kyc.actions.startVerification,Start Verification
+kyc.actions.viewDetails,View Verification Details
+kyc.alerts.expired,Your verification has expired. Please renew it to continue.
+kyc.alerts.expiringSoon,Your verification expires soon. Please renew it to maintain access.
+kyc.alerts.notStarted,Complete identity verification to increase trust with property managers and access exclusive features.
+kyc.alerts.rejected,Your verification was not successful. Please try again or contact support.
+kyc.benefits.accessFeatures,Access exclusive features
+kyc.benefits.privacy,Your data is secured on the blockchain
+kyc.benefits.secureSignatures,Enable blockchain-verified contract signatures
+kyc.benefits.title,Why verify your identity?
+kyc.benefits.trustManager,Increase trust with property managers
+kyc.downloadSporran,Don
+kyc.errors.cannotInitiate,Cannot initiate verification at this time
+kyc.errors.fetchFailed,Failed to load verification status
+kyc.errors.initiationFailed,Failed to initiate verification process
+kyc.errors.initiationTitle,Failed to Start Verification
+kyc.errors.notAuthenticated,You must be signed in to verify your identity
+kyc.errors.profileNotFound,User profile not found
+kyc.errors.title,Verification Error
+kyc.errors.unknownError,An unknown error occurred
+kyc.expiresOn,Expires on
+kyc.notVerified,Not verified
+kyc.scanQRCode,Scan this QR code with your Sporran wallet to complete verification
+kyc.status.expired,Expired
+kyc.status.inProgress,In Progress
+kyc.status.notStarted,Not Started
+kyc.status.pending,Pending
+kyc.status.rejected,Rejected
+kyc.status.verified,Verified
+kyc.statusLabel,Verification Status
+kyc.subtitle,Verify your identity using KILT Protocol blockchain credentials
+kyc.subtitleNotVerified,Verify your identity securely using your government-issued ID
+kyc.subtitlePending,Your verification is in progress
+kyc.subtitleVerified,Your identity has been verified
+kyc.success.completedDescription,Your identity has been successfully verified
+kyc.success.completedTitle,Verification Complete
+kyc.success.initiatedDescription,Scan the QR code with Sporran wallet to complete verification
+kyc.success.initiatedTitle,Verification Initiated
+kyc.title,Identity Verification
+kyc.verifiedOn,Verified on
+kyc.walletDID,Wallet DID
+landing.carousel.contracts.description,Sign legally-binding contracts online
+landing.carousel.contracts.title,Digital Contracts
+landing.carousel.maintenance.description,Track and resolve issues faster
+landing.carousel.maintenance.title,Smart Maintenance
+landing.carousel.rent.description,"Collect rent automatically, never chase payments"
+landing.carousel.rent.title,Automated Rent
+landing.carousel.verification.description,ID-verified identities for peace of mind
+landing.carousel.verification.title,Verified Tenants
+landing.forManagers,For Property Managers
+landing.forTenants,For Tenants
+landing.getStarted,Get Started
+landing.headline,Simplify Property Management
+landing.managers.automatedOps.description,"Streamline rent collection, maintenance, and document workflows."
+landing.managers.automatedOps.title,Automated Operations
+landing.managers.centralizedControl.description,Manage your entire property portfolio and tenant communications from one dashboard.
+landing.managers.centralizedControl.title,Centralized Control
+landing.managers.reducedRisk.description,Ensure compliance with verified tenant identities and legally-sound digital contracts.
+landing.managers.reducedRisk.title,Reduced Risk
+landing.signIn,Sign In
+landing.tenants.effortlessRenting.description,"Handle payments, documents, and issue reporting all in one place."
+landing.tenants.effortlessRenting.title,Effortless Renting
+landing.tenants.moveInReady.description,Securely verify your identity and sign contracts digitally for a faster start.
+landing.tenants.moveInReady.title,Move-In Ready
+landing.tenants.totalTransparency.description,"Track rent payments, maintenance requests, and communications clearly."
+landing.tenants.totalTransparency.title,Total Transparency
+maintenance.allProperties,All Properties
+maintenance.assignedTo,Assigned To
+maintenance.buttons.createCustomTask,Create Custom Task
+maintenance.calendar,Calendar
+maintenance.calendarDescription,View and manage scheduled maintenance tasks across all properties
+maintenance.calendarView.days.fri,Fri
+maintenance.calendarView.days.mon,Mon
+maintenance.calendarView.days.sat,Sat
+maintenance.calendarView.days.sun,Sun
+maintenance.calendarView.days.thu,Thu
+maintenance.calendarView.days.tue,Tue
+maintenance.calendarView.days.wed,Wed
+maintenance.calendarView.legend,Legend:
+maintenance.calendarView.navigation.next,Next
+maintenance.calendarView.navigation.previous,Previous
+maintenance.calendarView.navigation.today,Today
+maintenance.calendarView.nextRun,Next run:
+maintenance.calendarView.noTasks,No maintenance tasks scheduled yet
+maintenance.calendarView.title,Maintenance Calendar
+maintenance.calendarView.upcomingTitle,Upcoming Scheduled Maintenance
+maintenance.completeTask.completeButton,Mark as Complete
+maintenance.completeTask.completing,Completing...
+maintenance.completeTask.description,Please provide notes about the work completed for:
+maintenance.completeTask.notesLabel,Completion Notes *
+maintenance.completeTask.notesPlaceholder,"Describe what was done, any issues encountered, parts replaced, etc..."
+maintenance.completeTask.notesRequired,Notes required
+maintenance.completeTask.notesRequiredMessage,Please describe the work completed
+maintenance.completeTask.title,Complete Maintenance Task
+maintenance.createTask,Create Task
+maintenance.createTaskDialog.active,Active
+maintenance.createTaskDialog.createButton,Create Task
+maintenance.createTaskDialog.creating,Creating...
+maintenance.createTaskDialog.customTask,Custom Task
+maintenance.createTaskDialog.description,Schedule a new maintenance task for this property
+maintenance.createTaskDialog.descriptionLabel,Description *
+maintenance.createTaskDialog.descriptionPlaceholder,Describe the maintenance task...
+maintenance.createTaskDialog.endDate,End Date (Optional)
+maintenance.createTaskDialog.error,Error
+maintenance.createTaskDialog.errorMessage,Failed to create maintenance task. Please try again.
+maintenance.createTaskDialog.frequencies.daily,Daily
+maintenance.createTaskDialog.frequencies.monthly,Monthly
+maintenance.createTaskDialog.frequencies.quarterly,Quarterly
+maintenance.createTaskDialog.frequencies.weekly,Weekly
+maintenance.createTaskDialog.frequencies.yearly,Yearly
+maintenance.createTaskDialog.frequency,Frequency
+maintenance.createTaskDialog.missingFields,Missing fields
+maintenance.createTaskDialog.missingFieldsMessage,Please fill in all required fields.
+maintenance.createTaskDialog.oneTime,One-time
+maintenance.createTaskDialog.pickDate,Pick Date
+maintenance.createTaskDialog.priorities.high,High
+maintenance.createTaskDialog.priorities.low,Low
+maintenance.createTaskDialog.priorities.medium,Medium
+maintenance.createTaskDialog.priorities.urgent,Urgent
+maintenance.createTaskDialog.priority,Priority
+maintenance.createTaskDialog.recurring,Recurring
+maintenance.createTaskDialog.scheduleDetails,Details
+maintenance.createTaskDialog.scheduleType,Schedule Type
+maintenance.createTaskDialog.scheduling,Scheduling
+maintenance.createTaskDialog.selectTemplate,Select Template
+maintenance.createTaskDialog.selectType,Select All
+maintenance.createTaskDialog.startDate,Start Date *
+maintenance.createTaskDialog.success,Maintenance task created
+maintenance.createTaskDialog.successMessage,Your maintenance task has been scheduled successfully.
+maintenance.createTaskDialog.targetDate,Target Date *
+maintenance.createTaskDialog.taskDetails,Task Details
+maintenance.createTaskDialog.taskTitle,Task Title
+maintenance.createTaskDialog.title,Create Maintenance Task
+maintenance.createTaskDialog.titleLabel,Title *
+maintenance.createTaskDialog.titlePlaceholder,Enter task title
+maintenance.createTaskDialog.type,Type
+maintenance.createTaskDialog.types.cleaning,Cleaning
+maintenance.createTaskDialog.types.inspection,Inspection
+maintenance.createTaskDialog.types.maintenance,Maintenance
+maintenance.createTaskDialog.types.other,Other
+maintenance.createTaskDialog.types.repair,Repair
+maintenance.description,Manage property maintenance tasks
+maintenance.dueDate,Due Date
+maintenance.editTask.invalidDates,Invalid dates
+maintenance.editTask.invalidDatesMessage,End date cannot be before start date.
+maintenance.editTask.saveButton,Save Changes
+maintenance.editTask.saving,Saving...
+maintenance.editTask.taskUpdated,Task updated
+maintenance.editTask.title,Edit Maintenance Task
+maintenance.editTask.updateError,Failed to update maintenance task. Please try again.
+maintenance.editTask.updateSuccess,Maintenance task has been updated successfully.
+maintenance.frequency.daily,Daily
+maintenance.frequency.monthly,Monthly
+maintenance.frequency.quarterly,Quarterly
+maintenance.frequency.weekly,Weekly
+maintenance.frequency.yearly,Yearly
+maintenance.manageScheduled,Manage Scheduled
+maintenance.noTasks,No maintenance tasks
+maintenance.noTasksDesc,Schedule maintenance tasks to keep your properties in top condition
+maintenance.oneTime,One-time
+maintenance.priority,Priority
+maintenance.priorityHigh,High
+maintenance.priorityLow,Low
+maintenance.priorityMedium,Medium
+maintenance.priorityUrgent,Urgent
+maintenance.recurring,Recurring
+maintenance.scheduleStandard.activeStatus,Active Status
+maintenance.scheduleStandard.description,Configure the schedule for this maintenance task.
+maintenance.scheduleStandard.endDate,End Date
+maintenance.scheduleStandard.error,Failed to schedule task. Please try again.
+maintenance.scheduleStandard.frequency,Frequency
+maintenance.scheduleStandard.missingFields,Please fill in all required fields.
+maintenance.scheduleStandard.pickDate,Pick a date
+maintenance.scheduleStandard.scheduleButton,Schedule Task
+maintenance.scheduleStandard.scheduleConfig,Schedule Configuration
+maintenance.scheduleStandard.selectFrequency,Select frequency
+maintenance.scheduleStandard.startDate,Start Date
+maintenance.scheduleStandard.success,Task scheduled
+maintenance.scheduleStandard.successDescription,The maintenance task has been scheduled successfully.
+maintenance.scheduleStandard.suggested,Suggested
+maintenance.scheduleStandard.taskDetails,Task Details
+maintenance.scheduleStandard.title,Schedule Maintenance Task
+maintenance.scheduled,Scheduled
+maintenance.scheduledTasks.active,Active
+maintenance.scheduledTasks.createSchedule,Schedule Task
+maintenance.scheduledTasks.deleteConfirmDesc,This will permanently delete this recurring schedule. Existing tasks will not be affected.
+maintenance.scheduledTasks.deleteConfirmTitle,Delete schedule
+maintenance.scheduledTasks.deleteSchedule,Delete Schedule
+maintenance.scheduledTasks.description,Manage recurring maintenance schedules for this property
+maintenance.scheduledTasks.editSchedule,Edit Schedule
+maintenance.scheduledTasks.endDate,End Date (optional)
+maintenance.scheduledTasks.frequency,Frequency
+maintenance.scheduledTasks.nextRun,Next Run
+maintenance.scheduledTasks.noSchedules,No scheduled tasks
+maintenance.scheduledTasks.noSchedulesDesc,Create recurring maintenance schedules to keep your property well-maintained
+maintenance.scheduledTasks.paused,Paused
+maintenance.scheduledTasks.startDate,Start Date
+maintenance.scheduledTasks.template,Template
+maintenance.scheduledTasks.title,Scheduled Maintenance Tasks
+maintenance.standardTask.allCategories,All Categories
+maintenance.standardTask.frequency,Frequency
+maintenance.standardTask.noTemplates,No standard templates match your search.
+maintenance.standardTask.schedule,Schedule
+maintenance.standardTask.searchPlaceholder,Search tasks...
+maintenance.standardTask.suggestedFrequency,Suggested
+maintenance.status,Status
+maintenance.statusCancelled,Cancelled
+maintenance.statusCompleted,Completed
+maintenance.statusInProgress,In Progress
+maintenance.statusOpen,Open
+maintenance.tabs.calendar,Calendar
+maintenance.tabs.library,Library
+maintenance.tabs.scheduled,Scheduled
+maintenance.taskDescription,Description
+maintenance.taskTitle,Task Title
+maintenance.templates.addTemplate,Add Template
+maintenance.templates.category,Category
+maintenance.templates.deleteConfirmDesc,This will permanently delete this maintenance template. This action cannot be undone.
+maintenance.templates.deleteConfirmTitle,Delete maintenance template
+maintenance.templates.deleteFailed,Failed to delete template
+maintenance.templates.deleteTemplate,Delete Template
+maintenance.templates.description,Browse and schedule standard maintenance tasks for your properties
+maintenance.templates.editTemplate,Edit Template
+maintenance.templates.noTemplates,No maintenance templates
+maintenance.templates.noTemplatesDesc,Create standard maintenance tasks that can be scheduled for properties
+maintenance.templates.suggestedFrequency,Suggested Frequency
+maintenance.templates.templateDescription,Description
+maintenance.templates.templateName,Template Name
+maintenance.templates.title,Standard Maintenance Tasks
+maintenance.templates.updateFailed,Failed to update template
+maintenance.title,Maintenance
+maintenanceTask,Scheduled Maintenance
+mandateStatusLabel,Mandate Status
+monthlyRent,Monthly Rent
+nav.menu,Menu
+nav.myAccount,My Account
+nav.properties,Properties
+nav.rentals,Rentals
+newIssue,New Issue
+nextPayment,Next Payment
+noAgreements,No rent agreements found
+notFound.description,The page you are looking for does not exist.
+notFound.goHome,Go Home
+notFound.title,Page Not Found
+onboarding.checklist.bankSetup,Set Up Bank Account
+onboarding.checklist.bankSetupDesc,Add your IBAN for rent payments
+onboarding.checklist.completed,completed
+onboarding.checklist.contractSigning,Sign Rental Contract
+onboarding.checklist.contractSigningDesc,Review and sign your rental agreement
+onboarding.checklist.emailVerification,Verify Email Address
+onboarding.checklist.emailVerificationDesc,Confirm your email to secure your account
+onboarding.checklist.identityVerification,Verify Your Identity
+onboarding.checklist.identityVerificationDesc,Complete government ID verification
+onboarding.checklist.setupBank,Set Up
+onboarding.checklist.signContract,Sign Contract
+onboarding.checklist.title,Complete Your Setup
+onboarding.checklist.verifyEmail,Verify Email
+onboarding.checklist.verifyIdentity,Verify Identity
+payments.acceptedFormats,"JPG, PNG or PDF. Max 10MB."
+payments.amount,Amount
+payments.autoReminders,Automatic reminders
+payments.availableAfterStart,Available after tenancy starts
+payments.dueOn,Due on
+payments.emptyStates.noHistory,No Payment History
+payments.emptyStates.noPaymentsDesc,Payments will appear here once the rent schedule is generated
+payments.emptyStates.waitingForAgreement,Create a rent agreement to start tracking payments
+payments.generatingSchedule,Generating payment schedule...
+payments.markAsPaid,Mark as Paid
+payments.markPaidBtn,Mark Paid
+payments.noPayments,No payments yet
+payments.noPaymentsDesc,Payments will appear here once rent collection starts
+payments.paidOn,Paid on
+payments.paymentHistory,Payment History
+payments.proofReview.approve,Approve
+payments.proofReview.approved,Payment approved
+payments.proofReview.notes,Review Notes
+payments.proofReview.notesPlaceholder,Add notes about this payment...
+payments.proofReview.reject,Reject
+payments.proofReview.rejected,Payment rejected
+payments.proofReview.title,Review Payment Proof
+payments.proofUploaded,Proof Uploaded
+payments.remindersDisabled,Payment reminders disabled
+payments.remindersEnabled,Payment reminders enabled
+payments.reviewBtn,Review
+payments.selectFile,Select file
+payments.statistics.nextDue,Next Due
+payments.statistics.noData,No data available
+payments.statistics.noHistory,No history
+payments.statistics.noneYet,None yet
+payments.statistics.onTimeRate,On-Time Rate
+payments.statistics.payments,payments
+payments.statistics.remindersSent,Reminders Sent
+payments.statistics.totalPaid,Total Paid
+payments.statistics.totalReminders,total reminders
+payments.status.due,Due
+payments.status.failed,Failed
+payments.status.overdue,Overdue
+payments.status.paid,Paid
+payments.status.pending,Pending
+payments.subtitle,Manage rent payments for this property
+payments.tenant,Tenant
+payments.title,Payments
+payments.toasts.collectionInitiated,Payment collection initiated
+payments.toasts.markedPaid,Payment marked as paid
+payments.toasts.retryFailed,Failed to retry payment
+payments.upcomingPayments,Upcoming Payments
+payments.uploadFailed,Failed to upload proof
+payments.uploadProof,Upload Payment Proof
+payments.uploadProofBtn,Upload Proof
+payments.uploadProofDesc,Upload a screenshot or receipt of your payment
+payments.uploadSuccess,Proof uploaded successfully
+payments.viewProof,View Proof
+pending,Pending
+placeholders.addComment,Add a comment...
+placeholders.adminNotes,Add notes about this request...
+placeholders.brandName,RentMate
+placeholders.city,Berlin
+placeholders.companyName,Your Company
+placeholders.customDomain,rentmate.me
+placeholders.depositAmount,2000.00
+placeholders.depositReturnDays,30
+placeholders.documentDescription,Add a description for this document...
+placeholders.documentTitle,"e.g., Lease Agreement, Insurance Policy, Inventory Report"
+placeholders.email,you@example.com
+placeholders.enterpriseMessage,Tell us about your property management needs...
+placeholders.firstName,John
+placeholders.grantAccessReason,Why are you granting Pro access to this user?
+placeholders.hslColor,221 83% 53%
+placeholders.iban,DE89370400440532013000
+placeholders.lastName,Doe
+placeholders.noDocuments,No documents available
+placeholders.objectProcessingReason,Describe what processing you object to and the reasons for your objection...
+placeholders.password,••••••••
+placeholders.pasteImageUrl,Or paste image URL...
+placeholders.paymentDay,1
+placeholders.phone,+1 (555) 123-4567
+placeholders.postalCode,10115
+placeholders.propertiesCount,50
+placeholders.propertyAddress,123 Ocean Drive
+placeholders.propertyDescription,Beautiful property with ocean views...
+placeholders.propertyTitle,Beachfront Villa
+placeholders.rentAmount,1000.00
+placeholders.resolutionNotes,Describe how this issue was resolved...
+placeholders.restrictProcessingReason,Describe which processing activities you want to restrict and your reason...
+placeholders.searchSubscriptions,"Search by email, name, or plan..."
+placeholders.selectCountry,Select country
+placeholders.selectDateFormat,Select date format
+placeholders.selectDocument,Choose a document...
+placeholders.selectProperty,Select property
+placeholders.selectTemplate,Select a template
+placeholders.selectWeekStart,Select week start day
+placeholders.stateProvince,Berlin
+placeholders.tenantEmail,tenant@example.com
+placeholders.ticketDescription,Detailed description of the issue or request
+placeholders.ticketTitle,Brief description of the issue
+placeholders.utilitiesManager,"Electricity, Water, Gas"
+placeholders.utilitiesTenant,"Heating, Internet"
+placeholders.utilityAmount,0.00
+pricing.customPricing,Custom pricing
+pricing.dayFreeTrial,day free trial
+pricing.faq,Frequently Asked Questions
+pricing.faqChangePlans,Can I change plans later?
+pricing.faqChangePlansAnswer,"Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we"
+pricing.faqFreeTrial,Is there a free trial?
+pricing.faqFreeTrialAnswer,Yes! Pro plan includes a 14-day free trial. No credit card required to start.
+pricing.faqSignatureLimit,What happens when I exceed my signature limit?
+pricing.faqSignatureLimitAnswer,Additional signatures are billed at €2 per signature. You
+pricing.mostPopular,Most Popular
+pricing.subtitle,Choose the perfect plan for your property management needs
+privacy.contactUs,Contact Us
+privacy.contactUsText,"If you have any questions about this Privacy Policy, please contact us."
+privacy.cookiesTracking,Cookies and Tracking
+privacy.cookiesTrackingDesc,We use cookies and similar tracking technologies to track activity on our platform and hold certain information to improve your experience.
+privacy.dataSecurity,Data Security
+privacy.dataSecurityText,"We implement appropriate technical and organizational security measures to protect your personal information. However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security."
+privacy.howWeUse,How We Use Your Information
+privacy.howWeUseList1,"To provide, operate, and maintain our services"
+privacy.howWeUseList2,To improve and personalize your experience
+privacy.howWeUseList3,To communicate with you about updates and support
+privacy.howWeUseList4,To process transactions and send related information
+privacy.howWeUseList5,To monitor and analyze usage patterns
+privacy.howWeUseList6,To detect and prevent fraud and abuse
+privacy.infoWeCollect,Information We Collect
+privacy.introText,FlatMate (
+privacy.introduction,Introduction
+privacy.lastUpdated,Last updated
+privacy.personalInfo,Personal Information
+privacy.personalInfoDesc,"We collect personal information you provide to us, such as name, email address, phone number, and property information when you register for an account or use our services."
+privacy.title,Privacy Policy
+privacy.usageData,Usage Data
+privacy.usageDataDesc,"We automatically collect certain information when you use our platform, including your IP address, browser type, access times, and pages viewed."
+privacy.yourRights,Your Rights
+privacy.yourRightsIntro,"Depending on your location, you may have certain rights regarding your personal information:"
+privacy.yourRightsList1,The right to access your personal data
+privacy.yourRightsList2,The right to rectify inaccurate data
+privacy.yourRightsList3,The right to request deletion of your data
+privacy.yourRightsList4,The right to restrict or object to data processing
+privacy.yourRightsList5,The right to data portability
+profile.description,Manage your personal information
+profile.title,Profile
+properties.active,Active
+properties.addTenant,Add Tenant
+properties.address,Address
+properties.archive,Archive
+properties.archiveConfirmDesc,This will archive the property. You can unarchive it later.
+properties.archiveFailed,Archive failed
+properties.archiveNotes,Archive Notes
+properties.archiveNotesPlaceholder,Optional reason for archiving
+properties.archiveProperty,Archive Property
+properties.archivePropertyDescription,This property has no active tenants. Are you sure you want to archive it? You can restore it later from archived properties.
+properties.archivePropertyTitle,Archive Property
+properties.archivePropertyWarning,This property has no active tenants. You can archive it if it is no longer in use.
+properties.archivePropertyWithTenantDescription,Warning: This property has an active tenant. Are you sure you want to archive it? This will affect their lease. You can restore it later from archived properties.
+properties.archivePropertyWithTenantWarning,Warning: This property has an active tenant
+properties.archiveReason,Archive Reason
+properties.archiveReasonMerged,Merged with Another Property
+properties.archiveReasonNoLongerManaging,No Longer Managing
+properties.archiveReasonOther,Other
+properties.archiveReasonSold,Sold
+properties.archiveReasons.merged,Merged with other property
+properties.archiveReasons.noLongerManaging,No longer managing
+properties.archiveReasons.other,Other
+properties.archiveReasons.sold,Sold
+properties.archived,Archived
+properties.archivedDetails,Archive Details
+properties.archivedOn,Archived On
+properties.archivedProperties,Archived Properties
+properties.canSetupNewTenantParallel,You can set up a new tenant while the current tenancy is ending.
+properties.city,City
+properties.cityPlaceholder,"e.g. Madrid, London"
+properties.confirmArchive,Confirm Archive
+properties.contract,Contract
+properties.contractLocked,Locked
+properties.contractsTab,Contracts
+properties.copySelected,Copy Selected
+properties.copyTemplates,Copy Templates
+properties.country,Country
+properties.countryPlaceholder,Select country
+properties.createProperty,Create Property
+properties.createTemplatesInConfiguration,Create contract templates in Configuration → Templates to use them here
+properties.created,Created
+properties.currentTenancy,Current Tenancy
+properties.currentTenant,Current Tenant
+properties.deleteProperty,Delete Property
+properties.description,Manage your property portfolio
+properties.descriptionPlaceholder,Add property description...
+properties.documentDeleteError,Failed to delete document
+properties.documentDeleted,Document deleted successfully
+properties.documentUploadFailed,Failed to upload document
+properties.documentUploaded,Document uploaded successfully
+properties.documents,Documents
+properties.documentsCount,documents
+properties.documentsTab,Documents
+properties.downloadError,Failed to download document
+properties.edit,Edit
+properties.editProperty,Edit Property
+properties.editPropertyDescription,Edit property details and information
+properties.free,Free
+properties.freeToRent,Free to rent
+properties.getStarted,Get started by creating a property or accepting tenant invitations
+properties.goToOverview,Go to Overview
+properties.hideDocuments,Hide Documents
+properties.inactive,Inactive
+properties.invitationPending,Invitation Pending
+properties.invitationSentTo,Invitation sent to
+properties.inviteAdditionalTenant,Invite Additional Tenant
+properties.inviteNewTenant,Invite New Tenant
+properties.inviteTenant,Tenants
+properties.inviteTenantButton,Invite Tenant
+properties.inviteTenantToGetStarted,Invite a tenant to get started
+properties.invited,Invited
+properties.maintenance,Maintenance
+properties.maintenanceTasks,Maintenance Tasks
+properties.manageTenantDescription,"Manage tenants, invitations, and lease documents"
+properties.manageTenants,Manage Tenants
+properties.myProperties,My Properties
+properties.myTickets,My Tickets
+properties.noActiveTenant,No active tenant
+properties.noDescription,No description
+properties.noDocuments,No documents
+properties.noDocumentsDesc,Upload property documents such as contracts and warranties
+properties.noDocumentsYet,No documents uploaded yet
+properties.noProperties,No Properties Yet
+properties.noPropertiesDesc,Get started by creating your first property
+properties.noTemplates,No property templates yet
+properties.noTemplatesAvailable,No property templates available to copy
+properties.noTenancyDocuments,No tenancy documents
+properties.noTenancyHistory,No previous tenancies
+properties.noTenant,No tenant
+properties.noTenants,No tenants yet
+properties.noTenantsYet,No Tenants Yet
+properties.notFound,Property not found
+properties.notes,Notes
+properties.occupancy.free,Free
+properties.occupancy.occupied,Occupied
+properties.openError,Failed to open document
+properties.openTenantManagement,Open Tenant Management
+properties.openTickets,Open Tickets
+properties.overview,Overview
+properties.pastTenancies,Past Tenancies
+properties.paymentsTab,Payments
+properties.pending,Pending
+properties.photo,Photo
+properties.photoHint,"JPG, PNG or WEBP. Max 5MB."
+properties.photoUploaded,Property photo uploaded successfully
+properties.postalCode,Postal Code
+properties.postalCodePlaceholder,"e.g. 28001, 90210"
+properties.propertyAddress,Address
+properties.propertyArchived,Property archived
+properties.propertyCity,City
+properties.propertyCountry,Country
+properties.propertyCreated,Property created successfully
+properties.propertyDescription,Description
+properties.propertyDetails,Property Details
+properties.propertyDocuments.deleteFailed,Failed to delete document
+properties.propertyDocuments.deleteSuccess,Document deleted successfully
+properties.propertyDocuments.dragAndDropHint,Drag and drop or click to upload
+properties.propertyDocuments.previousVersions,Previous Versions
+properties.propertyDocuments.seeVersions,See Versions
+properties.propertyDocuments.uploadNewVersion,Upload new version
+properties.propertyDocuments.versions,versions
+properties.propertyHub,Property Hub
+properties.propertyInformation,Property Information
+properties.propertyIsFree,Property is Free
+properties.propertyNotFound,Property not found
+properties.propertyNotFoundDesc,This property may have been deleted or you don
+properties.propertyPostalCode,Postal Code
+properties.propertyTemplates,Property Document Templates
+properties.propertyTemplatesDescription,"Reusable document templates for this property, e.g., contracts"
+properties.propertyTitle,Title
+properties.propertyUnarchived,Property unarchived
+properties.propertyUpdated,Property updated successfully
+properties.quickActions,Quick Actions
+properties.readOnlyAccess,Read-only access
+properties.reason,Reason
+properties.removeTenant,Remove Tenant
+properties.rentPayments,Rent Payments
+properties.scheduledMaintenance,Scheduled Maintenance
+properties.selectReason,Select a reason
+properties.selectTemplates,Select templates to copy to this tenancy
+properties.setupFromOverview,Set up your first tenancy from the Overview tab.
+properties.stateProvince,State/Province
+properties.stateProvincePlaceholder,"e.g. California, Bavaria"
+properties.status.active,Active
+properties.status.archived,Archived
+properties.status.ending_tenancy,Ending Tenancy
+properties.statusIndicators.allClear,All clear
+properties.statusIndicators.maintenance,Maintenance
+properties.statusIndicators.noData,No data
+properties.statusIndicators.openTickets,Open tickets
+properties.statusIndicators.overduePayments,Overdue payments
+properties.statusIndicators.pendingMaintenance,Pending maintenance
+properties.statusIndicators.rent,Rent
+properties.statusIndicators.tickets,Tickets
+properties.statusIndicators.utilities,Utilities
+properties.statusLabel,Status
+properties.streetAddress,Street address
+properties.templatesCopied,Templates copied successfully
+properties.tenancyDocuments,Tenancy Documents
+properties.tenancyDocumentsDescription,Documents related to your tenancy
+properties.tenancyDuration,Duration
+properties.tenancyEnded,Ended
+properties.tenancyEnding,Tenancy Ending Soon
+properties.tenancyHistory,Tenancy History
+properties.tenancyStarted,Started
+properties.tenant,Tenant
+properties.tenantInvited,Tenant invited successfully
+properties.tenantProperties,Tenant Properties
+properties.tenantRemoved,Tenant removed successfully
+properties.tenants,Tenants
+properties.tenantsTab,Tenants
+properties.tickets,Tickets
+properties.ticketsTab,Tickets
+properties.title,Properties
+properties.titleRequired,Property title is required
+properties.unarchiveProperty,Unarchive Property
+properties.updateError,Failed to update property
+properties.updateSuccess,Property updated successfully
+properties.uploadContract,Upload Contract
+properties.uploadNewVersion,Upload new version
+properties.uploadPhoto,Upload Photo
+properties.uploadTemplate,Upload Template
+properties.uploadTenancyDocument,Upload Tenancy Document
+properties.uploading,Uploading...
+properties.useTemplate,Use Template
+properties.utilitiesTab,Utilities
+properties.utilityPayments,Utility Payments
+properties.validationError,Please check the form for errors
+properties.viewDocuments,View Documents
+properties.viewMaintenance,View Maintenance
+properties.viewProperty,View Property
+properties.viewTickets,View Tickets
+propertyHub.description,"Overview, tenants, contracts, payments, and documents"
+propertyHub.documents,Templates
+propertyHub.overview,Overview
+propertyHub.rentPayments,Rent Payments
+propertyHub.subtitle,Manage all aspects of this property
+propertyHub.title,Property Hub
+propertyHub.utilityPayments,Utility Payments
+propertyTenants.contractsTab,Contracts
+propertyTenants.documentsTab,Documents
+propertyTenants.overviewTab,Overview
+propertyTenants.paymentsTab,Payments
+propertyTenants.tabs.contracts,Tenants
+propertyTenants.tabs.payments,Payments
+propertyTenants.tabs.tenants,Tenants
+propertyTenants.tabs.tickets,Tickets
+propertyTenants.tabs.utilities,Utilities
+propertyTenants.ticketsTab,Tickets
+propertyTenants.utilitiesTab,Utilities
+provideResolutionNotes,Please provide notes about how this ticket was resolved
+rent.amount,Rent Amount
+rent.dayOfMonth,Day of Month
+rent.deposit,Security Deposit
+rent.paymentDay,Payment Day
+rentAgreement.currency,Currency
+rentAgreement.endDate,End Date
+rentAgreement.paymentDay,Payment Day
+rentAgreement.rentAmount,Monthly Rent
+rentAgreement.securityDeposit,Security Deposit
+rentAgreement.startDate,Start Date
+rentAgreements.createAgreement,Create Rent Agreement
+rentAgreements.createAgreementDescription,Set up monthly rent payment for this tenancy
+rentAgreements.currency,Currency
+rentAgreements.endDate,End Date
+rentAgreements.mandateErrors.accountNotFound,Payment setup incomplete - contact property manager
+rentAgreements.mandateErrors.createFailed,Failed to create SEPA mandate
+rentAgreements.mandateErrors.invalidIban,Invalid IBAN format
+rentAgreements.mandateErrors.mandateFailed,Mandate verification failed - please try again
+rentAgreements.mandateStatus.active,Active
+rentAgreements.mandateStatus.failed,Verification Failed
+rentAgreements.mandateStatus.inactive,Inactive
+rentAgreements.mandateStatus.pending,Verification Pending
+rentAgreements.paymentDay,Payment Day
+rentAgreements.paymentDayDescription,Day of the month when rent will be collected (1-28)
+rentAgreements.rentAmount,Monthly Rent
+rentAgreements.selectDate,Select date
+rentAgreements.setupPayment,Set Up Payment Details
+rentAgreements.setupPaymentDescription,Provide your IBAN to enable automatic rent payments
+rentAgreements.startDate,Start Date
+rentAgreements.tenant,Tenant
+rentals.allRentals,All Rentals
+rentals.archived,Archived
+rentals.archivedTenancy,Archived Tenancy
+rentals.archivedWarning,This tenancy is archived. No changes can be made.
+rentals.backToRentals,Back to Rentals
+rentals.cannotEditArchived,Archived tenancies cannot be edited
+rentals.completeSetup,Complete Your Setup
+rentals.contractDates,Contract Dates
+rentals.currentTenancy,Current Tenancy
+rentals.description,Manage all tenancy relationships
+rentals.filterByProperty,Filter by Property
+rentals.filterByStatus,Filter by Status
+rentals.invitationAccepted,Invitation accepted
+rentals.manage,Manage
+rentals.managerNoRentalsHint,"This page shows properties where you are a tenant. To manage your properties, visit the Properties page."
+rentals.myRentals,My Rentals
+rentals.noActiveRentals,No Active Rentals
+rentals.noActiveRentalsDesc,You don
+rentals.noActiveTenancies,No Active Tenancies
+rentals.noActiveTenanciesDesc,You don
+rentals.noArchivedTenancies,No Archived Tenancies
+rentals.noArchivedTenanciesDesc,You don
+rentals.noEndingTenancies,No Ending Tenancies
+rentals.noEndingTenanciesDesc,You don
+rentals.noRentals,No rentals found
+rentals.noRentalsDesc,No active rental agreements at the moment
+rentals.paymentStatus,Payment Status
+rentals.property,Property
+rentals.rentAmount,Rent Amount
+rentals.searchTenant,Search by tenant name
+rentals.status,Status
+rentals.tenant,Tenant
+rentals.title,Rentals
+rentals.viewContract,View Contract
+rentals.viewPayments,View Payments
+repairShops.active,Active
+repairShops.activeStatus,Active Status
+repairShops.addContact,Add Contact
+repairShops.addContactDesc,Add a new repair shop contact to your list
+repairShops.address,Address
+repairShops.city,City
+repairShops.companyName,Company Name
+repairShops.contactPerson,Contact Person
+repairShops.deleteConfirm,Delete repair shop contact?
+repairShops.deleteConfirmDesc,This action cannot be undone. This will permanently delete the contact.
+repairShops.deleteContact,Delete Contact
+repairShops.description,Manage your repair shop contacts
+repairShops.editContact,Edit Contact
+repairShops.editContactDesc,Update repair shop contact information
+repairShops.email,Email
+repairShops.inactive,Inactive
+repairShops.licenseNumber,License Number
+repairShops.noContacts,No repair shop contacts yet
+repairShops.noContactsDesc,Add your first repair shop contact to get started
+repairShops.noResults,No contacts found
+repairShops.noResultsDesc,Try adjusting your search or filters
+repairShops.notes,Notes (Private)
+repairShops.phone,Phone
+repairShops.postalCode,Postal Code
+repairShops.searchPlaceholder,"Search by company, contact, phone, or specialization..."
+repairShops.showActiveOnly,Show Active Only
+repairShops.showAll,Show All
+repairShops.specializations,Specializations
+repairShops.status,Status
+repairShops.title,Repair Shops
+resolutionNotesRequired,Resolution notes required
+scheduleMaintenance,Schedule Maintenance
+scheduledFor,Scheduled
+search.alphabetical,A-Z
+search.byStatus,By occupancy
+search.gridView,Grid view
+search.listView,List view
+search.newest,Newest first
+search.oldest,Oldest first
+search.placeholder,Search properties...
+search.sortBy,Sort by
+search.status,Status
+selectTemplate,Select
+send,Send
+sepaConsent,I authorize SEPA Direct Debit
+sepaConsentDescription,I authorize the property manager to collect payments from my account via SEPA Direct Debit
+settings.appearance,Appearance
+settings.appearanceDesc,"Customize theme, font size, and date format"
+settings.appearanceDescription,Customize how the app looks
+settings.creditorIdHelp,Required for SEPA Direct Debit collections
+settings.creditorIdLabel,SEPA Creditor ID
+settings.creditorIdPlaceholder,ES00 000 X 0000000000
+settings.darkMode,Dark Mode
+settings.defaultCurrency,Default Currency
+settings.defaultPaymentDay,Default Payment Day
+settings.description,Manage your account settings
+settings.email,Email
+settings.emailNotifications,Email notifications
+settings.firstName,First Name
+settings.ibanHelp,This IBAN will receive rent payments from your tenants
+settings.ibanLabel,Your IBAN (for receiving rent)
+settings.ibanPlaceholder,ES00 0000 0000 0000 0000 0000
+settings.language,Language
+settings.languageDescription,Select your preferred language
+settings.lastName,Last Name
+settings.legalName,Legal Name
+settings.legalNameDescription,Full legal name for contracts
+settings.lightMode,Light Mode
+settings.notifications,Notifications
+settings.notificationsDescription,Configure your notification preferences
+settings.paymentSettingsSaved,Payment settings saved
+settings.paymentSettingsSavedDesc,Your payment configuration has been updated
+settings.paymentSetup,Payment Setup
+settings.paymentSetupDescription,Configure your payment collection settings
+settings.phone,Phone
+settings.privacyData,Privacy & Data
+settings.profile,Profile
+settings.profileDescription,Update your personal information
+settings.profileSaved,Profile saved
+settings.profileSavedDesc,Your profile has been updated successfully.
+settings.pushNotifications,Push notifications
+settings.rentDefaults,Rent Defaults
+settings.rentDefaultsDescription,Set default values for new rent agreements
+settings.rentDefaultsSaved,Rent defaults saved
+settings.rentDefaultsSavedDesc,Default settings will apply to new agreements
+settings.savePaymentSettings,Save Payment Settings
+settings.saveProfile,Save Profile
+settings.saveRentDefaults,Save Defaults
+settings.smsNotifications,SMS notifications
+settings.systemDefault,System Default
+settings.title,Settings
+status,Status
+subscription.alerts.gracePeriod,Payment failed. Grace period ends on
+subscription.alerts.subscriptionEnds,Subscription ends on
+subscription.alerts.trialEnds,Trial ends on
+subscription.annual,Annual
+subscription.automatedPaymentsLabel,Automated payments
+subscription.billedAnnually,Billed annually
+subscription.billedMonthly,Billed monthly
+subscription.billingLabel,Billing
+subscription.cancelAtPeriodEnd,Cancels on
+subscription.choosePlan,Choose Plan
+subscription.comingSoon,Coming Soon
+subscription.contactSales,Contact Sales
+subscription.currentPeriodEnd,Renews on
+subscription.currentPlan,Current Plan
+subscription.digitalSignaturesLabel,Digital Signatures
+subscription.enterprisePlan,Enterprise Plan
+subscription.features.advancedAnalytics,Advanced analytics
+subscription.features.apiAccess,API access
+subscription.features.automatedPayments,Automated payments
+subscription.features.digitalSignatures,digital signatures/year
+subscription.features.documentTemplates,Document templates
+subscription.features.kycVerification,ID verification
+subscription.features.maxProperties,properties
+subscription.features.maxTenanciesPerProperty,tenancies per property
+subscription.features.whiteLabeling,White-labeling
+subscription.featuresLabel,Features
+subscription.freePlan,Free Plan
+subscription.gracePeriodEndsAt,Grace period ends
+subscription.kycVerificationLabel,ID verification
+subscription.loadError,Unable to load subscription data
+subscription.manageSubscription,Manage Subscription
+subscription.monthly,Monthly
+subscription.perMonth,/month
+subscription.perYear,/year
+subscription.planDetails,Plan Details
+subscription.proPlan,Pro Plan
+subscription.save20,Save 20%
+subscription.signaturesPerYear,signatures/year
+subscription.signaturesRemaining,signatures remaining
+subscription.title,Subscription
+subscription.toasts.checkoutFailed,Failed to open checkout
+subscription.toasts.openingCheckout,Opening Stripe checkout...
+subscription.toasts.openingPortal,Opening billing portal...
+subscription.toasts.portalFailed,Failed to open billing portal
+subscription.trialEnd,Trial ends on
+subscription.upgradeAnnual,Upgrade to Pro (Annual - Save 20%)
+subscription.upgradeMonthly,Upgrade to Pro (Monthly)
+subscription.upgradeRequired,Upgrade Required
+subscription.upgradeToPro,Upgrade to Pro
+subscription.usage.signaturesRemaining,remaining this year
+subscription.usage.signaturesUsed,Signatures used
+subscription.usage.title,Usage
+subscription.usage.unlimited,Unlimited
+subscription.viewEnterprise,Contact Sales
+subscription.whyUpgrade.description,Unlock powerful features to scale your property management
+subscription.whyUpgrade.kyc.description,Verify tenant identities with government ID
+subscription.whyUpgrade.kyc.title,Identity Verification
+subscription.whyUpgrade.payments.description,Collect rent automatically via Stripe Connect
+subscription.whyUpgrade.payments.title,Automated Payment Collection
+subscription.whyUpgrade.signatures.description,Create legally-binding contracts with tenants
+subscription.whyUpgrade.signatures.title,100 Digital Signatures per Year
+subscription.whyUpgrade.support.description,Get help faster with dedicated support
+subscription.whyUpgrade.support.title,Priority Support
+subscription.whyUpgrade.title,Why Upgrade to Pro?
+templatePicker.description,Choose a task from the standard library to schedule for this property
+templatePicker.title,Schedule Maintenance Task
+tenancy.current,Current
+tenancy.departing,Departing
+tenancy.historic,Historic
+tenancy.incoming,Incoming
+tenancy.resendInvitation,Resend Invitation
+tenancy.sendInvitation,Send Invitation
+tenancy.startDate,Start Date
+tenancy.transitionInProgress,Tenant transition in progress
+tenancy.verification,Verification
+tenancy.viewAllHistory,more
+tenancy.viewingHistoric,Viewing historic tenancy (read-only)
+tenancy.wizard.availableMethod,Available method
+tenancy.wizard.contract,Contract Signing
+tenancy.wizard.contractDesc,Choose how the rental contract will be signed
+tenancy.wizard.contractMethod,Contract Signing Method
+tenancy.wizard.contractMethodDesc,How will the rental contract be signed?
+tenancy.wizard.contractSettings,Contract Settings
+tenancy.wizard.currency,Currency
+tenancy.wizard.dayOfMonth,day of month
+tenancy.wizard.digitalSignature,Digital Signature
+tenancy.wizard.digitalSignatureDesc,Legally-binding electronic signature
+tenancy.wizard.digitalStandard,Digital Signature (Standard)
+tenancy.wizard.digitalStandardDesc,Advanced electronic signature (AES) - valid worldwide
+tenancy.wizard.electricity,Electricity
+tenancy.wizard.emailVerification,Email Verification
+tenancy.wizard.emailVerificationDesc,Tenant must verify their email address
+tenancy.wizard.endDate,Tenancy End Date (Optional)
+tenancy.wizard.gas,Gas
+tenancy.wizard.governmentIdVerification,Government ID verification
+tenancy.wizard.heating,Heating
+tenancy.wizard.internet,Internet
+tenancy.wizard.invitationFailed,Failed to send invitation
+tenancy.wizard.invitationSent,Invitation Sent
+tenancy.wizard.invitationSentDesc,The tenant will receive an email with instructions to complete the setup
+tenancy.wizard.kycVerification,ID Verification
+tenancy.wizard.kycVerificationDesc,Tenant must verify identity with government ID
+tenancy.wizard.leaseDates,Lease Dates
+tenancy.wizard.manualContract,Manual/Paper Contract
+tenancy.wizard.manualContractDesc,Physical contract signed in person
+tenancy.wizard.manualSignature,Manual / Paper
+tenancy.wizard.manualSignatureDesc,Sign physically and upload scanned copy
+tenancy.wizard.monthlyRent,Monthly Rent
+tenancy.wizard.newTenancy,New Tenancy Setup
+tenancy.wizard.no,No
+tenancy.wizard.noTemplatesAvailable,No templates available
+tenancy.wizard.none,None
+tenancy.wizard.notSelected,Not selected
+tenancy.wizard.paymentDay,Payment Day
+tenancy.wizard.paymentDayHelp,Day of month when rent is due (1-28)
+tenancy.wizard.perMonth,/month
+tenancy.wizard.phoneVerification,Phone Verification
+tenancy.wizard.phoneVerificationDesc,Tenant must verify their phone number
+tenancy.wizard.qualifiedSignature,Qualified Signature
+tenancy.wizard.qualifiedSignatureDesc,EU-compliant qualified electronic signature
+tenancy.wizard.rent,Rent & Deposits
+tenancy.wizard.rentAndDeposit,Rent & Deposit Details
+tenancy.wizard.rentDesc,"Set up rent amount, payment schedule, and deposits"
+tenancy.wizard.rentDetails,Rent Details
+tenancy.wizard.requireEmailVerification,Require Email Verification
+tenancy.wizard.requireEmailVerificationDesc,Tenant must verify their email address
+tenancy.wizard.requireKYCVerification,Require ID Verification
+tenancy.wizard.requireKYCVerificationDesc,Tenant must verify their identity with government ID
+tenancy.wizard.requirePhoneVerification,Require Phone Verification
+tenancy.wizard.requirePhoneVerificationDesc,Tenant must verify their phone number
+tenancy.wizard.requirements,Requirements
+tenancy.wizard.review,Review & Confirm
+tenancy.wizard.reviewAndConfirm,Review & Confirm
+tenancy.wizard.reviewDesc,Review the tenancy setup before sending the invitation
+tenancy.wizard.reviewDescription,Please review all tenancy requirements before sending the invitation
+tenancy.wizard.securityDeposit,Security Deposit
+tenancy.wizard.securityDepositOptional,Security Deposit (Optional)
+tenancy.wizard.selectTemplate,Select Contract Template
+tenancy.wizard.selectTemplateDesc,Select the contract document to be signed
+tenancy.wizard.selectTemplatePlaceholder,Choose a template...
+tenancy.wizard.selected,Selected
+tenancy.wizard.sendInvitation,Send Invitation
+tenancy.wizard.sending,Sending...
+tenancy.wizard.skipContract,Skip Contract
+tenancy.wizard.skipContractDesc,No contract required for this tenancy
+tenancy.wizard.startDate,Tenancy Start Date
+tenancy.wizard.steps.contract,Contract
+tenancy.wizard.steps.rent,Rent & Deposit
+tenancy.wizard.steps.review,Review
+tenancy.wizard.steps.tenant,Tenant
+tenancy.wizard.steps.utilities,Utilities
+tenancy.wizard.steps.verification,Verification
+tenancy.wizard.subtitle,Configure all requirements for the new tenant
+tenancy.wizard.tenantEmail,Tenant Email
+tenancy.wizard.tenantEmailHelp,Enter the email address of the tenant you want to invite
+tenancy.wizard.tenantEmailPlaceholder,tenant@example.com
+tenancy.wizard.tenantInfo,Tenant Information
+tenancy.wizard.tenantInfoDesc,Enter the email address of the tenant you want to invite
+tenancy.wizard.title,New Tenancy Setup
+tenancy.wizard.trash,Trash Collection
+tenancy.wizard.upgradeForIdVerification,Upgrade to PRO for ID verification
+tenancy.wizard.uploadTemplateHint,Upload templates in Configuration → Templates
+tenancy.wizard.utilities,Utilities Setup
+tenancy.wizard.utilitiesConfig,Utilities Configuration
+tenancy.wizard.utilitiesDesc,Define who is responsible for each utility
+tenancy.wizard.utilitiesSetup,Utilities Setup
+tenancy.wizard.utilitiesSetupDesc,Define who is responsible for each utility
+tenancy.wizard.validationError,Please complete all required fields
+tenancy.wizard.verification,Verification Requirements
+tenancy.wizard.verificationDesc,Choose which verifications the tenant must complete
+tenancy.wizard.verificationRequirements,Verification Requirements
+tenancy.wizard.verificationSettings,Verification Settings
+tenancy.wizard.water,Water
+tenancy.wizard.yes,Yes
+tenants.active,Active
+tenants.activeTenants,Active Tenants
+tenants.addTenant,Add Tenant
+tenants.currentTenant,Current Tenant
+tenants.currentTenants,Current Tenants
+tenants.duration,Duration
+tenants.editTenant,Edit Tenant
+tenants.editTenantDesc,Update tenant information and status
+tenants.email,Email
+tenants.endDate,End Date
+tenants.endReason,End Reason
+tenants.endingTenancy,Ending Tenancy
+tenants.kycVerified,Verified
+tenants.manageTenants,Tenants
+tenants.manageTenantsSections,Manage current tenants and invitations
+tenants.noHistory,No history
+tenants.noHistoryDesc,No previous tenants on record
+tenants.noTenants,No tenants
+tenants.noTenantsDesc,No tenants assigned to this property
+tenants.pending,Pending
+tenants.phone,Phone
+tenants.plannedEndDate,Planned end date
+tenants.since,Since
+tenants.startDate,Start Date
+tenants.status,Status
+tenants.statusActive,Active
+tenants.statusEndingTenancy,Ending Tenancy
+tenants.statusHistoric,Historic
+tenants.statusHistoricDesc,Tenancy ended
+tenants.tenancyHistory,Tenancy History
+tenants.tenancyStatus,Tenancy Status
+tenants.tenant,tenant
+tenants.tenantManagementDescription,"Manage tenants, documents, and tenant-related tickets"
+tenants.tenantNotes,Internal Notes
+tenants.tenantNotesPlaceholder,Add notes about this tenant...
+tenants.tenantStartDate,Tenancy Start Date
+tenants.tenantUpdated,Tenant updated
+tenants.tenantUpdatedDesc,Tenant information has been updated successfully
+tenants.title,Tenants
+tenants.updateTenant,Update Tenant
+tenants.viewAllTickets,View All Tickets
+terms.acceptance,Acceptance of Terms
+terms.acceptanceText,"By accessing and using FlatMate, you accept and agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree to these terms, please do not use our services."
+terms.agreementText,"By accessing or using FlatMate, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this platform."
+terms.agreementToTerms,Agreement to Terms
+terms.changes,Changes to Terms
+terms.changesText,We reserve the right to modify these terms at any time. We will notify users of significant changes. Continued use of the platform after changes constitutes acceptance of the new terms.
+terms.changesToTerms,Changes to Terms
+terms.changesToTermsText,We reserve the right to modify these terms at any time. We will notify users of any material changes by posting the new Terms of Service on this page and updating the 
+terms.contactInfo,Contact Information
+terms.contactInfoText,Questions about the Terms of Service should be sent to
+terms.intellectualProperty,Intellectual Property
+terms.intellectualPropertyText,"All content, features, and functionality of FlatMate are owned by us and are protected by international copyright, trademark, and other intellectual property laws."
+terms.lastUpdated,Last updated
+terms.limitation,Limitation of Liability
+terms.limitationLiability,Limitation of Liability
+terms.limitationLiabilityText,"FlatMate and its suppliers shall not be liable for any damages (including, without limitation, damages for loss of data or profit) arising out of the use or inability to use the platform, even if we have been notified of the possibility of such damage."
+terms.limitationText,"FlatMate shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of or inability to use our services."
+terms.prohibitedUses,Prohibited Uses
+terms.prohibitedUsesList1,In any way that violates applicable laws or regulations
+terms.prohibitedUsesList2,To transmit harmful or malicious code
+terms.prohibitedUsesList3,"To harass, abuse, or harm another person"
+terms.prohibitedUsesList4,To impersonate or attempt to impersonate others
+terms.prohibitedUsesList5,To engage in any automated use of the system
+terms.prohibitedUsesText,You agree not to use FlatMate:
+terms.services,Services
+terms.servicesText,"FlatMate provides a property management platform that enables property managers and tenants to manage properties, maintenance requests, documents, and communications. We reserve the right to modify, suspend, or discontinue any aspect of our services at any time."
+terms.title,Terms of Service
+terms.useLicense,Use License
+terms.useLicenseList1,Modify or copy the materials
+terms.useLicenseList2,Use the materials for any commercial purpose without authorization
+terms.useLicenseList3,Attempt to decompile or reverse engineer any software
+terms.useLicenseList4,Remove any copyright or proprietary notation
+terms.useLicenseList5,Transfer the materials to another person or mirror the platform
+terms.useLicenseText,"Permission is granted to temporarily access and use FlatMate for personal or commercial property management purposes. This is the grant of a license, not a transfer of title, and under this license you may not:"
+terms.userAccounts,User Accounts
+terms.userAccountsList1,You must provide accurate and complete information when creating an account
+terms.userAccountsList2,You are responsible for maintaining the security of your account
+terms.userAccountsList3,You must notify us immediately of any unauthorized access
+terms.userAccountsList4,You may not share your account credentials with others
+terms.userAccountsText,"When you create an account with us, you must provide accurate and complete information. You are responsible for:"
+terms.userConduct,User Conduct
+terms.userConductList1,Use the platform only for lawful purposes
+terms.userConductList2,Respect the rights and privacy of other users
+terms.userConductList3,Not upload malicious content or attempt to breach security
+terms.userConductList4,Not misrepresent your identity or authority
+terms.userContent,User Content
+terms.userContentText1,"You retain ownership of any content you submit to FlatMate. By submitting content, you grant us a license to use, store, and display that content as necessary to provide our services."
+terms.userContentText2,You are responsible for the content you post and must ensure it does not violate any laws or infringe on the rights of others.
+tickets.activityTimeline,Activity Timeline
+tickets.activityTimelineDesc,Track all changes and updates
+tickets.all,All
+tickets.attachments,Attachments
+tickets.attachmentsDesc,Photos and videos related to this ticket
+tickets.availableAfterStart,Tickets can be created after tenancy starts on
+tickets.cancelled,Cancelled
+tickets.comments,Comments
+tickets.commentsDesc,Discuss this ticket with your team
+tickets.complaint,complaint
+tickets.completedBy,Completed By
+tickets.created,Created
+tickets.createdBy,Created By
+tickets.description,Manage property tickets and requests
+tickets.high,High
+tickets.inProgress,In Progress
+tickets.incident,Incident
+tickets.issue,Issue
+tickets.low,Low
+tickets.maintenance,maintenance
+tickets.medium,Medium
+tickets.newTicket,New Ticket
+tickets.noOpenTickets,No open tickets at the moment
+tickets.noTickets,No tickets found
+tickets.noTicketsWithStatus,No tickets with this status
+tickets.open,Open
+tickets.openTickets,Open Tickets
+tickets.openTicketsDesc,Active tickets for this property
+tickets.priority,Priority
+tickets.recurring,Recurring
+tickets.repair,repair
+tickets.request,Request
+tickets.resolutionNotes,Resolution Notes
+tickets.resolved,Resolved
+tickets.resolvedOn,Resolved on
+tickets.scheduledMaintenance,Scheduled Maintenance
+tickets.status,Status
+tickets.ticketInformation,Ticket Information
+tickets.ticketNotFound,Ticket not found
+tickets.ticketNotFoundDesc,This ticket may have been deleted or you don
+tickets.ticketNumber,Ticket #
+tickets.ticketTitle,Title
+tickets.title,Tickets
+tickets.type,Type
+tickets.urgent,Urgent
+toasts.attachmentDeleteFailed,Failed to delete attachment
+toasts.attachmentDeleted,Attachment deleted successfully
+toasts.attachmentsUploaded,Attachments uploaded successfully
+toasts.carouselImageUploaded,Image uploaded
+toasts.carouselImageUploadedDesc,Carousel image uploaded successfully
+toasts.carouselSaveFailed,Error saving carousel
+toasts.carouselSaved,Carousel saved
+toasts.carouselSavedDesc,Carousel items updated successfully
+toasts.commentAddFailed,Failed to add comment. Please try again.
+toasts.copiedToClipboard,Copied to clipboard
+toasts.credentialsGenerateFailed,Failed to generate test credentials
+toasts.credentialsGenerated,Test credentials generated successfully
+toasts.documentUploaded,Document uploaded successfully
+toasts.enterSixDigitCode,Please enter a 6-digit code
+toasts.enterpriseContactFailed,Failed to submit contact request. Please try again.
+toasts.enterpriseContactSuccess,Thank you! We
+toasts.failedToVerifyCode,Failed to verify code
+toasts.fileTooLarge,File size must be less than 10MB
+toasts.imageTooLarge,Image must be less than 5MB
+toasts.invalidFileType,File type not allowed. Please upload a document or image file.
+toasts.invalidImageType,"Please upload an image (JPG, PNG, WEBP) or PDF file"
+toasts.invalidNumber,Please enter a valid positive number
+toasts.invalidVerificationCode,Invalid verification code
+toasts.invitationAccepted,Invitation accepted
+toasts.planUpdateFailed,Failed to update plan
+toasts.planUpdated,Plan updated successfully
+toasts.proofUploaded,Proof of payment uploaded successfully
+toasts.requestUpdateFailed,Failed to update request
+toasts.requestUpdated,Request updated successfully
+toasts.scheduleCreateFailed,Failed to create schedule
+toasts.scheduleCreated,Recurring schedule created
+toasts.scheduleUpdateFailed,Failed to update schedule
+toasts.scheduleUpdated,Schedule updated
+toasts.selectFile,Please select a file to upload
+toasts.selectTemplateAndDate,Please select a template and start date
+toasts.settingUpdateFailed,Failed to update setting
+toasts.settingUpdated,Setting updated successfully
+toasts.signatureCompleted,Signature completed successfully
+toasts.taskCompleteFailed,Failed to complete task
+toasts.taskCompleted,Task completed successfully
+toasts.taskDeleteFailed,Failed to delete task
+toasts.taskDeleted,Task deleted successfully
+toasts.ticketCreated,Ticket created
+toasts.ticketCreatedDesc,Your ticket has been created successfully.
+toasts.ticketUpdateFailed,Failed to update ticket
+toasts.ticketUpdated,Ticket updated successfully
+toasts.uploadFailed,Upload failed
+typeFilter.all,All Tasks
+typeFilter.issues,Issues
+typeFilter.maintenance,Maintenance
+upcoming,Upcoming
+utilities.acceptedFormats,"Images (JPG, PNG) or PDF. Max 10MB."
+utilities.addUtilityBill,Add Utility Bill
+utilities.amount,Amount
+utilities.approve,Approve
+utilities.billingPeriod,Billing Period
+utilities.billingPeriodEnd,Period End
+utilities.billingPeriodStart,Period Start
+utilities.customName,Custom Utility Name
+utilities.customNamePlaceholder,Enter custom utility name
+utilities.dueDate,Due Date
+utilities.imageLoadError,Failed to load image
+utilities.manageUtilities,Utility Payments
+utilities.managerPays,Manager pays
+utilities.noActiveTenant,No active tenant to manage utilities for
+utilities.noPayments,No utility payments yet
+utilities.noPaymentsDesc,Utility payments will appear here once bills are added
+utilities.notApplicable,Not applicable
+utilities.paymentDetails,Payment Details
+utilities.paymentHistory,Utility Payment History
+utilities.proofReview.approved,Approved
+utilities.proofReview.pending,Pending Review
+utilities.proofReview.rejected,Rejected
+utilities.reject,Reject
+utilities.reviewNotes,Review Notes
+utilities.reviewNotesPlaceholder,Add notes about this payment...
+utilities.reviewProof,Review Proof
+utilities.selectProofFile,Select proof of payment file
+utilities.status.overdue,Overdue
+utilities.status.paid,Paid
+utilities.status.pending,Pending
+utilities.tenantPays,Tenant pays & uploads proof
+utilities.title,Utilities
+utilities.types.electricity,Electricity
+utilities.types.gas,Gas
+utilities.types.heating,Heating
+utilities.types.internet,Internet
+utilities.types.other,Other
+utilities.types.trash,Trash
+utilities.types.water,Water
+utilities.uploadProof,Upload Proof
+utilities.uploadedProof,Uploaded Proof
+utilities.utilityType,Utility Type
+verification.email,Email
+verification.kyc,ID
+verification.phone,Phone
+viewAgreement,View Agreement

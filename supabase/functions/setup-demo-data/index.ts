@@ -65,6 +65,25 @@ Deno.serve(async (req) => {
       }
     );
 
+    // Check if demo data already exists - idempotency check
+    const { data: existingManager } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('email', 'manager@rentmate.me')
+      .single();
+
+    if (existingManager) {
+      console.log('Demo data already exists, skipping creation');
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Demo data already exists',
+          note: 'Skipped creation - data already present'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('Creating demo users...');
 
     // Create manager user
@@ -245,14 +264,14 @@ Deno.serve(async (req) => {
       },
     ];
 
-    for (const ticket of tickets) {
-      const { error: ticketError } = await supabaseAdmin.from('tickets').insert({
-        ...ticket,
-        property_id: propertyId,
-      });
+    // Batch insert tickets instead of loop
+    const ticketsWithProperty = tickets.map(ticket => ({
+      ...ticket,
+      property_id: propertyId,
+    }));
 
-      if (ticketError) throw ticketError;
-    }
+    const { error: ticketsError } = await supabaseAdmin.from('tickets').insert(ticketsWithProperty);
+    if (ticketsError) throw ticketsError;
     console.log('Tickets created');
 
     // Get standard maintenance templates
