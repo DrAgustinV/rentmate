@@ -1,4 +1,4 @@
-// English translations - split from main translations.ts for scalability
+// English translations - split from main translations.ts for scalability 
 export const en = {
   common: {
     save: "Save",

@@ -1,4 +1,4 @@
-// Spanish translations
+// Spanish translations 
 export const es = {
   common: {
     save: "Guardar",
