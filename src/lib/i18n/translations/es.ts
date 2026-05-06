@@ -670,6 +670,7 @@ export const es = {
     tenantRemoved: "Inquilino eliminado exitosamente",
     noActiveTenant: "No hay inquilino activo",
     // Missing keys start
+    endingTenancy: "Finalizando Alquiler",
     propertyInformation: "Información de la Propiedad",
     noTenant: "Sin inquilino actual",
     freeToRent: "Libre para Alquilar",

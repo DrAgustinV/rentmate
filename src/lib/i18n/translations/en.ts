@@ -740,6 +740,7 @@ export const en = {
     viewDocuments: "View Documents",
     viewMaintenance: "View Maintenance",
     viewTickets: "View Tickets",
+    endingTenancy: "Ending Tenancy",
     status: {
       active: "Active",
       archived: "Archived",
