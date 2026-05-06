@@ -3,7 +3,7 @@ project_id = "jnfsikjotlkmshufinoy"
 
 ## [auth.hook.send_email]
 ## enabled = true
-## uri = "https://jrjwkpjfgsyrqztuokoo.supabase.co/functions/v1/send-auth-email"
+## uri = "https://jnfsikjotlkmshufinoy.supabase.co/functions/v1/send-auth-email"
 
 [functions.send-auth-email]
 verify_jwt = false
