@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import { Save, Archive, Plus, Pencil, Users, Mail, Sparkles, Loader2 } from "lucide-react";
+import { Save, Archive, Plus, Pencil, Users, Mail, Sparkles, Loader2, Trash2 } from "lucide-react";
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { cn } from "@/lib/utils";
 import { usePropertyMutations } from "@/hooks/useProperties";
@@ -39,9 +39,10 @@ interface OverviewTabProps {
   templates?: Array<{ id: string; document_title: string }>;
   invitations?: Array<{ id: string; email: string; status: string; expires_at: string }>;
   onInviteTenant?: (email: string) => void;
+  hasNoTenants?: boolean;
 }
 
-export function OverviewTab({ property, propertyId, userRole, activeTenant, templates = [], invitations = [] }: OverviewTabProps) {
+export function OverviewTab({ property, propertyId, userRole, activeTenant, templates = [], invitations = [], hasNoTenants = false }: OverviewTabProps) {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
@@ -59,6 +60,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
     "sold" | "no_longer_managing" | "merged_with_other_property" | "other"
   >("sold");
   const [archiveNotes, setArchiveNotes] = useState("");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [propertyPhotoUrl, setPropertyPhotoUrl] = useState<string | undefined>();
   const [generatingDescription, setGeneratingDescription] = useState(false);
 
@@ -95,9 +97,9 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
     if (property) {
       setTitle(property.title || "");
       setAddress(property.address || "");
+      setPostalCode(property.postal_code || "");
       setCity(property.city || "");
       setStateProvince(property.state_province || "");
-      setPostalCode(property.postal_code || "");
       setCountry(property.country || "");
       setDescription(property.description || "");
     }
@@ -120,10 +122,10 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
     fetchPhotoUrl();
   }, [property?.images]);
 
-  const { archiveProperty } = usePropertyMutations();
+  const { archiveProperty, deleteProperty } = usePropertyMutations();
 
   const updatePropertyMutation = useMutation({
-    mutationFn: async (updates: { title: string; address: string; city: string; state_province: string; postal_code: string; country: string; description: string }) => {
+    mutationFn: async (updates: { title: string; address: string; postal_code: string; city: string; state_province: string; country: string; description: string }) => {
       const validatedData = propertyBaseSchema.parse(updates);
       const { error } = await supabase.from("properties").update(validatedData).eq("id", propertyId);
       if (error) throw error;
@@ -150,9 +152,9 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
     updatePropertyMutation.mutate({
       title,
       address,
+      postal_code: postalCode,
       city,
       state_province: stateProvince,
-      postal_code: postalCode,
       country,
       description
     });
@@ -170,6 +172,15 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
     );
   };
 
+  const handleDelete = () => {
+    deleteProperty.mutate(propertyId, {
+      onSuccess: () => {
+        setShowDeleteDialog(false);
+        navigate("/properties");
+      },
+    });
+  };
+
   const tenantName = activeTenant?.profiles
     ? `${activeTenant.profiles.first_name || ""} ${activeTenant.profiles.last_name || ""}`.trim() ||
       activeTenant.profiles.email
@@ -184,23 +195,59 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
     <div className="space-y-6">
       <Card className="card-shine">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>{t("properties.propertyInformation")}</CardTitle>
-              <CardDescription>{t("properties.editPropertyDescription")}</CardDescription>
-            </div>
-            {userRole?.isManager && !isEditing && !isArchived && (
-              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                <Pencil className="h-4 w-4 mr-2" />
-                {t("common.edit")}
-              </Button>
-            )}
+          <div className="space-y-6">
+            <Card className="card-shine border-none">
+              <CardHeader className="px-6 pt-2 pb-0">
+                <div className="flex items-center justify-between">
+                  {/* LEFT - Title (takes all remaining space) */}
+                  <div className="flex-1 min-w-0">
+                    {userRole?.isManager ? (
+                      <Input
+                        id="title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        disabled={!isEditing}
+                        required
+                        className={cn(
+                          !title.trim() && isEditing && "border-destructive",
+                          "text-lg font-bold w-full"
+                        )}
+                      />
+                    ) : (
+                      <p className="text-lg font-bold py-1 truncate">{title}</p>
+                    )}
+                  </div>
+
+                  {/* RIGHT - Button & Badge */}
+                  <div className="flex shrink-0 items-center gap-3">
+                    {userRole?.isManager && !isEditing && !isArchived && (
+                      <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        {t("common.edit")}
+                      </Button>
+                    )}
+                    <Badge variant={property?.status === "active" ? "default" : "secondary"}>
+                      {property?.status}
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+
+              {/* Content Area */}
+              <CardContent className="px-6 pt-1 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="max-h-64 flex items-center justify-start">
+                    {/* Your content here */}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              {userRole?.isManager ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="max-h-64 flex items-center justify-start">
+              {userRole?.isManager && isEditing ? (
                 <PropertyPhotoUpload
                   propertyId={propertyId}
                   currentPhoto={propertyPhotoUrl}
@@ -209,7 +256,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
               ) : (
                 propertyPhotoUrl && (
                   <div className="space-y-2">
-                    <Label>{t("properties.photo")}</Label>
+                    {/* <Label>{t("properties.photo")}</Label> */}
                     <img
                       src={propertyPhotoUrl}
                       alt={property?.title}
@@ -219,80 +266,22 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
                 )
               )}
             </div>
-            <div className="space-y-4">
+            <div className="md:col-span-2 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">{t("properties.title")}</Label>
-                {userRole?.isManager ? (
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    disabled={!isEditing}
-                    required
-                    className={cn(!title.trim() && isEditing && "border-destructive")}
-                  />
-                ) : (
-                  <p className="text-sm py-2">{title}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">{t("properties.address")}</Label>
-                {userRole?.isManager ? (
-                  <Input
-                    id="address"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    disabled={!isEditing}
-                    placeholder={t("properties.streetAddress")}
-                  />
-                ) : (
-                  <p className="text-sm py-2">{address || "-"}</p>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="city">{t("properties.city")}</Label>
+                  <Label htmlFor="address">{t("properties.address")}</Label>
                   {userRole?.isManager ? (
                     <Input
-                      id="city"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
+                      id="address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
                       disabled={!isEditing}
-                      placeholder={t("properties.cityPlaceholder")}
+                      placeholder={t("properties.streetAddress")}
                     />
                   ) : (
-                    <p className="text-sm py-2">{city || "-"}</p>
+                    <p className="text-sm py-2">{address || "-"}</p>
                   )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="country">{t("properties.country")}</Label>
-                  {userRole?.isManager ? (
-                    <CountrySelect
-                      value={country}
-                      onValueChange={setCountry}
-                      disabled={!isEditing}
-                      placeholder={t("properties.countryPlaceholder")}
-                    />
-                  ) : (
-                    <p className="text-sm py-2">{country || "-"}</p>
-                  )}
-                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="stateProvince">{t("properties.stateProvince")}</Label>
-                  {userRole?.isManager ? (
-                    <Input
-                      id="stateProvince"
-                      value={stateProvince}
-                      onChange={(e) => setStateProvince(e.target.value)}
-                      disabled={!isEditing}
-                      placeholder={t("properties.stateProvincePlaceholder")}
-                    />
-                  ) : (
-                    <p className="text-sm py-2">{stateProvince || "-"}</p>
-                  )}
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="postalCode">{t("properties.postalCode")}</Label>
                   {userRole?.isManager ? (
@@ -307,29 +296,58 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
                     <p className="text-sm py-2">{postalCode || "-"}</p>
                   )}
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("properties.status")}</Label>
-                <div className="flex items-center gap-2">
-                  <Badge variant={property?.status === "active" ? "default" : "secondary"}>
-                    {property?.status}
-                  </Badge>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">{t("properties.city")}</Label>
+                  {userRole?.isManager ? (
+                    <Input
+                      id="city"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      disabled={!isEditing}
+                      placeholder={t("properties.cityPlaceholder")}
+                    />
+                  ) : (
+                    <p className="text-sm py-2">{city || "-"}</p>
+                  )}
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("properties.currentTenant")}</Label>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">{tenantName}</p>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="stateProvince">{t("properties.stateProvince")}</Label>
+                    {userRole?.isManager ? (
+                      <Input
+                        id="stateProvince"
+                        value={stateProvince}
+                        onChange={(e) => setStateProvince(e.target.value)}
+                        disabled={!isEditing}
+                        placeholder={t("properties.stateProvincePlaceholder")}
+                      />
+                    ) : (
+                      <p className="text-sm py-2">{stateProvince || "-"}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              
+                <div className="space-y-2">
+                  <Label htmlFor="country">{t("properties.country")}</Label>
+                  {userRole?.isManager ? (
+                    <CountrySelect
+                      value={country}
+                      onValueChange={setCountry}
+                      disabled={!isEditing}
+                      placeholder={t("properties.countryPlaceholder")}
+                    />
+                  ) : (
+                    <p className="text-sm py-2">{country || "-"}</p>
+                  )}
+                  </div>
+                </div>
             </div>
           </div>
 
-          <Separator />
-
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <Label htmlFor="description">{t("properties.description")}</Label>
               {isEditing && userRole?.isManager && (
                 <Button
@@ -348,7 +366,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
                   {t('ai.generate')}
                 </Button>
               )}
-            </div>
+            </div> */}
             {userRole?.isManager ? (
               <Textarea
                 id="description"
@@ -370,9 +388,9 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
                 onClick={() => {
                   setTitle(property?.title || "");
                   setAddress(property?.address || "");
+                  setPostalCode(property?.postal_code || "");
                   setCity(property?.city || "");
                   setStateProvince(property?.state_province || "");
-                  setPostalCode(property?.postal_code || "");
                   setCountry(property?.country || "");
                   setDescription(property?.description || "");
                   setIsEditing(false);
@@ -443,6 +461,55 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleArchive} className="border border-yellow-500 bg-yellow-500 text-yellow-950 hover:bg-yellow-600">
               {t("properties.archiveProperty")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Property Section - Manager Only, No Tenants Ever */}
+      {userRole?.isManager && hasNoTenants && (
+        <Card className="card-shine border-red-500/50">
+          <CardHeader>
+            <CardTitle className="text-red-600">{t("properties.deleteProperty")}</CardTitle>
+            <CardDescription>{t("properties.permanentlyDelete.description")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {t("properties.deleteProperty")}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("properties.permanentlyDelete.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("properties.permanentlyDelete.warning")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteProperty.isPending}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {deleteProperty.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {t("properties.permanentlyDelete.deleting")}
+                </>
+              ) : (
+                t("properties.permanentlyDelete.confirm")
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

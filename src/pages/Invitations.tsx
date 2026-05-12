@@ -211,19 +211,48 @@ export default function Invitations() {
         .eq("id", user.id);
 
       if (verifyEmailError) throw verifyEmailError;
-      // Add user as tenant with active status
-      const { data: newTenancy, error: tenantError } = await supabase
-        .from("property_tenants")
-        .insert({
-          property_id: propertyId,
-          tenant_id: user.id,
-          tenancy_status: 'active',
-          started_at: new Date().toISOString(),
-        })
-        .select('id')
-        .single();
 
-      if (tenantError) throw tenantError;
+      // Check for existing pending tenancy and convert to active
+      const { data: pendingTenancy } = await supabase
+        .from("property_tenants")
+        .select("id")
+        .eq("property_id", propertyId)
+        .eq("tenancy_status", "pending")
+        .maybeSingle();
+
+      let tenancyId: string;
+
+      if (pendingTenancy) {
+        // Update existing pending tenancy to active
+        const { data: updatedTenancy, error: updateTenancyError } = await supabase
+          .from("property_tenants")
+          .update({
+            tenant_id: user.id,
+            tenancy_status: 'active',
+            notes: null, // Clear the pending notes
+          })
+          .eq("id", pendingTenancy.id)
+          .select("id")
+          .single();
+
+        if (updateTenancyError) throw updateTenancyError;
+        tenancyId = updatedTenancy.id;
+      } else {
+        // No pending tenancy found - create new active tenancy (legacy fallback)
+        const { data: newTenancy, error: tenantError } = await supabase
+          .from("property_tenants")
+          .insert({
+            property_id: propertyId,
+            tenant_id: user.id,
+            tenancy_status: 'active',
+            started_at: new Date().toISOString(),
+          })
+          .select('id')
+          .single();
+
+        if (tenantError) throw tenantError;
+        tenancyId = newTenancy.id;
+      }
 
       // Update invitation status
       const { error: updateError } = await supabase
@@ -245,7 +274,7 @@ export default function Invitations() {
         .in("status", ["sent", "draft"])
         .maybeSingle();
 
-      if (requirements && newTenancy) {
+      if (requirements && tenancyId) {
         // Get property manager_id for rent_agreement
         const { data: propertyData } = await supabase
           .from("properties")
@@ -257,7 +286,7 @@ export default function Invitations() {
         if (requirements.rent_amount_cents && propertyData?.manager_id) {
           await supabase.from("rent_agreements").insert({
             property_id: propertyId,
-            tenancy_id: newTenancy.id,
+            tenancy_id: tenancyId,
             manager_id: propertyData.manager_id,
             tenant_id: user.id,
             rent_amount_cents: requirements.rent_amount_cents,
@@ -273,7 +302,7 @@ export default function Invitations() {
         await supabase
           .from("tenancy_requirements")
           .update({ 
-            tenancy_id: newTenancy.id,
+            tenancy_id: tenancyId,
             status: 'accepted' 
           })
           .eq("id", requirements.id);
@@ -288,6 +317,54 @@ export default function Invitations() {
       await queryClient.invalidateQueries({ 
         queryKey: [TENANT_PROPERTIES_QUERY_KEY] 
       });
+
+      // Send notification to property manager
+      try {
+        const { data: propertyData } = await supabase
+          .from("properties")
+          .select("title, manager_id")
+          .eq("id", propertyId)
+          .single();
+
+        if (propertyData?.manager_id) {
+          const { data: managerProfile } = await supabase
+            .from("profiles")
+            .select("email, first_name, last_name")
+            .eq("id", propertyData.manager_id)
+            .single();
+
+          const { data: tenantProfile } = await supabase
+            .from("profiles")
+            .select("first_name, last_name")
+            .eq("id", user.id)
+            .single();
+
+          if (managerProfile?.email) {
+            const managerName = managerProfile.first_name && managerProfile.last_name
+              ? `${managerProfile.first_name} ${managerProfile.last_name}`.trim()
+              : managerProfile.email.split('@')[0];
+
+            const tenantName = tenantProfile?.first_name && tenantProfile?.last_name
+              ? `${tenantProfile.first_name} ${tenantProfile.last_name}`.trim()
+              : userProfile?.email?.split('@')[0] || 'The tenant';
+
+            await supabase.functions.invoke("send-tenant-accepted-notification", {
+              body: {
+                propertyId,
+                propertyTitle: propertyData.title || 'Property',
+                tenantName,
+                tenantEmail: userProfile?.email || '',
+                managerEmail: managerProfile.email,
+                managerName,
+                language: localStorage.getItem("language") || "en",
+                projectId: import.meta.env.VITE_SUPABASE_PROJECT_ID,
+              },
+            });
+          }
+        }
+      } catch (notifyError) {
+        console.warn("Failed to send manager notification:", notifyError);
+      }
 
       toast({
         title: t('invitations.accepted'),

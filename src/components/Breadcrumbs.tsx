@@ -65,14 +65,24 @@ export function Breadcrumbs() {
     return breadcrumbs;
   };
 
-  // Breadcrumbs are hidden - top tabs provide navigation context
-  return null;
-  
-  // Keep code below for future use
   const breadcrumbs = generateBreadcrumbs();
 
   // Don't show breadcrumbs on home/dashboard
   if (location.pathname === "/" || location.pathname === "/dashboard") {
+    return null;
+  }
+
+  // Don't show breadcrumbs on auth pages
+  if (location.pathname.startsWith("/auth") || location.pathname.startsWith("/reset-password") || location.pathname.startsWith("/verify-email")) {
+    return null;
+  }
+
+  // Don't show for public pages
+  if (location.pathname === "/pricing" || location.pathname === "/about" || location.pathname === "/privacy" || location.pathname === "/terms" || location.pathname === "/help") {
+    return null;
+  }
+
+  if (breadcrumbs.length === 0) {
     return null;
   }
 
@@ -84,9 +94,9 @@ export function Breadcrumbs() {
         >
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/dashboard" className="flex items-center gap-1">
+              <Link to="/properties" className="flex items-center gap-1">
                 <Home className="h-3.5 w-3.5" />
-                <span>Dashboard</span>
+                <span>Properties</span>
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>

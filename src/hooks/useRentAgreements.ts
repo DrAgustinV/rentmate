@@ -91,7 +91,8 @@ export function useRentAgreements(propertyId?: string) {
             email
           )
         `)
-        .eq('property_id', propertyId);
+        .eq('property_id', propertyId)
+        .eq('is_active', true);
 
       // If user is a tenant (not the property manager), filter to only their agreements
       // This helps with RLS policy joins

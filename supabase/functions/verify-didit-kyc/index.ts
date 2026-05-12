@@ -7,16 +7,17 @@ const corsHeaders = {
 
 /**
  * Verify HMAC-SHA256 signature using Web Crypto API
+ * Didit sends the signature as hex, compute using raw body as-is
  */
 async function verifyHmacSignature(
-  payload: string,
+  rawBody: string,
   signature: string,
   secret: string
 ): Promise<boolean> {
   try {
     const encoder = new TextEncoder();
     const keyData = encoder.encode(secret);
-    const payloadData = encoder.encode(payload);
+    const payloadData = encoder.encode(rawBody);
 
     // Import the secret key
     const cryptoKey = await crypto.subtle.importKey(
@@ -27,18 +28,26 @@ async function verifyHmacSignature(
       ['sign']
     );
 
-    // Sign the payload
+    // Sign the raw body
     const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, payloadData);
 
-    // Convert to hex string
-    const computedSignature = Array.from(new Uint8Array(signatureBuffer))
+    // Convert to hex string (matching Didit's format)
+    const computedHex = Array.from(new Uint8Array(signatureBuffer))
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
 
-    console.log('[verify-didit-kyc] Computed signature:', computedSignature.substring(0, 16) + '...');
-    console.log('[verify-didit-kyc] Received signature:', signature.substring(0, 16) + '...');
+    // Also compute base64 for alternative matching
+    const computedBase64 = btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)));
 
-    return computedSignature === signature;
+    const matchesHex = computedHex === signature;
+    const matchesBase64 = computedBase64 === signature;
+
+    console.log('[verify-didit-kyc] Computed hex:', computedHex);
+    console.log('[verify-didit-kyc] Computed b64:', computedBase64);
+    console.log('[verify-didit-kyc] Received:', signature);
+    console.log('[verify-didit-kyc] Hex match:', matchesHex, 'B64 match:', matchesBase64);
+
+    return matchesHex || matchesBase64;
   } catch (error) {
     console.error('[verify-didit-kyc] HMAC verification error:', error);
     return false;
@@ -47,10 +56,20 @@ async function verifyHmacSignature(
 
 /**
  * Validate timestamp is within acceptable range (5 minutes)
+ * Handles both ISO string and Unix timestamp (integer)
  */
 function isTimestampValid(timestamp: string): boolean {
   try {
-    const webhookTime = new Date(timestamp).getTime();
+    let webhookTime: number;
+    
+    // Check if it's a Unix timestamp (numeric string)
+    if (/^\d+$/.test(timestamp)) {
+      webhookTime = parseInt(timestamp) * 1000; // Convert seconds to milliseconds
+    } else {
+      // Assume ISO string
+      webhookTime = new Date(timestamp).getTime();
+    }
+    
     const now = Date.now();
     const fiveMinutes = 5 * 60 * 1000;
     
@@ -92,14 +111,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get signature and timestamp headers (Didit uses X-Signature and X-Timestamp)
-    const signature = req.headers.get('x-signature') || req.headers.get('X-Signature') || '';
-    const timestamp = req.headers.get('x-timestamp') || req.headers.get('X-Timestamp') || '';
-    const webhookSecret = Deno.env.get('DIDIT_WEBHOOK_SECRET_KEY');
+    // Get signature and timestamp headers (Didit uses x-signature, x-timestamp)
+    // Check common header names
+    const signature = req.headers.get('x-signature') || 
+                     req.headers.get('X-Signature') || 
+                     req.headers.get('x-didit-signature') ||
+                     req.headers.get('X-Didit-Signature') || '';
+    const timestamp = req.headers.get('x-timestamp') || 
+                     req.headers.get('X-Timestamp') ||
+                     req.headers.get('x-didit-timestamp') || '';
+    
+    // Get webhook secret (check multiple possible env var names)
+    const webhookSecret = Deno.env.get('DIDIT_WEBHOOK_SECRET') || 
+                         Deno.env.get('DIDIT_WEBHOOK_SECRET_KEY') || '';
 
-    console.log('[verify-didit-kyc] Signature present:', !!signature);
-    console.log('[verify-didit-kyc] Timestamp present:', !!timestamp);
-    console.log('[verify-didit-kyc] Webhook secret configured:', !!webhookSecret);
+    console.log('[verify-didit-kyc] Signature present:', !!signature, 'Timestamp present:', !!timestamp);
 
     // Verify webhook signature if secret is configured
     if (webhookSecret) {

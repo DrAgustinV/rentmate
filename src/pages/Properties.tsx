@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Building, Archive, Upload, Zap, Ticket, Wrench, ImageIcon } from "lucide-react";
+import { Plus, Building, Archive, Upload, Zap, Ticket, Wrench, ImageIcon, Search } from "lucide-react";
 import { PropertyCard, PropertyStatusIndicators } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { EmptyState } from "@/components/EmptyState";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProperties } from "@/hooks/useProperties";
@@ -313,29 +314,37 @@ export default function Properties() {
       </div>
 
       {filteredAndSortedProperties.length === 0 ? (
-        <div className="text-center py-16 bg-gradient-to-br from-card to-secondary/20 border border-border rounded-lg animate-fade-in">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/20 flex items-center justify-center">
-            <Archive className="h-8 w-8 text-muted-foreground" />
-          </div>
-          <h3 className="text-lg font-semibold mb-2">
-            {debouncedSearch
-              ? "No properties match your search"
-              : propertyView === "active"
-                ? t("dashboard.noActiveProperties")
-                : propertyView === "ending_tenancy"
-                  ? "No properties ending tenancy"
-                  : t("dashboard.noArchivedProperties")}
-          </h3>
-          <p className="text-muted-foreground px-4">
-            {debouncedSearch
-              ? "Try adjusting your search terms"
-              : propertyView === "active"
-                ? "All properties are either ending tenancy or archived"
-                : propertyView === "ending_tenancy"
-                  ? "No properties are currently ending tenancy"
-                  : t("dashboard.noArchivedProperties")}
-          </p>
-        </div>
+        debouncedSearch ? (
+          <EmptyState
+            icon={Search}
+            title={t('properties.noResults')}
+            description={t('properties.noResultsDesc')}
+          />
+        ) : propertyView === "active" ? (
+          <EmptyState
+            icon={Building}
+            title={t("dashboard.noActiveProperties")}
+            description={t("dashboard.getStarted")}
+            action={
+              <Button onClick={() => setIsCreateOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                {t("dashboard.createProperty")}
+              </Button>
+            }
+          />
+        ) : propertyView === "ending_tenancy" ? (
+          <EmptyState
+            icon={Archive}
+            title="No properties ending tenancy"
+            description="No properties are currently ending tenancy"
+          />
+        ) : (
+          <EmptyState
+            icon={Archive}
+            title={t("dashboard.noArchivedProperties")}
+            description={t("dashboard.allPropertiesArchived")}
+          />
+        )
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {filteredAndSortedProperties.map((property) => (
@@ -356,7 +365,7 @@ export default function Properties() {
                 <TableHead className="w-14">{t('properties.photo')}</TableHead>
                 <TableHead>{t('properties.propertyTitle')}</TableHead>
                 <TableHead className="hidden md:table-cell">{t('properties.address')}</TableHead>
-                <TableHead>{t('properties.status')}</TableHead>
+                <TableHead>{t('properties.statusLabel')}</TableHead>
                 <TableHead className="hidden sm:table-cell">{t('search.status')}</TableHead>
                 <TableHead className="hidden lg:table-cell">{t('properties.created')}</TableHead>
               </TableRow>

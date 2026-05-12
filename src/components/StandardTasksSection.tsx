@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Search, Filter, LayoutGrid, List, Plus } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Calendar, Search, Filter, LayoutGrid, List, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { CreateStandardMaintenanceDialog } from "@/components/CreateStandardMaintenanceDialog";
+import { toast } from "sonner";
 
 interface StandardTemplate {
   id: string;
@@ -27,14 +39,17 @@ interface StandardTasksSectionProps {
   onAddTask?: () => void;
 }
 
-export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSectionProps) {
+export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [userViewMode, setUserViewMode] = useState<"grid" | "list" | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<StandardTemplate | null>(null);
+  const [deletingTemplate, setDeletingTemplate] = useState<StandardTemplate | null>(null);
 
-  // Use user's choice if set, otherwise use responsive default
   const viewMode = userViewMode ?? (isMobile ? "grid" : "list");
 
   const { data: standardTemplates, isLoading } = useQuery({
@@ -52,14 +67,34 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
     },
   });
 
-  const priorityColors = {
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("standard_maintenance_templates")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["standard-maintenance-templates"] });
+      toast.success(t("maintenance.templates.deleteTemplate"));
+      setDeletingTemplate(null);
+    },
+    onError: (error) => {
+      console.error("Error deleting template:", error);
+      toast.error(t("maintenance.templates.deleteFailed"));
+    },
+  });
+
+  const priorityColors: Record<string, string> = {
     low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
     high: "bg-orange-500/10 text-orange-500 border-orange-500/20",
     urgent: "bg-red-500/10 text-red-500 border-red-500/20",
   };
 
-  const typeColors = {
+  const typeColors: Record<string, string> = {
     maintenance: "bg-purple-500/10 text-purple-500 border-purple-500/20",
     repair: "bg-red-500/10 text-red-500 border-red-500/20",
     inspection: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -78,6 +113,16 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
     const matchesCategory = selectedCategory === "all" || template.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleEdit = (template: StandardTemplate) => {
+    setEditingTemplate(template);
+    setDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditingTemplate(null);
+    setDialogOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -140,12 +185,10 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
                 <List className="h-4 w-4" />
               </Button>
             </div>
-            {onAddTask && (
-              <Button onClick={onAddTask} className="ml-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                {t("configuration.addMaintenanceTask")}
-              </Button>
-            )}
+            <Button onClick={handleAdd}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t("configuration.addMaintenanceTask")}
+            </Button>
           </div>
         </div>
 
@@ -159,6 +202,24 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <CardTitle className="text-base line-clamp-2">{template.title}</CardTitle>
+                      <div className="flex gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleEdit(template)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                          onClick={() => setDeletingTemplate(template)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       <Badge variant="secondary" className="text-xs">
@@ -195,6 +256,7 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
                     <TableHead>{t("common.type")}</TableHead>
                     <TableHead>{t("common.priority")}</TableHead>
                     <TableHead>{t("maintenance.standardTask.frequency")}</TableHead>
+                    <TableHead className="w-[100px]">{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -219,6 +281,26 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
                       <TableCell className="capitalize text-muted-foreground">
                         {template.suggested_frequency}
                       </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleEdit(template)}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                            onClick={() => setDeletingTemplate(template)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -233,6 +315,52 @@ export function StandardTasksSection({ propertyId, onAddTask }: StandardTasksSec
           </Card>
         )}
       </div>
+
+      {/* Create/Edit Dialog */}
+      <CreateStandardMaintenanceDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingTemplate(null);
+        }}
+        template={editingTemplate}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingTemplate} onOpenChange={() => setDeletingTemplate(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("maintenance.templates.deleteConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("maintenance.templates.deleteConfirmDesc")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {deletingTemplate && (
+            <div className="py-2">
+              <p className="text-sm font-medium">{deletingTemplate.title}</p>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingTemplate && deleteMutation.mutate(deletingTemplate.id)}
+              disabled={deleteMutation.isPending}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {t("common.deleting")}
+                </>
+              ) : (
+                t("maintenance.templates.deleteTemplate")
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

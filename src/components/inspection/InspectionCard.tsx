@@ -40,13 +40,17 @@ interface InspectionCardProps {
   propertyId: string;
   isManager: boolean;
   isReadOnly: boolean;
+  tenancyStatus?: 'active' | 'ending_tenancy' | 'historic' | 'pending';
+  isSelfManaged?: boolean;
 }
 
-export function InspectionCard({ 
-  tenancyId, 
-  propertyId, 
+export function InspectionCard({
+  tenancyId,
+  propertyId,
   isManager,
   isReadOnly,
+  tenancyStatus,
+  isSelfManaged,
 }: InspectionCardProps) {
   const { t } = useLanguage();
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
@@ -61,6 +65,9 @@ export function InspectionCard({
     isCreating,
     isDeleting,
   } = useInspections(tenancyId, propertyId);
+
+  const canCreateMoveIn = tenancyStatus === 'active' || tenancyStatus === 'pending';
+  const canCreateMoveOut = tenancyStatus === 'ending_tenancy' || tenancyStatus === 'historic';
 
   const handleCreate = useCallback(async (type: InspectionType) => {
     const inspection = await createInspection({ type, tenancyId, propertyId });
@@ -109,7 +116,7 @@ export function InspectionCard({
 
   return (
     <>
-      <Card>
+      <Card className="card-shine">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
             <CardTitle className="flex items-center gap-2">
@@ -120,7 +127,7 @@ export function InspectionCard({
               {t('inspections.description') || 'Move-in and move-out condition reports'}
             </CardDescription>
           </div>
-          {isManager && !isReadOnly && (
+          {isManager && !isReadOnly && (canCreateMoveIn || canCreateMoveOut) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="sm" disabled={isCreating}>
@@ -129,12 +136,16 @@ export function InspectionCard({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleCreate('move_in')}>
-                  {t('inspections.newMoveIn')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleCreate('move_out')}>
-                  {t('inspections.newMoveOut')}
-                </DropdownMenuItem>
+                {canCreateMoveIn && (
+                  <DropdownMenuItem onClick={() => handleCreate('move_in')}>
+                    {t('inspections.newMoveIn')}
+                  </DropdownMenuItem>
+                )}
+                {canCreateMoveOut && (
+                  <DropdownMenuItem onClick={() => handleCreate('move_out')}>
+                    {t('inspections.newMoveOut')}
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -152,7 +163,7 @@ export function InspectionCard({
             </div>
           ) : (
             <div className="space-y-3">
-              {useMemo(() => inspections.map((inspection) => (
+              {inspections.map((inspection) => (
                 <div 
                   key={inspection.id} 
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -188,19 +199,21 @@ export function InspectionCard({
                         <Download className="h-4 w-4" />
                       </Button>
                     )}
-                    {isManager && !isReadOnly && inspection.status === 'draft' && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleOpenDeleteConfirm(inspection)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    {isManager && !isReadOnly && (
+                      (inspection.status === 'draft' || isSelfManaged) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleOpenDeleteConfirm(inspection)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )
                     )}
                   </div>
                 </div>
-              )), [inspections, getTypeBadge, getStatusBadge, isManager, isReadOnly, handleOpenInspection, handleDownloadPdf, handleOpenDeleteConfirm])}
+              ))}
             </div>
           )}
         </CardContent>
@@ -228,7 +241,7 @@ export function InspectionCard({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={isDeleting}

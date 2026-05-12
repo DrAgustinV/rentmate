@@ -19,7 +19,7 @@ import { toast } from "sonner";
 interface Tenant {
   id: string;
   tenant_id: string;
-  tenancy_status: 'active' | 'ending_tenancy' | 'historic';
+  tenancy_status: 'active' | 'ending_tenancy' | 'historic' | 'pending';
   started_at: string;
   ended_at: string | null;
   email: string;
@@ -100,6 +100,9 @@ export function PaymentsTab({
 
   // Tenant can add utility bills when tenancy is active
   const canAddUtilityBill = !isManager && isStarted && managerId;
+  // Manager can add utility bills in self-managed mode (no real tenant) or when there's an active tenancy
+  const isSelfManaged = currentTenant && !currentTenant.tenant_id;
+  const canAddUtilityBillManager = isManager && isStarted && managerId && (isSelfManaged || !!currentTenant?.tenant_id);
 
   return (
     <div className="space-y-6">
@@ -143,21 +146,6 @@ export function PaymentsTab({
                   </Tooltip>
                 </TooltipProvider>
               )}
-              {/* Create button - Manager Only, no agreement */}
-              {isManager && !currentAgreement && (
-                <CreateRentAgreementDrawer
-                  propertyId={propertyId}
-                  activeTenant={{
-                    id: currentTenant.id,
-                    tenant_id: currentTenant.tenant_id,
-                    profiles: {
-                      first_name: currentTenant.first_name,
-                      last_name: currentTenant.last_name,
-                      email: currentTenant.email,
-                    }
-                  }}
-                />
-              )}
             </div>
           </div>
         </CardHeader>
@@ -187,9 +175,9 @@ export function PaymentsTab({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>{t("propertyHub.utilityPayments")}</CardTitle>
-            {/* Add Bill button - Tenant only when tenancy is active */}
-            {canAddUtilityBill && (
-              <Button 
+            {/* Add Bill button - Tenant or Manager (self-managed) */}
+            {(canAddUtilityBill || canAddUtilityBillManager) && (
+              <Button
                 onClick={() => setCreateUtilityDialogOpen(true)}
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -212,7 +200,7 @@ export function PaymentsTab({
           open={createUtilityDialogOpen}
           onOpenChange={setCreateUtilityDialogOpen}
           propertyId={propertyId}
-          tenantId={currentTenant.tenant_id}
+          tenantId={isSelfManaged ? null : currentTenant.tenant_id}
           managerId={managerId}
         />
       )}

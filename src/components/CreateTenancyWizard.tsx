@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,17 +29,19 @@ import {
   Smartphone,
   FileText,
   Info,
+  Plus,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UtilityConfig, UtilitiesConfig, CreateTenancyRequirementInput } from "@/hooks/useTenancyRequirements";
-
-const UTILITY_TYPES = ['electricity', 'water', 'gas', 'internet', 'heating', 'trash'] as const;
+import { useUtilityTypes } from "@/hooks/useUtilityTypes";
 
 const formSchema = z.object({
-  tenant_email: z.string().email("Valid email required"),
+  tenant_email: z.string().email("Valid email required").or(z.literal("")).optional(),
   require_email_verification: z.boolean().default(true),
   require_kyc_verification: z.boolean().default(false),
   require_phone_verification: z.boolean().default(false),
+  self_manage_only: z.boolean().default(false),
   contract_method: z.enum(['digital', 'manual', 'none']),
   selected_template_id: z.string().nullable(),
   rent_amount: z.string().min(1, "Rent amount is required"),
@@ -58,9 +61,10 @@ interface CreateTenancyWizardProps {
   propertyId: string;
   propertyCountry?: string;
   templates?: Array<{ id: string; document_title: string }>;
-  onSubmit: (data: CreateTenancyRequirementInput) => Promise<void>;
+  onSubmit: (data: CreateTenancyRequirementInput, mode: 'new' | 'edit' | 'invite' | 'next_tenancy') => Promise<void>;
   isSubmitting?: boolean;
   initialData?: {
+    id?: string;
     tenant_email?: string;
     rent_amount_cents?: number | null;
     currency?: string | null;
@@ -73,6 +77,7 @@ interface CreateTenancyWizardProps {
     require_kyc_verification?: boolean | null;
     utilities_config?: UtilitiesConfig | Record<string, unknown> | null;
   } | null;
+  mode?: 'new' | 'edit' | 'invite' | 'next_tenancy';
 }
 
 const STEPS = [
@@ -93,11 +98,15 @@ export function CreateTenancyWizard({
   onSubmit,
   isSubmitting = false,
   initialData,
+  mode = 'new',
 }: CreateTenancyWizardProps) {
   const { t } = useLanguage();
   const { canUseGovernmentIdKYC, isFree } = useSubscription();
+  const { utilityTypes } = useUtilityTypes();
   const [currentStep, setCurrentStep] = useState(0);
   const [isReadyToSubmit, setIsReadyToSubmit] = useState(false);
+  const [newUtilityType, setNewUtilityType] = useState("");
+  const [newUtilityResponsibility, setNewUtilityResponsibility] = useState("not_applicable");
   
   const canUseGovId = canUseGovernmentIdKYC();
 
@@ -118,6 +127,7 @@ export function CreateTenancyWizard({
       require_email_verification: initialData?.require_email_verification ?? true,
       require_kyc_verification: initialData?.require_kyc_verification ?? false,
       require_phone_verification: false,
+      self_manage_only: false,
       contract_method: (initialData?.contract_method as 'digital' | 'manual' | 'none') || 'manual',
       selected_template_id: null,
       rent_amount: initialData?.rent_amount_cents ? (initialData.rent_amount_cents / 100).toString() : '',
@@ -126,14 +136,7 @@ export function CreateTenancyWizard({
       payment_day: initialData?.payment_day?.toString() || '1',
       start_date: initialData?.start_date || '',
       end_date: initialData?.end_date || '',
-      utilities_config: (initialData?.utilities_config as Record<string, UtilityConfig>) || {
-        electricity: 'not_applicable',
-        water: 'not_applicable',
-        gas: 'not_applicable',
-        internet: 'not_applicable',
-        heating: 'not_applicable',
-        trash: 'not_applicable',
-      },
+      utilities_config: (initialData?.utilities_config as Record<string, UtilityConfig>) || {},
     },
   });
 
@@ -188,10 +191,11 @@ export function CreateTenancyWizard({
     
     const input: CreateTenancyRequirementInput = {
       property_id: propertyId,
-      tenant_email: data.tenant_email,
-      require_email_verification: data.require_email_verification,
+      tenant_email: data.tenant_email || null,
+      require_email_verification: data.self_manage_only ? false : data.require_email_verification,
       require_kyc_verification: data.require_kyc_verification,
       require_phone_verification: data.require_phone_verification,
+      self_manage_only: data.self_manage_only,
       contract_method: data.contract_method,
       selected_template_id: data.selected_template_id,
       rent_amount_cents: data.rent_amount ? Math.round(parseFloat(data.rent_amount) * 100) : null,
@@ -202,7 +206,7 @@ export function CreateTenancyWizard({
       end_date: data.end_date || null,
       utilities_config: data.utilities_config as UtilitiesConfig,
     };
-    await onSubmit(input);
+    await onSubmit(input, mode);
     // Don't close dialog here - let parent control closing after successful save
     form.reset();
     setCurrentStep(0);
@@ -225,7 +229,12 @@ export function CreateTenancyWizard({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('tenancy.wizard.title') || 'New Tenancy Setup'}</DialogTitle>
+          <DialogTitle>
+            {mode === 'edit' ? (t('tenancy.wizard.editTitle') || 'Edit Tenancy Setup') :
+             mode === 'invite' ? (t('tenancy.wizard.inviteTitle') || 'Invite Tenant') :
+             mode === 'next_tenancy' ? (t('tenancy.wizard.nextTenancyTitle') || 'Set Up Next Tenancy') :
+             (t('tenancy.wizard.title') || 'New Tenancy Setup')}
+          </DialogTitle>
         </DialogHeader>
 
         {/* Step Indicator */}
@@ -297,7 +306,7 @@ export function CreateTenancyWizard({
                     name="tenant_email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('dialogs.inviteTenant.emailLabel') || 'Email Address'} *</FormLabel>
+                        <FormLabel>{t('dialogs.inviteTenant.emailLabel') || 'Email Address'}</FormLabel>
                         <FormControl>
                           <Input
                             type="email"
@@ -306,6 +315,29 @@ export function CreateTenancyWizard({
                           />
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="self_manage_only"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>
+                            {t('tenancy.wizard.selfManageOnly') || 'Enable self-management'}
+                          </FormLabel>
+                          <p className="text-sm text-muted-foreground">
+                            {t('tenancy.wizard.selfManageOnlyDesc') || 'Manager can work independently with all features (contracts, tickets, payments). Optional: add tenant email to also send invitation for collaboration.'}
+                          </p>
+                        </div>
                       </FormItem>
                     )}
                   />
@@ -660,37 +692,103 @@ export function CreateTenancyWizard({
                     {t('tenancy.wizard.utilitiesDesc') || 'Define who is responsible for each utility'}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {UTILITY_TYPES.map((utility) => (
-                      <div key={utility} className="flex items-center justify-between p-3 border rounded-lg">
-                        <Label className="capitalize font-medium">
-                          {t(`utilities.types.${utility}`) || utility}
-                        </Label>
-                        <FormField
-                          control={form.control}
-                          name={`utilities_config.${utility}` as any}
-                          render={({ field }) => (
-                            <Select value={field.value || ''} onValueChange={field.onChange}>
-                              <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder={t('common.na') || 'N/A'} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="manager_pays">
-                                  {t('utilities.managerPays') || 'Manager Pays'}
-                                </SelectItem>
-                                <SelectItem value="tenant_pays">
-                                  {t('utilities.tenantPays') || 'Tenant Pays & Uploads'}
-                                </SelectItem>
-                                <SelectItem value="not_applicable">
-                                  {t('utilities.notApplicable') || 'Not Applicable'}
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
+                <CardContent className="space-y-4">
+                  {/* Add Utility Section */}
+                  <div className="flex flex-wrap items-end gap-3 p-4 bg-muted/30 rounded-lg">
+                    <div className="flex-1 min-w-[200px]">
+                      <Label className="text-sm mb-1 block">Add Utility</Label>
+                      <Select value={newUtilityType} onValueChange={setNewUtilityType}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select utility" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {utilityTypes
+                            .filter((ut) => !form.getValues(`utilities_config.${ut}`))
+                            .map((ut) => (
+                              <SelectItem key={ut} value={ut}>
+                                {ut.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="min-w-[180px]">
+                      <Label className="text-sm mb-1 block">Responsibility</Label>
+                      <Select value={newUtilityResponsibility} onValueChange={setNewUtilityResponsibility}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="manager_pays">
+                            {t('utilities.managerPays') || 'Manager Pays'}
+                          </SelectItem>
+                          <SelectItem value="tenant_pays">
+                            {t('utilities.tenantPays') || 'Tenant Pays & Uploads'}
+                          </SelectItem>
+                          <SelectItem value="not_applicable">
+                            {t('utilities.notApplicable') || 'Not Applicable'}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (newUtilityType && newUtilityResponsibility) {
+                          form.setValue(`utilities_config.${newUtilityType}`, newUtilityResponsibility as any);
+                          setNewUtilityType("");
+                          setNewUtilityResponsibility("not_applicable");
+                        }
+                      }}
+                      disabled={!newUtilityType || !newUtilityResponsibility}
+                      className="mb-0.5"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+
+                  {/* Configured Utilities List */}
+                  <div className="space-y-2">
+                    <Label className="text-sm text-muted-foreground">Configured Utilities</Label>
+                    {Object.keys(form.getValues('utilities_config') || {}).length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-2">No utilities configured yet</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(form.getValues('utilities_config') || {})
+                          .filter(([, value]) => value && value !== '')
+                          .map(([utility, responsibility]) => (
+                            <div
+                              key={utility}
+                              className="flex items-center gap-2 px-3 py-2 bg-background border rounded-lg"
+                            >
+                              <span className="text-sm font-medium capitalize">
+                                {utility.replace(/_/g, ' ')}
+                              </span>
+                              <Badge
+                                variant={responsibility === 'manager_pays' ? 'default' : responsibility === 'tenant_pays' ? 'secondary' : 'outline'}
+                                className="text-xs"
+                              >
+                                {responsibility === 'manager_pays'
+                                  ? 'Manager'
+                                  : responsibility === 'tenant_pays'
+                                  ? 'Tenant'
+                                  : 'N/A'}
+                              </Badge>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  form.setValue(`utilities_config.${utility}`, '' as any);
+                                }}
+                                className="text-muted-foreground hover:text-destructive ml-1"
+                                aria-label={`Remove ${utility}`}
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -806,7 +904,7 @@ export function CreateTenancyWizard({
                   disabled={isSubmitting || !isReadyToSubmit}
                   onClick={() => form.handleSubmit(handleSubmit)()}
                 >
-                  {isSubmitting ? t('common.saving') || 'Saving...' : t('tenancy.wizard.saveSetup') || 'Save Setup'}
+                  {isSubmitting ? t('common.saving') || 'Saving...' : t('common.save') || 'Save Setup'}
                 </Button>
               )}
             </div>

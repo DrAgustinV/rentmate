@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, AlertTriangle } from "lucide-react";
+import { CalendarIcon, AlertTriangle, Lock, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -42,7 +42,7 @@ interface EditTenantDialogProps {
   readOnly?: boolean;
 }
 
-export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readOnly = false }: EditTenantDialogProps) {
+export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readOnly = false, invitationStatus = 'none' }: EditTenantDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();

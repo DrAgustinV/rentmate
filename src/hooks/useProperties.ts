@@ -185,9 +185,28 @@ export function usePropertyMutations() {
     },
   });
 
+  const deleteProperty = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
+      toast.success('Property deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to delete property');
+    },
+  });
+
   return {
     createProperty,
     updateProperty,
     archiveProperty,
+    deleteProperty,
   };
 }

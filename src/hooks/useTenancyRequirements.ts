@@ -45,10 +45,11 @@ export interface TenancyRequirement {
 
 export interface CreateTenancyRequirementInput {
   property_id: string;
-  tenant_email: string;
+  tenant_email?: string | null;
   require_email_verification?: boolean;
   require_kyc_verification?: boolean;
   require_phone_verification?: boolean;
+  self_manage_only?: boolean;
   contract_method?: 'digital' | 'manual' | 'none' | null;
   selected_template_id?: string | null;
   rent_amount_cents?: number | null;

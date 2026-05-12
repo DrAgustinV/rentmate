@@ -7,12 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
-import { BadgeCheck, Mail, Phone, User, CalendarX } from "lucide-react";
+import { BadgeCheck, Mail, Phone, User, CalendarX, Plus, Pencil } from "lucide-react";
 
 interface Tenant {
   id: string;
   tenant_id: string;
-  tenancy_status: 'active' | 'ending_tenancy' | 'historic';
+  tenancy_status: 'active' | 'ending_tenancy' | 'historic' | 'pending';
   started_at: string;
   ended_at: string | null;
   planned_ending_date?: string | null;
@@ -31,6 +31,8 @@ interface ContactInfoCardProps {
   isReadOnly: boolean;
   onEditTenant?: (tenant: Tenant) => void;
   onEndTenancy?: (tenant: Tenant) => void;
+  onInvite?: () => void;
+  invitationStatus?: 'none' | 'draft' | 'pending' | 'accepted' | 'declined' | 'expired';
 }
 
 export function ContactInfoCard({
@@ -40,12 +42,14 @@ export function ContactInfoCard({
   isReadOnly,
   onEditTenant,
   onEndTenancy,
+  onInvite,
+  invitationStatus = 'none',
 }: ContactInfoCardProps) {
   const { t } = useLanguage();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // CRITICAL: All hooks must be called unconditionally before any early returns
-  // For tenants: fetch manager info
+  // For tenants: fetch manager info (always run, filter in render)
   const { data: managerInfo, isLoading: managerLoading } = useQuery({
     queryKey: ["property-manager", propertyId],
     queryFn: async () => {
@@ -65,12 +69,31 @@ export function ContactInfoCard({
 
       return profile;
     },
-    enabled: !userRole?.isManager && !!propertyId,
+    enabled: !!propertyId,
   });
 
   // Show loading state when userRole is still being determined
   // This prevents showing tenant view to managers during initial load
-  if (userRole === undefined) {
+  // CRITICAL: This must be after ALL hooks to avoid hooks count mismatch
+  const isManagerView = userRole?.isManager;
+  const showLoadingSkeleton = userRole === undefined;
+
+  // Load signed URL for avatar
+  useEffect(() => {
+    const loadAvatarUrl = async () => {
+      const avatarPath = userRole?.isManager ? currentTenant?.avatar_url : managerInfo?.avatar_url;
+      if (avatarPath) {
+        const { data } = await supabase.storage
+          .from('profile-photos')
+          .createSignedUrl(avatarPath, 3600);
+        if (data) setAvatarUrl(data.signedUrl);
+      }
+    };
+    loadAvatarUrl();
+  }, [currentTenant?.avatar_url, managerInfo?.avatar_url, userRole?.isManager]);
+
+  // Show loading state when userRole is still being determined
+  if (showLoadingSkeleton) {
     return (
       <Card className="card-shine">
         <CardHeader className="pb-3">
@@ -89,22 +112,8 @@ export function ContactInfoCard({
     );
   }
 
-  // Load signed URL for avatar
-  useEffect(() => {
-    const loadAvatarUrl = async () => {
-      const avatarPath = userRole?.isManager ? currentTenant?.avatar_url : managerInfo?.avatar_url;
-      if (avatarPath) {
-        const { data } = await supabase.storage
-          .from('profile-photos')
-          .createSignedUrl(avatarPath, 3600);
-        if (data) setAvatarUrl(data.signedUrl);
-      }
-    };
-    loadAvatarUrl();
-  }, [currentTenant?.avatar_url, managerInfo?.avatar_url, userRole?.isManager]);
-
   // Manager view: show tenant info or empty state
-  if (userRole?.isManager) {
+  if (isManagerView) {
     // Empty state for managers
     if (!currentTenant) {
       return (
@@ -116,9 +125,23 @@ export function ContactInfoCard({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-4 text-muted-foreground">
-              <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">{t("dialogs.manageTenants.noTenants") || "No current tenant"}</p>
+            <div className="flex flex-col items-center justify-center py-6 gap-4">
+              <div className="text-center text-muted-foreground">
+                <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">{t("contracts.noTenant") || "No tenant assigned"}</p>
+                <p className="text-xs mt-1">{t("contracts.noTenantDesc") || "Set up tenancy to start managing this property"}</p>
+              </div>
+              {onInvite && (
+                <Button 
+                  onClick={onInvite} 
+                  variant="default"
+                  size="lg"
+                  className="h-16 sm:h-20 px-8 sm:px-12 text-base sm:text-lg gap-2"
+                >
+                  <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
+                  {t("tenancy.setupTenancy") || "Set Up Tenancy"}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -142,10 +165,18 @@ export function ContactInfoCard({
     return (
       <Card className="card-shine">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            {t("contracts.tenantInfo")}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              {t("contracts.tenantInfo")}
+            </CardTitle>
+            {!isReadOnly && onEditTenant && (
+              <Button variant="outline" size="sm" onClick={() => onEditTenant(currentTenant)}>
+                <Pencil className="h-3 w-3 mr-1" />
+                {t("common.edit")}
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-start justify-between gap-4">
@@ -186,15 +217,27 @@ export function ContactInfoCard({
                 )}
               </div>
             </div>
-            {!isReadOnly && currentTenant.tenancy_status === 'active' && (
-              <Button 
-                variant="outline" 
-                size="sm" 
+            {!isReadOnly && (currentTenant.tenancy_status === 'active' || currentTenant.tenancy_status === 'ending_tenancy') && (
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => onEndTenancy?.(currentTenant)}
                 className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30 flex-shrink-0"
               >
                 <CalendarX className="h-3 w-3 mr-1" />
                 {t("dialogs.manageTenants.endTenancy")}
+              </Button>
+            )}
+            {/* Invite Tenant button for self-managed active tenancies */}
+            {!isReadOnly && currentTenant.tenancy_status === 'active' && !currentTenant.tenant_id && onInvite && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onInvite}
+                className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex-shrink-0"
+              >
+                <Mail className="h-3 w-3 mr-1" />
+                {t("tenancy.inviteTenant")}
               </Button>
             )}
           </div>

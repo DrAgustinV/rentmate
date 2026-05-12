@@ -11,7 +11,7 @@ interface CreateUtilityPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   propertyId: string;
-  tenantId: string;
+  tenantId: string | null;
   managerId: string;
 }
 

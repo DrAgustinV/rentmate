@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,32 +79,32 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
     fetchPhotoUrl();
   }, [property.images]);
 
-  const getStatusBadge = () => {
-    if (property.status === "active") {
-      // For active properties, show tenant status
-      if (tenantStatus?.status === "occupied") {
-        return {
-          variant: "success" as const,
-          text: t("properties.status.active"),
-        };
-      } else {
-        // Free or invited - use brand primary color
-        return {
-          variant: "default" as const,
-          text: t("properties.occupancy.free"),
-        };
-      }
-    } else if (property.status === "ending_tenancy") {
-      return {
-        variant: "warning" as const,
-        text: t("properties.status.ending_tenancy"),
-      };
-    } else {
-      return { variant: "secondary" as const, text: t("properties.status.archived") };
-    }
-  };
+  // const getStatusBadge = () => {
+  //   if (property.status === "active") {
+  //     // For active properties, show tenant status
+  //     if (tenantStatus?.status === "occupied") {
+  //       return {
+  //         variant: "success" as const,
+  //         text: t("properties.status.active"),
+  //       };
+  //     } else {
+  //       // Free or invited - use brand primary color
+  //       return {
+  //         variant: "default" as const,
+  //         text: t("properties.occupancy.free"),
+  //       };
+  //     }
+  //   } else if (property.status === "ending_tenancy") {
+  //     return {
+  //       variant: "warning" as const,
+  //       text: t("properties.status.ending_tenancy"),
+  //     };
+  //   } else {
+  //     return { variant: "secondary" as const, text: t("properties.status.archived") };
+  //   }
+  // };
 
-  const statusBadge = getStatusBadge();
+  // const statusBadge = getStatusBadge();
   const isArchived = property.status === "inactive";
   const isEndingTenancy = property.status === "ending_tenancy";
 
@@ -158,13 +158,13 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
                   </CardDescription>
                 )}
               </div>
-              {loadingStatus ? (
+              {/* {loadingStatus ? (
                 <Skeleton className="h-5 w-12" />
               ) : (
                 <Badge variant={statusBadge.variant} className="text-[10px] px-1.5 py-0">
                   {statusBadge.text}
                 </Badge>
-              )}
+              )} */}
             </div>
 
             {/* Tenant Status - Compact */}
@@ -293,24 +293,6 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
             >
               <Wrench className="h-3 w-3" />
               {t("properties.maintenance")}
-            </Button>
-          </CardFooter>
-        )}
-
-        {/* Manager Actions for Free Properties - Compact */}
-        {isManager && tenantStatus?.status === "free" && (
-          <CardFooter className="border-t bg-muted/50 p-1.5">
-            <Button
-              variant="default"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/properties/${property.id}/tenants?tab=contracts&action=newTenancy`);
-              }}
-              className="w-full gap-1 h-7 text-xs"
-            >
-              <Plus className="h-3 w-3" />
-              {t("tenancy.wizard.newTenancy")}
             </Button>
           </CardFooter>
         )}

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,15 +11,11 @@ import { toast } from "sonner";
 import {
   Upload,
   Download,
-  ChevronDown,
   Trash2,
   Eye,
   Clock,
-  X,
   FileText,
   ClipboardCheck,
-  AlertTriangle,
-  RefreshCw,
 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
@@ -36,7 +31,7 @@ import { InspectionCard } from "@/components/inspection";
 interface Tenant {
   id: string;
   tenant_id: string;
-  tenancy_status: 'active' | 'ending_tenancy' | 'historic';
+  tenancy_status: 'active' | 'ending_tenancy' | 'historic' | 'pending';
   started_at: string;
   ended_at: string | null;
   planned_ending_date?: string | null;
@@ -97,6 +92,9 @@ interface ContractsTabProps {
   onEditAndResend?: (invitation: Invitation) => void;
   onDismissInvitation?: (invitation: Invitation) => void;
   isDismissing?: boolean;
+  // Edit handlers
+  onEditRentalTerms?: () => void;
+  onInviteInSelfManaged?: () => void;
 }
 
 export function ContractsTab({
@@ -120,6 +118,8 @@ export function ContractsTab({
   onEditAndResend,
   onDismissInvitation,
   isDismissing,
+  onEditRentalTerms,
+  onInviteInSelfManaged,
 }: ContractsTabProps) {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
@@ -127,8 +127,6 @@ export function ContractsTab({
   const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
   const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
   const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
-  const [expandedTenancyId, setExpandedTenancyId] = useState<string | null>(null);
-  const [tenancyDocsMap, setTenancyDocsMap] = useState<Record<string, TenancyDocument[]>>({});
 
   // Query tenancy requirements for contract method
   const { data: tenancyRequirements } = useQuery({
@@ -185,43 +183,6 @@ export function ContractsTab({
   // Separate pending and declined invitations
   const pendingInvitations = invitations?.filter(inv => inv.status === 'pending') || [];
   const declinedInvitations = invitations?.filter(inv => inv.status === 'declined') || [];
-
-  // Tenancy history (manager only)
-  const { data: tenancyHistory } = useQuery({
-    queryKey: ["tenancy-history", propertyId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("property_tenants")
-        .select(`
-          id,
-          tenant_id,
-          tenancy_status,
-          started_at,
-          ended_at,
-          profiles!property_tenants_tenant_id_fkey (
-            email,
-            first_name,
-            last_name
-          )
-        `)
-        .eq("property_id", propertyId)
-        .eq("tenancy_status", "historic")
-        .order("started_at", { ascending: false })
-        .limit(5);
-
-      if (error) throw error;
-      return data.map((item: any) => {
-        const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
-        return {
-          ...item,
-          email: profile?.email || "Unknown",
-          first_name: profile?.first_name || null,
-          last_name: profile?.last_name || null,
-        } as Tenant;
-      });
-    },
-    enabled: !!propertyId && userRole?.isManager,
-  });
 
   const deleteDocumentMutation = useMutation({
     mutationFn: async (docId: string) => {
@@ -399,15 +360,18 @@ export function ContractsTab({
         isReadOnly={isReadOnly}
         onEditTenant={onEditTenant}
         onEndTenancy={onEndTenancy}
+        onInvite={onInviteInSelfManaged}
+        invitationStatus={pendingRequirement?.status as any || 'none'}
       />
 
       {/* 2. Rental Terms Card (SECOND) */}
       <RentalTermsCard
-        propertyId={propertyId} 
+        propertyId={propertyId}
         tenancyId={currentTenant?.id}
         tenantEmail={currentTenant?.email}
         isManager={userRole?.isManager || false}
         isReadOnly={isReadOnly}
+        tenancyStatus={currentTenant?.tenancy_status}
         pendingRequirement={pendingRequirement || null}
         canSetupNewTenancy={canSetupNewTenancy || false}
         hasEndingTenancy={hasEndingTenancy || false}
@@ -418,6 +382,7 @@ export function ContractsTab({
         onResendInvitation={onResendInvitation}
         isDeleting={isDeleting}
         isResending={isResending}
+        onEdit={onEditRentalTerms}
       />
 
       {/* 3. Contract Card (THIRD) */}
@@ -603,184 +568,32 @@ export function ContractsTab({
         </Card>
       )}
 
-      {/* 5. Property Inspections Card */}
-      {currentTenant && (
+{/* 5. Property Inspections Card */}
+      {currentTenant ? (
         <InspectionCard
           tenancyId={currentTenant.id}
           propertyId={propertyId}
           isManager={userRole?.isManager || false}
           isReadOnly={isReadOnly}
+          tenancyStatus={currentTenant.tenancy_status}
+          isSelfManaged={!currentTenant.tenant_id}
         />
-      )}
-
-      {/* 6. Pending Invitations (Manager Only) */}
-      {userRole?.isManager && pendingInvitations.length > 0 && (
-        <>
-          <Separator />
-          <div className="space-y-3">
-            <h3 className="font-semibold text-sm">
-              {t("dialogs.manageTenants.pendingInvitations")} ({pendingInvitations.length})
-            </h3>
-            <div className="space-y-2">
-              {pendingInvitations.map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{inv.email}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {t("dialogs.manageTenants.expires")}: {formatDate(inv.expires_at)}
-                    </p>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => setCancellingInvitation?.(inv)}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+      ) : (
+        <Card className="card-shine">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5" />
+              {t("inspections.title") || "Property Inspections"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-6 text-muted-foreground">
+              <ClipboardCheck className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">{t("inspections.noInspections") || "No inspections yet"}</p>
+              <p className="text-xs mt-1">Inspections will appear after tenancy starts</p>
             </div>
-          </div>
-        </>
-      )}
-
-      {/* 7. Declined Invitations (Manager Only) */}
-      {userRole?.isManager && declinedInvitations.length > 0 && (
-        <>
-          <Separator />
-          <div className="space-y-3">
-            <h3 className="font-semibold text-sm flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-destructive" />
-              {t("invitations.declinedInvitations")} ({declinedInvitations.length})
-            </h3>
-            <div className="space-y-3">
-              {declinedInvitations.map((inv) => (
-                <div key={inv.id} className="p-4 border border-destructive/30 rounded-lg bg-destructive/5 space-y-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium truncate">{inv.email}</p>
-                        <Badge variant="destructive" className="text-xs">
-                          {t("invitations.declined")}
-                        </Badge>
-                      </div>
-                      {inv.declined_at && (
-                        <p className="text-xs text-muted-foreground">
-                          {t("invitations.declinedOn")}: {formatDate(inv.declined_at)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {inv.decline_reason && (
-                    <div className="p-3 bg-background/50 rounded border">
-                      <p className="text-sm italic text-muted-foreground">
-                        "{inv.decline_reason}"
-                      </p>
-                    </div>
-                  )}
-                  {!inv.decline_reason && (
-                    <p className="text-xs text-muted-foreground italic">
-                      {t("invitations.noReasonProvided")}
-                    </p>
-                  )}
-                  
-                  <div className="flex gap-2 pt-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEditAndResend?.(inv)}
-                      className="flex-1"
-                    >
-                      <RefreshCw className="h-3 w-3 mr-2" />
-                      {t("invitations.editAndResend")}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDismissInvitation?.(inv)}
-                      disabled={isDismissing}
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      {t("invitations.dismiss")}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* 7. Tenancy History (Manager Only) */}
-      {userRole?.isManager && tenancyHistory && tenancyHistory.length > 0 && (
-        <>
-          <Separator />
-          <div className="space-y-3">
-            <h3 className="font-semibold text-sm">{t("properties.tenancyHistory")}</h3>
-            <div className="space-y-2">
-              {tenancyHistory.map((tenancy) => (
-                <Collapsible
-                  key={tenancy.id}
-                  open={expandedTenancyId === tenancy.id}
-                  onOpenChange={(open) => {
-                    if (open) {
-                      setExpandedTenancyId(tenancy.id);
-                      loadTenancyDocuments(tenancy.id);
-                    } else {
-                      setExpandedTenancyId(null);
-                    }
-                  }}
-                >
-                  <div className="border rounded-lg p-3">
-                    <CollapsibleTrigger className="w-full flex items-center justify-between">
-                      <div className="text-left">
-                        <p className="font-medium">{getTenantName(tenancy)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDate(tenancy.started_at)} -{" "}
-                          {tenancy.ended_at ? formatDate(tenancy.ended_at) : t("properties.active")}
-                        </p>
-                      </div>
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform ${expandedTenancyId === tenancy.id ? "rotate-180" : ""}`}
-                      />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2 pt-2 border-t">
-                      {tenancyDocsMap[tenancy.id] ? (
-                        tenancyDocsMap[tenancy.id].length > 0 ? (
-                          <div className="space-y-2">
-                            {tenancyDocsMap[tenancy.id].map((doc) => (
-                              <div key={doc.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium">{doc.document_title}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {formatDate(doc.created_at)} · {(doc.file_size_bytes / 1024).toFixed(2)} KB
-                                  </p>
-                                </div>
-                                <div className="flex gap-1">
-                                  <Button variant="outline" size="sm" onClick={() => openDocument(doc)} title={t("common.open")}>
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="sm" onClick={() => downloadDocument(doc)} title={t("common.download")}>
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">{t("properties.noDocuments")}</p>
-                        )
-                      ) : (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <div className="h-4 w-4 border-2 border-muted-foreground/30 border-t-transparent rounded-full animate-spin" />
-                          {t("common.loading")}
-                        </div>
-                      )}
-                    </CollapsibleContent>
-                  </div>
-                </Collapsible>
-              ))}
-            </div>
-          </div>
-        </>
+          </CardContent>
+        </Card>
       )}
 
     </div>

@@ -87,22 +87,36 @@ export const GlobalTemplatesList = () => {
 
   const handleDownload = async (filePath: string, fileName: string) => {
     try {
-      const { data, error } = await supabase.storage
-        .from("property-documents")
-        .download(filePath);
+      const candidates = [
+        filePath,
+        filePath.replace(/^property-documents\//, ''),
+      ];
+      if (filePath.startsWith('http')) {
+        const urlPath = filePath.split('/property-documents/')[1];
+        if (urlPath) candidates.push(urlPath);
+        const urlPath2 = filePath.split('/storage/v1/object/')[1]?.split('/').slice(1).join('/');
+        if (urlPath2) candidates.push(urlPath2);
+      }
 
-      if (error) throw error;
+      for (const path of [...new Set(candidates)]) {
+        const { data, error } = await supabase.storage
+          .from("property-documents")
+          .createSignedUrl(path, 60);
 
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+        if (error || !data?.signedUrl) continue;
+
+        const a = document.createElement("a");
+        a.href = data.signedUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+      }
+
+      throw new Error(t('common.downloadFailed'));
     } catch (error) {
-      toast.error(t('common.downloadFailed'));
+      toast.error(error instanceof Error ? error.message : t('common.downloadFailed'));
     }
   };
 
@@ -124,7 +138,7 @@ export const GlobalTemplatesList = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={t("documentTemplates.searchPlaceholder") || "Search templates..."}
+            placeholder={t("configuration.documentTemplates.searchPlaceholder") || "Search templates..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -154,7 +168,7 @@ export const GlobalTemplatesList = () => {
       {!hasTemplates && (
         <div className="text-center py-8 text-muted-foreground">
           <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>{t('documentTemplates.noTemplates')}</p>
+          <p>{t('configuration.documentTemplates.noTemplates')}</p>
         </div>
       )}
 
@@ -207,7 +221,7 @@ export const GlobalTemplatesList = () => {
                       <AlertDialogHeader>
                         <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          {t('documentTemplates.deleteWarning')}
+                          {t('configuration.documentTemplates.deleteWarning')}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -271,7 +285,7 @@ export const GlobalTemplatesList = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                {t('documentTemplates.deleteWarning')}
+                                {t('configuration.documentTemplates.deleteWarning')}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

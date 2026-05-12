@@ -108,7 +108,7 @@ export function TicketsTab({ propertyId, tenancyId, isManager }: TicketsTabProps
                   <Button 
                     size="sm" 
                     onClick={() => setCreateDialogOpen(true)}
-                    disabled={!isStarted}
+                    disabled={!isStarted && !isManager}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     {t("tickets.newIssue")}
@@ -133,7 +133,7 @@ export function TicketsTab({ propertyId, tenancyId, isManager }: TicketsTabProps
                       size="sm" 
                       variant="outline"
                       onClick={() => setTemplatePickerOpen(true)}
-                      disabled={!isStarted}
+                      disabled={!isStarted && !isManager}
                     >
                       <Wrench className="h-4 w-4 mr-2" />
                       {t("tickets.scheduleMaintenance")}

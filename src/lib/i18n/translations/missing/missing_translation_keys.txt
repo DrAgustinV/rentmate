@@ -1,0 +1,338 @@
+Missing Translation Keys
+============================================================
+Translation file   : /home/dragutin/projects/rentmate/src/lib/i18n/translations/en.ts
+Source directory   : /home/dragutin/projects/rentmate/src
+Keys in trans file : 1000
+Keys used in src   : 1121
+Present            : 978
+Missing            : 143
+
+The following keys are referenced in source files but DO NOT exist in the translation file:
+
+  Didit.me
+      /home/dragutin/projects/rentmate/src/hooks/useKYC.ts  (lines 176, 204)
+  admin.analytics.authenticatedUsers
+      /home/dragutin/projects/rentmate/src/components/admin/AnalyticsDashboard.tsx  (line 278)
+  admin.analytics.totalSessions
+      /home/dragutin/projects/rentmate/src/components/admin/AnalyticsDashboard.tsx  (line 262)
+  admin.analytics.uniqueSessions
+      /home/dragutin/projects/rentmate/src/components/admin/AnalyticsDashboard.tsx  (line 267)
+  admin.analytics.uniqueUsers
+      /home/dragutin/projects/rentmate/src/components/admin/AnalyticsDashboard.tsx  (line 273)
+  auth.requestsRemaining
+      /home/dragutin/projects/rentmate/src/pages/ResetPassword.tsx  (line 229)
+  common.confirmDelete
+      /home/dragutin/projects/rentmate/src/components/GlobalTemplatesList.tsx  (lines 222, 286)
+  common.deleted
+      /home/dragutin/projects/rentmate/src/components/GlobalTemplatesList.tsx  (line 80)
+  common.downloadFailed
+      /home/dragutin/projects/rentmate/src/components/GlobalTemplatesList.tsx  (lines 117, 119)
+  common.noResults
+      /home/dragutin/projects/rentmate/src/components/GlobalTemplatesList.tsx  (line 179)
+  common.saving
+      /home/dragutin/projects/rentmate/src/components/CreateTenancyWizard.tsx  (line 907)
+  configuration.documentTemplatesHelper
+      /home/dragutin/projects/rentmate/src/components/CreatePropertyTemplateDialog.tsx  (line 184)
+  contract.docx
+      /home/dragutin/projects/rentmate/src/components/CreatePropertyTemplateDialog.test.tsx  (lines 232, 242)
+  contractSignature.advanced
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 336)
+  contractSignature.cancelled
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (lines 247, 248)
+  contractSignature.cancelledDesc
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 248)
+  contractSignature.chooseDocument
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 464)
+  contractSignature.digitalDesc
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 357)
+  contractSignature.document
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (lines 716, 765)
+  contractSignature.manualDesc
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 363)
+  contractSignature.manualInfo
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 429)
+  contractSignature.noDocuments
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 469)
+  contractSignature.qualified
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 329)
+  contractSignature.selectDocument
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (lines 460, 490)
+  contractSignature.selectDocumentFirst
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 490)
+  contractSignature.simple
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 343)
+  contractSignature.skippedDesc
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 369)
+  contractSignature.skippedInfo
+      /home/dragutin/projects/rentmate/src/components/ContractSignatureManager.tsx  (line 395)
+  contracts.noTenant
+      /home/dragutin/projects/rentmate/src/components/property-tenants/ContactInfoCard.tsx  (lines 131, 132)
+  contracts.noTenantDesc
+      /home/dragutin/projects/rentmate/src/components/property-tenants/ContactInfoCard.tsx  (line 132)
+  documentTemplates.templateCreated
+      /home/dragutin/projects/rentmate/src/components/CreatePropertyTemplateDialog.tsx  (line 119)
+  documentTemplates.uploadFailed
+      /home/dragutin/projects/rentmate/src/components/CreatePropertyTemplateDialog.tsx  (line 129)
+  full_portfolio_import.csv
+      /home/dragutin/projects/rentmate/src/components/import/UploadStep.tsx  (line 143)
+  kyc.errors.cancelFailed
+      /home/dragutin/projects/rentmate/src/hooks/useKYC.ts  (line 259)
+  lease_agreement.pdf
+      /home/dragutin/projects/rentmate/src/components/CreatePropertyTemplateDialog.test.tsx  (lines 182, 192)
+  maintenance.createTask.active
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 272)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 280)
+  maintenance.createTask.createButton
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 283)
+  maintenance.createTask.creating
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 283)
+  maintenance.createTask.description
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (lines 165, 170)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (lines 173, 178)
+  maintenance.createTask.descriptionPlaceholder
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 170)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 178)
+  maintenance.createTask.endDate
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 234)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 242)
+  maintenance.createTask.error
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (lines 114, 115)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 125)
+  maintenance.createTask.errorMessage
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 115)
+  maintenance.createTask.frequencies.daily
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 262)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 270)
+  maintenance.createTask.frequencies.monthly
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 264)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 272)
+  maintenance.createTask.frequencies.quarterly
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 265)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 273)
+  maintenance.createTask.frequencies.weekly
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 263)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 271)
+  maintenance.createTask.frequencies.yearly
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 266)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 274)
+  maintenance.createTask.frequency
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 256)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 264)
+  maintenance.createTask.missingFields
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (lines 136, 137)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (lines 136, 137)
+  maintenance.createTask.missingFieldsMessage
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 137)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 137)
+  maintenance.createTask.pickDate
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (lines 224, 245)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (lines 232, 253)
+      /home/dragutin/projects/rentmate/src/components/EditTenantDialog.tsx  (line 133)
+  maintenance.createTask.priorities.high
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 201)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 209)
+  maintenance.createTask.priorities.low
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 199)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 207)
+  maintenance.createTask.priorities.medium
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 200)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 208)
+  maintenance.createTask.priorities.urgent
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 202)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 210)
+  maintenance.createTask.priority
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 193)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 201)
+  maintenance.createTask.scheduleDetails
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 209)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 217)
+  maintenance.createTask.selectType
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 180)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 188)
+  maintenance.createTask.startDate
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 213)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 221)
+  maintenance.createTask.success
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (lines 105, 106)
+  maintenance.createTask.successMessage
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 106)
+  maintenance.createTask.taskTitle
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 154)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 162)
+  maintenance.createTask.title
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (lines 149, 159)
+  maintenance.createTask.titlePlaceholder
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 159)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 167)
+  maintenance.createTask.type
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (lines 177, 183, 184, 185, 186, 187)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (lines 185, 191, 192, 193, 194, 195)
+  maintenance.createTask.types.cleaning
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 186)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 194)
+  maintenance.createTask.types.inspection
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 185)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 193)
+  maintenance.createTask.types.maintenance
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 183)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 191)
+  maintenance.createTask.types.other
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 187)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 195)
+  maintenance.createTask.types.repair
+      /home/dragutin/projects/rentmate/src/components/CreateMaintenanceTaskDialog.tsx  (line 184)
+      /home/dragutin/projects/rentmate/src/components/EditMaintenanceTaskDialog.tsx  (line 192)
+  maintenance.scheduleUpdated
+      /home/dragutin/projects/rentmate/src/pages/TemplatesManager.tsx  (line 61)
+  maintenance.sections.myTasks
+      /home/dragutin/projects/rentmate/src/pages/TemplatesManagerContent.tsx  (lines 94, 97)
+  maintenance.sections.myTasksDescription
+      /home/dragutin/projects/rentmate/src/pages/TemplatesManagerContent.tsx  (line 97)
+  maintenance.sections.noCustomTasks
+      /home/dragutin/projects/rentmate/src/pages/TemplatesManagerContent.tsx  (line 104)
+  maintenance.taskDeleted
+      /home/dragutin/projects/rentmate/src/pages/TemplatesManager.tsx  (line 42)
+  payments.accountId
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 183)
+  payments.completeOnboarding
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 118)
+  payments.connectStripe
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 108)
+  payments.connected
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (lines 78, 187)
+  payments.connectedOn
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 187)
+  payments.howItWorks
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 163)
+  payments.inactive
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 89)
+  payments.notConnected
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 70)
+  payments.pendingOnboarding
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 85)
+  payments.proofFormatsHint
+      /home/dragutin/projects/rentmate/src/components/ProofOfPaymentUpload.tsx  (line 110)
+  payments.proofReview.approvedSuccess
+      /home/dragutin/projects/rentmate/src/components/payments/PaymentProofReview.tsx  (line 79)
+  payments.proofReview.downloadError
+      /home/dragutin/projects/rentmate/src/components/payments/PaymentProofReview.tsx  (line 126)
+  payments.proofReview.downloadSuccess
+      /home/dragutin/projects/rentmate/src/components/payments/PaymentProofReview.tsx  (line 120)
+  payments.proofReview.imageLoadError
+      /home/dragutin/projects/rentmate/src/components/payments/PaymentProofReview.tsx  (line 201)
+  payments.proofReview.proofDocument
+      /home/dragutin/projects/rentmate/src/components/payments/PaymentProofReview.tsx  (line 160)
+  payments.proofReview.rejectedSuccess
+      /home/dragutin/projects/rentmate/src/components/payments/PaymentProofReview.tsx  (line 80)
+  payments.proofReview.reviewError
+      /home/dragutin/projects/rentmate/src/components/payments/PaymentProofReview.tsx  (line 89)
+  payments.proofReview.uploadedAt
+      /home/dragutin/projects/rentmate/src/components/payments/PaymentProofReview.tsx  (line 152)
+  payments.proofReview.zoomImage
+      /home/dragutin/projects/rentmate/src/components/payments/PaymentProofReview.tsx  (line 177)
+  payments.selectedFile
+      /home/dragutin/projects/rentmate/src/components/ProofOfPaymentUpload.tsx  (line 114)
+  payments.step1ConnectStripe
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 167)
+  payments.step2CompleteOnboarding
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 171)
+  payments.step3StartCollecting
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 175)
+  payments.stripeAccountActive
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 127)
+  payments.stripeConnect
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (lines 63, 139, 155, 156)
+  payments.stripeConnectDescription
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 156)
+  payments.stripeConnectError
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 63)
+  payments.stripeOnboardingOpened
+      /home/dragutin/projects/rentmate/src/components/payments/StripeConnectOnboarding.tsx  (line 53)
+  payments.uploadProofDescription
+      /home/dragutin/projects/rentmate/src/components/ProofOfPaymentUpload.tsx  (line 98)
+  placeholders.searchUsers
+      /home/dragutin/projects/rentmate/src/components/admin/UsersManagement.tsx  (line 211)
+  properties.archivePropertyDesc
+      /home/dragutin/projects/rentmate/src/components/property-hub/OverviewTab.tsx  (line 418)
+  properties_import_template.csv
+      /home/dragutin/projects/rentmate/src/components/import/UploadStep.tsx  (line 110)
+  qrcode.react
+      /home/dragutin/projects/rentmate/src/components/IdentityVerification.tsx  (line 9)
+      /home/dragutin/projects/rentmate/src/components/signature/QualifiedSignatureFlow.tsx  (line 9)
+  renting.archivedTenancy
+      /home/dragutin/projects/rentmate/src/pages/PropertyTenants.tsx  (line 894)
+  renting.archivedWarning
+      /home/dragutin/projects/rentmate/src/pages/PropertyTenants.tsx  (line 895)
+  rentmate.me
+      /home/dragutin/projects/rentmate/src/components/admin/BrandSettings.tsx  (lines 300, 303)
+      /home/dragutin/projects/rentmate/src/lib/i18n/translations/en.annotated.ts  (line 2014)
+      /home/dragutin/projects/rentmate/src/lib/i18n/translations/es.ts  (line 1971)
+      /home/dragutin/projects/rentmate/src/lib/i18n/translations/unused/en-11May-working-pre-cleaning.ts  (line 2196)
+      /home/dragutin/projects/rentmate/src/lib/i18n/translations/unused/es-11May-working-pre-cleaning.ts  (line 2153)
+  repair_shops_import_template.csv
+      /home/dragutin/projects/rentmate/src/components/import/UploadRepairShopsStep.tsx  (line 70)
+  settings.emailNote
+      /home/dragutin/projects/rentmate/src/pages/Profile.tsx  (line 177)
+  settings.languageDesc
+      /home/dragutin/projects/rentmate/src/pages/Profile.tsx  (line 186)
+  settings.languageLabel
+      /home/dragutin/projects/rentmate/src/pages/Profile.tsx  (line 184)
+  settings.loadingSettings
+      /home/dragutin/projects/rentmate/src/pages/Account.tsx  (line 222)
+      /home/dragutin/projects/rentmate/src/pages/Profile.tsx  (line 120)
+  settings.saved
+      /home/dragutin/projects/rentmate/src/pages/Account.tsx  (line 112)
+      /home/dragutin/projects/rentmate/src/pages/Profile.tsx  (line 101)
+  settings.saving
+      /home/dragutin/projects/rentmate/src/components/EditTenantDialog.tsx  (line 187)
+      /home/dragutin/projects/rentmate/src/pages/Account.tsx  (line 324)
+      /home/dragutin/projects/rentmate/src/pages/Profile.tsx  (line 214)
+  tenancy.cannotEditActiveTenancy
+      /home/dragutin/projects/rentmate/src/pages/PropertyTenants.tsx  (line 322)
+  tenancy.invitationResent
+      /home/dragutin/projects/rentmate/src/pages/PropertyTenants.tsx  (line 622)
+  tenancy.inviteTenant
+      /home/dragutin/projects/rentmate/src/components/property-tenants/ContactInfoCard.tsx  (line 240)
+  tenancy.setUpNextTenancy
+      /home/dragutin/projects/rentmate/src/components/property-tenants/RentalTermsCard.tsx  (line 249)
+  tenancy.setupCancelled
+      /home/dragutin/projects/rentmate/src/hooks/useTenancyRequirements.ts  (line 166)
+  tenancy.wizard.editTitle
+      /home/dragutin/projects/rentmate/src/components/CreateTenancyWizard.tsx  (line 233)
+  tenancy.wizard.inviteTitle
+      /home/dragutin/projects/rentmate/src/components/CreateTenancyWizard.tsx  (line 234)
+  tenancy.wizard.managerPays
+      /home/dragutin/projects/rentmate/src/components/property-tenants/RentalTermsCard.tsx  (line 478)
+  tenancy.wizard.nextTenancyTitle
+      /home/dragutin/projects/rentmate/src/components/CreateTenancyWizard.tsx  (line 235)
+  tenancy.wizard.selfManageOnly
+      /home/dragutin/projects/rentmate/src/components/CreateTenancyWizard.tsx  (lines 335, 338)
+  tenancy.wizard.selfManageOnlyDesc
+      /home/dragutin/projects/rentmate/src/components/CreateTenancyWizard.tsx  (line 338)
+  tenancy.wizard.setupSaved
+      /home/dragutin/projects/rentmate/src/pages/PropertyTenants.tsx  (lines 344, 368, 393, 757, 765)
+  tenancy.wizard.tenantPays
+      /home/dragutin/projects/rentmate/src/components/property-tenants/RentalTermsCard.tsx  (line 472)
+  tenancy.wizard.utilities.electricity
+      /home/dragutin/projects/rentmate/src/components/property-tenants/RentalTermsCard.tsx  (line 178)
+  tenancy.wizard.utilities.gas
+      /home/dragutin/projects/rentmate/src/components/property-tenants/RentalTermsCard.tsx  (line 179)
+  tenancy.wizard.utilities.heating
+      /home/dragutin/projects/rentmate/src/components/property-tenants/RentalTermsCard.tsx  (line 182)
+  tenancy.wizard.utilities.internet
+      /home/dragutin/projects/rentmate/src/components/property-tenants/RentalTermsCard.tsx  (line 181)
+  tenancy.wizard.utilities.trash
+      /home/dragutin/projects/rentmate/src/components/property-tenants/RentalTermsCard.tsx  (line 183)
+  tenancy.wizard.utilities.water
+      /home/dragutin/projects/rentmate/src/components/property-tenants/RentalTermsCard.tsx  (line 180)
+  tenancy.wizard.utilitiesResponsibilities
+      /home/dragutin/projects/rentmate/src/components/property-tenants/RentalTermsCard.tsx  (line 467)
+  tenants_import_template.csv
+      /home/dragutin/projects/rentmate/src/components/import/UploadStep.tsx  (line 176)
+  test.exe
+      /home/dragutin/projects/rentmate/src/components/CreatePropertyTemplateDialog.test.tsx  (lines 212, 222)
+  test.pdf
+      /home/dragutin/projects/rentmate/src/components/CreatePropertyTemplateDialog.test.tsx  (line 161)
+  unknown.csv
+      /home/dragutin/projects/rentmate/src/pages/Import.tsx  (line 141)
+

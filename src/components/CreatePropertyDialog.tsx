@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,11 @@ import { propertyBaseSchema } from "@/lib/validations";
 import { usePropertyMutations } from "@/hooks/useProperties";
 import { useSubscription } from "@/hooks/useSubscription";
 import { z } from "zod";
-import { Loader2, Upload, X, Image as ImageIcon, Sparkles } from "lucide-react";
+import { Loader2, Upload, X, Image as ImageIcon, Sparkles, AlertCircle, Crown } from "lucide-react";
 import { CountrySelect } from "@/components/ui/country-select";
+import { getUserCountryFromTimezone } from "@/lib/countryUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface CreatePropertyDialogProps {
   open: boolean;
@@ -27,15 +29,52 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
   const [city, setCity] = useState("");
   const [stateProvince, setStateProvince] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [country, setCountry] = useState("DE");
+  const [country, setCountry] = useState("");
   const [description, setDescription] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [propertyCount, setPropertyCount] = useState<number | null>(null);
+  const [limitLoading, setLimitLoading] = useState(false);
   const { trackEvent } = useAnalyticsContext();
   const { createProperty } = usePropertyMutations();
   const { t } = useLanguage();
   const { getPropertyLimit, isFree, isPro } = useSubscription();
+  const propertyLimit = getPropertyLimit();
+  const atLimit = propertyCount !== null && propertyCount >= propertyLimit;
+  const nearLimit = propertyCount !== null && propertyCount === propertyLimit - 1;
+
+  useEffect(() => {
+    if (!open) {
+      setPropertyCount(null);
+      return;
+    }
+
+    const detected = getUserCountryFromTimezone();
+    if (detected) setCountry(detected);
+
+    const fetchPropertyCount = async () => {
+      setLimitLoading(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { count } = await supabase
+          .from('properties')
+          .select('*', { count: 'exact', head: true })
+          .eq('manager_id', user.id)
+          .eq('status', 'active');
+
+        setPropertyCount(count ?? 0);
+      } catch {
+        setPropertyCount(0);
+      } finally {
+        setLimitLoading(false);
+      }
+    };
+
+    fetchPropertyCount();
+  }, [open]);
 
   const handleGenerateDescription = async () => {
     if (!title.trim()) {
@@ -134,9 +173,9 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
 
           // Track property creation event
           trackEvent({
-            event_name: 'property_created',
-            event_category: 'property_management',
-            event_metadata: {
+            eventName: 'property_created',
+            category: 'property_management',
+            metadata: {
               property_id: newProperty.id,
               has_photo: !!photoFile,
             },
@@ -147,7 +186,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
           setCity("");
           setStateProvince("");
           setPostalCode("");
-          setCountry("DE");
+          setCountry(getUserCountryFromTimezone() ?? "");
           setDescription("");
           setPhotoFile(null);
           setLoading(false);
@@ -179,6 +218,38 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
         <DialogHeader>
           <DialogTitle>Create New Property</DialogTitle>
         </DialogHeader>
+
+        {limitLoading ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Checking account limits...
+          </div>
+        ) : atLimit ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Property limit reached</AlertTitle>
+            <AlertDescription className="space-y-3">
+              <p>You have reached the maximum of {propertyLimit} active {propertyLimit === 1 ? 'property' : 'properties'} on your current plan.</p>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => window.location.href = "/account?tab=subscription"}
+              >
+                <Crown className="h-4 w-4 mr-2" />
+                Upgrade to create more
+              </Button>
+            </AlertDescription>
+          </Alert>
+        ) : nearLimit ? (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Almost at limit</AlertTitle>
+            <AlertDescription>
+              You have {propertyLimit - propertyCount} slot{propertyLimit - propertyCount === 1 ? '' : 's'} remaining out of {propertyLimit}. Consider upgrading to avoid interruptions.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Property Photo</Label>
@@ -285,13 +356,12 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="state">State/Province *</Label>
+              <Label htmlFor="state">State/Province</Label>
               <Input
                 id="state"
                 value={stateProvince}
                 onChange={(e) => setStateProvince(e.target.value)}
                 placeholder={t('placeholders.stateProvince')}
-                required
                 maxLength={100}
               />
             </div>
@@ -321,7 +391,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <Label htmlFor="description">Description</Label>
               <Button
                 type="button"
@@ -338,7 +408,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
                 )}
                 {t('ai.generate')}
               </Button>
-            </div>
+            </div> */}
             <Textarea
               id="description"
               value={description}
@@ -356,9 +426,9 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || atLimit}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? "Creating..." : "Create Property"}
+              {loading ? "Creating..." : atLimit ? "Limit Reached" : "Create Property"}
             </Button>
           </div>
         </form>

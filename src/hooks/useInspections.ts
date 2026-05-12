@@ -82,17 +82,19 @@ export function useInspections(tenancyId: string | undefined, propertyId: string
       const { error } = await supabase
         .from("tenancy_inspections")
         .delete()
-        .eq("id", inspectionId);
+        .eq("id", inspectionId)
+        .select('id');
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inspections"] });
+      queryClient.invalidateQueries({ queryKey: ["inspection-items"] });
+      queryClient.invalidateQueries({ queryKey: ["inspection-detail"] });
       toast.success("Inspection deleted");
     },
     onError: (error) => {
       toast.error("Failed to delete inspection");
-      console.error(error);
     },
   });
 

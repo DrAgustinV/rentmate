@@ -317,12 +317,7 @@ export default function Account() {
                     disabled
                     className="bg-muted"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    {t('settings.emailNote')}
-                  </p>
                 </div>
-
-                <Separator />
 
                 <div className="flex justify-end">
                   <Button onClick={handleSaveProfile} disabled={saving}>

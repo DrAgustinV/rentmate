@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -11,14 +11,26 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 
+interface StandardTemplate {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  priority: string;
+  suggested_frequency: string;
+  category: string;
+}
+
 interface CreateStandardMaintenanceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  template?: StandardTemplate | null;
 }
 
 export const CreateStandardMaintenanceDialog = ({
   open,
   onOpenChange,
+  template,
 }: CreateStandardMaintenanceDialogProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -31,7 +43,22 @@ export const CreateStandardMaintenanceDialog = ({
   const { t } = useLanguage();
   const { trackEvent } = useAnalyticsContext();
 
-  const createTemplateMutation = useMutation({
+  const isEditing = !!template;
+
+  useEffect(() => {
+    if (template) {
+      setTitle(template.title);
+      setDescription(template.description);
+      setType(template.type);
+      setPriority(template.priority);
+      setCategory(template.category);
+      setSuggestedFrequency(template.suggested_frequency);
+    } else {
+      resetForm();
+    }
+  }, [template, open]);
+
+  const mutation = useMutation({
     mutationFn: async () => {
       const {
         data: { user },
@@ -39,43 +66,77 @@ export const CreateStandardMaintenanceDialog = ({
 
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
-        .from("standard_maintenance_templates")
-        .insert([{
-          title,
-          description,
-          type: type as any,
-          priority: priority as any,
-          category,
-          suggested_frequency: suggestedFrequency,
-          is_active: true,
-        }])
-        .select()
-        .single();
+      if (isEditing && template) {
+        const { data, error } = await supabase
+          .from("standard_maintenance_templates")
+          .update({
+            title,
+            description,
+            type: type as any,
+            priority: priority as any,
+            category,
+            suggested_frequency: suggestedFrequency,
+          })
+          .eq("id", template.id)
+          .select()
+          .single();
 
-      if (error) throw error;
-      return data;
+        if (error) throw error;
+        return data;
+      } else {
+        const { data, error } = await supabase
+          .from("standard_maintenance_templates")
+          .insert([{
+            title,
+            description,
+            type: type as any,
+            priority: priority as any,
+            category,
+            suggested_frequency: suggestedFrequency,
+            is_active: true,
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["standard-maintenance-templates"] });
-      
-      trackEvent({
-        event_name: 'standard_maintenance_template_created',
-        event_category: 'maintenance',
-        event_metadata: {
-          template_id: data.id,
-          type: type,
-          category: category,
-        },
-      });
-      
-      toast.success(t('standardMaintenance.templateCreated'));
+
+      if (isEditing) {
+        trackEvent({
+          eventName: 'standard_maintenance_template_updated',
+          category: 'maintenance',
+          metadata: {
+            template_id: data.id,
+            type: type,
+            category: category,
+          },
+        });
+        toast.success(t('maintenance.templates.updateSuccess') || t('configuration.standardMaintenance.templateCreated'));
+      } else {
+        trackEvent({
+          eventName: 'standard_maintenance_template_created',
+          category: 'maintenance',
+          metadata: {
+            template_id: data.id,
+            type: type,
+            category: category,
+          },
+        });
+        toast.success(t('configuration.standardMaintenance.templateCreated'));
+      }
+
       onOpenChange(false);
       resetForm();
     },
     onError: (error) => {
-      console.error("Error creating standard maintenance template:", error);
-      toast.error(t('standardMaintenance.templateFailed'));
+      console.error("Error saving standard maintenance template:", error);
+      toast.error(isEditing
+        ? (t('maintenance.templates.updateFailed') || t('configuration.standardMaintenance.templateFailed'))
+        : t('configuration.standardMaintenance.templateFailed'));
     },
   });
 
@@ -90,69 +151,80 @@ export const CreateStandardMaintenanceDialog = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !type || !category || !description.trim()) {
+    if (!title.trim() || !type || !category) {
       toast.error(t('dialogs.pleaseFillRequired'));
       return;
     }
-    createTemplateMutation.mutate();
+    mutation.mutate();
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('standardMaintenance.createTemplate')}</DialogTitle>
+          <DialogTitle>{isEditing ? t('maintenance.templates.editTemplate') : t('configuration.standardMaintenance.createTemplate')}</DialogTitle>
           <DialogDescription>
-            {t('configuration.standardMaintenanceDesc')}
+            {t('configuration.standardMaintenance.standardMaintenanceDesc')}
           </DialogDescription>
         </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">{t('standardMaintenance.templateTitle')}</Label>
+              <Label htmlFor="title">{t('configuration.standardMaintenance.templateTitle')}</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder={t('standardMaintenance.templateTitlePlaceholder')}
+                placeholder={t('configuration.standardMaintenance.templateTitlePlaceholder')}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">{t('standardMaintenance.description')}</Label>
+              <Label htmlFor="description">{t('configuration.standardMaintenance.description')}</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder={t('standardMaintenance.descriptionPlaceholder')}
+                placeholder={t('configuration.standardMaintenance.descriptionPlaceholder')}
                 rows={4}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="category">{t('standardMaintenance.category')}</Label>
-                <Input
-                  id="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  placeholder={t('standardMaintenance.categoryPlaceholder')}
-                />
+                <Label htmlFor="category">{t('configuration.standardMaintenance.category')}</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder={t('configuration.standardMaintenance.categoryPlaceholder')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hvac">{t('configuration.standardMaintenance.categories.hvac')}</SelectItem>
+                    <SelectItem value="plumbing">{t('configuration.standardMaintenance.categories.plumbing')}</SelectItem>
+                    <SelectItem value="electrical">{t('configuration.standardMaintenance.categories.electrical')}</SelectItem>
+                    <SelectItem value="structural">{t('configuration.standardMaintenance.categories.structural')}</SelectItem>
+                    <SelectItem value="safety">{t('configuration.standardMaintenance.categories.safety')}</SelectItem>
+                    <SelectItem value="landscaping">{t('configuration.standardMaintenance.categories.landscaping')}</SelectItem>
+                    <SelectItem value="appliance">{t('configuration.standardMaintenance.categories.appliance')}</SelectItem>
+                    <SelectItem value="general">{t('configuration.standardMaintenance.categories.general')}</SelectItem>
+                    <SelectItem value="cleaning">{t('configuration.standardMaintenance.categories.cleaning')}</SelectItem>
+                    <SelectItem value="painting">{t('configuration.standardMaintenance.categories.painting')}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">{t('standardMaintenance.type')}</Label>
+                <Label htmlFor="type">{t('configuration.standardMaintenance.type')}</Label>
                 <Select value={type} onValueChange={setType}>
                   <SelectTrigger id="type">
-                    <SelectValue placeholder={t('standardMaintenance.selectType')} />
+                    <SelectValue placeholder={t('configuration.standardMaintenance.selectType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="maintenance">{t('standardMaintenance.types.maintenance')}</SelectItem>
-                    <SelectItem value="repair">{t('standardMaintenance.types.repair')}</SelectItem>
-                    <SelectItem value="inspection">{t('standardMaintenance.types.inspection')}</SelectItem>
-                    <SelectItem value="cleaning">{t('standardMaintenance.types.cleaning')}</SelectItem>
-                    <SelectItem value="other">{t('standardMaintenance.types.other')}</SelectItem>
+                    <SelectItem value="maintenance">{t('configuration.standardMaintenance.types.maintenance')}</SelectItem>
+                    <SelectItem value="repair">{t('configuration.standardMaintenance.types.repair')}</SelectItem>
+                    <SelectItem value="inspection">{t('configuration.standardMaintenance.types.inspection')}</SelectItem>
+                    <SelectItem value="cleaning">{t('configuration.standardMaintenance.types.cleaning')}</SelectItem>
+                    <SelectItem value="other">{t('configuration.standardMaintenance.types.other')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -160,32 +232,32 @@ export const CreateStandardMaintenanceDialog = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="priority">{t('standardMaintenance.priority')}</Label>
+                <Label htmlFor="priority">{t('configuration.standardMaintenance.priority')}</Label>
                 <Select value={priority} onValueChange={setPriority}>
                   <SelectTrigger id="priority">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">{t('standardMaintenance.priorities.low')}</SelectItem>
-                    <SelectItem value="medium">{t('standardMaintenance.priorities.medium')}</SelectItem>
-                    <SelectItem value="high">{t('standardMaintenance.priorities.high')}</SelectItem>
-                    <SelectItem value="urgent">{t('standardMaintenance.priorities.urgent')}</SelectItem>
+                    <SelectItem value="low">{t('configuration.standardMaintenance.priorities.low')}</SelectItem>
+                    <SelectItem value="medium">{t('configuration.standardMaintenance.priorities.medium')}</SelectItem>
+                    <SelectItem value="high">{t('configuration.standardMaintenance.priorities.high')}</SelectItem>
+                    <SelectItem value="urgent">{t('configuration.standardMaintenance.priorities.urgent')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="frequency">{t('standardMaintenance.suggestedFrequency')}</Label>
+                <Label htmlFor="frequency">{t('configuration.standardMaintenance.suggestedFrequency')}</Label>
                 <Select value={suggestedFrequency} onValueChange={setSuggestedFrequency}>
                   <SelectTrigger id="frequency">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">{t('standardMaintenance.frequencies.daily')}</SelectItem>
-                    <SelectItem value="weekly">{t('standardMaintenance.frequencies.weekly')}</SelectItem>
-                    <SelectItem value="monthly">{t('standardMaintenance.frequencies.monthly')}</SelectItem>
-                    <SelectItem value="quarterly">{t('standardMaintenance.frequencies.quarterly')}</SelectItem>
-                    <SelectItem value="yearly">{t('standardMaintenance.frequencies.yearly')}</SelectItem>
+                    <SelectItem value="daily">{t('configuration.standardMaintenance.frequencies.daily')}</SelectItem>
+                    <SelectItem value="weekly">{t('configuration.standardMaintenance.frequencies.weekly')}</SelectItem>
+                    <SelectItem value="monthly">{t('configuration.standardMaintenance.frequencies.monthly')}</SelectItem>
+                    <SelectItem value="quarterly">{t('configuration.standardMaintenance.frequencies.quarterly')}</SelectItem>
+                    <SelectItem value="yearly">{t('configuration.standardMaintenance.frequencies.yearly')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -197,16 +269,16 @@ export const CreateStandardMaintenanceDialog = ({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={createTemplateMutation.isPending}
+            disabled={mutation.isPending}
           >
             {t('common.cancel')}
           </Button>
           <Button
             type="submit"
             onClick={handleSubmit}
-            disabled={createTemplateMutation.isPending}
+            disabled={mutation.isPending}
           >
-            {createTemplateMutation.isPending ? t('dialogs.creating') : t('standardMaintenance.createTemplate')}
+            {mutation.isPending ? t('dialogs.saving') : (isEditing ? t('common.save') : t('configuration.standardMaintenance.createTemplate'))}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -13,7 +13,6 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { CreateStandardMaintenanceDialog } from "@/components/CreateStandardMaintenanceDialog";
 import { CreatePropertyTemplateDialog } from "@/components/CreatePropertyTemplateDialog";
 import { GlobalTemplatesList } from "@/components/GlobalTemplatesList";
 // SEPA bank-to-bank payments UI hidden - backend code preserved for future use
@@ -25,7 +24,6 @@ export default function Configuration() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [createMaintenanceOpen, setCreateMaintenanceOpen] = useState(false);
   const [createTemplateOpen, setCreateTemplateOpen] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -200,7 +198,6 @@ export default function Configuration() {
         <TabsContent value="maintenance" className="space-y-4">
           <StandardTasksSection 
             propertyId="" 
-            onAddTask={() => setCreateMaintenanceOpen(true)}
           />
         </TabsContent>
 
@@ -208,9 +205,9 @@ export default function Configuration() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>{t('configuration.documentTemplatesTitle')}</CardTitle>
+                <CardTitle>{t('configuration.documentTemplates.title')}</CardTitle>
                 <CardDescription>
-                  {t('configuration.documentTemplatesDesc')}
+                  {t('configuration.documentTemplates.desc')}
                 </CardDescription>
               </div>
               <Button onClick={() => setCreateTemplateOpen(true)}>
@@ -241,10 +238,11 @@ export default function Configuration() {
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="require-kyc">{t('configuration.requireKYCTitle')}</Label>
-                  <p className="text-sm text-muted-foreground">
+                  {/* <Label htmlFor="require-kyc">{t('configuration.requireKYCTitle')}</Label> */}
+                  <Label htmlFor="require-kyc">{t('configuration.requireKYCDesc')}</Label>
+                  {/* <p className="text-sm text-muted-foreground">
                     {t('configuration.requireKYCDesc')}
-                  </p>
+                  </p> */}
                 </div>
                 <Switch
                   id="require-kyc"
@@ -253,27 +251,29 @@ export default function Configuration() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="default-deposit">{t('configuration.defaultDepositTitle')}</Label>
-                <Input
-                  id="default-deposit"
-                  type="number"
-                  step="0.01"
-                  value={defaultDeposit}
-                  onChange={(e) => setDefaultDeposit(e.target.value)}
-                  placeholder={t('configuration.defaultDepositPlaceholder')}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {t('configuration.defaultDepositHelper')}
-                </p>
-              </div>
+              {/* <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Label htmlFor="default-deposit">{t('configuration.defaultDepositTitle')}</Label>
+                </div>  
+                <div className="space-y-2">
+                  <Input
+                    id="default-deposit"
+                    type="number"
+                    step="0.01"
+                    value={defaultDeposit}
+                    onChange={(e) => setDefaultDeposit(e.target.value)}
+                    placeholder={t('configuration.defaultDepositPlaceholder')}
+                  />
+                </div>
+              </div> */}
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="payment-confirmation">{t('configuration.paymentConfirmTitle')}</Label>
-                  <p className="text-sm text-muted-foreground">
+                  {/* <Label htmlFor="payment-confirmation">{t('configuration.paymentConfirmTitle')}</Label> */}
+                  <Label htmlFor="payment-confirmation">{t('configuration.paymentConfirmDesc')}</Label>
+                  {/* <p className="text-sm text-muted-foreground">
                     {t('configuration.paymentConfirmDesc')}
-                  </p>
+                  </p> */}
                 </div>
                 <Switch
                   id="payment-confirmation"
@@ -284,10 +284,11 @@ export default function Configuration() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="water-bill">{t('configuration.waterBillTitle')}</Label>
-                  <p className="text-sm text-muted-foreground">
+                  {/* <Label htmlFor="water-bill">{t('configuration.waterBillTitle')}</Label> */}
+                  <Label htmlFor="water-bill">{t('configuration.waterBillDesc')}</Label>
+                  {/* <p className="text-sm text-muted-foreground">
                     {t('configuration.waterBillDesc')}
-                  </p>
+                  </p> */}
                 </div>
                 <Switch
                   id="water-bill"
@@ -298,10 +299,11 @@ export default function Configuration() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="electricity-bill">{t('configuration.electricityBillTitle')}</Label>
-                  <p className="text-sm text-muted-foreground">
+                  {/* <Label htmlFor="electricity-bill">{t('configuration.electricityBillTitle')}</Label> */}
+                  <Label htmlFor="electricity-bill">{t('configuration.electricityBillDesc')}</Label>
+                  {/* <p className="text-sm text-muted-foreground">
                     {t('configuration.electricityBillDesc')}
-                  </p>
+                  </p> */}
                 </div>
                 <Switch
                   id="electricity-bill"
@@ -310,20 +312,15 @@ export default function Configuration() {
                 />
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="justify-end">
               <Button onClick={handleSaveDefaults} disabled={isSaving}>
-                {isSaving ? t('configuration.saving') : t('configuration.saveDefaults')}
+                {isSaving ? t('configuration.saving') : t('common.save')}
               </Button>
             </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
 
-      <CreateStandardMaintenanceDialog
-        open={createMaintenanceOpen}
-        onOpenChange={setCreateMaintenanceOpen}
-      />
-      
       <CreatePropertyTemplateDialog
         open={createTemplateOpen}
         onOpenChange={setCreateTemplateOpen}

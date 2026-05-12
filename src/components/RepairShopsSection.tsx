@@ -3,12 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { useRepairShops } from "@/hooks/useRepairShops";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { CreateRepairShopDrawer } from "@/components/CreateRepairShopDrawer";
-import { EditRepairShopDrawer } from "@/components/EditRepairShopDrawer";
+import { AddRepairShopButton } from "@/components/CreateRepairShopDialog";
+import { EditRepairShopDialog } from "@/components/EditRepairShopDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Database } from "@/integrations/supabase/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Phone, Mail, MapPin, Wrench, LayoutGrid, List } from "lucide-react";
+import { Search, Phone, Mail, MapPin, Wrench, LayoutGrid, List, Pencil, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -22,12 +33,14 @@ import { EmptyState } from "@/components/EmptyState";
 
 export function RepairShopsSection() {
   const navigate = useNavigate();
-  const { repairShops, isLoading } = useRepairShops();
+  const { repairShops, isLoading, deleteRepairShop, isDeleting } = useRepairShops();
   const { t } = useLanguage();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [showInactive, setShowInactive] = useState(false);
   const [userViewMode, setUserViewMode] = useState<"grid" | "list" | null>(null);
+  const [editingShop, setEditingShop] = useState<Database["public"]["Tables"]["repair_shops"]["Row"] | null>(null);
+  const [deletingShop, setDeletingShop] = useState<Database["public"]["Tables"]["repair_shops"]["Row"] | null>(null);
 
   // Use user's choice if set, otherwise use responsive default
   const viewMode = userViewMode ?? (isMobile ? "grid" : "list");
@@ -68,7 +81,7 @@ export function RepairShopsSection() {
           <Button variant="outline" onClick={() => navigate("/repair-shops/import")}>
             Bulk import
           </Button>
-          <CreateRepairShopDrawer />
+          <AddRepairShopButton />
         </div>
       </div>
 
@@ -146,7 +159,12 @@ export function RepairShopsSection() {
                         {!shop.is_active && (
                           <Badge variant="secondary">{t("repairShops.inactive")}</Badge>
                         )}
-                        <EditRepairShopDrawer repairShop={shop} />
+                        <Button variant="ghost" size="sm" onClick={() => setEditingShop(shop)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeletingShop(shop)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
 
@@ -239,7 +257,14 @@ export function RepairShopsSection() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <EditRepairShopDrawer repairShop={shop} />
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => setEditingShop(shop)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeletingShop(shop)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -248,6 +273,41 @@ export function RepairShopsSection() {
             </div>
           )}
         </>
+      )}
+
+      {editingShop && (
+        <EditRepairShopDialog
+          open={true}
+          onOpenChange={(open) => { if (!open) setEditingShop(null); }}
+          repairShop={editingShop}
+        />
+      )}
+
+      {deletingShop && (
+        <AlertDialog open={true} onOpenChange={(open) => { if (!open) setDeletingShop(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('repairShops.deleteConfirm')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('repairShops.deleteConfirmDesc')}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  deleteRepairShop(deletingShop.id, {
+                    onSuccess: () => setDeletingShop(null),
+                  });
+                }}
+                disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting ? t('common.loading') : t('common.delete')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </div>
   );

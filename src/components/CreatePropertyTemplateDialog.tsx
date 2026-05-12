@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { supabase as supabaseAdmin } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,13 +64,15 @@ export const CreatePropertyTemplateDialog = ({
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (!currentUser) throw new Error("Not authenticated");
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated");
+
       if (!documentTitle.trim()) throw new Error(t('dialogs.pleaseEnterTitle'));
 
       const extension = file.name.match(/\.[^.]+$/)?.[0] || "";
       const baseName = file.name.replace(/\.[^.]+$/, "");
       const fileName = `${baseName}${extension}`;
-      const filePath = `templates/${currentUser.id}/${crypto.randomUUID()}${extension}`;
+      const filePath = `templates/${user.id}/${crypto.randomUUID()}${extension}`;
 
       setUploadProgress(30);
 
@@ -77,36 +80,38 @@ export const CreatePropertyTemplateDialog = ({
         .from("property-documents")
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) throw new Error(`Storage error: ${uploadError.message}`);
 
       setUploadProgress(70);
 
       const fileType = extension.replace(".", "");
-      const { error: dbError } = await supabase.from("property_documents").insert({
-        property_id: null, // NULL for global templates
-        uploaded_by: currentUser.id,
-        document_title: documentTitle.trim(),
-        file_name: fileName,
-        file_path: filePath,
-        file_type: fileType,
-        file_size_bytes: file.size,
-        mime_type: file.type,
-        version: 1,
-        description: description || null,
-        is_latest_version: true,
-        document_category: 'property',
-        tenancy_id: null,
+      
+      const { error: dbError } = await supabase.functions.invoke('upload-document-template', {
+        body: {
+          document_title: documentTitle.trim(),
+          file_name: fileName,
+          file_path: filePath,
+          file_type: fileType,
+          file_size_bytes: file.size,
+          mime_type: file.type,
+          description: description || null,
+        },
       });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        if (typeof dbError === 'string' && dbError.includes('row-level')) {
+          throw new Error("Database permission denied. Please check RLS policies.");
+        }
+        throw dbError;
+      }
 
       setUploadProgress(100);
     },
     onSuccess: () => {
       trackEvent({
-        event_name: 'property_template_created',
-        event_category: 'document_management',
-        event_metadata: {
+        eventName: 'property_template_created',
+        category: 'document_management',
+        metadata: {
           document_title: documentTitle,
         },
       });
@@ -174,7 +179,7 @@ export const CreatePropertyTemplateDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('documentTemplates.createTemplate')}</DialogTitle>
+          <DialogTitle>{t('configuration.documentTemplates.createTemplate')}</DialogTitle>
           <DialogDescription>
             {t('configuration.documentTemplatesHelper')}
           </DialogDescription>
@@ -187,7 +192,7 @@ export const CreatePropertyTemplateDialog = ({
                 id="documentTitle"
                 value={documentTitle}
                 onChange={(e) => setDocumentTitle(e.target.value)}
-                placeholder={t('dialogs.templateNamePlaceholder')}
+                placeholder={t('configuration.documentTemplates.templateNamePlaceholder')}
                 required
               />
               <p className="text-xs text-muted-foreground">
@@ -274,7 +279,7 @@ export const CreatePropertyTemplateDialog = ({
             onClick={handleSubmit}
             disabled={uploadMutation.isPending || !selectedFile}
           >
-            {uploadMutation.isPending ? t('dialogs.uploading') : t('documentTemplates.createTemplate')}
+            {uploadMutation.isPending ? t('dialogs.uploading') : t('common.save')}
           </Button>
         </DialogFooter>
       </DialogContent>

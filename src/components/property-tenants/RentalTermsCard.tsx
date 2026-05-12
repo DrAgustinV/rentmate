@@ -24,6 +24,7 @@ import {
   Phone,
   CheckCircle2,
   RefreshCcw,
+  Pencil,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -34,6 +35,7 @@ interface RentalTermsCardProps {
   // Manager-only props
   isManager: boolean;
   isReadOnly: boolean;
+  tenancyStatus?: 'active' | 'ending_tenancy' | 'historic' | 'pending';
   pendingRequirement: TenancyRequirement | null;
   canSetupNewTenancy: boolean;
   hasEndingTenancy: boolean;
@@ -44,6 +46,7 @@ interface RentalTermsCardProps {
   onResendInvitation?: (req: TenancyRequirement) => void;
   isDeleting?: boolean;
   isResending?: boolean;
+  onEdit?: () => void;
 }
 
 const formatCurrency = (cents: number | null | undefined, currency: string = 'EUR') => {
@@ -81,6 +84,7 @@ export function RentalTermsCard({
   tenantEmail,
   isManager,
   isReadOnly,
+  tenancyStatus,
   pendingRequirement,
   canSetupNewTenancy,
   hasEndingTenancy,
@@ -91,6 +95,7 @@ export function RentalTermsCard({
   onResendInvitation,
   isDeleting,
   isResending,
+  onEdit,
 }: RentalTermsCardProps) {
   const { t } = useLanguage();
 
@@ -152,6 +157,8 @@ export function RentalTermsCard({
   const isSent = pendingRequirement?.status === 'sent';
   const showPendingSetup = isManager && !isReadOnly && pendingRequirement;
   const showSetupButton = isManager && !isReadOnly && canSetupNewTenancy && !pendingRequirement;
+
+  if (tenancyStatus === 'historic') return null;
 
   // Extract rental data
   const rentAmountCents = rentAgreement?.rent_amount_cents || tenancyRequirements?.rent_amount_cents;
@@ -215,7 +222,7 @@ export function RentalTermsCard({
           <CardTitle className="flex items-center gap-2">
             <FileSignature className="h-5 w-5" />
             {showPendingSetup 
-              ? t("tenancy.wizard.tenancySetup")
+              ? t("tenancy.wizard.title")
               : t("contracts.rentalTerms")
             }
           </CardTitle>
@@ -227,6 +234,20 @@ export function RentalTermsCard({
               }>
                 {isDraft ? t("common.draft") : t("common.sent")}
               </Badge>
+            )}
+            {/* Edit button when there's existing rental data - only for active tenancies */}
+            {!showPendingSetup && hasRentalData && onEdit && !isReadOnly && tenancyStatus === 'active' && (
+              <Button variant="outline" size="sm" onClick={onEdit}>
+                <Pencil className="h-3 w-3 mr-1" />
+                {t("common.edit")}
+              </Button>
+            )}
+            {/* Next Tenancy button for ending tenancies */}
+            {!showPendingSetup && hasRentalData && onEdit && !isReadOnly && tenancyStatus === 'ending_tenancy' && (
+              <Button variant="outline" size="sm" onClick={onEdit}>
+                <Pencil className="h-3 w-3 mr-1" />
+                {t("tenancy.setUpNextTenancy") || "Set Up Next Tenancy"}
+              </Button>
             )}
           </div>
         </div>
@@ -331,8 +352,8 @@ export function RentalTermsCard({
             {/* Action buttons */}
             <div className="flex items-center gap-2 pt-2">
               {isDraft && onSendInvitation && (
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   onClick={() => onSendInvitation(pendingRequirement)}
                   className="gap-2"
                 >
@@ -341,8 +362,8 @@ export function RentalTermsCard({
                 </Button>
               )}
               {isSent && onResendInvitation && (
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => onResendInvitation(pendingRequirement)}
                   disabled={isResending}
@@ -464,27 +485,6 @@ export function RentalTermsCard({
           </>
         )}
 
-        {/* EMPTY STATE */}
-        {!showPendingSetup && !hasRentalData && (
-          <div className="flex flex-col items-center justify-center py-8">
-            {isManager && canSetupNewTenancy && onStartSetup ? (
-      <Button 
-        variant="default"
-        size="lg"
-        onClick={onStartSetup}
-        className="h-16 sm:h-20 px-8 sm:px-12 text-base sm:text-lg gap-2"
-      >
-        <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
-        {t("tenancy.wizard.newTenancy")}
-      </Button>
-            ) : (
-              <>
-                <FileSignature className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm text-muted-foreground">{t("contracts.noRentalTerms")}</p>
-              </>
-            )}
-          </div>
-        )}
       </CardContent>
     </Card>
   );
