@@ -1,63 +1,52 @@
-import { useMutation, UseMutationResult } from '@tanstack/react-query';
+import { useMutation, UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 
-interface StandardMutationOptions<TData, TVariables, TContext> {
-  mutationFn: (variables: TVariables) => Promise<TData>;
-  onSuccess?: (data: TData, variables: TVariables, context: TContext) => void;
-  onError?: (error: unknown, variables: TVariables, context: TContext) => void;
-  
-  successToast?: string | false;
-  errorToast?: string | false;
-  trackEvent?: boolean;
-  eventName?: string;
-  silent?: boolean;
+export type FeedbackMode = 'success' | 'error' | 'silent';
+
+export interface StandardMutationOptions<TData, TVariables, TContext> 
+  extends UseMutationOptions<TData, unknown, TVariables, TContext> {
+  feedbackMode?: FeedbackMode;
+  successMessage?: string;
+  errorMessage?: string;
 }
 
-export function useStandardMutation<TData = unknown, TVariables = unknown, TContext = unknown>(
-  options: StandardMutationOptions<TData, TVariables, TContext>
-): UseMutationResult<TData, unknown, TVariables, TContext> {
-  const { t } = useLanguage();
-  const { trackEvent } = useAnalyticsContext();
+export function useStandardMutation<TData, TVariables, TContext>(
+  mutationFn: (variables: TVariables) => Promise<TData>,
+  options?: StandardMutationOptions<TData, TVariables, TContext>
+): UseMutationResult<TData, unknown, TVariables, TContext> & {
+  mutateWithFeedback: (variables: TVariables, feedbackMode?: FeedbackMode) => void;
+} {
+  const { feedbackMode = 'success', successMessage, errorMessage, ...baseOptions } = options ?? {};
 
-  const { 
-    mutationFn, 
-    onSuccess: originalOnSuccess, 
-    onError: originalOnError, 
-    successToast, 
-    errorToast, 
-    trackEvent: shouldTrack, 
-    eventName, 
-    silent,
-    ...restOptions 
-  } = options;
-
-  return useMutation<TData, unknown, TVariables, TContext>({
-    mutationFn,
-    ...restOptions,
+  const mutation = useMutation<TData, unknown, TVariables, TContext>(mutationFn, {
+    ...baseOptions,
     onSuccess: (data, variables, context) => {
-      if (!silent) {
-        if (successToast !== false) {
-          toast.success(successToast || t('common.success') || 'Success');
-        }
+      if (feedbackMode !== 'silent' && feedbackMode !== 'error') {
+        toast.success(successMessage || 'Operation successful');
       }
-      if (shouldTrack && eventName) {
-        trackEvent?.({
-          eventName,
-          category: 'mutation',
-          metadata: { variables, data },
-        });
-      }
-      originalOnSuccess?.(data, variables, context);
+      baseOptions?.onSuccess?.(data, variables, context);
     },
     onError: (error, variables, context) => {
-      if (!silent) {
-        if (errorToast !== false) {
-          toast.error(errorToast || t('common.error') || 'An error occurred');
-        }
+      if (feedbackMode !== 'silent' && feedbackMode !== 'success') {
+        toast.error(errorMessage || 'Operation failed');
       }
-      originalOnError?.(error, variables, context);
+      baseOptions?.onError?.(error, variables, context);
     },
   });
+
+  return {
+    ...mutation,
+    mutateWithFeedback: (variables: TVariables, mode?: FeedbackMode) => {
+      mutation.mutate(variables, {
+        onSuccess: (data, vars, ctx) => {
+          if (mode === 'silent' || mode === 'error') return;
+          toast.success(successMessage || 'Operation successful');
+        },
+        onError: (error, vars, ctx) => {
+          if (mode === 'silent' || mode === 'success') return;
+          toast.error(errorMessage || 'Operation failed');
+        },
+      });
+    },
+  };
 }
