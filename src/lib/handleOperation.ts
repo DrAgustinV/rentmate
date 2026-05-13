@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 export type OperationMode = 'success' | 'error' | 'silent';
 

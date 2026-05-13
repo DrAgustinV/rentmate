@@ -1,5 +1,5 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { useUnifiedToast } from "@/hooks/useUnifiedToast";
 import { ReactNode } from "react";
 
 export interface StandardMutationOptions<TData, TVariables, TContext>
@@ -13,7 +13,7 @@ export function useStandardMutation<TData, TVariables, TContext>(
   mutationFn: (variables: TVariables) => Promise<TData>,
   options: StandardMutationOptions<TData, TVariables, TContext> = {}
 ) {
-  const { toast } = useToast();
+  const toast = useUnifiedToast();
   const { successToast, errorToast, silentOnError, onSuccess, onError, ...rest } = options;
 
   return useMutation<TData, unknown, TVariables, TContext>({
@@ -21,20 +21,13 @@ export function useStandardMutation<TData, TVariables, TContext>(
     ...rest,
     onSuccess: (data, variables, context) => {
       if (successToast) {
-        toast({
-          title: successToast.title,
-          description: successToast.description,
-        });
+        toast.success(successToast.title, { description: successToast.description });
       }
       onSuccess?.(data, variables, context);
     },
     onError: (error, variables, context) => {
       if (!silentOnError && errorToast) {
-        toast({
-          title: errorToast.title,
-          description: errorToast.description,
-          variant: "destructive",
-        });
+        toast.error(errorToast.title, { description: errorToast.description });
       }
       onError?.(error, variables, context);
     },

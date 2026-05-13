@@ -1,6 +1,8 @@
 import { toast as sonnerToast, type ToastOptions as SonnerToastOptions } from "sonner";
 import type { ReactNode } from "react";
 
+export type ToastVariant = 'success' | 'error' | 'info' | 'warning' | 'silent' | 'loading';
+
 export interface ToastOptions extends Omit<SonnerToastOptions, "duration"> {
   duration?: number;
 }
@@ -8,10 +10,10 @@ export interface ToastOptions extends Omit<SonnerToastOptions, "duration"> {
 const DEFAULT_DURATION = 3000;
 
 /**
- * Unified toast wrapper that standardizes success, error, info, warning, and silent patterns.
+ * Unified toast wrapper that standardizes success, error, info, warning, silent, and loading patterns.
  * Provides consistent defaults, predictable API shape, and centralized configuration.
  */
-export const showToast = {
+export const toast = {
   success: (message: string | ReactNode, options?: ToastOptions) => {
     sonnerToast.success(message, { duration: DEFAULT_DURATION, ...options });
   },
@@ -32,6 +34,3 @@ export const showToast = {
   },
   dismiss: (id?: string) => sonnerToast.dismiss(id),
 };
-
-// Export as toast for backward compatibility with existing imports
-export const toast = showToast;

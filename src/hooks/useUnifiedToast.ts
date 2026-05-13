@@ -1,38 +1,35 @@
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
-export type ToastVariant = 'success' | 'error' | 'info' | 'silent';
+export type ToastVariant = 'success' | 'error' | 'info' | 'warning' | 'silent' | 'loading';
 
-export interface UnifiedToastOptions {
+export interface ToastOptions {
   title?: string;
   description?: string;
   duration?: number;
 }
 
 /**
- * Unified toast hook that standardizes success, error, info, and silent notification patterns.
- * Wraps `sonner` toast to provide a consistent API across the application.
+ * React hook wrapper for the unified toast system.
+ * Provides a consistent API for triggering toasts within components.
  * 
  * Usage:
  * const { success, error, info, silent } = useUnifiedToast();
- * 
  * success('Saved', 'Your changes have been persisted.');
  * error('Failed', 'Could not connect to the server.');
- * silent('Debug', 'Internal state updated.');
  */
-export const useUnifiedToast = () => {
-  const show = (variant: ToastVariant, options: UnifiedToastOptions) => {
+export function useUnifiedToast() {
+  const show = (variant: ToastVariant, options: ToastOptions) => {
     const { title, description, duration } = options;
-
+    const message = title || description || '';
+    
     switch (variant) {
-      case 'success':
-        return toast.success(title, { description, duration });
-      case 'error':
-        return toast.error(title, { description, duration });
-      case 'info':
-        return toast.info(title, { description, duration });
-      case 'silent':
-      default:
-        return toast(title, { description, duration });
+      case 'success': return toast.success(message, { description, duration });
+      case 'error': return toast.error(message, { description, duration });
+      case 'info': return toast.info(message, { description, duration });
+      case 'warning': return toast.warning(message, { description, duration });
+      case 'silent': return toast.silent(message, { description, duration });
+      case 'loading': return toast.loading(message, { description, duration });
+      default: return toast.silent(message, { description, duration });
     }
   };
 
@@ -43,7 +40,12 @@ export const useUnifiedToast = () => {
       show('error', { title, description, duration }),
     info: (title?: string, description?: string, duration?: number) =>
       show('info', { title, description, duration }),
+    warning: (title?: string, description?: string, duration?: number) =>
+      show('warning', { title, description, duration }),
     silent: (title?: string, description?: string, duration?: number) =>
       show('silent', { title, description, duration }),
+    loading: (title?: string, description?: string, duration?: number) =>
+      show('loading', { title, description, duration }),
+    dismiss: (id?: string) => toast.dismiss(id),
   };
-};
+}

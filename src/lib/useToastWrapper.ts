@@ -1,4 +1,4 @@
-import { showToast as originalShowToast } from "@/lib/toast";
+import { useUnifiedToast } from "@/hooks/useUnifiedToast";
 
 export interface ToastOptions {
   title?: string;
@@ -22,20 +22,11 @@ export interface ToastActions {
  * silent({ title: "Debug", description: "Internal state updated." });
  */
 export function useToastWrapper(): ToastActions {
-  const showToastActions: ToastActions = {
-    success: (options) => {
-      originalShowToast.success(options);
-    },
-    error: (options) => {
-      originalShowToast.error(options);
-    },
-    silent: (options) => {
-      // Silent pattern: logs in development, can be extended for analytics or internal tracking
-      if (import.meta.env.DEV) {
-        console.log(`[Toast Silent] ${options.title || ''}: ${options.description || ''}`);
-      }
-    },
-  };
+  const toast = useUnifiedToast();
 
-  return showToastActions;
+  return {
+    success: (options) => toast.success(options.title || '', { description: options.description, duration: options.duration }),
+    error: (options) => toast.error(options.title || '', { description: options.description, duration: options.duration }),
+    silent: (options) => toast.silent(options.title || '', { description: options.description, duration: options.duration }),
+  };
 }
