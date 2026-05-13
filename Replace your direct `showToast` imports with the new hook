@@ -1,0 +1,9 @@
+import { useToastWrapper } from "@/lib/useToastWrapper";
+
+// Inside your component:
+const { success, error, silent } = useToastWrapper();
+
+// Usage:
+success({ title: t("tenants.tenantUpdated"), description: t("tenants.tenantUpdatedDesc") });
+error({ title: t("common.error"), description: error.message });
+silent({ title: "Debug", description: "Operation completed silently" });
