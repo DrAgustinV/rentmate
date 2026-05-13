@@ -1,49 +1,63 @@
 import { useMutation, UseMutationResult } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 
-export interface StandardMutationOptions<TData = any, TVariables = any, TContext = any> {
+interface StandardMutationOptions<TData, TVariables, TContext> {
   mutationFn: (variables: TVariables) => Promise<TData>;
   onSuccess?: (data: TData, variables: TVariables, context: TContext) => void;
   onError?: (error: unknown, variables: TVariables, context: TContext) => void;
   
-  /** When true, suppresses all toast notifications */
+  successToast?: string | false;
+  errorToast?: string | false;
+  trackEvent?: boolean;
+  eventName?: string;
   silent?: boolean;
-  
-  /** Custom success message to display in the toast */
-  successMessage?: string;
-  
-  /** Custom error message to display in the toast */
-  errorMessage?: string;
 }
 
-export function useStandardMutation<TData = any, TVariables = any, TContext = any>(
+export function useStandardMutation<TData = unknown, TVariables = unknown, TContext = unknown>(
   options: StandardMutationOptions<TData, TVariables, TContext>
 ): UseMutationResult<TData, unknown, TVariables, TContext> {
-  const { toast } = useToast();
   const { t } = useLanguage();
+  const { trackEvent } = useAnalyticsContext();
+
+  const { 
+    mutationFn, 
+    onSuccess: originalOnSuccess, 
+    onError: originalOnError, 
+    successToast, 
+    errorToast, 
+    trackEvent: shouldTrack, 
+    eventName, 
+    silent,
+    ...restOptions 
+  } = options;
 
   return useMutation<TData, unknown, TVariables, TContext>({
-    mutationFn: options.mutationFn,
+    mutationFn,
+    ...restOptions,
     onSuccess: (data, variables, context) => {
-      if (!options.silent && options.successMessage) {
-        toast({
-          title: t('common.success'),
-          description: options.successMessage,
-          variant: 'default',
+      if (!silent) {
+        if (successToast !== false) {
+          toast.success(successToast || t('common.success') || 'Success');
+        }
+      }
+      if (shouldTrack && eventName) {
+        trackEvent?.({
+          eventName,
+          category: 'mutation',
+          metadata: { variables, data },
         });
       }
-      options.onSuccess?.(data, variables, context);
+      originalOnSuccess?.(data, variables, context);
     },
     onError: (error, variables, context) => {
-      if (!options.silent && options.errorMessage) {
-        toast({
-          title: t('common.error'),
-          description: options.errorMessage,
-          variant: 'destructive',
-        });
+      if (!silent) {
+        if (errorToast !== false) {
+          toast.error(errorToast || t('common.error') || 'An error occurred');
+        }
       }
-      options.onError?.(error, variables, context);
+      originalOnError?.(error, variables, context);
     },
   });
 }
