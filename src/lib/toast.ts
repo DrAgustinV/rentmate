@@ -1,7 +1,7 @@
 import { toast as sonnerToast, type ToastOptions as SonnerToastOptions } from "sonner";
 import type { ReactNode } from "react";
 
-export type ToastVariant = 'success' | 'error' | 'info' | 'warning' | 'neutral';
+export type ToastVariant = 'success' | 'error' | 'info' | 'warning' | 'neutral' | 'silent';
 
 export interface UnifiedToastOptions extends Omit<SonnerToastOptions, 'duration'> {
   title?: string | ReactNode;
@@ -29,6 +29,9 @@ export const showToast = {
     return sonnerToast.warning(title, { description, duration: options?.duration ?? DEFAULT_DURATION, ...options });
   },
   neutral: (title: string | ReactNode, description?: string | ReactNode, options?: Omit<UnifiedToastOptions, 'title'>) => {
+    return sonnerToast(title, { description, duration: options?.duration ?? DEFAULT_DURATION, ...options });
+  },
+  silent: (title: string | ReactNode, description?: string | ReactNode, options?: Omit<UnifiedToastOptions, 'title'>) => {
     return sonnerToast(title, { description, duration: options?.duration ?? DEFAULT_DURATION, ...options });
   },
 };
