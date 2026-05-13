@@ -7,7 +7,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Calendar as CalendarIcon, Wrench } from "lucide-react";
@@ -15,6 +14,7 @@ import { format } from "date-fns";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { showToast } from "@/lib/toast";
 
 interface StandardTemplate {
   id: string;
@@ -40,7 +40,6 @@ export function ScheduleStandardTaskDialog({
   propertyId,
 }: ScheduleStandardTaskDialogProps) {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const [frequency, setFrequency] = useState<string>("");
@@ -146,7 +145,7 @@ export function ScheduleStandardTaskDialog({
       queryClient.invalidateQueries({ queryKey: ["tasks-with-schedules"] });
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
       queryClient.invalidateQueries({ queryKey: ["property-tickets"] });
-      toast({
+      showToast.success({
         title: t("maintenance.scheduleStandard.success") || "Task scheduled",
         description: t("maintenance.scheduleStandard.successDescription") || "The maintenance task has been scheduled successfully.",
       });
@@ -155,10 +154,9 @@ export function ScheduleStandardTaskDialog({
     },
     onError: (error) => {
       console.error("Error scheduling task:", error);
-      toast({
+      showToast.error({
         title: t("common.error") || "Error",
         description: t("maintenance.scheduleStandard.error") || "Failed to schedule task. Please try again.",
-        variant: "destructive",
       });
     },
   });
@@ -174,10 +172,9 @@ export function ScheduleStandardTaskDialog({
     e.preventDefault();
 
     if (!standardTemplate || !startDate || !frequency) {
-      toast({
+      showToast.error({
         title: t("common.error") || "Error",
         description: t("maintenance.scheduleStandard.missingFields") || "Please fill in all required fields.",
-        variant: "destructive",
       });
       return;
     }

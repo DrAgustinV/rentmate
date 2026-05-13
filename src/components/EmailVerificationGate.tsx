@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2, Mail, LogOut, RefreshCw } from "lucide-react";
-import { showToast } from "@/lib/toastUtils";
+import { showToast } from "@/lib/toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface EmailVerificationGateProps {
@@ -167,20 +167,20 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
       if (error) throw error;
       
       if (data?.rate_limited) {
-        showToast.error(data.error);
+        showToast.error({ title: data.error });
         return;
       }
 
       if (data?.already_verified) {
         setEmailVerified(true);
-        showToast.success(t("auth.emailAlreadyVerified"));
+        showToast.success({ title: t("auth.emailAlreadyVerified") });
         return;
       }
 
-      showToast.success(t("auth.verificationEmailSent"));
+      showToast.success({ title: t("auth.verificationEmailSent") });
     } catch (error: any) {
       console.error("Error resending verification:", error);
-      showToast.error(t("auth.verificationEmailFailed"));
+      showToast.error({ title: t("auth.verificationEmailFailed") });
     } finally {
       setSendingVerification(false);
     }
@@ -213,9 +213,9 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
         
       if (profile?.email_verified) {
         setEmailVerified(true);
-        showToast.success(t("auth.emailVerified"));
+        showToast.success({ title: t("auth.emailVerified") });
       } else {
-        showToast.info(t("auth.emailNotYetVerified"));
+        showToast.info({ title: t("auth.emailNotYetVerified") });
       }
     } catch (error) {
       console.error("Error refreshing status:", error);

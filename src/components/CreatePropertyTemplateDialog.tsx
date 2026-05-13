@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { cn } from "@/lib/utils";
+import { showToast } from "@/lib/toast";
 
 interface CreatePropertyTemplateDialogProps {
   open: boolean;
@@ -116,7 +116,7 @@ export const CreatePropertyTemplateDialog = ({
         },
       });
       
-      toast.success(t('documentTemplates.templateCreated'));
+      showToast.success({ title: t('documentTemplates.templateCreated') });
       queryClient.invalidateQueries({ queryKey: ["property-templates"] });
       setSelectedFile(null);
       setDocumentTitle("");
@@ -126,7 +126,7 @@ export const CreatePropertyTemplateDialog = ({
     },
     onError: (error) => {
       console.error("Upload error:", error);
-      toast.error(error instanceof Error ? error.message : t('documentTemplates.uploadFailed'));
+      showToast.error({ title: error instanceof Error ? error.message : t('documentTemplates.uploadFailed') });
       setUploadProgress(0);
     },
   });
@@ -137,7 +137,7 @@ export const CreatePropertyTemplateDialog = ({
         file.name.toLowerCase().endsWith(ext)
       );
       if (!hasValidExtension) {
-        toast.error(t('dialogs.fileTypeNotAllowed'));
+        showToast.error({ title: t('dialogs.fileTypeNotAllowed') });
         return;
       }
     }
@@ -165,11 +165,11 @@ export const CreatePropertyTemplateDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile) {
-      toast.error(t('dialogs.pleaseSelectFile'));
+      showToast.error({ title: t('dialogs.pleaseSelectFile') });
       return;
     }
     if (!documentTitle.trim()) {
-      toast.error(t('dialogs.pleaseEnterTitle'));
+      showToast.error({ title: t('dialogs.pleaseEnterTitle') });
       return;
     }
     uploadMutation.mutate(selectedFile);

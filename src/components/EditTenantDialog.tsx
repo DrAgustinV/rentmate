@@ -19,7 +19,7 @@ import { CalendarIcon, AlertTriangle, Lock, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useToast } from "@/hooks/use-toast";
+import { showToast } from "@/lib/toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Tenant {
@@ -42,9 +42,8 @@ interface EditTenantDialogProps {
   readOnly?: boolean;
 }
 
-export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readOnly = false, invitationStatus = 'none' }: EditTenantDialogProps) {
+export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readOnly = false }: EditTenantDialogProps) {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const [startDate, setStartDate] = useState<Date | undefined>(
@@ -71,7 +70,7 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({
+      showToast.success({
         title: t("tenants.tenantUpdated"),
         description: t("tenants.tenantUpdatedDesc"),
       });
@@ -80,10 +79,9 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
       onOpenChange(false);
     },
     onError: (error: any) => {
-      toast({
+      showToast.error({
         title: t("common.error"),
         description: error.message,
-        variant: "destructive",
       });
     },
   });

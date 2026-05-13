@@ -5,8 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { showToast } from "@/lib/toast";
 
 interface ConsentRecord {
   consent_type: string;
@@ -21,7 +21,6 @@ export function PrivacySettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [consentHistory, setConsentHistory] = useState<ConsentRecord[]>([]);
-  const { toast } = useToast();
 
   useEffect(() => {
     loadConsents();
@@ -101,7 +100,7 @@ export function PrivacySettings() {
 
       await loadConsents();
 
-      toast({
+      showToast.success({
         title: "Consent Updated",
         description: `Your ${consentType} consent has been ${granted ? 'granted' : 'withdrawn'}.`,
       });
@@ -111,10 +110,9 @@ export function PrivacySettings() {
         setTimeout(() => window.location.reload(), 1000);
       }
     } catch (error: any) {
-      toast({
+      showToast.error({
         title: "Update Failed",
         description: error.message,
-        variant: "destructive",
       });
       
       // Revert state on error
