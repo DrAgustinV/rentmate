@@ -1,41 +1,20 @@
-import { toast as sonnerToast, type ToastOptions as SonnerToastOptions } from "sonner";
+import { toast as sonnerToast } from "sonner";
 
-export type ToastVariant = "success" | "error" | "silent";
+export type ToastVariant = "success" | "error" | "info" | "silent";
 
-export interface ToastOptions extends Omit<SonnerToastOptions, "type" | "duration"> {
-  title?: string;
-  description?: string;
-  duration?: number;
-}
+type ToastOptions = Omit<Parameters<typeof sonnerToast>[1], "duration">;
 
-const showToast = {
-  success: (title: string, description?: string, options?: Omit<ToastOptions, "title" | "description">) => {
-    return sonnerToast.success(title, { description, ...options });
-  },
-  error: (title: string, description?: string, options?: Omit<ToastOptions, "title" | "description">) => {
-    return sonnerToast.error(title, { description, ...options });
-  },
-  silent: (title: string, description?: string, options?: Omit<ToastOptions, "title" | "description">) => {
-    return sonnerToast(title, { description, ...options, duration: options?.duration ?? 0 });
-  },
-  show: (variant: ToastVariant, title: string, description?: string, options?: Omit<ToastOptions, "title" | "description">) => {
-    switch (variant) {
-      case "success":
-        return showToast.success(title, description, options);
-      case "error":
-        return showToast.error(title, description, options);
-      case "silent":
-        return showToast.silent(title, description, options);
-      default:
-        return showToast.success(title, description, options);
-    }
-  },
+const toast = {
+  success: (message: string, options?: ToastOptions) =>
+    sonnerToast.success(message, { duration: 3000, ...options }),
+  error: (message: string, options?: ToastOptions) =>
+    sonnerToast.error(message, { duration: 5000, ...options }),
+  info: (message: string, options?: ToastOptions) =>
+    sonnerToast.info(message, { duration: 3000, ...options }),
+  silent: (message: string, options?: ToastOptions) =>
+    sonnerToast(message, { duration: 0, closeButton: false, ...options }),
   dismiss: (id?: string) => sonnerToast.dismiss(id),
   remove: (id?: string) => sonnerToast.remove(id),
-};
+} as const;
 
-export function useToast() {
-  return showToast;
-}
-
-export { showToast };
+export { toast };
