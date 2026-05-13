@@ -14,15 +14,35 @@ export interface ToastOptions extends Omit<SonnerToastOptions, "type"> {
  */
 export const showToast = {
   success: (options: ToastOptions) =>
-    sonnerToast.success(options.title ?? "Success", { description: options.description, duration: options.duration, ...options }),
+    sonnerToast.success(options.title ?? "Success", { 
+      description: options.description, 
+      duration: options.duration ?? 3000, 
+      ...options 
+    }),
   error: (options: ToastOptions) =>
-    sonnerToast.error(options.title ?? "Error", { description: options.description, duration: options.duration, ...options }),
+    sonnerToast.error(options.title ?? "Error", { 
+      description: options.description, 
+      duration: options.duration ?? 5000, 
+      ...options 
+    }),
   info: (options: ToastOptions) =>
-    sonnerToast.info(options.title ?? "Info", { description: options.description, duration: options.duration, ...options }),
+    sonnerToast.info(options.title ?? "Info", { 
+      description: options.description, 
+      duration: options.duration ?? 3000, 
+      ...options 
+    }),
   warning: (options: ToastOptions) =>
-    sonnerToast.warning(options.title ?? "Warning", { description: options.description, duration: options.duration, ...options }),
+    sonnerToast.warning(options.title ?? "Warning", { 
+      description: options.description, 
+      duration: options.duration ?? 4000, 
+      ...options 
+    }),
   silent: (options: ToastOptions) =>
-    sonnerToast(options.title ?? "", { description: options.description, duration: options.duration, ...options }),
+    sonnerToast(options.title ?? "", { 
+      description: options.description, 
+      duration: 0, 
+      ...options 
+    }),
   dismiss: (id?: string) => sonnerToast.dismiss(id),
   remove: (id?: string) => sonnerToast.remove(id),
 };
