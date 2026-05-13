@@ -9,7 +9,7 @@ import { useUtilityPaymentMutations } from "@/hooks/useUtilityPayments";
 import { useRentPaymentMutations } from "@/hooks/useRentPayments";
 import { useRentAgreements } from "@/hooks/useRentAgreements";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useMutationWithToast } from "@/hooks/useMutationWithToast";
 
 interface CreatePaymentDialogProps {
   open: boolean;
@@ -34,6 +34,26 @@ export function CreatePaymentDialog({
   const { createPayment: createUtilityPayment } = useUtilityPaymentMutations();
   const { createPayment: createRentPayment } = useRentPaymentMutations();
   const { data: rentAgreements } = useRentAgreements(propertyId);
+  const { mutate: createPayment } = useMutationWithToast(
+    async (data: { type: 'utility' | 'rent'; payload: any }) => {
+      if (data.type === 'utility') {
+        return createUtilityPayment.mutateAsync(data.payload);
+      }
+      return createRentPayment.mutateAsync(data.payload);
+    },
+    {
+      toastOptions: {
+        success: {
+          title: t("common.success"),
+          description: t("payments.paymentCreated"),
+        },
+        error: {
+          title: t("common.error"),
+          description: t("payments.paymentFailed"),
+        },
+      },
+    }
+  );
 
   const [paymentType, setPaymentType] = useState<'rent' | 'utility'>('utility');
   const [utilityType, setUtilityType] = useState<typeof utilityTypes[number]>('electricity');
@@ -82,11 +102,12 @@ export function CreatePaymentDialog({
     setDueDate("");
   };
 
-  const handleSubmit = async () => {
-    try {
-      if (paymentType === 'utility') {
-        createUtilityPayment.mutate(
-          {
+  const handleSubmit = () => {
+    if (paymentType === 'utility') {
+      createPayment.mutate(
+        {
+          type: 'utility',
+          payload: {
             property_id: propertyId,
             tenant_id: tenantId || null,
             manager_id: managerIdState,
@@ -99,20 +120,22 @@ export function CreatePaymentDialog({
             payment_due_date: dueDate,
             status: 'pending',
           },
-          {
-            onSuccess: () => {
-              resetForm();
-              onOpenChange(false);
-            },
-          }
-        );
-      } else {
-        if (!selectedRentAgreement) {
-          toast.error(t("payments.createRentPayment") + ": " + t("common.error"));
-          return;
+        },
+        {
+          onSuccess: () => {
+            resetForm();
+            onOpenChange(false);
+          },
         }
-        createRentPayment.mutate(
-          {
+      );
+    } else {
+      if (!selectedRentAgreement) {
+        return;
+      }
+      createPayment.mutate(
+        {
+          type: 'rent',
+          payload: {
             rent_agreement_id: selectedRentAgreement,
             property_id: propertyId,
             tenant_id: tenantId || activeRentAgreement?.tenant_id || null,
@@ -123,16 +146,14 @@ export function CreatePaymentDialog({
             status: 'pending',
             payment_method: 'manual',
           },
-          {
-            onSuccess: () => {
-              resetForm();
-              onOpenChange(false);
-            },
-          }
-        );
-      }
-    } catch (error) {
-      console.error("Error creating payment:", error);
+        },
+        {
+          onSuccess: () => {
+            resetForm();
+            onOpenChange(false);
+          },
+        }
+      );
     }
   };
 
@@ -275,11 +296,10 @@ export function CreatePaymentDialog({
               (paymentType === 'utility' && !billingStart) ||
               (paymentType === 'utility' && !billingEnd) ||
               (paymentType === 'rent' && !selectedRentAgreement) ||
-              createUtilityPayment.isPending ||
-              createRentPayment.isPending
+              createPayment.isPending
             }
           >
-            {createUtilityPayment.isPending || createRentPayment.isPending 
+            {createPayment.isPending 
               ? t("common.creating") 
               : t("common.create")}
           </Button>
