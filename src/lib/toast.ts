@@ -21,50 +21,63 @@ const DEFAULT_DURATIONS: Record<ToastVariant, number> = {
  * Provides a consistent API across the application and handles default configurations.
  */
 export const showToast = {
-  success: (options: ToastOptions) =>
-    sonnerToast.success(options.title ?? "Success", { 
-      description: options.description, 
-      duration: options.duration ?? DEFAULT_DURATIONS.success, 
-      ...options 
-    }),
-  error: (options: ToastOptions) =>
-    sonnerToast.error(options.title ?? "Error", { 
-      description: options.description, 
-      duration: options.duration ?? DEFAULT_DURATIONS.error, 
-      ...options 
-    }),
-  info: (options: ToastOptions) =>
-    sonnerToast.info(options.title ?? "Info", { 
-      description: options.description, 
-      duration: options.duration ?? DEFAULT_DURATIONS.info, 
-      ...options 
-    }),
-  warning: (options: ToastOptions) =>
-    sonnerToast.warning(options.title ?? "Warning", { 
-      description: options.description, 
-      duration: options.duration ?? DEFAULT_DURATIONS.warning, 
-      ...options 
-    }),
-  silent: (options: ToastOptions) =>
-    sonnerToast(options.title ?? "", { 
-      description: options.description, 
-      duration: DEFAULT_DURATIONS.silent, 
-      ...options 
-    }),
-  dismiss: (id?: string) => sonnerToast.dismiss(id),
-  remove: (id?: string) => sonnerToast.remove(id),
   /**
    * Generic dispatcher to programmatically trigger any standardized variant.
+   * Centralizes duration defaults and prevents accidental override of core toast properties.
    */
   show: (variant: ToastVariant, options: ToastOptions) => {
+    const { title, description, duration, ...rest } = options;
+    const defaultDuration = DEFAULT_DURATIONS[variant];
+    
+    const toastOptions: SonnerToastOptions = {
+      description,
+      duration: duration ?? defaultDuration,
+      ...rest,
+    };
+
     switch (variant) {
-      case "success": return showToast.success(options);
-      case "error": return showToast.error(options);
-      case "info": return showToast.info(options);
-      case "warning": return showToast.warning(options);
-      case "silent": return showToast.silent(options);
+      case "success":
+        return sonnerToast.success(title ?? "Success", toastOptions);
+      case "error":
+        return sonnerToast.error(title ?? "Error", toastOptions);
+      case "info":
+        return sonnerToast.info(title ?? "Info", toastOptions);
+      case "warning":
+        return sonnerToast.warning(title ?? "Warning", toastOptions);
+      case "silent":
+        return sonnerToast(title ?? "", toastOptions);
+      default:
+        return sonnerToast(title ?? "", toastOptions);
     }
   },
+
+  /**
+   * Convenience method for success toasts.
+   */
+  success: (options: ToastOptions) => showToast.show("success", options),
+
+  /**
+   * Convenience method for error toasts.
+   */
+  error: (options: ToastOptions) => showToast.show("error", options),
+
+  /**
+   * Convenience method for info toasts.
+   */
+  info: (options: ToastOptions) => showToast.show("info", options),
+
+  /**
+   * Convenience method for warning toasts.
+   */
+  warning: (options: ToastOptions) => showToast.show("warning", options),
+
+  /**
+   * Convenience method for silent toasts (no auto-dismiss).
+   */
+  silent: (options: ToastOptions) => showToast.show("silent", options),
+
+  dismiss: (id?: string) => sonnerToast.dismiss(id),
+  remove: (id?: string) => sonnerToast.remove(id),
 };
 
 /**
