@@ -16,7 +16,7 @@ import { useUtilityPayments } from "@/hooks/useUtilityPayments";
 import { UnifiedPayment } from "@/components/payments/UnifiedPaymentHistory";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { toast } from "sonner";
+import { showToast } from "@/lib/toast";
 import { format, isWithinInterval, subMonths, startOfMonth, endOfMonth } from "date-fns";
 
 interface Tenant {
@@ -96,10 +96,10 @@ export function PaymentsTab({
     },
     onSuccess: (_, { enabled }) => {
       queryClient.invalidateQueries({ queryKey: ['rent-agreements', propertyId] });
-      toast.success(enabled ? t("payments.remindersEnabled") : t("payments.remindersDisabled"));
+      showToast.success({ title: enabled ? t("payments.remindersEnabled") : t("payments.remindersDisabled") });
     },
     onError: (error: any) => {
-      toast.error(error.message);
+      showToast.error({ title: error.message });
     },
   });
 

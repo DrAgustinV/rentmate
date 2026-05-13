@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { showToast } from "@/lib/toast";
 import {
   Upload,
   FileText,
@@ -192,11 +192,11 @@ export function ContractsTab({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success(t("properties.propertyDocuments.deleteSuccess"));
+      showToast.success({ title: t("properties.propertyDocuments.deleteSuccess") });
       refetchDocuments();
     },
     onError: () => {
-      toast.error(t("properties.propertyDocuments.deleteFailed"));
+      showToast.error({ title: t("properties.propertyDocuments.deleteFailed") });
     },
   });
 
@@ -248,7 +248,7 @@ export function ContractsTab({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      toast.error(t("common.error"));
+      showToast.error({ title: t("common.error") });
     }
   };
 
@@ -268,7 +268,7 @@ export function ContractsTab({
         
         if (error || !data?.signedUrl) {
           newWindow?.close();
-          toast.error(t("properties.openError"));
+          showToast.error({ title: t("properties.openError") });
           return;
         }
         
@@ -277,7 +277,7 @@ export function ContractsTab({
         }
       } catch (error: any) {
         newWindow?.close();
-        toast.error(t("properties.openError"));
+        showToast.error({ title: t("properties.openError") });
       }
     } else {
       downloadDocument(doc);
