@@ -1,26 +1,27 @@
 import { toast as sonnerToast } from "sonner";
+import { CheckCircle2, AlertCircle, Info } from "lucide-react";
 
 export type ToastVariant = "success" | "error" | "info" | "silent";
 
 type ToastOptions = Omit<Parameters<typeof sonnerToast>[1], "duration">;
 
 const DEFAULT_DURATIONS: Record<ToastVariant, number> = {
-  success: 3000,
+  success: 4000,
   error: 5000,
-  info: 3000,
+  info: 4000,
   silent: 0,
 };
 
-const DEFAULT_CONFIGS: Record<ToastVariant, Partial<Parameters<typeof sonnerToast>[1]>> = {
-  success: {},
-  error: {},
-  info: {},
-  silent: { closeButton: false },
+const VARIANT_ICONS: Record<ToastVariant, React.ReactNode> = {
+  success: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+  error: <AlertCircle className="h-4 w-4 text-red-500" />,
+  info: <Info className="h-4 w-4 text-blue-500" />,
+  silent: null,
 };
 
 /**
  * Unified toast function that standardizes success/error/info/silent patterns.
- * Centralizes default durations and configurations while allowing overrides.
+ * Centralizes default durations and icons while allowing overrides.
  */
 export function showToast(
   variant: ToastVariant,
@@ -28,23 +29,13 @@ export function showToast(
   options?: ToastOptions
 ) {
   const duration = options?.duration ?? DEFAULT_DURATIONS[variant];
-  const baseConfig = DEFAULT_CONFIGS[variant];
-  const finalOptions = { duration, ...baseConfig, ...options };
-
-  switch (variant) {
-    case "success":
-      sonnerToast.success(message, finalOptions);
-      break;
-    case "error":
-      sonnerToast.error(message, finalOptions);
-      break;
-    case "info":
-      sonnerToast.info(message, finalOptions);
-      break;
-    case "silent":
-      sonnerToast(message, finalOptions);
-      break;
-  }
+  const icon = options?.icon ?? VARIANT_ICONS[variant];
+  
+  return sonnerToast(message, {
+    icon,
+    duration,
+    ...options,
+  });
 }
 
 /**
