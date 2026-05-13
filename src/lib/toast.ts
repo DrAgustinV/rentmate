@@ -2,7 +2,7 @@ import { toast as sonnerToast, type ToastOptions as SonnerToastOptions } from "s
 
 export type ToastVariant = "success" | "error" | "info" | "warning" | "silent";
 
-export interface ToastOptions extends Omit<SonnerToastOptions, "type"> {
+export interface ToastOptions extends Omit<SonnerToastOptions, "type" | "duration"> {
   title?: string;
   description?: string;
   duration?: number;
