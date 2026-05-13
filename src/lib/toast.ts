@@ -1,36 +1,53 @@
 import { toast as sonnerToast, type ToastOptions as SonnerToastOptions } from "sonner";
 import type { ReactNode } from "react";
 
-export type ToastVariant = 'success' | 'error' | 'info' | 'warning' | 'silent' | 'loading';
+export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'silent';
 
-export interface ToastOptions extends Omit<SonnerToastOptions, "duration"> {
+export interface UnifiedToastOptions extends Omit<SonnerToastOptions, "duration"> {
+  title?: string | ReactNode;
+  description?: string | ReactNode;
   duration?: number;
 }
 
 const DEFAULT_DURATION = 3000;
 
-/**
- * Unified toast wrapper that standardizes success, error, info, warning, silent, and loading patterns.
- * Provides consistent defaults, predictable API shape, and centralized configuration.
- */
-export const toast = {
-  success: (message: string | ReactNode, options?: ToastOptions) => {
-    sonnerToast.success(message, { duration: DEFAULT_DURATION, ...options });
+const showToast = {
+  success: (options: UnifiedToastOptions) => {
+    const { title, description, duration, ...rest } = options;
+    sonnerToast.success(title || '', { description, duration: duration ?? DEFAULT_DURATION, ...rest });
   },
-  error: (message: string | ReactNode, options?: ToastOptions) => {
-    sonnerToast.error(message, { duration: DEFAULT_DURATION, ...options });
+  error: (options: UnifiedToastOptions) => {
+    const { title, description, duration, ...rest } = options;
+    sonnerToast.error(title || '', { description, duration: duration ?? DEFAULT_DURATION, ...rest });
   },
-  info: (message: string | ReactNode, options?: ToastOptions) => {
-    sonnerToast.info(message, { duration: DEFAULT_DURATION, ...options });
+  info: (options: UnifiedToastOptions) => {
+    const { title, description, duration, ...rest } = options;
+    sonnerToast.info(title || '', { description, duration: duration ?? DEFAULT_DURATION, ...rest });
   },
-  warning: (message: string | ReactNode, options?: ToastOptions) => {
-    sonnerToast.warning(message, { duration: DEFAULT_DURATION, ...options });
+  warning: (options: UnifiedToastOptions) => {
+    const { title, description, duration, ...rest } = options;
+    sonnerToast.warning(title || '', { description, duration: duration ?? DEFAULT_DURATION, ...rest });
   },
-  silent: (message: string | ReactNode, options?: ToastOptions) => {
-    sonnerToast(message, { duration: 0, ...options });
+  silent: (options: UnifiedToastOptions) => {
+    const { title, description, ...rest } = options;
+    console.log(`[Toast Silent] ${title || ''}: ${description || ''}`);
+    sonnerToast(title || '', { 
+      description, 
+      duration: 0, 
+      className: 'opacity-0 pointer-events-none',
+      ...rest 
+    });
   },
-  loading: (message: string | ReactNode, options?: ToastOptions) => {
-    sonnerToast.loading(message, { duration: Infinity, ...options });
-  },
-  dismiss: (id?: string) => sonnerToast.dismiss(id),
+  show: (type: ToastType, options: UnifiedToastOptions) => {
+    switch (type) {
+      case 'success': return showToast.success(options);
+      case 'error': return showToast.error(options);
+      case 'info': return showToast.info(options);
+      case 'warning': return showToast.warning(options);
+      case 'silent': return showToast.silent(options);
+      default: return showToast.info(options);
+    }
+  }
 };
+
+export { showToast };
