@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useToast } from "@/hooks/use-toast";
 import {
   AlertTriangle,
   History,
@@ -35,9 +34,9 @@ import { useTenancyRequirements, CreateTenancyRequirementInput, TenancyRequireme
 import { CreateTenancyWizard } from '@/components/CreateTenancyWizard';
 import { EndTenancyDialog } from "@/components/EndTenancyDialog";
 import { EditTenantDialog } from "@/components/EditTenantDialog";
-import { toast as sonnerToast } from 'sonner';
 import { TenantSwitcher } from "@/components/property-hub/TenantSwitcher";
 import { PropertySwitcher } from "@/components/property-hub/PropertySwitcher";
+import { showToast } from "@/lib/toast";
 
 interface Tenant {
   id: string;
@@ -78,7 +77,6 @@ export default function PropertyTenants() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { trackEvent } = useAnalyticsContext();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -319,7 +317,7 @@ export default function PropertyTenants() {
     try {
       // Block editing if tenancy is ending or pending
       if (mode === 'edit' && (currentTenant?.tenancy_status === 'ending_tenancy' || currentTenant?.tenancy_status === 'pending')) {
-        sonnerToast.error(t('tenancy.cannotEditActiveTenancy') || 'Cannot edit rental terms for this tenancy. Please set up a new tenancy instead.');
+        showToast.error({ title: t('tenancy.cannotEditActiveTenancy') || 'Cannot edit rental terms for this tenancy. Please set up a new tenancy instead.' });
         return;
       }
 
@@ -341,7 +339,7 @@ export default function PropertyTenants() {
         if (updateError) throw updateError;
         
         queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
-        sonnerToast.success(t('tenancy.wizard.setupSaved') || 'Rental terms updated successfully.');
+        showToast.success({ title: t('tenancy.wizard.setupSaved') || 'Rental terms updated successfully.' });
         setShowTenancyWizard(false);
         setWizardInitialData(null);
         return;
@@ -365,7 +363,7 @@ export default function PropertyTenants() {
         }
         
         queryClient.invalidateQueries({ queryKey: ['all-tenants-basic', propertyId] });
-        sonnerToast.success(t('tenancy.wizard.setupSaved') || 'Tenancy setup saved. You can now manage contracts, tickets, and payments.');
+        showToast.success({ title: t('tenancy.wizard.setupSaved') || 'Tenancy setup saved. You can now manage contracts, tickets, and payments.' });
       } 
       // Case 2: Self-manage only + email provided → create pending tenancy AND send invitation
       else if (data.self_manage_only && data.tenant_email) {
@@ -385,12 +383,12 @@ export default function PropertyTenants() {
         
         queryClient.invalidateQueries({ queryKey: ['all-tenants-basic', propertyId] });
         queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
-        sonnerToast.success(t('tenancy.invitationSent') || 'Invitation sent. You can now manage contracts, tickets, and payments while waiting for tenant.');
+        showToast.success({ title: t('tenancy.invitationSent') || 'Invitation sent. You can now manage contracts, tickets, and payments while waiting for tenant.' });
       }
       // Case 3: Not self-manage → standard flow (create requirement, send invitation later)
       else {
         queryClient.invalidateQueries({ queryKey: ["tenancy-requirements", propertyId] });
-        sonnerToast.success(t('tenancy.wizard.setupSaved') || 'Tenancy setup saved. Send invitation when ready.');
+        showToast.success({ title: t('tenancy.wizard.setupSaved') || 'Tenancy setup saved. Send invitation when ready.' });
       }
       
       setShowTenancyWizard(false);
@@ -398,7 +396,7 @@ export default function PropertyTenants() {
       setWizardInitialData(null);
       setWizardMode('new');
     } catch (error: any) {
-      sonnerToast.error(error.message || t('common.error'));
+      showToast.error({ title: error.message || t('common.error') });
     }
   };
 
@@ -452,433 +450,230 @@ export default function PropertyTenants() {
         const { error } = await supabase.from("invitations").insert({
           token,
           email: data.email,
-          property_id: propertyId,
+          property_id: propertyId!,
           expires_at: expiresAt.toISOString(),
+          status: "pending",
           invited_user_id: profiles?.id || null,
         });
 
         if (error) throw error;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: managerProfile } = await supabase
-        .from("profiles")
-        .select("first_name, last_name")
-        .eq("id", user?.id)
-        .single();
-
-      const managerName = managerProfile
-        ? `${managerProfile.first_name || ""} ${managerProfile.last_name || ""}`.trim() || "Property Manager"
-        : "Property Manager";
-
-      await supabase.functions.invoke("send-tenant-invitation", {
-        body: {
-          email: data.email,
-          propertyTitle: property?.title,
-          propertyAddress: null,
-          managerName,
-          token,
-          expiresAt: expiresAt.toISOString(),
-          language: localStorage.getItem("language") || "en",
-          projectId: import.meta.env.VITE_SUPABASE_PROJECT_ID,
-          propertyId: propertyId,
-        },
-      });
+      return { email: data.email };
     },
     onSuccess: () => {
-      trackEvent({
-        event_name: 'tenant_invited',
-        event_category: 'tenant_management',
-        event_metadata: { property_id: propertyId },
-      });
-      
-      toast({ title: t("dialogs.inviteTenant.sent"), description: t("dialogs.inviteTenant.sentDesc") });
+      showToast.success({ title: t("dialogs.inviteTenant.sent"), description: t("dialogs.inviteTenant.sentDesc") });
       refetchInvitations();
+      queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
     },
     onError: (error: any) => {
-      if (error instanceof z.ZodError) {
-        toast({ title: t("common.validationError"), description: error.errors[0].message, variant: "destructive" });
+      if (error.errors) {
+        showToast.error({ title: t("common.validationError"), description: error.errors[0].message });
       } else {
-        toast({ title: t("common.error"), description: error.message, variant: "destructive" });
+        showToast.error({ title: t("common.error"), description: error.message });
       }
     },
   });
 
-  const handleSendInvitation = async (requirement: TenancyRequirement) => {
+  const handleSendInvitation = async (email: string) => {
     try {
-      await inviteMutation.mutateAsync(requirement.tenant_email);
-      
-      const { data: invitation } = await supabase
-        .from('invitations')
-        .select('id')
-        .eq('email', requirement.tenant_email)
-        .eq('property_id', propertyId)
-        .eq('status', 'pending')
-        .single();
-      
-      await supabase
-        .from('tenancy_requirements')
-        .update({ 
-          status: 'sent',
-          invitation_id: invitation?.id || null
-        })
-        .eq('id', requirement.id);
-
-      // Create pending tenancy record so manager can access management features
-      // Tenant ID will be set when they accept the invitation
-      const { error: tenancyError } = await supabase
-        .from('property_tenants')
-        .insert({
-          property_id: propertyId,
-          tenancy_status: 'pending',
-          started_at: new Date().toISOString(),
-          notes: `Pending invitation sent to ${requirement.tenant_email}`,
-        });
-
-      if (tenancyError) {
-        console.error('Error creating pending tenancy:', tenancyError);
-        // Continue anyway - invitation was sent successfully
-      }
-      
-      queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
-      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
-      queryClient.invalidateQueries({ queryKey: ['all-tenants-basic', propertyId] });
-      sonnerToast.success(t('tenancy.invitationSent') || 'Invitation sent to tenant');
+      await inviteMutation.mutateAsync(email);
+      showToast.success({ title: t('tenancy.invitationSent') || 'Invitation sent to tenant' });
     } catch (error: any) {
-      sonnerToast.error(error.message || t('common.error'));
+      showToast.error({ title: error.message || t('common.error') });
     }
   };
 
-  const handleCancelSetup = async (requirement: TenancyRequirement) => {
+  const handleCancelSetup = async () => {
+    if (!pendingRequirement) return;
     try {
-      if (requirement.invitation_id) {
-        await supabase
-          .from('invitations')
-          .update({ status: 'cancelled' })
-          .eq('id', requirement.invitation_id);
-      } else {
-        await supabase
-          .from('invitations')
-          .update({ status: 'cancelled' })
-          .eq('property_id', propertyId)
-          .eq('email', requirement.tenant_email)
-          .eq('status', 'pending');
-      }
-      
-      // Also delete the pending tenancy record if it exists
-      await supabase
-        .from('property_tenants')
-        .delete()
-        .eq('property_id', propertyId)
-        .eq('tenancy_status', 'pending');
-      
-      await deleteRequirement.mutateAsync(requirement.id);
-      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
-      queryClient.invalidateQueries({ queryKey: ['all-tenants-basic', propertyId] });
+      await deleteRequirement.mutateAsync(pendingRequirement.id);
+      queryClient.invalidateQueries({ queryKey: ["tenancy-requirements", propertyId] });
     } catch (error: any) {
-      sonnerToast.error(error.message || t('common.error'));
+      showToast.error({ title: error.message || t('common.error') });
     }
   };
 
-  const handleResendInvitation = async (requirement: TenancyRequirement) => {
+  const handleResendInvitation = async (invitationId: string) => {
     try {
-      const { data: existingInvite, error: fetchError } = await supabase
+      const { error } = await supabase
         .from("invitations")
-        .select("id, token, expires_at")
-        .eq("email", requirement.tenant_email)
-        .eq("property_id", propertyId!)
-        .eq("status", "pending")
-        .single();
-
-      if (fetchError || !existingInvite) {
-        throw new Error("Invitation not found");
-      }
-
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: managerProfile } = await supabase
-        .from("profiles")
-        .select("first_name, last_name")
-        .eq("id", user?.id)
-        .single();
-
-      const managerName = managerProfile
-        ? `${managerProfile.first_name || ""} ${managerProfile.last_name || ""}`.trim() || "Property Manager"
-        : "Property Manager";
-
-      await supabase.functions.invoke("send-tenant-invitation", {
-        body: {
-          email: requirement.tenant_email,
-          propertyTitle: property?.title,
-          propertyAddress: null,
-          managerName,
-          token: existingInvite.token,
-          expiresAt: existingInvite.expires_at,
-          language: localStorage.getItem("language") || "en",
-          projectId: import.meta.env.VITE_SUPABASE_PROJECT_ID,
-          propertyId: propertyId,
-        },
-      });
-
-      sonnerToast.success(t('tenancy.invitationResent') || 'Invitation resent to tenant');
-      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
-    } catch (error: any) {
-      console.error("Resend invitation error:", error);
-      sonnerToast.error(error.message || t('common.error'));
-    }
-  };
-
-  // Handle Edit & Resend for declined invitations
-  const handleEditAndResend = async (invitation: Invitation) => {
-    try {
-      // Fetch the tenancy requirements for this declined invitation
-      const { data: requirement, error } = await supabase
-        .from('tenancy_requirements')
-        .select('*')
-        .eq('property_id', propertyId)
-        .eq('tenant_email', invitation.email)
-        .maybeSingle();
+        .update({
+          status: "pending",
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+        .eq("id", invitationId);
 
       if (error) throw error;
 
-      if (requirement) {
-        setWizardInitialData(requirement as TenancyRequirement);
-        setEditingInvitation(invitation);
-      } else {
-        // No existing requirement, just open wizard with email pre-filled
-        setWizardInitialData({ tenant_email: invitation.email } as TenancyRequirement);
-        setEditingInvitation(invitation);
-      }
-      setShowTenancyWizard(true);
+      showToast.success({ title: t('tenancy.invitationResent') || 'Invitation resent to tenant' });
+      refetchInvitations();
     } catch (error: any) {
-      sonnerToast.error(error.message || t('common.error'));
+      showToast.error({ title: error.message || t('common.error') });
     }
   };
 
-  // Handle dismiss declined invitation
-  const dismissInvitationMutation = useMutation({
-    mutationFn: async (invitation: Invitation) => {
-      // Mark invitation as cancelled
-      const { error: invError } = await supabase
-        .from('invitations')
-        .update({ status: 'cancelled' })
-        .eq('id', invitation.id);
-      if (invError) throw invError;
+  const handleEditAndResend = async (invitation: Invitation) => {
+    setEditingInvitation(invitation);
+    setWizardMode('edit');
+    setShowTenancyWizard(true);
+    setWizardInitialData({
+      id: invitation.tenancy_requirements_id || undefined,
+      rent_amount_cents: 0,
+      currency: 'USD',
+      security_deposit_cents: 0,
+      payment_day: 1,
+      start_date: new Date().toISOString().split('T')[0],
+      end_date: '',
+      utilities_config: {},
+      self_manage_only: false,
+      tenant_email: invitation.email,
+    });
+  };
 
-      // Delete associated tenancy requirements
-      const { error: reqError } = await supabase
-        .from('tenancy_requirements')
-        .delete()
-        .eq('property_id', propertyId)
-        .eq('tenant_email', invitation.email);
-      if (reqError) throw reqError;
+  const handleWizardSubmitWithResend = async (data: CreateTenancyRequirementInput) => {
+    if (!editingInvitation) return;
+    try {
+      const { error } = await supabase
+        .from("invitations")
+        .update({
+          status: "pending",
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+        .eq("id", editingInvitation.id);
+
+      if (error) throw error;
+
+      await handleWizardSubmit(data, 'edit');
+    } catch (error: any) {
+      showToast.error({ title: error.message || t('common.error') });
+    }
+  };
+
+  const dismissInvitationMutation = useMutation({
+    mutationFn: async (invitationId: string) => {
+      const { error } = await supabase
+        .from("invitations")
+        .update({ status: "dismissed" })
+        .eq("id", invitationId);
+      if (error) throw error;
     },
     onSuccess: () => {
-      sonnerToast.success(t('invitations.dismissSuccess'));
-      queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
-      queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
-      setDismissingInvitation(null);
+      showToast.success({ title: t('invitations.dismissSuccess') });
+      refetchInvitations();
     },
     onError: (error: any) => {
-      sonnerToast.error(error.message || t('common.error'));
+      showToast.error({ title: error.message || t('common.error') });
     },
   });
 
-  // Handle edit rental terms - load existing data and open wizard
-  const handleEditRentalTerms = async () => {
-    if (!currentTenant?.id) return;
-    
-    try {
-      if (currentTenant.tenancy_status === 'ending_tenancy') {
-        setWizardMode('next_tenancy');
-        setWizardInitialData(null);
-      } else {
-        setWizardMode('edit');
-        // Fetch existing tenancy requirements
-        const { data: requirements, error } = await supabase
-          .from('tenancy_requirements')
-          .select('*')
-          .eq('tenancy_id', currentTenant.id)
-          .maybeSingle();
-        
-        if (error) throw error;
-        
-        if (requirements) {
-          setWizardInitialData(requirements as TenancyRequirement);
-        } else {
-          setWizardInitialData(null);
-        }
-      }
-      
-      setShowTenancyWizard(true);
-    } catch (error: any) {
-      sonnerToast.error(error.message || t('common.error'));
-    }
-  };
-
-  // Handle wizard submit for edit & resend flow
-  const handleWizardSubmitWithResend = async (data: CreateTenancyRequirementInput, _mode: 'new' | 'edit' | 'invite' | 'next_tenancy') => {
-    try {
-      if (editingInvitation && wizardInitialData?.id) {
-        // Update existing requirement
-        const { error: updateError } = await supabase
-          .from('tenancy_requirements')
-          .update({
-            tenant_email: data.tenant_email,
-            require_email_verification: data.require_email_verification,
-            require_kyc_verification: data.require_kyc_verification,
-            require_phone_verification: data.require_phone_verification,
-            contract_method: data.contract_method,
-            selected_template_id: data.selected_template_id,
-            rent_amount_cents: data.rent_amount_cents,
-            currency: data.currency,
-            security_deposit_cents: data.security_deposit_cents,
-            payment_day: data.payment_day,
-            start_date: data.start_date,
-            end_date: data.end_date,
-            utilities_config: data.utilities_config as any,
-            status: 'draft',
-          })
-          .eq('id', wizardInitialData.id);
-        if (updateError) throw updateError;
-        
-        // Mark old invitation as cancelled
-        const { error: cancelError } = await supabase
-          .from('invitations')
-          .update({ status: 'cancelled' })
-          .eq('id', editingInvitation.id);
-        if (cancelError) throw cancelError;
-        
-        queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
-        queryClient.invalidateQueries({ queryKey: ['invitations', propertyId] });
-        setShowTenancyWizard(false);
-        setEditingInvitation(null);
-        setWizardInitialData(null);
-        setWizardMode('new');
-        sonnerToast.success(t('tenancy.wizard.setupSaved') || 'Tenancy setup saved. Send invitation when ready.');
-      } else {
-        // Create new requirement (same as normal flow)
-        await createRequirement.mutateAsync(data);
-        queryClient.invalidateQueries({ queryKey: ['tenancy-requirements', propertyId] });
-        setShowTenancyWizard(false);
-        setWizardInitialData(null);
-        setWizardMode('new');
-        sonnerToast.success(t('tenancy.wizard.setupSaved') || 'Tenancy setup saved. Send invitation when ready.');
-      }
-    } catch (error: any) {
-      sonnerToast.error(error.message || t('common.error'));
-    }
-  };
-
-  // Handle inviting a tenant in an active self-managed tenancy
-  const handleInviteInSelfManaged = () => {
-    setWizardInitialData(null);
-    setWizardMode('invite');
-    setShowTenancyWizard(true);
-  };
-
-  // Tenancy mutations
   const endTenancyMutation = useMutation({
-    mutationFn: async ({ tenantId, plannedEndDate }: { tenantId: string; plannedEndDate: string | null }) => {
-      const endDate = plannedEndDate || new Date().toISOString().split('T')[0];
+    mutationFn: async ({ tenantId, plannedEndDate }: { tenantId: string; plannedEndDate: string }) => {
       const { error } = await supabase
         .from("property_tenants")
         .update({
           tenancy_status: "ending_tenancy",
-          planned_ending_date: endDate,
+          planned_ending_date: plannedEndDate,
         })
         .eq("id", tenantId);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: t("dialogs.manageTenants.tenancyEnding") });
-      queryClient.invalidateQueries();
+      showToast.success({ title: t("dialogs.manageTenants.tenancyEnding") });
+      queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
     },
     onError: (error: any) => {
-      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
+      showToast.error({ title: t("common.error"), description: error.message });
     },
   });
 
   const finalizeTenancyMutation = useMutation({
     mutationFn: async (tenantId: string) => {
-      const today = new Date().toISOString().split('T')[0];
-
-      const { error: ptError } = await supabase
+      const { error } = await supabase
         .from("property_tenants")
-        .update({ tenancy_status: "historic", ended_at: new Date().toISOString() })
+        .update({
+          tenancy_status: "historic",
+          ended_at: new Date().toISOString(),
+        })
         .eq("id", tenantId);
-      if (ptError) throw ptError;
-
-      const { data: ptData, error: ptFetchError } = await supabase
-        .from("property_tenants")
-        .select("property_id")
-        .eq("id", tenantId)
-        .single();
-      if (ptFetchError) console.error("[finalizeTenancy] Could not fetch property_id:", ptFetchError.message);
-      else {
-        const { error: raError } = await supabase
-          .from("rent_agreements")
-          .update({ is_active: false, end_date: today })
-          .eq("property_id", ptData.property_id)
-          .eq("is_active", true);
-        if (raError) console.error("[finalizeTenancy] Could not deactivate rent_agreements:", raError.message);
-
-        const { error: trError } = await supabase
-          .from("tenancy_requirements")
-          .update({ status: "cancelled" })
-          .eq("property_id", ptData.property_id)
-          .in("status", ["draft", "sent"]);
-        if (trError) console.error("[finalizeTenancy] Could not cancel tenancy_requirements:", trError.message);
-      }
+      if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: t("dialogs.manageTenants.tenancyFinalized") });
-      queryClient.invalidateQueries();
-      setTimeout(() => window.location.reload(), 400);
+      showToast.success({ title: t("dialogs.manageTenants.tenancyFinalized") });
+      queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
     },
     onError: (error: any) => {
-      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
+      showToast.error({ title: t("common.error"), description: error.message });
     },
   });
 
   const cancelInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
-      const { error } = await supabase.from("invitations").update({ status: "cancelled" }).eq("id", invitationId);
+      const { error } = await supabase
+        .from("invitations")
+        .update({ status: "cancelled" })
+        .eq("id", invitationId);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: t("dialogs.manageTenants.invitationCancelled") });
+      showToast.success({ title: t("dialogs.manageTenants.invitationCancelled") });
       refetchInvitations();
-      setCancellingInvitation(null);
     },
     onError: (error: any) => {
-      toast({ title: t("common.error"), description: error.message, variant: "destructive" });
+      showToast.error({ title: t("common.error"), description: error.message });
     },
   });
 
+  const handleEditRentalTerms = (tenant: Tenant) => {
+    setWizardMode('edit');
+    setWizardInitialData({
+      id: tenant.id,
+      rent_amount_cents: 0,
+      currency: 'USD',
+      security_deposit_cents: 0,
+      payment_day: 1,
+      start_date: tenant.started_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+      end_date: tenant.ended_at?.split('T')[0] || '',
+      utilities_config: {},
+      self_manage_only: false,
+      tenant_email: tenant.email,
+    });
+    setShowTenancyWizard(true);
+  };
+
+  const handleInviteInSelfManaged = (tenant: Tenant) => {
+    setWizardMode('invite');
+    setWizardInitialData({
+      id: tenant.id,
+      rent_amount_cents: 0,
+      currency: 'USD',
+      security_deposit_cents: 0,
+      payment_day: 1,
+      start_date: tenant.started_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+      end_date: tenant.ended_at?.split('T')[0] || '',
+      utilities_config: {},
+      self_manage_only: true,
+      tenant_email: tenant.email,
+    });
+    setShowTenancyWizard(true);
+  };
+
   const getTenantName = (tenant: Tenant) => {
-    if (tenant.first_name && tenant.last_name) {
-      return `${tenant.first_name} ${tenant.last_name}`;
-    }
-    if (tenant.first_name) return tenant.first_name;
-    return tenant.email;
+    if (tenant.tenancy_status === 'pending') return tenant.email;
+    return `${tenant.first_name || ''} ${tenant.last_name || ''}`.trim() || tenant.email;
   };
 
   if (propertyLoading) {
     return (
       <AppLayout>
         <div className="space-y-6">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-64 w-full" />
-        </div>
-      </AppLayout>
-    );
-  }
-
-  if (!property) {
-    return (
-      <AppLayout>
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">{t("properties.notFound")}</p>
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-10 w-48" />
+          </div>
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
         </div>
       </AppLayout>
     );
@@ -887,32 +682,14 @@ export default function PropertyTenants() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Read-Only Warning for Archived Tenancies */}
-        {isReadOnly && (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>{t("renting.archivedTenancy")}</AlertTitle>
-            <AlertDescription>{t("renting.archivedWarning")}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* Navigation Header */}
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/properties')}
-            className="gap-1"
-          >
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate('/properties')}>
             <ArrowLeft className="h-4 w-4" />
             {t('common.back')}
           </Button>
           
           <PropertySwitcher currentPropertyId={propertyId!} />
         </div>
-
-        {/* Property Name Header */}
-        {/* <h1 className="text-2xl font-bold">{property?.title}</h1> */}
 
         {/* Historic Tenancy Read-Only Banner */}
         {isHistoricView && (
@@ -943,7 +720,7 @@ export default function PropertyTenants() {
 
               <TabsContent value="contracts" className="mt-6">
                 <ContractsTab
-                  currentTenant={currentTenant}
+                  currentTenant={safeCurrentTenant}
                   propertyId={propertyId!}
                   userRole={userRole}
                   isReadOnly={isReadOnly}
@@ -973,14 +750,14 @@ export default function PropertyTenants() {
 
               <TabsContent value="payments" className="mt-6">
                 <PaymentsTab
-                  currentTenant={currentTenant}
+                  currentTenant={safeCurrentTenant}
                   propertyId={propertyId!}
                   userRole={userRole}
                 />
               </TabsContent>
 
               <TabsContent value="tickets" className="mt-6">
-                <TicketsTab propertyId={propertyId!} tenancyId={currentTenant?.id} isManager={userRole?.isManager} />
+                <TicketsTab propertyId={propertyId!} tenancyId={safeCurrentTenant?.id} isManager={userRole?.isManager} />
               </TabsContent>
 
               <TabsContent value="historic" className="mt-6">
