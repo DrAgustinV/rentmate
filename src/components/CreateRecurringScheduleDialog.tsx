@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { showToast } from "@/lib/toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -69,7 +69,7 @@ export function CreateRecurringScheduleDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recurring-schedules"] });
-      toast.success("Recurring schedule created");
+      showToast.success({ title: "Recurring schedule created" });
       onOpenChange(false);
       setTemplateId("");
       setFrequency("monthly");
@@ -78,14 +78,14 @@ export function CreateRecurringScheduleDialog({
     },
     onError: (error) => {
       console.error("Error creating schedule:", error);
-      toast.error("Failed to create schedule");
+      showToast.error({ title: "Failed to create schedule" });
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!templateId || !startDate) {
-      toast.error("Please select a template and start date");
+      showToast.error({ title: "Please select a template and start date" });
       return;
     }
     createScheduleMutation.mutate();

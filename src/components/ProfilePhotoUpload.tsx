@@ -3,7 +3,7 @@ import { Upload, X, Camera, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { showToast } from "@/lib/toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfilePhotoUploadProps {
@@ -29,7 +29,7 @@ export function ProfilePhotoUpload({
 }: ProfilePhotoUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const { toast } = useToast();
+  const toast = showToast;
   const { t } = useLanguage();
 
   const sizeClasses = {
@@ -69,21 +69,13 @@ export function ProfilePhotoUpload({
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: t('common.error'),
-        description: t('account.photoInvalidType'),
-        variant: "destructive"
-      });
+      toast.error({ title: t('common.error'), description: t('account.photoInvalidType') });
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: t('common.error'),
-        description: t('account.photoTooLarge'),
-        variant: "destructive"
-      });
+      toast.error({ title: t('common.error'), description: t('account.photoTooLarge') });
       return;
     }
 
@@ -116,16 +108,9 @@ export function ProfilePhotoUpload({
       setPreviewUrl(signedData.signedUrl);
       onPhotoChange?.(fileName);
       
-      toast({
-        title: t('common.success'),
-        description: t('account.photoUploaded')
-      });
+      toast.success({ title: t('common.success'), description: t('account.photoUploaded') });
     } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message,
-        variant: "destructive"
-      });
+      toast.error({ title: t('common.error'), description: error.message });
     } finally {
       setUploading(false);
     }
@@ -151,16 +136,9 @@ export function ProfilePhotoUpload({
       setPreviewUrl(null);
       onPhotoChange?.(null);
       
-      toast({
-        title: t('common.success'),
-        description: t('account.photoRemoved')
-      });
+      toast.success({ title: t('common.success'), description: t('account.photoRemoved') });
     } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message,
-        variant: "destructive"
-      });
+      toast.error({ title: t('common.error'), description: error.message });
     }
   };
 
