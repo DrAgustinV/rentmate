@@ -3,7 +3,7 @@ import { toast } from "sonner";
 export type NotificationVariant = 'success' | 'error' | 'info' | 'silent';
 
 export interface NotificationOptions {
-  title: string;
+  title?: string;
   description?: string;
   duration?: number;
   action?: {
@@ -16,23 +16,22 @@ export const useNotification = () => {
   const show = (variant: NotificationVariant, options: NotificationOptions) => {
     const { title, description, duration = 3000, action } = options;
 
+    if (variant === 'silent') {
+      return;
+    }
+
     switch (variant) {
       case 'success':
-        toast.success(title, { description, duration, action });
+        toast.success(title || 'Success', { description, duration, action });
         break;
       case 'error':
-        toast.error(title, { description, duration, action });
+        toast.error(title || 'Error', { description, duration, action });
         break;
       case 'info':
-        toast.info(title, { description, duration, action });
-        break;
-      case 'silent':
-        // Silent: neutral styling, typically used for informational updates or non-intrusive feedback
-        // Uses infinite duration to require manual dismissal or auto-dismiss after a longer period if configured globally
-        toast(title, { description, duration: Infinity, action });
+        toast.info(title || 'Info', { description, duration, action });
         break;
       default:
-        toast(title, { description, duration, action });
+        toast(title || 'Notification', { description, duration, action });
     }
   };
 

@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { PROPERTIES_QUERY_KEY } from "@/hooks/useProperties";
 import { TENANT_PROPERTIES_QUERY_KEY } from "@/hooks/useTenantProperties";
+import { useNotification } from "@/hooks/useNotification";
 
 interface PropertyPhotoUploadProps {
   propertyId?: string;
@@ -23,9 +23,9 @@ export function PropertyPhotoUpload({
 }: PropertyPhotoUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(currentPhoto);
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+  const { success, error } = useNotification();
 
   // Sync preview URL with prop changes
   useEffect(() => {
@@ -38,21 +38,13 @@ export function PropertyPhotoUpload({
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: t('common.error'),
-        description: "Please upload an image file",
-        variant: "destructive"
-      });
+      error(t('common.error'), "Please upload an image file");
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: t('common.error'),
-        description: "Image must be less than 5MB",
-        variant: "destructive"
-      });
+      error(t('common.error'), "Image must be less than 5MB");
       return;
     }
 
@@ -108,16 +100,9 @@ export function PropertyPhotoUpload({
         queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
       }
       
-      toast({
-        title: t('common.success'),
-        description: t('properties.photoUploaded')
-      });
-    } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message,
-        variant: "destructive"
-      });
+      success(t('common.success'), t('properties.photoUploaded'));
+    } catch (err: any) {
+      error(t('common.error'), err.message);
     } finally {
       setUploading(false);
     }
