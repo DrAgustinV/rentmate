@@ -25,7 +25,7 @@ export const showToast = {
    * Generic dispatcher to programmatically trigger any standardized variant.
    * Centralizes duration defaults and prevents accidental override of core toast properties.
    */
-  show: (variant: ToastVariant, options: ToastOptions) => {
+  show: (variant: ToastVariant, options: ToastOptions = {}) => {
     const { title, description, duration, ...rest } = options;
     const defaultDuration = DEFAULT_DURATIONS[variant];
     
@@ -50,11 +50,11 @@ export const showToast = {
     }
   },
 
-  success: (options: ToastOptions) => showToast.show("success", options),
-  error: (options: ToastOptions) => showToast.show("error", options),
-  info: (options: ToastOptions) => showToast.show("info", options),
-  warning: (options: ToastOptions) => showToast.show("warning", options),
-  silent: (options: ToastOptions) => showToast.show("silent", options),
+  success: (options?: ToastOptions) => showToast.show("success", options),
+  error: (options?: ToastOptions) => showToast.show("error", options),
+  info: (options?: ToastOptions) => showToast.show("info", options),
+  warning: (options?: ToastOptions) => showToast.show("warning", options),
+  silent: (options?: ToastOptions) => showToast.show("silent", options),
 
   dismiss: (id?: string) => sonnerToast.dismiss(id),
   remove: (id?: string) => sonnerToast.remove(id),
