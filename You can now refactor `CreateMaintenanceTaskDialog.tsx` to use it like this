@@ -1,0 +1,13 @@
+const createTaskMutation = useStandardMutation({
+  mutationFn: async () => { /* your DB logic */ },
+  showSuccessToast: true,
+  showErrorToast: true,
+  trackSuccessEvent: (data) => {
+    trackEvent({ event_name: 'maintenance_scheduled', ... });
+  },
+  invalidateQueries: [["ticket-templates"], ["recurring-schedules"]],
+  onSuccess: (data) => {
+    onOpenChange(false);
+    resetForm();
+  },
+});
