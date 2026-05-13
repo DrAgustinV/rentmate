@@ -1,0 +1,160 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
+
+export interface SEPAMandate {
+  id: string;
+  agreement_id: string;
+  mandate_id: string | null;
+  mandate_status: 'pending' | 'pending_signature' | 'active' | 'failed' | 'cancelled';
+  mandate_pdf_url: string | null;
+  mandate_signed_at: string | null;
+  creditor_name: string;
+  creditor_iban: string;
+  debtor_name: string;
+  debtor_iban: string;
+  amount_cents: number;
+  currency: string;
+  payment_day: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ViafirmaSession {
+  sessionId: string;
+  signatureUrl: string;
+  status: 'pending' | 'completed' | 'failed';
+}
+
+export function useSEPAMandate(agreementId: string) {
+  const { t } = useLanguage();
+  const queryClient = useQueryClient();
+  const [viafirmaSession, setViafirmaSession] = useState<ViafirmaSession | null>(null);
+  const [isPolling, setIsPolling] = useState(false);
+
+  // Fetch existing mandate
+  const { data: mandate, isLoading, refetch } = useQuery({
+    queryKey: ['sepa-mandate', agreementId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('rent_agreements')
+        .select('mandate_id, mandate_status, mandate_pdf_url, mandate_signed_at, tenant_iban')
+        .eq('id', agreementId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!agreementId,
+  });
+
+  // Create new mandate session
+  const createMandateMutation = useMutation({
+    mutationFn: async (data: {
+      creditorName: string;
+      creditorIban: string;
+      debtorName: string;
+      debtorIban: string;
+      amountCents: number;
+      currency: string;
+      paymentDay: number;
+    }) => {
+      // In production, this would call Viafirma API to create a signature session
+      // For now, we simulate the flow
+      const { data: session, error } = await supabase.functions.invoke('create-sepa-mandate-session', {
+        body: data,
+      });
+
+      if (error) throw error;
+      return session;
+    },
+    onSuccess: (session) => {
+      setViafirmaSession(session);
+      setIsPolling(true);
+      toast.success(t('payments.mandate.sessionCreated'));
+    },
+    onError: (error: any) => {
+      toast.error(error.message || t('payments.mandate.sessionFailed'));
+    },
+  });
+
+  // Poll for mandate status
+  useEffect(() => {
+    if (!isPolling || !viafirmaSession) return;
+
+    const pollInterval = setInterval(async () => {
+      const { data, error } = await supabase.functions.invoke('check-mandate-status', {
+        body: { sessionId: viafirmaSession.sessionId },
+      });
+
+      if (error) {
+        console.error('Polling error:', error);
+        return;
+      }
+
+      if (data.status === 'completed') {
+        setIsPolling(false);
+        setViafirmaSession(prev => prev ? { ...prev, status: 'completed' } : null);
+        await refetch();
+        queryClient.invalidateQueries({ queryKey: ['rent-payments'] });
+        toast.success(t('payments.mandate.signedSuccess'));
+      } else if (data.status === 'failed') {
+        setIsPolling(false);
+        setViafirmaSession(prev => prev ? { ...prev, status: 'failed' } : null);
+        toast.error(t('payments.mandate.signedFailed'));
+      }
+    }, 3000);
+
+    return () => clearInterval(pollInterval);
+  }, [isPolling, viafirmaSession, refetch, queryClient, t]);
+
+  // Cancel mandate
+  const cancelMandateMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.functions.invoke('cancel-sepa-mandate', {
+        body: { agreementId },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sepa-mandate', agreementId] });
+      toast.success(t('payments.mandate.cancelled'));
+    },
+    onError: (error: any) => {
+      toast.error(error.message || t('payments.mandate.cancelFailed'));
+    },
+  });
+
+  // Download mandate PDF
+  const downloadMandatePdf = useCallback(async () => {
+    if (!mandate?.mandate_pdf_url) return;
+
+    const { data, error } = await supabase.storage
+      .from('sepa-mandates')
+      .download(mandate.mandate_pdf_url);
+
+    if (error) throw error;
+
+    const url = URL.createObjectURL(data);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sepa-mandate-${agreementId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [mandate?.mandate_pdf_url, agreementId]);
+
+  return {
+    mandate,
+    isLoading,
+    viafirmaSession,
+    isPolling,
+    createMandateMutation,
+    cancelMandateMutation,
+    downloadMandatePdf,
+    refetch,
+  };
+}

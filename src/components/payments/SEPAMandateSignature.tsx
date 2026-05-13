@@ -4,8 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileText, CheckCircle2, Clock, AlertTriangle, Loader2 } from 'lucide-react';
+import { FileText, CheckCircle2, Clock, AlertTriangle, Loader2, Download, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useSEPAMandate } from '@/hooks/useSEPAMandate';
 
 interface SEPAMandateSignatureProps {
   agreement: {
@@ -26,9 +28,21 @@ interface SEPAMandateSignatureProps {
 }
 
 export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '', tenantName }: SEPAMandateSignatureProps) {
+  const { t } = useLanguage();
   const [signing, setSigning] = useState(false);
   const [managerIban, setManagerIban] = useState<string>('');
   const [loadingIban, setLoadingIban] = useState(true);
+
+  const {
+    mandate,
+    isLoading,
+    viafirmaSession,
+    isPolling,
+    createMandateMutation,
+    cancelMandateMutation,
+    downloadMandatePdf,
+    refetch,
+  } = useSEPAMandate(agreement.id);
 
   // Fetch manager's IBAN from profiles
   useEffect(() => {
@@ -58,25 +72,30 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
     }
   }, [agreement.manager_id]);
 
-  const handleMockSignature = async () => {
+  const handleCreateMandate = async () => {
     setSigning(true);
     try {
-      // Mock signature - in production, this would call Viafirma API
-      const { error } = await supabase
-        .from('rent_agreements')
-        .update({
-          mandate_status: 'active',
-          mandate_signed_at: new Date().toISOString(),
-        })
-        .eq('id', agreement.id);
-
-      if (error) throw error;
-
-      toast.success('MOCK: Mandate signed! (Real signature via Viafirma in Phase 2)');
+      await createMandateMutation.mutateAsync({
+        creditorName,
+        creditorIban: managerIban || creditorIban,
+        debtorName: tenantName,
+        debtorIban: agreement.tenant_iban || '',
+        amountCents: agreement.rent_amount_cents,
+        currency: agreement.currency,
+        paymentDay: agreement.payment_day,
+      });
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message || t('payments.mandate.creationFailed'));
     } finally {
       setSigning(false);
+    }
+  };
+
+  const handleCancelMandate = async () => {
+    try {
+      await cancelMandateMutation.mutateAsync();
+    } catch (error: any) {
+      toast.error(error.message || t('payments.mandate.cancelFailed'));
     }
   };
 
@@ -93,7 +112,8 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
   };
 
   const getStatusBadge = () => {
-    switch (agreement.mandate_status) {
+    const status = mandate?.mandate_status || agreement.mandate_status;
+    switch (status) {
       case 'active':
         return (
           <Badge variant="default" className="flex items-center gap-1">
@@ -131,6 +151,11 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
     );
   }
 
+  const status = mandate?.mandate_status || agreement.mandate_status;
+  const isPending = status === 'pending' || status === 'pending_signature';
+  const isActive = status === 'active';
+  const isFailed = status === 'failed';
+
   return (
     <Card>
       <CardHeader>
@@ -148,14 +173,13 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {agreement.mandate_status !== 'active' && (
-          <Alert variant="default">
+        {isFailed && (
+          <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              <p className="font-medium mb-1">⚠️ MOCK MODE</p>
+              <p className="font-medium mb-1">⚠️ Mandate Failed</p>
               <p className="text-sm">
-                This is a mock signature workflow. In production, this will integrate with Viafirma 
-                for legally binding electronic signatures.
+                The mandate signing process failed. Please try again or contact support.
               </p>
             </AlertDescription>
           </Alert>
@@ -182,22 +206,22 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
             </p>
           </div>
 
-          {agreement.mandate_id && (
+          {mandate?.mandate_id && (
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Mandate Reference</p>
-              <p className="text-sm font-mono">{agreement.mandate_id}</p>
+              <p className="text-sm font-mono">{mandate.mandate_id}</p>
             </div>
           )}
 
-          {agreement.mandate_signed_at && (
+          {mandate?.mandate_signed_at && (
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Signed At</p>
-              <p className="text-sm">{new Date(agreement.mandate_signed_at).toLocaleString()}</p>
+              <p className="text-sm">{new Date(mandate.mandate_signed_at).toLocaleString()}</p>
             </div>
           )}
         </div>
 
-        {agreement.mandate_status === 'pending' || agreement.mandate_status === 'pending_signature' ? (
+        {isPending && viafirmaSession && (
           <div className="space-y-3">
             <Alert>
               <FileText className="h-4 w-4" />
@@ -209,20 +233,78 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
               </AlertDescription>
             </Alert>
 
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Complete your signature:</p>
+              <Button 
+                className="w-full" 
+                onClick={() => window.open(viafirmaSession.signatureUrl, '_blank')}
+                disabled={signing}
+              >
+                {signing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Sign Mandate
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {isPolling && (
+              <p className="text-sm text-center text-muted-foreground">
+                Waiting for signature completion...
+              </p>
+            )}
+
+            {!agreement.tenant_iban && (
+              <p className="text-sm text-center text-muted-foreground">
+                Please configure your IBAN before signing the mandate
+              </p>
+            )}
+          </div>
+        )}
+
+        {isActive && (
+          <Alert>
+            <CheckCircle2 className="h-4 w-4" />
+            <AlertDescription>
+              <p className="text-sm font-medium">Mandate Active</p>
+              <p className="text-sm text-muted-foreground">
+                Your SEPA Direct Debit mandate is active and rent payments will be collected automatically.
+              </p>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!isActive && !isPending && !isFailed && (
+          <div className="space-y-3">
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <p className="text-sm">
+                  You need to sign the SEPA Direct Debit mandate to enable automatic rent payments.
+                </p>
+              </AlertDescription>
+            </Alert>
+
             <Button 
-              onClick={handleMockSignature} 
+              onClick={handleCreateMandate} 
               disabled={signing || !agreement.tenant_iban}
               className="w-full"
             >
               {signing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing...
+                  Creating Mandate...
                 </>
               ) : (
                 <>
                   <FileText className="mr-2 h-4 w-4" />
-                  Sign Mandate (Mock)
+                  Sign Mandate
                 </>
               )}
             </Button>
@@ -233,17 +315,28 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
               </p>
             )}
           </div>
-        ) : agreement.mandate_status === 'active' ? (
-          <Alert>
-            <CheckCircle2 className="h-4 w-4" />
-            <AlertDescription>
-              <p className="text-sm font-medium">Mandate Active</p>
-              <p className="text-sm text-muted-foreground">
-                Your SEPA Direct Debit mandate is active and rent payments will be collected automatically.
-              </p>
-            </AlertDescription>
-          </Alert>
-        ) : null}
+        )}
+
+        {isActive && (
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={downloadMandatePdf}
+              className="flex-1"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download Mandate PDF
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleCancelMandate}
+              className="flex-1 border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancel Mandate
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
