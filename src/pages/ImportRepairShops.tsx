@@ -7,7 +7,7 @@ import { PreviewStep } from '@/components/import/PreviewStep';
 import { ProcessingRepairShopsStep } from '@/components/import/ProcessingRepairShopsStep';
 import { ResultsRepairShopsStep } from '@/components/import/ResultsRepairShopsStep';
 import { parseCSV, ParsedRow } from '@/lib/import/csvParser';
-import { useToast } from '@/hooks/use-toast';
+import { showToast } from '@/lib/toast';
 import { repairShopBaseSchema } from '@/lib/validations/repair-shop.schema';
 import { useRepairShopImport, RepairShopImportRecord } from '@/hooks/useRepairShopImport';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,6 @@ export default function ImportRepairShops() {
   const [parsedRows, setParsedRows] = useState<RepairShopParsedRow[]>([]);
   const [importSummary, setImportSummary] = useState<any>(null);
 
-  const { toast } = useToast();
   const importMutation = useRepairShopImport();
   const navigate = useNavigate();
 
@@ -99,10 +98,9 @@ export default function ImportRepairShops() {
       setParsedRows(rows);
       setStep('preview');
     } catch (error: any) {
-      toast({
+      showToast.error({
         title: 'Failed to parse file',
         description: error.message,
-        variant: 'destructive',
       });
     }
   };
@@ -144,10 +142,9 @@ export default function ImportRepairShops() {
       setImportSummary(result.summary);
       setStep('results');
     } catch (error: any) {
-      toast({
+      showToast.error({
         title: 'Import failed',
         description: error.message,
-        variant: 'destructive',
       });
       setStep('preview');
     }
