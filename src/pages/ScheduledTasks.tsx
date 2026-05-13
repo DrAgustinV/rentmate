@@ -10,7 +10,7 @@ import { format, parseISO, isPast } from "date-fns";
 import { formatDate } from "@/lib/dateUtils";
 import { AlertCircle, Clock, Play, CheckCircle } from "lucide-react";
 import { CompleteTaskDialog } from "@/components/maintenance/CompleteTaskDialog";
-import { toast } from "@/hooks/use-toast";
+import { showToast } from "@/lib/toastUtils";
 
 interface ScheduledTasksProps {
   propertyId: string;
@@ -167,7 +167,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
     },
     onSuccess: (ticketId) => {
       queryClient.invalidateQueries({ queryKey: ["scheduled-tasks", propertyId] });
-      toast({
+      showToast.success({
         title: "Task started",
         description: "You can now track progress and add updates",
         action: (
@@ -178,10 +178,9 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
       });
     },
     onError: (error) => {
-      toast({
+      showToast.error({
         title: "Failed to start task",
         description: error.message,
-        variant: "destructive",
       });
     },
   });
@@ -213,14 +212,13 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["scheduled-tasks", propertyId] });
-      toast({ title: "Task completed successfully" });
+      showToast.success({ title: "Task completed successfully" });
       setCompletingTask(null);
     },
     onError: (error) => {
-      toast({
+      showToast.error({
         title: "Failed to complete task",
         description: error.message,
-        variant: "destructive",
       });
     },
   });
