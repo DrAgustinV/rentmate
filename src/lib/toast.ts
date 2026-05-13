@@ -9,7 +9,7 @@ export interface ToastOptions extends Omit<SonnerToastOptions, "type"> {
 }
 
 /**
- * Unified toast utility that standardizes success, error, info, warning, and silent patterns.
+ * Unified toast wrapper that standardizes success, error, info, warning, and silent patterns.
  * Provides a consistent API across the application and handles default configurations.
  */
 export const showToast = {
