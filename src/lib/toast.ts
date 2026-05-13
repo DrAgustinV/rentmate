@@ -1,51 +1,40 @@
 import { toast } from "sonner";
-import type { ToastOptions as SonnerToastOptions } from "sonner";
 
-export type ToastVariant = 'success' | 'error' | 'info' | 'warning' | 'silent';
-
-export interface StandardToastOptions extends Omit<SonnerToastOptions, 'variant' | 'duration'> {
-  variant?: ToastVariant;
-  duration?: number;
+export interface StandardToastOptions {
   title: string;
   description?: string;
+  duration?: number;
 }
 
-const DEFAULT_DURATION = 4000;
-const DEFAULT_POSITION: SonnerToastOptions['position'] = 'top-right';
-
-export function showToast(options: StandardToastOptions) {
-  const { 
-    variant = 'info', 
-    duration = DEFAULT_DURATION, 
-    title, 
-    description, 
-    position = DEFAULT_POSITION,
-    ...rest 
-  } = options;
-
-  if (variant === 'silent') {
-    return;
-  }
-
-  toast[variant](title, {
-    description,
-    duration,
-    position,
-    ...rest,
-  });
-}
-
-export const toastUtils = {
-  success: (title: string, description?: string, options?: Omit<SonnerToastOptions, 'variant' | 'duration' | 'position'>) =>
-    showToast({ variant: 'success', title, description, ...options }),
-  error: (title: string, description?: string, options?: Omit<SonnerToastOptions, 'variant' | 'duration' | 'position'>) =>
-    showToast({ variant: 'error', title, description, ...options }),
-  info: (title: string, description?: string, options?: Omit<SonnerToastOptions, 'variant' | 'duration' | 'position'>) =>
-    showToast({ variant: 'info', title, description, ...options }),
-  warning: (title: string, description?: string, options?: Omit<SonnerToastOptions, 'variant' | 'duration' | 'position'>) =>
-    showToast({ variant: 'warning', title, description, ...options }),
-  silent: (title: string, description?: string, options?: Omit<SonnerToastOptions, 'variant' | 'duration' | 'position'>) =>
-    showToast({ variant: 'silent', title, description, ...options }),
+export const showToast = {
+  success: (options: StandardToastOptions) => {
+    toast.success(options.title, {
+      description: options.description,
+      duration: options.duration ?? 3000,
+    });
+  },
+  error: (options: StandardToastOptions) => {
+    toast.error(options.title, {
+      description: options.description,
+      duration: options.duration ?? 5000,
+    });
+  },
+  info: (options: StandardToastOptions) => {
+    toast.info(options.title, {
+      description: options.description,
+      duration: options.duration ?? 3000,
+    });
+  },
+  warning: (options: StandardToastOptions) => {
+    toast.warning(options.title, {
+      description: options.description,
+      duration: options.duration ?? 3000,
+    });
+  },
+  silent: (options: StandardToastOptions) => {
+    toast(options.title, {
+      description: options.description,
+      duration: options.duration ?? 2000,
+    });
+  },
 };
-
-export default toastUtils;
