@@ -1,66 +1,69 @@
-import { toast } from "sonner";
+import { toast as sonnerToast } from "sonner";
+import { ReactNode } from "react";
 
-export type ToastVariant = "success" | "error" | "info" | "warning" | "silent";
-
-export interface StandardToastOptions {
+export interface ToastOptions {
   duration?: number;
-  className?: string;
-  style?: React.CSSProperties;
+  action?: ReactNode;
+  onDismiss?: () => void;
+  [key: string]: any;
+}
+
+export interface ToastPayload {
+  title?: string;
   description?: string;
+  duration?: number;
+  action?: ReactNode;
+  [key: string]: any;
+}
+
+export interface ToastMethods {
+  success: (message: string | ToastPayload, options?: ToastOptions) => void;
+  error: (message: string | ToastPayload, options?: ToastOptions) => void;
+  info: (message: string | ToastPayload, options?: ToastOptions) => void;
+  warning: (message: string | ToastPayload, options?: ToastOptions) => void;
+  silent: (message: string | ToastPayload, options?: ToastOptions) => void;
 }
 
 /**
- * Unified toast notification wrapper that standardizes success, error, info, warning, and silent patterns.
- * @param variant - The type of toast to display
- * @param title - The main title of the toast
- * @param description - Optional secondary text
- * @param options - Optional styling and duration overrides
+ * Unified toast wrapper that standardizes success, error, info, warning, and silent patterns.
+ * Automatically applies default durations and handles both string messages and payload objects.
  */
-export const showToast = (
-  variant: ToastVariant,
-  title: string,
-  description?: string,
-  options?: StandardToastOptions
-) => {
-  if (variant === "silent") {
-    // Silent mode: logs to console instead of showing UI notification
-    console.log(`[Silent Toast] ${title}: ${description}`);
-    return;
-  }
-
-  toast[variant](title, { description, ...options });
+export const showToast: ToastMethods = {
+  success: (message: string | ToastPayload, options: ToastOptions = {}) => {
+    const { title, description, duration, ...rest } = normalizePayload(message, 3000);
+    sonnerToast.success(title, { description, duration, ...rest, ...options });
+  },
+  error: (message: string | ToastPayload, options: ToastOptions = {}) => {
+    const { title, description, duration, ...rest } = normalizePayload(message, 5000);
+    sonnerToast.error(title, { description, duration, ...rest, ...options });
+  },
+  info: (message: string | ToastPayload, options: ToastOptions = {}) => {
+    const { title, description, duration, ...rest } = normalizePayload(message, 4000);
+    sonnerToast.info(title, { description, duration, ...rest, ...options });
+  },
+  warning: (message: string | ToastPayload, options: ToastOptions = {}) => {
+    const { title, description, duration, ...rest } = normalizePayload(message, 4000);
+    sonnerToast.warning(title, { description, duration, ...rest, ...options });
+  },
+  silent: (message: string | ToastPayload, options: ToastOptions = {}) => {
+    const { title, description, duration, ...rest } = normalizePayload(message, 2000);
+    sonnerToast(title, { description, duration, ...rest, ...options });
+  },
 };
 
-// Convenience exports for common use cases
-export const showSuccess = (
-  title: string,
-  description?: string,
-  options?: StandardToastOptions
-) => showToast("success", title, description, options);
+function normalizePayload(
+  message: string | ToastPayload,
+  defaultDuration: number
+): { title: string; description?: string; duration: number; [key: string]: any } {
+  if (typeof message === "string") {
+    return { title: message, description: undefined, duration: defaultDuration };
+  }
+  return {
+    title: message.title || "",
+    description: message.description,
+    duration: message.duration ?? defaultDuration,
+    ...message,
+  };
+}
 
-export const showError = (
-  title: string,
-  description?: string,
-  options?: StandardToastOptions
-) => showToast("error", title, description, options);
-
-export const showInfo = (
-  title: string,
-  description?: string,
-  options?: StandardToastOptions
-) => showToast("info", title, description, options);
-
-export const showWarning = (
-  title: string,
-  description?: string,
-  options?: StandardToastOptions
-) => showToast("warning", title, description, options);
-
-export const showSilent = (
-  title: string,
-  description?: string,
-  options?: StandardToastOptions
-) => showToast("silent", title, description, options);
-
-// Re-export the raw sonner toast for advanced use cases if needed
-export { toast };
+export default showToast;
