@@ -1,73 +1,49 @@
-import { useMutation, UseMutationResult, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/hooks/use-toast";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useAnalyticsContext } from "@/contexts/AnalyticsContext";
+import { useMutation, UseMutationResult } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-interface StandardMutationOptions<TData, TVariables, TError = Error> {
+export interface StandardMutationOptions<TData = any, TVariables = any, TContext = any> {
   mutationFn: (variables: TVariables) => Promise<TData>;
-  onSuccess?: (data: TData, variables: TVariables) => void;
-  onError?: (error: TError, variables: TVariables) => void;
+  onSuccess?: (data: TData, variables: TVariables, context: TContext) => void;
+  onError?: (error: unknown, variables: TVariables, context: TContext) => void;
   
-  /** Toggle success toast (defaults to true) */
-  showSuccessToast?: boolean;
-  successToastTitle?: string;
-  successToastDescription?: string;
+  /** When true, suppresses all toast notifications */
+  silent?: boolean;
   
-  /** Toggle error toast (defaults to true) */
-  showErrorToast?: boolean;
-  errorToastTitle?: string;
-  errorToastDescription?: string;
+  /** Custom success message to display in the toast */
+  successMessage?: string;
   
-  /** Custom analytics tracking for success */
-  trackSuccessEvent?: (data: TData, variables: TVariables) => void;
-  /** Custom analytics tracking for error */
-  trackErrorEvent?: (error: TError, variables: TVariables) => void;
-  
-  /** Automatically invalidate these query keys on success */
-  invalidateQueries?: string[][];
+  /** Custom error message to display in the toast */
+  errorMessage?: string;
 }
 
-export function useStandardMutation<TData, TVariables, TError = Error>(
-  options: StandardMutationOptions<TData, TVariables, TError>
-): UseMutationResult<TData, TError, TVariables> {
-  const queryClient = useQueryClient();
+export function useStandardMutation<TData = any, TVariables = any, TContext = any>(
+  options: StandardMutationOptions<TData, TVariables, TContext>
+): UseMutationResult<TData, unknown, TVariables, TContext> {
+  const { toast } = useToast();
   const { t } = useLanguage();
-  const { trackEvent } = useAnalyticsContext();
 
-  const defaultSuccessToastTitle = t('common.success');
-  const defaultSuccessToastDescription = t('common.successMessage');
-  const defaultErrorToastTitle = t('common.error');
-  const defaultErrorToastDescription = t('common.errorMessage');
-
-  return useMutation<TData, TError, TVariables>({
+  return useMutation<TData, unknown, TVariables, TContext>({
     mutationFn: options.mutationFn,
-    onSuccess: (data, variables) => {
-      if (options.showSuccessToast !== false) {
+    onSuccess: (data, variables, context) => {
+      if (!options.silent && options.successMessage) {
         toast({
-          title: options.successToastTitle || defaultSuccessToastTitle,
-          description: options.successToastDescription || defaultSuccessToastDescription,
+          title: t('common.success'),
+          description: options.successMessage,
+          variant: 'default',
         });
       }
-      if (options.trackSuccessEvent) {
-        options.trackSuccessEvent(data, variables);
-      }
-      if (options.invalidateQueries) {
-        options.invalidateQueries.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
-      }
-      options.onSuccess?.(data, variables);
+      options.onSuccess?.(data, variables, context);
     },
-    onError: (error, variables) => {
-      if (options.showErrorToast !== false) {
+    onError: (error, variables, context) => {
+      if (!options.silent && options.errorMessage) {
         toast({
-          title: options.errorToastTitle || defaultErrorToastTitle,
-          description: options.errorToastDescription || defaultErrorToastDescription,
-          variant: "destructive",
+          title: t('common.error'),
+          description: options.errorMessage,
+          variant: 'destructive',
         });
       }
-      if (options.trackErrorEvent) {
-        options.trackErrorEvent(error, variables);
-      }
-      options.onError?.(error, variables);
+      options.onError?.(error, variables, context);
     },
   });
 }
