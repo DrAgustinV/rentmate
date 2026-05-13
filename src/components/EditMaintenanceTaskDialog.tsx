@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,11 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
+import { useStandardMutation } from '@/lib/mutationUtils';
 
 interface EditMaintenanceTaskDialogProps {
   open: boolean;
@@ -70,8 +70,8 @@ export const EditMaintenanceTaskDialog = ({
     }
   }, [open, initialData]);
 
-  const updateTaskMutation = useMutation({
-    mutationFn: async () => {
+  const updateTaskMutation = useStandardMutation(
+    async () => {
       // Update template
       const { error: templateError } = await supabase
         .from("ticket_templates")
@@ -98,36 +98,34 @@ export const EditMaintenanceTaskDialog = ({
 
       if (scheduleError) throw scheduleError;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ticket-templates"] });
-      queryClient.invalidateQueries({ queryKey: ["recurring-schedules"] });
-      
-      // Track maintenance task update event
-      trackEvent({
-        event_name: 'maintenance_updated',
-        event_category: 'maintenance',
-        event_metadata: {
-          template_id: templateId,
-          schedule_id: scheduleId,
-          type: type,
-        },
-      });
-      
-      toast({
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["ticket-templates"] });
+        queryClient.invalidateQueries({ queryKey: ["recurring-schedules"] });
+        
+        // Track maintenance task update event
+        trackEvent({
+          event_name: 'maintenance_updated',
+          event_category: 'maintenance',
+          event_metadata: {
+            template_id: templateId,
+            schedule_id: scheduleId,
+            type: type,
+          },
+        });
+        
+        onOpenChange(false);
+      },
+      successToast: {
         title: t('maintenance.editTask.taskUpdated'),
         description: t('maintenance.editTask.updateSuccess'),
-      });
-      onOpenChange(false);
-    },
-    onError: (error) => {
-      console.error("Error updating maintenance task:", error);
-      toast({
+      },
+      errorToast: {
         title: t('maintenance.createTask.error'),
         description: t('maintenance.editTask.updateError'),
-        variant: "destructive",
-      });
-    },
-  });
+      },
+    }
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
