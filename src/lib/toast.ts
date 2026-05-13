@@ -1,69 +1,60 @@
 import { toast as sonnerToast } from "sonner";
 import { ReactNode } from "react";
 
-export interface ToastOptions {
+export type ToastVariant = 'success' | 'error' | 'info' | 'warning' | 'silent';
+
+export interface ToastConfig {
+  title: string;
+  description?: string;
   duration?: number;
   action?: ReactNode;
   onDismiss?: () => void;
   [key: string]: any;
 }
 
-export interface ToastPayload {
-  title?: string;
-  description?: string;
-  duration?: number;
-  action?: ReactNode;
-  [key: string]: any;
-}
-
-export interface ToastMethods {
-  success: (message: string | ToastPayload, options?: ToastOptions) => void;
-  error: (message: string | ToastPayload, options?: ToastOptions) => void;
-  info: (message: string | ToastPayload, options?: ToastOptions) => void;
-  warning: (message: string | ToastPayload, options?: ToastOptions) => void;
-  silent: (message: string | ToastPayload, options?: ToastOptions) => void;
-}
-
 /**
- * Unified toast wrapper that standardizes success, error, info, warning, and silent patterns.
- * Automatically applies default durations and handles both string messages and payload objects.
+ * Unified toast dispatcher that standardizes success, error, info, warning, and silent patterns.
+ * Centralizes configuration and reduces boilerplate across components.
  */
-export const showToast: ToastMethods = {
-  success: (message: string | ToastPayload, options: ToastOptions = {}) => {
-    const { title, description, duration, ...rest } = normalizePayload(message, 3000);
-    sonnerToast.success(title, { description, duration, ...rest, ...options });
-  },
-  error: (message: string | ToastPayload, options: ToastOptions = {}) => {
-    const { title, description, duration, ...rest } = normalizePayload(message, 5000);
-    sonnerToast.error(title, { description, duration, ...rest, ...options });
-  },
-  info: (message: string | ToastPayload, options: ToastOptions = {}) => {
-    const { title, description, duration, ...rest } = normalizePayload(message, 4000);
-    sonnerToast.info(title, { description, duration, ...rest, ...options });
-  },
-  warning: (message: string | ToastPayload, options: ToastOptions = {}) => {
-    const { title, description, duration, ...rest } = normalizePayload(message, 4000);
-    sonnerToast.warning(title, { description, duration, ...rest, ...options });
-  },
-  silent: (message: string | ToastPayload, options: ToastOptions = {}) => {
-    const { title, description, duration, ...rest } = normalizePayload(message, 2000);
-    sonnerToast(title, { description, duration, ...rest, ...options });
-  },
+export const showToast = (
+  variant: ToastVariant,
+  config: ToastConfig
+) => {
+  const { title, description, duration = 3000, action, onDismiss, ...rest } = config;
+
+  switch (variant) {
+    case 'success':
+      sonnerToast.success(title, { description, duration, action, onDismiss, ...rest });
+      break;
+    case 'error':
+      sonnerToast.error(title, { description, duration, action, onDismiss, ...rest });
+      break;
+    case 'info':
+      sonnerToast.info(title, { description, duration, action, onDismiss, ...rest });
+      break;
+    case 'warning':
+      sonnerToast.warning(title, { description, duration, action, onDismiss, ...rest });
+      break;
+    case 'silent':
+      sonnerToast(title, { description, duration, action, onDismiss, ...rest });
+      break;
+    default:
+      sonnerToast(title, { description, duration, action, onDismiss, ...rest });
+  }
 };
 
-function normalizePayload(
-  message: string | ToastPayload,
-  defaultDuration: number
-): { title: string; description?: string; duration: number; [key: string]: any } {
-  if (typeof message === "string") {
-    return { title: message, description: undefined, duration: defaultDuration };
-  }
+/**
+ * Hook providing a standardized interface for toast notifications.
+ * Usage: const { success, error, silent } = useUnifiedToast();
+ */
+export const useUnifiedToast = () => {
   return {
-    title: message.title || "",
-    description: message.description,
-    duration: message.duration ?? defaultDuration,
-    ...message,
+    success: (config: ToastConfig) => showToast('success', config),
+    error: (config: ToastConfig) => showToast('error', config),
+    info: (config: ToastConfig) => showToast('info', config),
+    warning: (config: ToastConfig) => showToast('warning', config),
+    silent: (config: ToastConfig) => showToast('silent', config),
   };
-}
+};
 
 export default showToast;
