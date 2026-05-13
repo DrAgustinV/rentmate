@@ -1,29 +1,30 @@
-import { toast as sonnerToast } from "sonner";
+import { toast as sonnerToast, type ToastOptions as SonnerToastOptions } from "sonner";
 
 export type ToastVariant = "success" | "error" | "info" | "warning" | "silent";
 
-export interface ToastOptions {
+export interface ToastOptions extends Omit<SonnerToastOptions, "type"> {
   title?: string;
   description?: string;
   duration?: number;
-  id?: string;
 }
 
 /**
  * Unified toast utility that standardizes success, error, info, warning, and silent patterns.
- * Replaces direct `toast.success()` / `toast.error()` calls across the codebase.
+ * Provides a consistent API across the application and handles default configurations.
  */
-const showToast = {
+export const showToast = {
   success: (options: ToastOptions) =>
-    sonnerToast.success(options.title ?? "Success", { description: options.description, duration: options.duration }),
+    sonnerToast.success(options.title ?? "Success", { description: options.description, duration: options.duration, ...options }),
   error: (options: ToastOptions) =>
-    sonnerToast.error(options.title ?? "Error", { description: options.description, duration: options.duration }),
+    sonnerToast.error(options.title ?? "Error", { description: options.description, duration: options.duration, ...options }),
   info: (options: ToastOptions) =>
-    sonnerToast.info(options.title ?? "Info", { description: options.description, duration: options.duration }),
+    sonnerToast.info(options.title ?? "Info", { description: options.description, duration: options.duration, ...options }),
   warning: (options: ToastOptions) =>
-    sonnerToast.warning(options.title ?? "Warning", { description: options.description, duration: options.duration }),
+    sonnerToast.warning(options.title ?? "Warning", { description: options.description, duration: options.duration, ...options }),
   silent: (options: ToastOptions) =>
-    sonnerToast(options.title ?? "", { description: options.description, duration: options.duration }),
+    sonnerToast(options.title ?? "", { description: options.description, duration: options.duration, ...options }),
+  dismiss: (id?: string) => sonnerToast.dismiss(id),
+  remove: (id?: string) => sonnerToast.remove(id),
 };
 
 /**
