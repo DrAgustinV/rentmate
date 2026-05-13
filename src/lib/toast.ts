@@ -1,43 +1,74 @@
+import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import React from 'react';
-import { toast } from 'sonner';
 
-export type ToastType = 'success' | 'error' | 'info' | 'silent';
+export type ToastVariant = 'success' | 'error' | 'info' | 'warning' | 'silent';
 
-export interface ToastOptions {
+export interface UnifiedToastOptions {
+  title?: string;
+  description?: string;
   duration?: number;
   action?: React.ReactNode;
-  description?: string;
 }
 
 /**
- * Unified toast wrapper that standardizes success, error, info, and silent notification patterns.
+ * React Hook for standardized toast notifications.
+ * Provides methods: success, error, info, warning, silent.
  */
-export const showToast = (
-  type: ToastType,
-  message: string,
-  options?: ToastOptions
-) => {
+export function useUnifiedToast() {
+  const { toast: shadcnToast } = useToast();
+
+  const show = (variant: ToastVariant, options: UnifiedToastOptions) => {
+    const shadcnVariant = variant === 'error' ? 'destructive' : 'default';
+    
+    shadcnToast({
+      variant: shadcnVariant,
+      className: variant === 'success' ? 'bg-green-500 text-white border-green-600' :
+                 variant === 'info' ? 'bg-blue-500 text-white border-blue-600' :
+                 variant === 'warning' ? 'bg-yellow-500 text-black border-yellow-600' :
+                 variant === 'silent' ? 'bg-muted text-muted-foreground border-border' : '',
+      ...options,
+    });
+  };
+
+  return {
+    success: (options: UnifiedToastOptions) => show('success', options),
+    error: (options: UnifiedToastOptions) => show('error', options),
+    info: (options: UnifiedToastOptions) => show('info', options),
+    warning: (options: UnifiedToastOptions) => show('warning', options),
+    silent: (options: UnifiedToastOptions) => show('silent', options),
+  };
+}
+
+/**
+ * Static helper for non-React contexts or quick calls.
+ * Uses Sonner directly for immediate rendering.
+ */
+export const showToast = (variant: ToastVariant, message: string, options?: Omit<UnifiedToastOptions, 'title'>) => {
   const baseOptions = {
-    duration: type === 'silent' ? 0 : 3000,
+    duration: variant === 'silent' ? 0 : 3000,
     ...options,
   };
 
-  switch (type) {
+  switch (variant) {
     case 'success':
-      return toast.success(message, baseOptions);
+      return sonnerToast.success(message, baseOptions);
     case 'error':
-      return toast.error(message, baseOptions);
+      return sonnerToast.error(message, baseOptions);
     case 'info':
-      return toast.info(message, baseOptions);
+      return sonnerToast.info(message, baseOptions);
+    case 'warning':
+      return sonnerToast.warning(message, baseOptions);
     case 'silent':
-      return toast(message, baseOptions);
+      return sonnerToast(message, baseOptions);
     default:
-      return toast(message, baseOptions);
+      return sonnerToast(message, baseOptions);
   }
 };
 
-// Convenience exports for common use cases
-export const showSuccess = (message: string, options?: ToastOptions) => showToast('success', message, options);
-export const showError = (message: string, options?: ToastOptions) => showToast('error', message, options);
-export const showInfo = (message: string, options?: ToastOptions) => showToast('info', message, options);
-export const showSilent = (message: string, options?: ToastOptions) => showToast('silent', message, options);
+// Convenience exports
+export const showSuccess = (message: string, options?: Omit<UnifiedToastOptions, 'title'>) => showToast('success', message, options);
+export const showError = (message: string, options?: Omit<UnifiedToastOptions, 'title'>) => showToast('error', message, options);
+export const showInfo = (message: string, options?: Omit<UnifiedToastOptions, 'title'>) => showToast('info', message, options);
+export const showWarning = (message: string, options?: Omit<UnifiedToastOptions, 'title'>) => showToast('warning', message, options);
+export const showSilent = (message: string, options?: Omit<UnifiedToastOptions, 'title'>) => showToast('silent', message, options);
