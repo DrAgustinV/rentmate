@@ -1,21 +1,23 @@
-import { toast } from 'sonner';
-import React from 'react';
-
-export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'silent';
+import { ReactNode } from "react";
+import { toast as sonnerToast } from "sonner";
 
 export interface ToastOptions {
   title?: string;
   description?: string;
   duration?: number;
-  action?: React.ReactNode;
+  action?: ReactNode;
   onDismiss?: () => void;
 }
 
 const DEFAULT_DURATION = 3000;
 
-const showToast = {
+/**
+ * Unified toast wrapper that standardizes success, error, info, warning, and silent patterns.
+ * Provides consistent defaults, predictable API shape, and centralized configuration.
+ */
+export const toast = {
   success: (options: ToastOptions) => {
-    toast.success(options.title || 'Success', {
+    sonnerToast.success(options.title || "Success", {
       description: options.description,
       duration: options.duration ?? DEFAULT_DURATION,
       action: options.action,
@@ -23,7 +25,7 @@ const showToast = {
     });
   },
   error: (options: ToastOptions) => {
-    toast.error(options.title || 'Error', {
+    sonnerToast.error(options.title || "Error", {
       description: options.description,
       duration: options.duration ?? DEFAULT_DURATION,
       action: options.action,
@@ -31,7 +33,7 @@ const showToast = {
     });
   },
   info: (options: ToastOptions) => {
-    toast.info(options.title || 'Information', {
+    sonnerToast.info(options.title || "Info", {
       description: options.description,
       duration: options.duration ?? DEFAULT_DURATION,
       action: options.action,
@@ -39,7 +41,7 @@ const showToast = {
     });
   },
   warning: (options: ToastOptions) => {
-    toast.warning(options.title || 'Warning', {
+    sonnerToast.warning(options.title || "Warning", {
       description: options.description,
       duration: options.duration ?? DEFAULT_DURATION,
       action: options.action,
@@ -47,12 +49,15 @@ const showToast = {
     });
   },
   silent: (options: ToastOptions) => {
-    // Silent pattern: intended for background updates or internal logging without UI interruption
+    // Intended for background updates or internal logging without UI interruption
     if (options.description) {
       console.log(`[Toast Silent] ${options.title || 'Info'}: ${options.description}`);
     }
     options.onDismiss?.();
   },
+  loading: (description: string) => sonnerToast.loading(description),
+  dismiss: (id?: string) => sonnerToast.dismiss(id),
 };
 
-export { showToast };
+// Export as showToast for backward compatibility with existing imports
+export const showToast = toast;
