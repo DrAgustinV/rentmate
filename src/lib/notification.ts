@@ -3,8 +3,9 @@ import type { ToastOptions } from "sonner";
 
 export type NotificationVariant = "success" | "error" | "info" | "warning";
 
-interface NotificationConfig extends Omit<ToastOptions, "duration"> {
+interface NotificationConfig extends Omit<ToastOptions, "duration" | "variant"> {
   duration?: number;
+  variant?: NotificationVariant;
 }
 
 const DEFAULT_DURATION = 3000;
@@ -44,6 +45,20 @@ export const notification = {
       duration: config?.duration ?? DEFAULT_DURATION,
       ...config,
     });
+  },
+
+  /**
+   * Unified entry point for all notification types.
+   * Routes to the appropriate variant method while maintaining consistent typing and defaults.
+   */
+  show: (variant: NotificationVariant, title: string, description?: string, config?: NotificationConfig) => {
+    switch (variant) {
+      case "success": return notification.success(title, description, config);
+      case "error": return notification.error(title, description, config);
+      case "info": return notification.info(title, description, config);
+      case "warning": return notification.warning(title, description, config);
+      default: return notification.info(title, description, config);
+    }
   },
 
   /**
