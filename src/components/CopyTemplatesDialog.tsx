@@ -5,10 +5,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Copy, AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Badge } from "@/components/ui/badge";
+import { useMutationWithToast } from "@/hooks/useMutationWithToast";
 
 interface CopyTemplatesDialogProps {
   open: boolean;
@@ -94,7 +95,7 @@ export function CopyTemplatesDialog({
     },
   });
 
-  const copyMutation = useMutation({
+  const copyMutation = useMutationWithToast({
     mutationFn: async (templateIds: string[]) => {
       if (!currentUser) throw new Error("Not authenticated");
 
@@ -180,17 +181,23 @@ export function CopyTemplatesDialog({
       
       return { successCount: successCount.count, errors };
     },
+    toastOptions: {
+      success: {
+        title: t('common.success'),
+        description: t('properties.templatesCopied'),
+      },
+      error: {
+        title: t('common.error'),
+        description: (err: unknown) => err instanceof Error ? err.message : "Failed to copy templates",
+      },
+    },
     onSuccess: (result) => {
+      // Handle partial success feedback if needed
       if (result.errors && result.errors.length > 0) {
         toast({
           title: `${result.successCount} template(s) copied`,
           description: `Some templates failed: ${result.errors.join(', ')}`,
           variant: "default",
-        });
-      } else {
-        toast({
-          title: t('common.success'),
-          description: t('properties.templatesCopied'),
         });
       }
       
@@ -198,13 +205,6 @@ export function CopyTemplatesDialog({
       queryClient.invalidateQueries({ queryKey: ["tenancy-documents", tenancyId] });
       queryClient.invalidateQueries({ queryKey: ["tenancy-documents"] });
       onOpenChange(false);
-    },
-    onError: (error) => {
-      toast({
-        title: t('common.error'),
-        description: error instanceof Error ? error.message : "Failed to copy templates",
-        variant: "destructive",
-      });
     },
   });
 
@@ -322,7 +322,7 @@ export function CopyTemplatesDialog({
               {t('properties.noTemplatesAvailable')}
             </p>
             <p className="text-sm text-muted-foreground">
-              {t('properties.createTemplatesInConfiguration')}
+              {t('properties.createTemplateFirst')}
             </p>
           </div>
         )}
