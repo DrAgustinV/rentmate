@@ -12,7 +12,7 @@ export interface AsyncOperationOptions {
 
 /**
  * Standardized wrapper for async operations that handles success/error/silent patterns.
- * Automatically shows toasts unless `silent` is true or explicitly disabled.
+ * Automatically shows toasts unless `silent` is true or explicitly disabled via `showSuccessToast`/`showErrorToast`.
  * 
  * @param operation - The async function to execute
  * @param options - Configuration for feedback and callbacks
@@ -22,23 +22,31 @@ export async function executeWithFeedback<T>(
   operation: () => Promise<T>,
   options: AsyncOperationOptions = {}
 ): Promise<T | null> {
+  const {
+    successMessage,
+    errorMessage,
+    silent = false,
+    onSuccess,
+    onError,
+    showSuccessToast = true,
+    showErrorToast = true,
+  } = options;
+
   try {
     const result = await operation();
     
-    const shouldShowSuccess = options.showSuccessToast ?? !options.silent;
-    if (shouldShowSuccess) {
-      toast.success(options.successMessage || "Operation successful");
+    if (showSuccessToast && !silent) {
+      toast.success(successMessage || "Operation successful");
     }
     
-    options.onSuccess?.(result);
+    onSuccess?.(result);
     return result;
   } catch (error) {
-    const shouldShowError = options.showErrorToast ?? !options.silent;
-    if (shouldShowError) {
-      toast.error(options.errorMessage || "Operation failed");
+    if (showErrorToast && !silent) {
+      toast.error(errorMessage || "Operation failed");
     }
     
-    options.onError?.(error);
+    onError?.(error);
     return null;
   }
 }
