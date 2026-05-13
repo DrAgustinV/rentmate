@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { showToast } from "@/lib/toast";
 import { TemplatesManagerContent } from "./TemplatesManagerContent";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -39,11 +39,11 @@ export default function TemplatesManager({ propertyId }: TemplatesManagerProps) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks-with-schedules"] });
-      toast.success(t("maintenance.taskDeleted"));
+      showToast.success({ title: t("maintenance.taskDeleted") });
     },
     onError: (error) => {
       console.error("Error deleting task:", error);
-      toast.error("Failed to delete task");
+      showToast.error({ title: "Failed to delete task" });
     },
   });
 
@@ -58,11 +58,11 @@ export default function TemplatesManager({ propertyId }: TemplatesManagerProps) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks-with-schedules"] });
-      toast.success(t("maintenance.scheduleUpdated"));
+      showToast.success({ title: t("maintenance.scheduleUpdated") });
     },
     onError: (error) => {
       console.error("Error updating schedule:", error);
-      toast.error("Failed to update schedule");
+      showToast.error({ title: "Failed to update schedule" });
     },
   });
 
