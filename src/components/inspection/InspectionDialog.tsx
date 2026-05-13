@@ -19,7 +19,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useInspectionItems, useUpdateInspectionStatus, useInspectionSignatures } from "@/hooks/useInspections";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { showToast } from "@/lib/toast";
 import { Inspection, InspectionItem, ConditionRating, CONDITION_RATINGS, DEFAULT_ROOMS } from "./types";
 import { RoomInspectionItem } from "./RoomInspectionItem";
 import { InspectionSignature } from "./InspectionSignature";
@@ -60,7 +60,7 @@ export function InspectionDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inspections"] });
-      toast.success("Notes saved");
+      showToast.success({ title: "Notes saved" });
     },
   });
 
@@ -78,12 +78,12 @@ export function InspectionDialog({
 
   const handleStartInspection = async () => {
     await updateStatusMutation.mutateAsync('in_progress');
-    toast.success("Inspection started");
+    showToast.success({ title: "Inspection started" });
   };
 
   const handleReadyForSignatures = async () => {
     await updateStatusMutation.mutateAsync('pending_signatures');
-    toast.success("Inspection ready for signatures");
+    showToast.success({ title: "Inspection ready for signatures" });
   };
 
   const handleSign = async (signatureData: any) => {

@@ -14,7 +14,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { showToast } from "@/lib/toast";
 import { InspectionItem, ConditionRating, CONDITION_RATINGS } from "./types";
 import { cn } from "@/lib/utils";
 
@@ -72,10 +72,10 @@ export function RoomInspectionItem({
       }
 
       await onUpdate({ itemId: item.id, updates: { photos: newPhotos } });
-      toast.success(`${files.length} photo(s) uploaded`);
+      showToast.success({ title: `${files.length} photo(s) uploaded` });
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error("Failed to upload photos");
+      showToast.error({ title: "Failed to upload photos" });
     } finally {
       setIsUploading(false);
       if (photoInputRef.current) photoInputRef.current.value = '';
@@ -92,7 +92,7 @@ export function RoomInspectionItem({
     try {
       for (const file of Array.from(files)) {
         if (file.size > 50 * 1024 * 1024) {
-          toast.error("Video must be under 50MB");
+          showToast.error({ title: "Video must be under 50MB" });
           continue;
         }
 
@@ -113,10 +113,10 @@ export function RoomInspectionItem({
       }
 
       await onUpdate({ itemId: item.id, updates: { videos: newVideos } });
-      toast.success(`${files.length} video(s) uploaded`);
+      showToast.success({ title: `${files.length} video(s) uploaded` });
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error("Failed to upload videos");
+      showToast.error({ title: "Failed to upload videos" });
     } finally {
       setIsUploading(false);
       if (videoInputRef.current) videoInputRef.current.value = '';
