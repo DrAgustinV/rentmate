@@ -240,8 +240,8 @@ export const en = {
     selectDocument: "Select Document", // NEW ADDITION
     qualified: "Qualified", // NEW ADDITION
     noDocuments: "No Documents", // NEW ADDITION
-    manualInfo: "Manual Info", // NEW ADDITION
-    manualDesc: "Manual Desc", // NEW ADDITION
+    manualInfo: "You have selected manual/paper contract signing for this tenant. Please sign the contract physically and upload the scanned signed copy above.", // NEW ADDITION
+    manualDesc: "Sign physically and upload scanned copy", // NEW ADDITION
     document: "Document", // NEW ADDITION
     digitalDesc: "Digital Desc", // NEW ADDITION
     chooseDocument: "Choose Document", // NEW ADDITION
@@ -565,6 +565,7 @@ export const en = {
     ibanConfiguredDescription: "Your payment details are configured and active",
     mandateStatusLabel: "Mandate Status",
     noAgreements: "No rent agreements found",
+    selectAgreement: "Select a rent agreement",
     createFirst: "Create a rent agreement to start collecting rent payments",
     // UNUSED · monthlyRent: "Monthly Rent",
     // UNUSED · nextPayment: "Next Payment",
@@ -742,6 +743,26 @@ export const en = {
     connectStripe: "Connect Stripe", // NEW ADDITION
     completeOnboarding: "Complete Onboarding", // NEW ADDITION
     accountId: "Account Id", // NEW ADDITION
+    filters: {
+      type: "Type",
+      all: "All",
+      rent: "Rent",
+      utility: "Utilities",
+      status: "Status",
+      allStatuses: "All",
+      period: "Period",
+      thisMonth: "This month",
+      lastMonth: "Last month",
+      last3Months: "Last 3 months",
+      last6Months: "Last 6 months",
+      allTime: "All time",
+      overdue: "Overdue",
+      pending: "Pending",
+      paidStatus: "Paid",
+    },
+    createPayment: "Add Payment",
+    createRentPayment: "Add Rent Payment",
+    createUtilityPayment: "Add Utility Payment",
   },
   notFound: {
     title: "Page Not Found",
@@ -980,6 +1001,39 @@ statusIndicators: {
       payments: "Payments",
       // UNUSED · utilities: "Utilities",
       tickets: "Tickets",
+      historic: "Historic",
+    },
+  },
+  historicTenancies: {
+    title: "Historic Tenancies",
+    searchPlaceholder: "Search by name or email...",
+    sort: "Sort by",
+    sortNewest: "Newest first",
+    sortOldest: "Oldest first",
+    sortByEndDate: "By end date",
+    period: "Period",
+    thisYear: "This year",
+    lastYear: "Last year",
+    last2Years: "Last 2 years",
+    allTime: "All time",
+    viewDetails: "View Details",
+    noHistoricTenancies: "No historic tenancies",
+    noHistoricTenanciesDesc: "Tenancies that have ended will appear here",
+    details: {
+      title: "Tenancy Details",
+      tenantInfo: "Tenant Information",
+      tenancyPeriod: "Tenancy Period",
+      startDate: "Start Date",
+      endDate: "End Date",
+      rentAgreement: "Rent Agreement",
+      monthlyRent: "Monthly Rent",
+      paymentSummary: "Payment Summary",
+      totalPaid: "Total Paid",
+      lastPayment: "Last Payment",
+      ticketsSummary: "Tickets Summary",
+      totalTickets: "Total Tickets",
+      resolved: "Resolved",
+      open: "Open",
     },
   },
   maintenance: {
@@ -1527,13 +1581,13 @@ statusIndicators: {
       selectTemplateDesc: "Select the contract document to be signed",
       rent: "Rent & Deposits",
       rentDesc: "Set up rent amount, payment schedule, and deposits",
-      utilities: "Utilities Setup",
+      utilitiesSetup: "Utilities Setup",
       utilitiesDesc: "Define who is responsible for each utility",
       review: "Review & Confirm",
       reviewDesc: "Review the tenancy setup before sending the invitation",
       requirements: "Requirements",
       utilitiesResponsibilities: "Utilities Responsibilities", // NEW ADDITION
-      utilities: {
+      utilityTypes: {
         electricity: "Electricity", // NEW ADDITION
         gas: "Gas", // NEW ADDITION
         heating: "Heating", // NEW ADDITION

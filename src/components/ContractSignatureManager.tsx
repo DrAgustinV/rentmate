@@ -360,7 +360,7 @@ export const ContractSignatureManager = ({
       case 'manual':
         return {
           title: t('tenancy.wizard.manualSignature') || 'Manual / Paper',
-          description: t('contractSignature.manualDesc') || 'Sign physically and upload scanned copy',
+          // description: t('contractSignature.manualDesc') || 'Sign physically and upload scanned copy',
           icon: <Upload className="h-5 w-5" />
         };
       case 'none':
@@ -441,7 +441,7 @@ export const ContractSignatureManager = ({
             {methodDisplay.icon}
             {methodDisplay.title}
           </CardTitle>
-          <CardDescription>{methodDisplay.description}</CardDescription>
+          {/* <CardDescription>{methodDisplay.description}</CardDescription> */}
         </CardHeader>
         <CardContent className="space-y-4">{content}</CardContent>
       </Card>
@@ -740,8 +740,8 @@ export const ContractSignatureManager = ({
   return (
     <Card className="card-shine">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileSignature className="h-5 w-5" />
+        <CardTitle className="text-base flex items-center gap-2">
+          <FileSignature className="h-4 w-4" />
           {methodDisplay.title}
           {isCompleted && (
             <Badge variant="default" className="ml-auto">

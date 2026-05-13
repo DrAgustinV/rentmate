@@ -1,0 +1,188 @@
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Code Quality & Maintainability Review                                                                                                                                                                                                      ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+
+🔍 Executive Summary                                                                                                                                                                                                                          
+
+The codebase demonstrates a solid foundation with good use of React Query, Supabase, and Radix UI. However, several components have grown into monolithic structures that violate the Single Responsibility Principle (SRP), mix UI rendering 
+with business logic, and manage complex state inline. This leads to tight coupling, reduced testability, and maintenance overhead.                                                                                                            
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+🚩 Key Findings                                                                                                                                                                                                                               
+
+1. Monolithic Components & Unclear Responsibilities                                                                                                                                                                                           
+
+Several components handle far too many concerns, making them difficult to read, test, or reuse:                                                                                                                                               
+
+ • src/components/property-tenants/ContractsTab.tsx (~600 lines): Manages tenancy progress stepper, section filtering, tenant onboarding, tenancy overview, contract card, inspections, and multiple independent queries/mutations. It should 
+   be split into a layout wrapper + focused sub-components.                                                                                                                                                                                   
+ • src/components/CreateTenancyWizard.tsx (~500 lines): Handles 6-step form state, validation, step navigation, utility configuration, and UI rendering. Form logic, step logic, and UI should be decoupled.                                  
+ • src/components/BrandSettings.tsx (~300 lines): Mixes logo upload, color picker state, carousel management, and complex save logic with RLS error handling.                                                                                 
+ • src/components/IdentityVerification.tsx (~350 lines): Handles KYC flow, provider selection, QR code rendering, status polling, and subscription gating. Business logic should be extracted.                                                
+ • src/components/admin/SubscriptionPlansManagement.tsx (~400 lines): Manages feature editor, sync logic, UI state, and Supabase updates. Highly coupled.                                                                                     
+ • src/components/property-tenants/PaymentsTab.tsx & src/components/admin/UsersManagement.tsx: Both exceed 400 lines, mixing data fetching, filtering, pagination, and UI rendering.                                                          
+
+2. Long Functions & Inline Business Logic                                                                                                                                                                                                     
+
+ • handleSave in BrandSettings.tsx: Contains validation, logo upload, RLS checking, error handling, and toast notifications in one function.                                                                                                  
+ • handleSubmit in CreateTenancyWizard.tsx: Maps form data to business objects, handles subscription checks, and triggers mutations.                                                                                                          
+ • handleReview in UtilityProofReview.tsx: Handles proof URL generation, mutation calls, and UI state resets.                                                                                                                                 
+ • handleCreate / handleDelete in InspectionCard.tsx: Mixes mutation calls with UI state management.                                                                                                                                          
+ • handleDownload / handleReview in PaymentProofReview.tsx: Contains file download logic, mutation calls, and zoom modal state.                                                                                                               
+
+3. Tight Coupling & Prop Drilling                                                                                                                                                                                                             
+
+ • Complex Prop Interfaces: Components like ContractsTabProps, CreateTenancyWizardProps, and InspectionCardProps accept 15-20+ props, many of which are callbacks or deeply nested objects. This makes components rigid and hard to compose.  
+ • Inline State Management: Components like BrandSettings, IdentityVerification, and SubscriptionPlansManagement manage complex local state (settings, kycProfile, editingPlan, editingFeatures, etc.) that could be derived or managed via   
+   custom hooks or context.                                                                                                                                                                                                                   
+ • Duplicate Patterns: File upload validation, status badge rendering, dialog management, and query hooks are repeated across components without abstraction.                                                                                 
+
+4. Code Smells & Anti-Patterns                                                                                                                                                                                                                
+
+ • Mixed Concerns: UI rendering, data fetching, mutation logic, validation, and business rules are often interleaved in the same component.                                                                                                   
+ • Magic Strings & Inline Styles: Status colors, icons, and formatting logic are often hardcoded or duplicated.                                                                                                                               
+ • Lack of Abstraction: Complex UI patterns (step wizards, multi-step forms, complex tables, document versioning) are implemented inline rather than extracted into reusable components or hooks.                                             
+ • Error Handling Inconsistency: Some components use toast, others use showToast, and some throw errors directly. RLS errors are handled inconsistently.                                                                                      
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+🛠️ Refactoring Plan                                                                                                                                                                                                                           
+
+implement the Phase 1: Extract Custom Hooks & Business Logic                                                                                                                                                                                                
+
+Move data fetching, mutations, validation, and business rules out of components into dedicated hooks. This reduces component size, improves testability, and separates concerns.                                                              
+
+ • useContractsTab / useTenancyFlow: Manages tenancy progress, section filtering, and related queries/mutations.                                                                                                                              
+ • useTenancyWizard: Handles form state, validation, step navigation, and utility configuration.                                                                                                                                              
+ • useBrandSettings: Manages logo upload, color state, carousel, and save logic.                                                                                                                                                              
+ • useIdentityVerification: Handles KYC flow, provider selection, QR code generation, and status polling.                                                                                                                                     
+ • useSubscriptionPlans: Manages feature editor, sync logic, and plan state.                                                                                                                                                                  
+ • usePaymentsTab / useUsersManagement: Handles data fetching, filtering, pagination, and mutations.                                                                                                                                          
+ • useInspectionFlow: Manages inspection list, creation, deletion, and dialog state.                                                                                                                                                          
+ • useProofReview: Handles proof URL generation, download, and review mutations.                                                                                                                                                              
+
+Phase 2: Split Monolithic Components                                                                                                                                                                                                          
+
+Break down large components into smaller, focused, and reusable pieces.                                                                                                                                                                       
+
+ • ContractsTab → TenancyProgressStepper, SectionFilter, TenantOnboardingChecklist, TenancyOverviewCard, ContractCard, InspectionCard                                                                                                         
+ • CreateTenancyWizard → WizardStep1_Tenant, WizardStep2_Verification, WizardStep3_Contract, WizardStep4_Rent, WizardStep5_Utilities, WizardStep6_Review, WizardNavigation                                                                    
+ • BrandSettings → LogoUpload, ColorPicker, CarouselManager, SaveButton                                                                                                                                                                       
+ • IdentityVerification → ProviderSelector, QRCodeDisplay, StatusBadge, ActionButtons                                                                                                                                                         
+ • SubscriptionPlansManagement → PlanCard, FeatureEditor, SyncButton, PlanList                                                                                                                                                                
+ • PaymentsTab → PaymentList, PaymentFilters, PaymentPagination, AutoReminderToggle                                                                                                                                                           
+ • UsersManagement → UserList, UserRow, RoleSelector, GrantAccessDialog                                                                                                                                                                       
+ • SubscriptionManager → CurrentPlanCard, UsageStats, UpgradeOptions, ActionButtons                                                                                                                                                           
+ • OverviewTab → PropertyForm, PhotoUpload, ArchiveDialog, DeleteDialog, AIGenerationButton                                                                                                                                                   
+ • ContactInfoCard → TenantInfo, ManagerInfo, StatusBadge, AvatarDisplay                                                                                                                                                                      
+ • TicketsTab → TicketList, TicketFilters, TicketPagination, CreateTicketDialog                                                                                                                                                               
+ • RentalTermsCard → RentalTermsForm, UtilitiesConfig, PendingSetupAlert                                                                                                                                                                      
+ • TenantOnboardingChecklist → ChecklistItem, ProgressTracker, CompletionStatus                                                                                                                                                               
+ • DocumentActionsMenu → DocumentActions, VersionHistory, DownloadButton                                                                                                                                                                      
+ • DocumentVersionHistoryModal → VersionList, VersionRow, HistoryActions                                                                                                                                                                      
+ • TenancyOverviewCard → OverviewSummary, StatusBadge, QuickActions                                                                                                                                                                           
+ • ContractCard → ContractInfo, SignatureStatus, DocumentList                                                                                                                                                                                 
+ • TenancyRequirement → RequirementForm, ValidationStatus, ActionButtons                                                                                                                                                                      
+ • InspectionCard → InspectionList, InspectionRow, CreateButton, DeleteDialog                                                                                                                                                                 
+ • UtilityProofReview → ProofPreview, ReviewNotes, ActionButtons                                                                                                                                                                              
+ • EditTenantDialog → TenantForm, DateSelector, StatusSelector, NotesInput                                                                                                                                                                    
+ • PropertyCard → PropertyImage, TenantStatus, StatusIndicator, QuickActions                                                                                                                                                                  
+ • AppHeader → AuthMenu, NavigationMenu, MobileMenu, BrandLogo                                                                                                                                                                                
+
+Phase 3: Standardize UI Patterns & Utilities                                                                                                                                                                                                  
+
+Create reusable components and utilities for common patterns to reduce duplication and improve consistency.                                                                                                                                   
+
+ • StatusBadge: Centralized status rendering with consistent colors/icons.                                                                                                                                                                    
+ • FileUpload: Reusable file upload component with validation and progress.                                                                                                                                                                   
+ • StepWizard: Reusable step navigation and state management.                                                                                                                                                                                 
+ • DataTable: Reusable table with sorting, filtering, and pagination.                                                                                                                                                                         
+ • DialogManager: Centralized dialog state management.                                                                                                                                                                                        
+ • ToastUtils: Standardized toast notifications.                                                                                                                                                                                              
+ • ValidationUtils: Centralized validation schemas and helpers.                                                                                                                                                                               
+ • FormatUtils: Centralized formatting for dates, currencies, and file sizes.                                                                                                                                                                 
+
+Phase 4: Improve State Management & Composition                                                                                                                                                                                               
+
+ • Replace prop drilling with React Context or composition where appropriate.                                                                                                                                                                 
+ • Use React.memo and useCallback strategically to prevent unnecessary re-renders.                                                                                                                                                            
+ • Standardize error handling across the codebase (e.g., always use toast for user feedback, throw errors for business logic).                                                                                                                
+ • Improve TypeScript types and interfaces to be more specific and reusable.                                                                                                                                                                  
+
+Phase 5: Code Cleanup & Documentation                                                                                                                                                                                                         
+
+ • Remove duplicate logic, inline styles, and magic strings.                                                                                                                                                                                  
+ • Add JSDoc comments to complex functions and hooks.                                                                                                                                                                                         
+ • Update component documentation and README files.                                                                                                                                                                                           
+ • Run ESLint and Prettier to enforce consistent formatting.                                                                                                                                                                                  
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+✅ Next Steps                                                                                                                                                                                                                                 
+
+ 1 Review & Approve: Please review this plan and let me know if you'd like to adjust the scope or prioritize specific components.                                                                                                             
+ 2 Execute Phase 1: I will start by extracting custom hooks for the most complex components (ContractsTab, CreateTenancyWizard, BrandSettings, IdentityVerification).                                                                         
+ 3 Execute Phase 2: I will split the monolithic components into smaller, focused pieces.                                                                                                                                                      
+ 4 Execute Phase 3-5: I will standardize UI patterns, improve state management, and clean up the codebase.                                                                                                                                    
+
+Please confirm if you'd like me to proceed with Phase 1 (Hook Extraction) first, or if you have specific components you'd like me to prioritize. I will wait for your approval before generating any refactored code.                         
+
+
+Tokens: 234k sent, 6.7k received.
+
+
+
+
+ere’s a low-risk, high-impact refactoring plan that strictly respects your constraints (no route definitions, layouts, folder structure, or navigation changes):                                                                             
+
+🔹 Phase 1: Logic Extraction & Hook Consolidation                                                                                                                                                                                             
+
+Goal: Reduce component bloat and improve testability by moving business logic into dedicated custom hooks.                                                                                                                                    
+
+ • Extract usePaymentStatistics from src/components/payments/PaymentStatistics.tsx (currently returns an object but lacks hook structure).                                                                                                    
+ • Consolidate mutation hooks: usePropertyMutations, useRentAgreementMutations, useUtilityPaymentMutations, useInspections, useRepairShops, useTenancyRequirements, useUtilityTypes, useUsersManagement, useSubscriptionPlans,                
+   useSubscriptionManager.                                                                                                                                                                                                                    
+ • Keep existing file names and exports to prevent import breakage. Only move internal logic.                                                                                                                                                 
+
+🔹 Phase 2: Type Safety & Interface Standardization                                                                                                                                                                                           
+
+Goal: Eliminate any types and improve compile-time safety.                                                                                                                                                                                    
+
+ • Replace any in mutation functions, Supabase queries, and component props with explicit interfaces.                                                                                                                                         
+ • Standardize Database type usage from Supabase across hooks and components.                                                                                                                                                                 
+ • Add missing React.FC or explicit prop types where omitted.                                                                                                                                                                                 
+
+🔹 Phase 3: Reusable Utilities & State Patterns                                                                                                                                                                                               
+
+Goal: Remove duplicated patterns across components.                                                                                                                                                                                           
+
+ • Extract useFileUpload (handles validation, Supabase storage upload, signed URLs, and error states).                                                                                                                                        
+ • Extract useDialogState (manages open, onOpenChange, and cleanup for dialogs/drawers).                                                                                                                                                      
+ • Standardize toast/error handling via a unified useNotification wrapper around sonner/useToast.                                                                                                                                             
+
+🔹 Phase 4: React Query & Performance Optimization                                                                                                                                                                                            
+
+Goal: Improve cache efficiency and prevent unnecessary re-renders.                                                                                                                                                                            
+
+ • Stabilize React Query keys across hooks and components.                                                                                                                                                                                    
+ • Add useMemo/useCallback where derived data or callbacks are passed to child components.                                                                                                                                                    
+ • Ensure loading/error states are handled consistently without blocking renders.                                                                                                                                                             
+
+✅ Why This is Low Risk                                                                                                                                                                                                                       
+
+ • Zero structural changes: File names, exports, routes, layouts, and navigation remain untouched.                                                                                                                                            
+ • Incremental rollout: Each phase can be tested independently.                                                                                                                                                                               
+ • Backwards compatible: Existing imports and component APIs are preserved.                                                                                                                                                                   
+ • Focus on internals: Only touches component logic, hooks, types, and utilities.                                                                                                                                                             
+
+🚀 Recommended Starting Point                                                                                                                                                                                                                 
+
+I suggest beginning with Phase 1 on src/hooks/usePaymentStatistics.ts (extracting the hook from the component) and src/hooks/usePropertyMutations.ts. These are self-contained, have clear boundaries, and will immediately reduce component  
+complexity without touching routing or layout.                                                                                                                                                                                                
+
+Would you like me to proceed with Phase 1, or would you prefer to adjust the scope or prioritize a different area first? 

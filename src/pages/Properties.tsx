@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProperties } from "@/hooks/useProperties";
+import { OccupancyBadge, PaymentBadge, TicketCount } from "@/components/ui/status-badges";
 import {
   Table,
   TableBody,
@@ -25,6 +26,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
+interface PropertyDashboardData {
+  property_id: string;
+  occupancy_status: string;
+  tenant_name: string | null;
+  payment_status: string;
+  open_tickets_count: number;
+}
+
 export default function Properties() {
   const [userId, setUserId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -32,9 +41,10 @@ export default function Properties() {
   const [maxPropertiesLimit, setMaxPropertiesLimit] = useState<number>(5);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "alphabetical" | "status">("newest");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [statusIndicators, setStatusIndicators] = useState<Record<string, PropertyStatusIndicators>>({});
   const [propertyPhotoUrls, setPropertyPhotoUrls] = useState<Record<string, string>>({});
+  const [dashboardData, setDashboardData] = useState<Record<string, PropertyDashboardData>>({});
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -115,6 +125,34 @@ export default function Properties() {
     };
 
     fetchStatusIndicators();
+  }, [propertiesData]);
+
+  // Fetch dashboard data for all properties
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      const propertyList = propertiesData?.properties;
+      if (!propertyList || propertyList.length === 0) return;
+      
+      const propertyIds = propertyList.map(p => p.id);
+      const { data, error } = await supabase.rpc('get_properties_dashboard', { 
+        p_property_ids: propertyIds 
+      });
+      
+      if (error) {
+        console.error('Error fetching dashboard data:', error);
+        return;
+      }
+      
+      if (data) {
+        const dashboardMap: Record<string, PropertyDashboardData> = {};
+        data.forEach((row: PropertyDashboardData) => {
+          dashboardMap[row.property_id] = row;
+        });
+        setDashboardData(dashboardMap);
+      }
+    };
+
+    fetchDashboardData();
   }, [propertiesData]);
 
   // Fetch photo URLs for all properties
@@ -364,50 +402,59 @@ export default function Properties() {
               <TableRow>
                 <TableHead className="w-14">{t('properties.photo')}</TableHead>
                 <TableHead>{t('properties.propertyTitle')}</TableHead>
-                <TableHead className="hidden md:table-cell">{t('properties.address')}</TableHead>
-                <TableHead>{t('properties.statusLabel')}</TableHead>
-                <TableHead className="hidden sm:table-cell">{t('search.status')}</TableHead>
-                <TableHead className="hidden lg:table-cell">{t('properties.created')}</TableHead>
+                <TableHead className="hidden md:table-cell">Occupancy</TableHead>
+                <TableHead className="hidden lg:table-cell">Tenant</TableHead>
+                <TableHead className="hidden sm:table-cell">Payment</TableHead>
+                <TableHead>Tickets</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAndSortedProperties.map((property) => (
-                <TableRow 
-                  key={property.id} 
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => navigate(`/properties/${property.id}/tenants`)}
-                >
-                  <TableCell className="w-14">
-                    {propertyPhotoUrls[property.id] ? (
-                      <img 
-                        src={propertyPhotoUrls[property.id]} 
-                        alt={property.title}
-                        className="w-10 h-10 rounded object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+              {filteredAndSortedProperties.map((property) => {
+                const dashboard = dashboardData[property.id];
+                return (
+                  <TableRow key={property.id} className="hover:bg-muted/50">
+                    <TableCell className="w-14">
+                      {propertyPhotoUrls[property.id] ? (
+                        <img 
+                          src={propertyPhotoUrls[property.id]} 
+                          alt={property.title}
+                          className="w-10 h-10 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                          <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell 
+                      className="font-medium cursor-pointer hover:text-primary"
+                      onClick={() => navigate(`/properties/${property.id}/overview`)}
+                    >
+                      <div>{property.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {property.address ? `${property.address}, ${property.city || ''}` : '-'}
                       </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{property.title}</TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground">
-                    {property.address ? `${property.address}, ${property.city || ''}` : '-'}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(property.status)}>
-                      {property.status === 'active' ? t('dashboard.active') : 
-                       property.status === 'ending_tenancy' ? 'Ending' : t('dashboard.archived')}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <StatusIndicatorsCell indicators={statusIndicators[property.id]} />
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell text-muted-foreground">
-                    {format(new Date(property.created_at), 'MMM d, yyyy')}
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell 
+                      className="hidden md:table-cell cursor-pointer hover:text-primary"
+                      onClick={() => navigate(`/properties/${property.id}/tenants?tab=contracts`)}
+                    >
+                      <OccupancyBadge status={(dashboard?.occupancy_status as any) || 'Vacant'} />
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {dashboard?.tenant_name || '—'}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {dashboard?.payment_status ? (
+                        <PaymentBadge status={(dashboard.payment_status as any) || 'Due'} />
+                      ) : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <TicketCount count={dashboard?.open_tickets_count || 0} />
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

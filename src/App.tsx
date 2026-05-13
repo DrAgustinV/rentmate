@@ -38,6 +38,7 @@ const Pricing = lazy(() => import("./pages/Pricing"));
 const RepairShops = lazy(() => import("./pages/RepairShops"));
 const Import = lazy(() => import("./pages/Import"));
 const ImportRepairShops = lazy(() => import("./pages/ImportRepairShops"));
+const PropertyOverview = lazy(() => import("./pages/PropertyOverview"));
 
 // Page loading fallback
 function PageLoader() {
@@ -114,6 +115,7 @@ const App = () => (
               <Route path="/properties/:propertyId/tickets" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyTickets /></Suspense></ErrorBoundary>} />
               <Route path="/properties/:propertyId/maintenance" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyMaintenance /></Suspense></ErrorBoundary>} />
               <Route path="/properties/:propertyId/tickets/:ticketId" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><TicketDetail /></Suspense></ErrorBoundary>} />
+              <Route path="/properties/:propertyId/overview" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyOverview /></Suspense></ErrorBoundary>} />
               <Route path="/maintenance-calendar/:propertyId" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><MaintenanceCalendar /></Suspense></ErrorBoundary>} />
 
               {/* Settings & account */}

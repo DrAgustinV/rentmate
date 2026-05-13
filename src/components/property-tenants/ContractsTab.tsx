@@ -10,21 +10,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Upload,
-  Download,
-  Trash2,
-  Eye,
-  Clock,
   FileText,
   ClipboardCheck,
+  Settings,
+  Send,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { formatDate } from "@/lib/dateUtils";
+import DocumentActionsMenu from "./DocumentActionsMenu";
+import DocumentVersionHistoryModal from "./DocumentVersionHistoryModal";
 import { cn } from "@/lib/utils";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
 import { ContractSignatureManager } from "@/components/ContractSignatureManager";
-import { RentalTermsCard } from "./RentalTermsCard";
-import { ContactInfoCard } from "./ContactInfoCard";
 import { TenantOnboardingChecklist } from "./TenantOnboardingChecklist";
+import { TenancyOverviewCard } from "./TenancyOverviewCard";
+import { ContractCard } from "./ContractCard";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
 import { InspectionCard } from "@/components/inspection";
 
@@ -124,9 +128,7 @@ export function ContractsTab({
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   
-  const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
-  const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
-  const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
+  const [sectionFilter, setSectionFilter] = useState<string>("all");
 
   // Query tenancy requirements for contract method
   const { data: tenancyRequirements } = useQuery({
@@ -334,10 +336,84 @@ export function ContractsTab({
     );
   }
 
+  const getTenancyStep = () => {
+    if (!currentTenant) return 0;
+    if (pendingRequirement) {
+      if (pendingRequirement.status === 'draft') return 1;
+      if (pendingRequirement.status === 'sent') return 2;
+    }
+    if (currentTenant.tenancy_status === 'active') return 3;
+    if (currentTenant.tenancy_status === 'ending_tenancy') return 4;
+    if (currentTenant.tenancy_status === 'historic') return 5;
+    return 0;
+  };
+
+  const tenancyStep = getTenancyStep();
+
+  const steps = [
+    { key: 1, label: t("tenancy.wizard.title"), icon: Settings },
+    { key: 2, label: t("tenancy.sendInvitation"), icon: Send },
+    { key: 3, label: t("tenancy.active"), icon: CheckCircle2 },
+    { key: 4, label: t("tenancy.ending"), icon: Clock },
+    { key: 5, label: t("tenancy.historic"), icon: CheckCircle2 },
+  ];
+
   return (
     <div className="space-y-6">
+      {/* Tenancy Progress Stepper */}
+      {currentTenant && (
+        <div className="bg-gradient-to-r from-muted/50 to-muted/30 rounded-xl p-4 border">
+          <div className="flex items-center justify-between">
+            {steps.map((step, index) => {
+              const isCompleted = tenancyStep > step.key;
+              const isCurrent = tenancyStep === step.key;
+              const Icon = step.icon;
+              
+              return (
+                <div key={step.key} className="flex items-center flex-1">
+                  <div className="flex flex-col items-center">
+                    <div className={`
+                      w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
+                      ${isCompleted ? 'bg-green-500 text-white' : ''}
+                      ${isCurrent ? 'bg-blue-500 text-white ring-4 ring-blue-500/20' : ''}
+                      ${!isCompleted && !isCurrent ? 'bg-muted text-muted-foreground' : ''}
+                    `}>
+                      {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
+                    </div>
+                    <span className={`text-xs mt-2 text-center hidden sm:block ${isCurrent ? 'font-semibold text-blue-600' : 'text-muted-foreground'}`}>
+                      {step.label}
+                    </span>
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div className={`flex-1 h-1 mx-2 rounded ${isCompleted ? 'bg-green-500' : 'bg-muted'}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Segmented Control for Section Filter */}
+      <div className="flex items-center gap-2">
+        <ToggleGroup type="single" value={sectionFilter} onValueChange={(val) => val && setSectionFilter(val)} className="bg-muted p-1 rounded-lg">
+          <ToggleGroupItem value="all" className="px-4 py-2 data-[state=on]:bg-background data-[state=on]:shadow-sm" >
+            {t("common.all")}
+          </ToggleGroupItem>
+          <ToggleGroupItem value="tenant" className="px-4 py-2 data-[state=on]:bg-background data-[state=on]:shadow-sm" >
+            {t("propertyTenants.tabs.contracts")}
+          </ToggleGroupItem>
+          <ToggleGroupItem value="documents" className="px-4 py-2 data-[state=on]:bg-background data-[state=on]:shadow-sm" >
+            {t("properties.contract")}
+          </ToggleGroupItem>
+          <ToggleGroupItem value="inspections" className="px-4 py-2 data-[state=on]:bg-background data-[state=on]:shadow-sm" >
+            {t("inspections.title")}
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+
       {/* 0. Tenant Onboarding Checklist (tenant only, shows only when items pending) */}
-      {!userRole?.isManager && currentTenant && (
+      {(sectionFilter === "all" || sectionFilter === "tenant") && !userRole?.isManager && currentTenant && (
         <TenantOnboardingChecklist
           tenancyId={currentTenant.id}
           propertyId={propertyId}
@@ -352,224 +428,37 @@ export function ContractsTab({
         />
       )}
 
-      {/* 1. Tenant Information Card (TOP) */}
-      <ContactInfoCard
-        propertyId={propertyId}
-        currentTenant={currentTenant}
-        userRole={userRole}
-        isReadOnly={isReadOnly}
-        onEditTenant={onEditTenant}
-        onEndTenancy={onEndTenancy}
-        onInvite={onInviteInSelfManaged}
-        invitationStatus={pendingRequirement?.status as any || 'none'}
-      />
+      {/* 1. Tenancy Overview Card (Combined) */}
+      {(sectionFilter === "all" || sectionFilter === "tenant") && (
+        <TenancyOverviewCard
+          propertyId={propertyId}
+          currentTenant={currentTenant}
+          userRole={userRole}
+          isReadOnly={isReadOnly}
+          tenancyId={currentTenant?.id}
+          tenancyStatus={currentTenant?.tenancy_status}
+          pendingRequirement={pendingRequirement || null}
+          canSetupNewTenancy={canSetupNewTenancy || false}
+          onStartSetup={onStartSetup}
+          onSendInvitation={onSendInvitation}
+          onEdit={onEditRentalTerms}
+        />
+      )}
 
-      {/* 2. Rental Terms Card (SECOND) */}
-      <RentalTermsCard
-        propertyId={propertyId}
-        tenancyId={currentTenant?.id}
-        tenantEmail={currentTenant?.email}
-        isManager={userRole?.isManager || false}
-        isReadOnly={isReadOnly}
-        tenancyStatus={currentTenant?.tenancy_status}
-        pendingRequirement={pendingRequirement || null}
-        canSetupNewTenancy={canSetupNewTenancy || false}
-        hasEndingTenancy={hasEndingTenancy || false}
-        currentTenantName={currentTenantName}
-        onStartSetup={onStartSetup}
-        onSendInvitation={onSendInvitation}
-        onCancelSetup={onCancelSetup}
-        onResendInvitation={onResendInvitation}
-        isDeleting={isDeleting}
-        isResending={isResending}
-        onEdit={onEditRentalTerms}
-      />
-
-      {/* 3. Contract Card (THIRD) */}
-      {currentTenant && (
-        <Card className="card-shine" id="contract-signature-section">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                {t("properties.contract") || "Contract"}
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                {isContractLocked && (
-                  <Badge variant="secondary" className="text-xs">
-                    🔒 {t("properties.contractLocked") || "Locked"}
-                  </Badge>
-                )}
-                {isReadOnly && !isContractLocked && (
-                  <Badge variant="secondary" className="text-xs">
-                    {t("properties.readOnlyAccess")}
-                  </Badge>
-                )}
-                {!isReadOnly && !isContractLocked && !uploadDocumentOpen && !selectedParentDoc && userRole?.isManager && (
-                  <Button variant="outline" size="sm" onClick={() => setUploadDocumentOpen(true)}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    {t("properties.uploadContract") || "Upload Contract"}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Uploaded Documents List */}
-            <div className="space-y-4">
-              {uploadDocumentOpen && !isReadOnly && !selectedParentDoc && (
-                <PropertyDocumentUpload
-                  propertyId={propertyId}
-                  category="tenancy"
-                  tenancyId={currentTenant.id}
-                  onUploadComplete={() => {
-                    refetchDocuments();
-                    setUploadDocumentOpen(false);
-                  }}
-                />
-              )}
-
-              {selectedParentDoc && !isReadOnly && (
-                <div className="space-y-3">
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium">
-                      {t("properties.propertyDocuments.uploadNewVersion")}: {selectedParentDoc.title}
-                    </p>
-                  </div>
-                  <PropertyDocumentUpload
-                    propertyId={propertyId}
-                    category="tenancy"
-                    tenancyId={currentTenant.id}
-                    parentDocumentId={selectedParentDoc.id}
-                    parentDocumentTitle={selectedParentDoc.title}
-                    onUploadComplete={() => {
-                      refetchDocuments();
-                      setSelectedParentDoc(null);
-                    }}
-                  />
-                  <Button variant="outline" onClick={() => setSelectedParentDoc(null)}>
-                    {t("common.cancel")}
-                  </Button>
-                </div>
-              )}
-
-              {groupedDocuments && Object.keys(groupedDocuments).length > 0 ? (
-                <div className="space-y-4">
-                  {Object.entries(groupedDocuments).map(([title, docs]) => {
-                    const latestDoc = docs[0];
-                    const olderVersions = docs.slice(1);
-                    const isExpanded = expandedDocuments.has(title);
-
-                    return (
-                      <div key={title} className="border rounded-lg">
-                        <div className="p-4 space-y-3">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-medium truncate">{title}</h4>
-                                {docs.length > 1 && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    {docs.length} {t("properties.propertyDocuments.versions")}
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="text-xs text-muted-foreground space-y-0.5">
-                                <p>
-                                  v{latestDoc.version} · {formatFileSize(latestDoc.file_size_bytes)} ·{" "}
-                                  {formatDate(latestDoc.created_at)}
-                                </p>
-                                {latestDoc.description && <p className="italic">{latestDoc.description}</p>}
-                              </div>
-                            </div>
-                            <div className="flex gap-1 flex-shrink-0">
-                              <Button variant="outline" size="sm" onClick={() => openDocument(latestDoc)} title={t("common.open")}>
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => downloadDocument(latestDoc)} title={t("common.download")}>
-                                <Download className="h-3 w-3" />
-                              </Button>
-                              {!isReadOnly && !isContractLocked && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSelectedParentDoc({ id: latestDoc.id, title })}
-                                    title={t("properties.uploadNewVersion") || "Upload new version"}
-                                  >
-                                    <Upload className="h-3 w-3" />
-                                  </Button>
-                                  {userRole?.isManager && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => deleteDocumentMutation.mutate(latestDoc.id)}
-                                      title={t("common.delete")}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          {olderVersions.length > 0 && (
-                            <div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleDocumentExpansion(title)}
-                                className="w-full justify-between"
-                              >
-                                <span className="text-xs">
-                                  {isExpanded ? t("properties.propertyDocuments.previousVersions") : t("properties.propertyDocuments.seeVersions")}
-                                </span>
-                                <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
-                              </Button>
-
-                              {isExpanded && (
-                                <PropertyDocumentVersionHistory
-                                  versions={olderVersions}
-                                  onDownload={downloadDocument}
-                                  onOpen={openDocument}
-                                  onDelete={userRole?.isManager ? (doc) => deleteDocumentMutation.mutate(doc.id) : undefined}
-                                  formatFileSize={formatFileSize}
-                                  getUploaderName={getUploaderName}
-                                />
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">{t("properties.noTenancyDocuments")}</p>
-              )}
-            </div>
-
-            {/* Separator between documents and signature */}
-            <Separator />
-
-            {/* Digital Signature Section (embedded) */}
-            <ContractSignatureManager
-              tenancyId={currentTenant?.id || ''}
-              propertyId={propertyId}
-              isManager={userRole?.isManager || false}
-              contractMethod={
-                pendingRequirement?.contract_method || 
-                tenancyRequirements?.contract_method as 'digital' | 'manual' | 'none' | null | undefined
-              }
-              onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
-              asSection={true}
-            />
-          </CardContent>
-        </Card>
+      {/* 3. Contract Card */}
+      {(sectionFilter === "all" || sectionFilter === "documents") && currentTenant && (
+        <ContractCard
+          currentTenant={currentTenant}
+          propertyId={propertyId}
+          userRole={userRole}
+          isReadOnly={isReadOnly}
+          pendingRequirement={pendingRequirement || null}
+          tenancyRequirements={tenancyRequirements}
+        />
       )}
 
 {/* 5. Property Inspections Card */}
-      {currentTenant ? (
+      {(sectionFilter === "all" || sectionFilter === "inspections") && (currentTenant ? (
         <InspectionCard
           tenancyId={currentTenant.id}
           propertyId={propertyId}
@@ -581,8 +470,8 @@ export function ContractsTab({
       ) : (
         <Card className="card-shine">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5" />
+            <CardTitle className="text-lg flex items-center gap-2">              
+              <ClipboardCheck className="h-4 w-4" />
               {t("inspections.title") || "Property Inspections"}
             </CardTitle>
           </CardHeader>
@@ -593,8 +482,8 @@ export function ContractsTab({
               <p className="text-xs mt-1">Inspections will appear after tenancy starts</p>
             </div>
           </CardContent>
-        </Card>
-      )}
+</Card>
+      ))}
 
     </div>
   );

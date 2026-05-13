@@ -30,7 +30,7 @@ import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { ContractsTab } from '@/components/property-tenants/ContractsTab';
 import { PaymentsTab } from '@/components/property-tenants/PaymentsTab';
 import { TicketsTab } from '@/components/property-tenants/TicketsTab';
-import { OverviewTab } from '@/components/property-hub/OverviewTab';
+import { HistoricTab } from '@/components/property-tenants/HistoricTab';
 import { useTenancyRequirements, CreateTenancyRequirementInput, TenancyRequirement } from '@/hooks/useTenancyRequirements';
 import { CreateTenancyWizard } from '@/components/CreateTenancyWizard';
 import { EndTenancyDialog } from "@/components/EndTenancyDialog";
@@ -87,8 +87,8 @@ export default function PropertyTenants() {
   const { tenancyId, tenancyStatus } = location.state || {};
   const isReadOnly = tenancyStatus === 'historic';
 
-  // Get active tab from URL or default to 'overview'
-  const activeTab = searchParams.get('tab') || 'overview';
+  // Get active tab from URL or default to 'contracts'
+  const activeTab = searchParams.get('tab') || 'contracts';
   const actionParam = searchParams.get('action');
   
   const setActiveTab = (tab: string) => {
@@ -928,30 +928,18 @@ export default function PropertyTenants() {
             tenants={allTenants}
             selectedTenantId={currentTenant.id}
             onSelectTenant={setSelectedTenantId}
+            onViewHistoric={() => setActiveTab('historic')}
           />
         )}
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">{t("propertyHub.overview")}</TabsTrigger>
             <TabsTrigger value="contracts">{t("propertyTenants.tabs.contracts")}</TabsTrigger>
             <TabsTrigger value="payments">{t("propertyTenants.tabs.payments")}</TabsTrigger>
             <TabsTrigger value="tickets">{t("propertyTenants.tabs.tickets")}</TabsTrigger>
+            <TabsTrigger value="historic">{t("propertyTenants.tabs.historic")}</TabsTrigger>
           </TabsList>
-
-              <TabsContent value="overview" className="mt-6">
-                <OverviewTab
-                  property={property}
-                  propertyId={propertyId!}
-                  userRole={userRole}
-                  activeTenant={activeTenantWithProfile}
-                  templates={templates}
-                  invitations={invitations}
-                  onInviteTenant={(email) => inviteMutation.mutate(email)}
-                  hasNoTenants={allTenants !== undefined && allTenants.length === 0 && (!invitations || invitations.length === 0)}
-                />
-              </TabsContent>
 
               <TabsContent value="contracts" className="mt-6">
                 <ContractsTab
@@ -993,6 +981,10 @@ export default function PropertyTenants() {
 
               <TabsContent value="tickets" className="mt-6">
                 <TicketsTab propertyId={propertyId!} tenancyId={currentTenant?.id} isManager={userRole?.isManager} />
+              </TabsContent>
+
+              <TabsContent value="historic" className="mt-6">
+                <HistoricTab propertyId={propertyId!} isManager={userRole?.isManager || false} />
               </TabsContent>
 
         </Tabs>
