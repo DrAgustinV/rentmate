@@ -1,8 +1,7 @@
 import { useMutation, UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useLanguage } from '@/contexts/LanguageContext';
 
-interface ToastOptions {
+export interface ToastConfig {
   success?: {
     title?: string;
     description?: string;
@@ -15,37 +14,40 @@ interface ToastOptions {
 }
 
 interface UseMutationWithToastOptions<TData, TVariables, TContext>
-  extends Omit<UseMutationOptions<TData, unknown, TVariables, TContext>, 'onSuccess' | 'onError'> {
-  toastOptions?: ToastOptions;
+  extends UseMutationOptions<TData, unknown, TVariables, TContext> {
+  toast?: ToastConfig;
 }
 
-export function useMutationWithToast<TData, TVariables, TContext>(
-  mutationFn: (variables: TVariables) => Promise<TData>,
-  options?: UseMutationWithToastOptions<TData, TVariables, TContext>
+export function useMutationWithToast<TData, TVariables, TContext = unknown>(
+  options: UseMutationWithToastOptions<TData, TVariables, TContext>
 ): UseMutationResult<TData, unknown, TVariables, TContext> {
-  const { t } = useLanguage();
+  const { toast: toastConfig, ...mutationOptions } = options;
 
-  const { onSuccess, onError, toastOptions, ...rest } = options || {};
-
-  return useMutation<TData, unknown, TVariables, TContext>(mutationFn, {
-    ...rest,
+  return useMutation({
+    ...mutationOptions,
     onSuccess: (data, variables, context) => {
-      if (!toastOptions?.silent) {
-        toast.success(
-          toastOptions?.success?.title || t('common.success'),
-          { description: toastOptions?.success?.description }
-        );
+      if (!toastConfig?.silent) {
+        if (toastConfig?.success) {
+          toast.success(toastConfig.success.title || 'Success', {
+            description: toastConfig.success.description,
+          });
+        } else {
+          toast.success('Success');
+        }
       }
-      onSuccess?.(data, variables, context);
+      mutationOptions.onSuccess?.(data, variables, context);
     },
     onError: (error, variables, context) => {
-      if (!toastOptions?.silent) {
-        toast.error(
-          toastOptions?.error?.title || t('common.error'),
-          { description: toastOptions?.error?.description || (error instanceof Error ? error.message : 'An error occurred') }
-        );
+      if (!toastConfig?.silent) {
+        if (toastConfig?.error) {
+          toast.error(toastConfig.error.title || 'Error', {
+            description: toastConfig.error.description,
+          });
+        } else {
+          toast.error('An error occurred');
+        }
       }
-      onError?.(error, variables, context);
+      mutationOptions.onError?.(error, variables, context);
     },
   });
 }
