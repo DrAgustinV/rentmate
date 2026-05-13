@@ -1,0 +1,25 @@
+import { toast as sonnerToast } from "sonner";
+import { toast as shadcnToast } from "@/hooks/use-toast";
+
+type ToastVariant = "default" | "destructive" | "success";
+
+interface ToastOptions {
+  title?: string;
+  description: string;
+  variant?: ToastVariant;
+  duration?: number;
+}
+
+/**
+ * Unified toast utility that uses sonner for most notifications
+ * Falls back to shadcn toast if needed for compatibility
+ */
+export const showToast = {
+  success: (options: ToastOptions | string) => { ... },
+  error: (options: ToastOptions | string) => { ... },
+  info: (options: ToastOptions | string) => { ... },
+  warning: (options: ToastOptions | string) => { ... },
+};
+
+// Auth-specific error messages
+export const getAuthErrorMessage = (error: any): string => { ... };
