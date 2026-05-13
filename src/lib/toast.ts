@@ -1,12 +1,8 @@
-import { ReactNode } from "react";
-import { toast as sonnerToast } from "sonner";
+import { toast as sonnerToast, type ToastOptions as SonnerToastOptions } from "sonner";
+import type { ReactNode } from "react";
 
-export interface ToastOptions {
-  title?: string;
-  description?: string;
+export interface ToastOptions extends Omit<SonnerToastOptions, "duration"> {
   duration?: number;
-  action?: ReactNode;
-  onDismiss?: () => void;
 }
 
 const DEFAULT_DURATION = 3000;
@@ -15,49 +11,27 @@ const DEFAULT_DURATION = 3000;
  * Unified toast wrapper that standardizes success, error, info, warning, and silent patterns.
  * Provides consistent defaults, predictable API shape, and centralized configuration.
  */
-export const toast = {
-  success: (options: ToastOptions) => {
-    sonnerToast.success(options.title || "Success", {
-      description: options.description,
-      duration: options.duration ?? DEFAULT_DURATION,
-      action: options.action,
-      onDismiss: options.onDismiss,
-    });
+export const showToast = {
+  success: (message: string | ReactNode, options?: ToastOptions) => {
+    sonnerToast.success(message, { duration: DEFAULT_DURATION, ...options });
   },
-  error: (options: ToastOptions) => {
-    sonnerToast.error(options.title || "Error", {
-      description: options.description,
-      duration: options.duration ?? DEFAULT_DURATION,
-      action: options.action,
-      onDismiss: options.onDismiss,
-    });
+  error: (message: string | ReactNode, options?: ToastOptions) => {
+    sonnerToast.error(message, { duration: DEFAULT_DURATION, ...options });
   },
-  info: (options: ToastOptions) => {
-    sonnerToast.info(options.title || "Info", {
-      description: options.description,
-      duration: options.duration ?? DEFAULT_DURATION,
-      action: options.action,
-      onDismiss: options.onDismiss,
-    });
+  info: (message: string | ReactNode, options?: ToastOptions) => {
+    sonnerToast.info(message, { duration: DEFAULT_DURATION, ...options });
   },
-  warning: (options: ToastOptions) => {
-    sonnerToast.warning(options.title || "Warning", {
-      description: options.description,
-      duration: options.duration ?? DEFAULT_DURATION,
-      action: options.action,
-      onDismiss: options.onDismiss,
-    });
+  warning: (message: string | ReactNode, options?: ToastOptions) => {
+    sonnerToast.warning(message, { duration: DEFAULT_DURATION, ...options });
   },
-  silent: (options: ToastOptions) => {
-    // Intended for background updates or internal logging without UI interruption
-    if (options.description) {
-      console.log(`[Toast Silent] ${options.title || 'Info'}: ${options.description}`);
-    }
-    options.onDismiss?.();
+  silent: (message: string | ReactNode, options?: ToastOptions) => {
+    sonnerToast(message, { duration: 0, ...options });
   },
-  loading: (description: string) => sonnerToast.loading(description),
+  loading: (message: string | ReactNode, options?: ToastOptions) => {
+    sonnerToast.loading(message, { duration: Infinity, ...options });
+  },
   dismiss: (id?: string) => sonnerToast.dismiss(id),
 };
 
-// Export as showToast for backward compatibility with existing imports
-export const showToast = toast;
+// Export as toast for backward compatibility with existing imports
+export const toast = showToast;
