@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { UserCircle, Globe } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { showToast } from "@/lib/toast";
 import { User } from "@supabase/supabase-js";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Language } from "@/lib/i18n/translations/index";
@@ -26,7 +26,6 @@ const languages: { code: Language; label: string; flag: string }[] = [
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [firstName, setFirstName] = useState("");
@@ -66,10 +65,9 @@ export default function Profile() {
       }
       setSelectedLanguage(language);
     } catch (error: any) {
-      toast({
+      showToast.error({
         title: t('common.error'),
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -96,15 +94,14 @@ export default function Profile() {
         await changeLanguage(selectedLanguage);
       }
 
-      toast({
+      showToast.success({
         title: t('common.success'),
         description: t('settings.saved'),
       });
     } catch (error: any) {
-      toast({
+      showToast.error({
         title: t('common.error'),
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setSaving(false);
