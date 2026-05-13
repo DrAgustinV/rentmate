@@ -45,35 +45,15 @@ export const showToast = {
       case "warning":
         return sonnerToast.warning(title ?? "Warning", toastOptions);
       case "silent":
-        return sonnerToast(title ?? "", toastOptions);
       default:
         return sonnerToast(title ?? "", toastOptions);
     }
   },
 
-  /**
-   * Convenience method for success toasts.
-   */
   success: (options: ToastOptions) => showToast.show("success", options),
-
-  /**
-   * Convenience method for error toasts.
-   */
   error: (options: ToastOptions) => showToast.show("error", options),
-
-  /**
-   * Convenience method for info toasts.
-   */
   info: (options: ToastOptions) => showToast.show("info", options),
-
-  /**
-   * Convenience method for warning toasts.
-   */
   warning: (options: ToastOptions) => showToast.show("warning", options),
-
-  /**
-   * Convenience method for silent toasts (no auto-dismiss).
-   */
   silent: (options: ToastOptions) => showToast.show("silent", options),
 
   dismiss: (id?: string) => sonnerToast.dismiss(id),
