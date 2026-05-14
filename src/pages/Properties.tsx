@@ -24,8 +24,9 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { propertyService, authService, documentService } from "@/services";
+import { propertyService, authService } from "@/services";
 import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
+import { getCachedSignedUrl } from "@/lib/signedUrlCache";
 
 export default function Properties() {
   const { t } = useLanguage();
@@ -54,57 +55,46 @@ export default function Properties() {
   useEffect(() => {
     let mounted = true;
 
-    const fetchPhotoUrls = async () => {
-      const propertyList = propertiesData?.properties;
-      if (!propertyList || propertyList.length === 0) return;
-      
-      const urls: Record<string, string> = {};
-      const photosToFetch = propertyList.filter(p => p.images?.[0]);
-      
-      await Promise.all(
-        photosToFetch.map(async (property) => {
-          try {
-            const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, property.images![0], SIGNED_URL_TTL);
-            urls[property.id] = url;
-          } catch (e) {
-            // ignore
-          }
-        })
-      );
-      
-      if (mounted) setPropertyPhotoUrls(urls);
-    };
-
-    fetchPhotoUrls();
-    return () => { mounted = false; };
-  }, [propertiesData]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchStatusIndicators = async () => {
+    const fetchPropertyData = async () => {
       const propertyList = propertiesData?.properties;
       if (!propertyList || propertyList.length === 0) return;
 
-      const indicators: Record<string, PropertyStatusIndicators> = {};
-      
-      await Promise.all(
-        propertyList.map(async (property) => {
-          try {
-            const indicator = await propertyService.getPropertyStatusIndicators(property.id);
-            if (indicator) {
-              indicators[property.id] = indicator as PropertyStatusIndicators;
+      const [urls, indicators] = await Promise.all([
+        Promise.all(
+          propertyList
+            .filter(p => p.images?.[0])
+            .map(async (property) => {
+              try {
+                const url = await getCachedSignedUrl(
+                  STORAGE_BUCKETS.PROPERTY_PHOTOS,
+                  property.images![0],
+                  SIGNED_URL_TTL
+                );
+                return [property.id, url];
+              } catch (e) {
+                return [property.id, null];
+              }
+            })
+        ).then(Object.fromEntries),
+        Promise.all(
+          propertyList.map(async (property) => {
+            try {
+              const indicator = await propertyService.getPropertyStatusIndicators(property.id);
+              return [property.id, indicator];
+            } catch (error) {
+              return [property.id, null];
             }
-          } catch (error) {
-            console.error(`Error fetching status indicators for property ${property.id}:`, error);
-          }
-        })
-      );
-      
-      if (mounted) setStatusIndicators(indicators);
+          })
+        ).then(Object.fromEntries)
+      ]);
+
+      if (mounted) {
+        setPropertyPhotoUrls(urls as Record<string, string>);
+        setStatusIndicators(indicators as Record<string, PropertyStatusIndicators>);
+      }
     };
 
-    fetchStatusIndicators();
+    fetchPropertyData();
     return () => { mounted = false; };
   }, [propertiesData]);
 
@@ -262,12 +252,13 @@ export default function Properties() {
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {filteredAndSortedProperties.map((property) => (
-            <PropertyCard 
-              key={property.id} 
-              property={property} 
-              isManager={true} 
-              onUpdate={() => {}} 
+            <PropertyCard
+              key={property.id}
+              property={property}
+              isManager={true}
+              onUpdate={() => {}}
               statusIndicators={statusIndicators[property.id]}
+              photoUrl={propertyPhotoUrls[property.id]}
             />
           ))}
         </div>

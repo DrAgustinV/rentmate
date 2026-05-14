@@ -1,8 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { tenancyService, authService, identityService } from '@/services';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
+import type { RentAgreementInput, RentAgreementUpdates } from '@/services/tenancyService';
 
 export const RENT_AGREEMENTS_QUERY_KEY = 'rent-agreements';
 
@@ -25,6 +27,11 @@ interface RentAgreement {
   updated_at: string;
 }
 
+interface RealtimePayload {
+  old: Record<string, unknown> | null;
+  new: Record<string, unknown> | null;
+}
+
 export function useRentAgreements(propertyId?: string) {
   const queryClient = useQueryClient();
 
@@ -41,13 +48,13 @@ export function useRentAgreements(propertyId?: string) {
           table: 'rent_agreements',
           filter: `property_id=eq.${propertyId}`,
         },
-        (payload: any) => {
-          const oldStatus = payload.old?.mandate_status;
-          const newStatus = payload.new?.mandate_status;
+        (payload: RealtimePayload) => {
+          const oldStatus = payload.old?.mandate_status as string | undefined;
+          const newStatus = payload.new?.mandate_status as string | undefined;
 
           if (oldStatus !== newStatus) {
             queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY, propertyId] });
-            
+
             if (newStatus === 'active') {
               toast.success('SEPA mandate verified and activated!');
             } else if (newStatus === 'failed') {
@@ -71,7 +78,6 @@ export function useRentAgreements(propertyId?: string) {
         return [];
       }
 
-      // Get current user to determine if they're a tenant
       const user = await authService.getCurrentUser();
       if (!user) {
         console.log('[useRentAgreements] No authenticated user');
@@ -106,7 +112,7 @@ export function useRentAgreementMutations() {
       const user = await authService.getCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
-      const insertData: any = {
+      const insertData: RentAgreementInput = {
         property_id: data.property_id,
         tenancy_id: data.tenancy_id,
         tenant_id: data.tenant_id,
@@ -115,6 +121,7 @@ export function useRentAgreementMutations() {
         payment_day: data.payment_day,
         start_date: data.start_date,
         currency: data.currency,
+        is_active: true,
       };
 
       if (data.end_date) {
@@ -127,7 +134,7 @@ export function useRentAgreementMutations() {
       queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY, variables.property_id] });
       toast.success('Rent agreement created successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Create rent agreement error:', error);
       toast.error('Failed to create rent agreement');
     },
@@ -155,7 +162,8 @@ export function useRentAgreementMutations() {
       const activeSignature = await tenancyService.getActiveSignature(existingAgreement.tenancy_id);
       if (activeSignature) throw new Error('Cannot edit rent agreement while contract signing is in progress');
 
-      const { agreement_id, ...updateData } = data;
+      const { agreement_id, ...updates } = data;
+      const updateData: RentAgreementUpdates = { ...updates };
       const result = await tenancyService.updateRentAgreement(agreement_id, updateData);
       return { result, property_id: existingAgreement.property_id };
     },
@@ -163,9 +171,9 @@ export function useRentAgreementMutations() {
       queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY, data.property_id] });
       toast.success('Rent agreement updated successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Update rent agreement error:', error);
-      if (error.message.includes('contract signing is in progress')) {
+      if (error.message?.includes('contract signing is in progress')) {
         toast.error('Cannot edit while contract signing is in progress');
       } else {
         toast.error('Failed to update rent agreement');
@@ -184,7 +192,7 @@ export function useRentAgreementMutations() {
       queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY] });
       toast.success('IBAN saved and mandate creation initiated');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Update IBAN error:', error);
       toast.error('Failed to create SEPA mandate. Please try again.');
     },

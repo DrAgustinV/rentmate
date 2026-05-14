@@ -30,7 +30,7 @@ export const CommentsList = ({ comments }: CommentsListProps) => {
   return (
     <div className="space-y-4">
       {comments.map((comment) => {
-        const initials = `${comment.profiles.first_name?.[0] || ""}${comment.profiles.last_name?.[0] || ""}`.toUpperCase() || comment.profiles.email[0].toUpperCase();
+        const initials = `${comment.profiles.first_name?.[0] || ""}${comment.profiles.last_name?.[0] || ""}`.toUpperCase() || comment.profiles.email?.[0]?.toUpperCase() || '?';
         
         return (
           <div key={comment.id} className="flex gap-3">

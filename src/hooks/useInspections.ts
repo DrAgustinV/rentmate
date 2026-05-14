@@ -209,19 +209,19 @@ export function useInspectionSignatures(inspectionId: string | undefined) {
   const queryClient = useQueryClient();
 
   const signMutation = useMutation({
-    mutationFn: async ({ 
-      role, 
-      signatureData 
-    }: { 
-      role: 'manager' | 'tenant'; 
-      signatureData: any;
+    mutationFn: async ({
+      role,
+      signatureData
+    }: {
+      role: 'manager' | 'tenant';
+      signatureData: unknown;
     }) => {
       if (!inspectionId) throw new Error("No inspection ID");
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const updates: any = {};
+      const updates: Record<string, unknown> = {};
       if (role === 'manager') {
         updates.manager_signed_at = new Date().toISOString();
         updates.manager_signature_data = signatureData;

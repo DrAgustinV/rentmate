@@ -45,7 +45,7 @@ export function useUtilityPaymentMutations() {
   const queryClient = useQueryClient();
 
   const createPayment = useMutation({
-    mutationFn: async (payment: any) => paymentService.createUtilityPayment(payment),
+    mutationFn: async (payment: Parameters<typeof paymentService.createUtilityPayment>[0]) => paymentService.createUtilityPayment(payment),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
       toast.success('Utility payment created successfully');

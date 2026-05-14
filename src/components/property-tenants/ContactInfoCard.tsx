@@ -163,7 +163,7 @@ export function ContactInfoCard({
     const getTenantInitials = () => {
       const first = currentTenant.first_name?.charAt(0) || "";
       const last = currentTenant.last_name?.charAt(0) || "";
-      return (first + last).toUpperCase() || currentTenant.email.charAt(0).toUpperCase();
+      return (first + last).toUpperCase() || currentTenant.email?.charAt(0)?.toUpperCase() || '?';
     };
 
     return (
@@ -295,7 +295,7 @@ export function ContactInfoCard({
   const getManagerInitials = () => {
     const first = managerInfo.first_name?.charAt(0) || "";
     const last = managerInfo.last_name?.charAt(0) || "";
-    return (first + last).toUpperCase() || managerInfo.email.charAt(0).toUpperCase();
+    return (first + last).toUpperCase() || managerInfo.email?.charAt(0)?.toUpperCase() || '?';
   };
 
   return (

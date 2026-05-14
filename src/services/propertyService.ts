@@ -1,12 +1,38 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { PropertyDomain, PropertyBasicInfo } from '@/types/domain';
-import type { Property } from '@/types';
+import type { Property, PropertyStatus } from '@/types';
+import type { SubscriptionType } from '@/types/enums';
 
 interface PropertyQueryParams {
   managerId?: string;
-  status?: 'active' | 'ending_tenancy' | 'inactive';
+  status?: PropertyStatus;
   page?: number;
   pageSize?: number;
+}
+
+interface CreatePropertyInput {
+  title: string;
+  address?: string | null;
+  city?: string | null;
+  state_province?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
+  description?: string | null;
+  status?: PropertyStatus;
+  images?: string[] | null;
+  manager_id: string;
+}
+
+interface UpdatePropertyInput {
+  title?: string;
+  address?: string | null;
+  city?: string | null;
+  state_province?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
+  description?: string | null;
+  status?: PropertyStatus;
+  images?: string[] | null;
 }
 
 function mapProperty(row: Property): PropertyDomain {
@@ -75,7 +101,7 @@ export async function getPropertyBasicInfo(id: string): Promise<PropertyBasicInf
   return data;
 }
 
-export async function createProperty(property: any): Promise<PropertyDomain> {
+export async function createProperty(property: CreatePropertyInput): Promise<PropertyDomain> {
   const { data, error } = await supabase
     .from('properties')
     .insert(property)
@@ -85,7 +111,7 @@ export async function createProperty(property: any): Promise<PropertyDomain> {
   return mapProperty(data);
 }
 
-export async function updateProperty({ id, updates }: { id: string; updates: any }): Promise<PropertyDomain> {
+export async function updateProperty({ id, updates }: { id: string; updates: UpdatePropertyInput }): Promise<PropertyDomain> {
   const { data, error } = await supabase
     .from('properties')
     .update(updates)

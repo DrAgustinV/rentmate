@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Badge, badgeVariants, BadgeProps } from "@/components/ui/badge";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
@@ -25,14 +26,14 @@ interface OccupancyBadgeProps
   status: "Vacant" | "Active" | "Ending" | "Historic";
 }
 
-export function OccupancyBadge({ status, className, ...props }: OccupancyBadgeProps) {
+export const OccupancyBadge = memo(function OccupancyBadge({ status, className, ...props }: OccupancyBadgeProps) {
   const variant = status.toLowerCase() as "vacant" | "active" | "ending" | "historic";
   return (
     <span className={cn(occupancyBadgeVariants({ variant }), className)} {...props}>
       {status}
     </span>
   );
-}
+});
 
 const paymentBadgeVariants = cva(
   "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-all duration-200",
@@ -59,20 +60,20 @@ interface PaymentBadgeProps
   status: "Paid" | "Due" | "Partial" | "Overdue" | "No rent" | "Closed";
 }
 
-export function PaymentBadge({ status, className, ...props }: PaymentBadgeProps) {
+export const PaymentBadge = memo(function PaymentBadge({ status, className, ...props }: PaymentBadgeProps) {
   const variantKey = status.toLowerCase().replace(" ", "-") as "paid" | "due" | "partial" | "overdue" | "no-rent" | "closed";
   return (
     <span className={cn(paymentBadgeVariants({ variant: variantKey }), className)} {...props}>
       {status}
     </span>
   );
-}
+});
 
 interface TicketCountProps extends React.HTMLAttributes<HTMLSpanElement> {
   count: number;
 }
 
-export function TicketCount({ count, className, ...props }: TicketCountProps) {
+export const TicketCount = memo(function TicketCount({ count, className, ...props }: TicketCountProps) {
   if (count === 0) {
     return (
       <span className={cn("text-muted-foreground", className)} {...props}>
@@ -85,4 +86,4 @@ export function TicketCount({ count, className, ...props }: TicketCountProps) {
       {count}
     </span>
   );
-}
+});

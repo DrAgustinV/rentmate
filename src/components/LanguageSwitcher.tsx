@@ -20,7 +20,7 @@ export const LanguageSwitcher = () => {
     lang => enabledLanguages.includes(lang.code)
   );
   
-  const currentLang = availableLanguages.find(l => l.code === language) || availableLanguages[0];
+  const currentLang = availableLanguages.find(l => l.code === language) || availableLanguages[0] || AVAILABLE_LANGUAGES[0];
 
   if (loading || availableLanguages.length === 0) return null;
 

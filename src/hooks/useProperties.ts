@@ -2,14 +2,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { propertyService } from '@/services';
 import { setupOptimisticUpdate, rollbackOptimisticUpdate } from '@/lib/optimisticHelpers';
+import type { CreatePropertyInput, UpdatePropertyInput } from '@/services/propertyService';
+import type { PropertyStatus } from '@/types/enums';
 
 export const PROPERTIES_QUERY_KEY = 'properties';
 
 interface PropertyFilters {
-  status?: 'active' | 'ending_tenancy' | 'inactive';
+  status?: PropertyStatus;
   managerId?: string;
   page?: number;
   pageSize?: number;
+}
+
+interface PropertiesQueryResult {
+  properties: { id: string; created_at: string; [key: string]: unknown }[];
+  totalCount: number;
+  totalPages: number;
 }
 
 export function useProperties(filters: PropertyFilters = {}) {
@@ -45,17 +53,17 @@ export function usePropertyMutations() {
   const queryClient = useQueryClient();
 
   const createProperty = useMutation({
-    mutationFn: async (property: any) => propertyService.createProperty(property),
+    mutationFn: async (property: CreatePropertyInput) => propertyService.createProperty(property),
     onMutate: async (newProperty) => {
       return await setupOptimisticUpdate(
         queryClient,
         [PROPERTIES_QUERY_KEY],
-        (old: any) => {
+        (old: PropertiesQueryResult | undefined) => {
           if (!old) return old;
           return {
             ...old,
             properties: [
-              { ...newProperty, id: 'temp-' + Date.now(), created_at: new Date().toISOString() },
+              { ...newProperty, id: 'temp-' + Date.now(), created_at: new Date().toISOString() } as CreatePropertyInput & { id: string; created_at: string },
               ...old.properties
             ],
             totalCount: old.totalCount + 1
@@ -67,23 +75,23 @@ export function usePropertyMutations() {
       queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
       toast.success('Property created successfully');
     },
-    onError: (error: any, _variables, context) => {
+    onError: (error: Error, _variables, context) => {
       rollbackOptimisticUpdate(queryClient, [PROPERTIES_QUERY_KEY], context);
       toast.error(error.message || 'Failed to create property');
     },
   });
 
   const updateProperty = useMutation({
-    mutationFn: async (params: { id: string; updates: any }) => propertyService.updateProperty(params),
+    mutationFn: async (params: { id: string; updates: UpdatePropertyInput }) => propertyService.updateProperty(params),
     onMutate: async ({ id, updates }) => {
       return await setupOptimisticUpdate(
         queryClient,
         [PROPERTIES_QUERY_KEY],
-        (old: any) => {
+        (old: PropertiesQueryResult | undefined) => {
           if (!old) return old;
           return {
             ...old,
-            properties: old.properties.map((p: any) =>
+            properties: old.properties.map((p) =>
               p.id === id ? { ...p, ...updates } : p
             )
           };
@@ -94,7 +102,7 @@ export function usePropertyMutations() {
       queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
       toast.success('Property updated successfully');
     },
-    onError: (error: any, _variables, context) => {
+    onError: (error: Error, _variables, context) => {
       rollbackOptimisticUpdate(queryClient, [PROPERTIES_QUERY_KEY], context);
       toast.error(error.message || 'Failed to update property');
     },
@@ -106,7 +114,7 @@ export function usePropertyMutations() {
       queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
       toast.success('Property archived successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to archive property');
     },
   });
@@ -117,7 +125,7 @@ export function usePropertyMutations() {
       queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
       toast.success('Property deleted successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete property');
     },
   });

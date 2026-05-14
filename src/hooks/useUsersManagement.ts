@@ -47,13 +47,13 @@ export function useUsersManagement() {
       return profiles.map((profile): UserWithSubscription => {
         const userRoles = roles.filter((r) => r.user_id === profile.id).map((r) => r.role);
         const userSub = subscriptions.find((s) => s.user_id === profile.id);
-        
+
         return {
           ...profile,
           roles: userRoles,
           subscription: userSub ? {
-            plan_slug: (userSub.plan as any)?.slug || 'free',
-            plan_name: (userSub.plan as any)?.name || 'Free',
+            plan_slug: (userSub.plan as { slug?: string })?.slug || 'free',
+            plan_name: (userSub.plan as { name?: string })?.name || 'Free',
             status: userSub.status,
             subscription_type: userSub.subscription_type,
             current_period_end: userSub.current_period_end,
@@ -85,8 +85,8 @@ export function useUsersManagement() {
       toast.success(t('admin.userDeletedSuccess'));
       setDeletingUserId(null);
     },
-    onError: (error: any) => {
-      toast.error(t('admin.userDeletedError') + ': ' + error.message);
+    onError: (error: Error) => {
+      toast.error(t('admin.userDeletedError') + ': ' + (error.message || 'Unknown error'));
       setDeletingUserId(null);
     },
   });

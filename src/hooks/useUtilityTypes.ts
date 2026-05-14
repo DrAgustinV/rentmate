@@ -52,7 +52,7 @@ export function useUtilityTypes() {
       queryClient.invalidateQueries({ queryKey: ['utility_types'] });
       toast.success('Utility types updated successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('Failed to update utility types: ' + (error.message || 'Unknown error'));
     },
   });

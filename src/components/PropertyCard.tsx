@@ -9,8 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
-import { propertyService, documentService } from "@/services";
-import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
+import { propertyService } from "@/services";
 
 export interface PropertyStatusIndicators {
   property_id: string;
@@ -29,9 +28,10 @@ interface PropertyCardProps {
   isManager: boolean;
   onUpdate: () => void;
   statusIndicators?: PropertyStatusIndicators;
+  photoUrl?: string;
 }
 
-export function PropertyCard({ property, isManager, onUpdate, statusIndicators }: PropertyCardProps) {
+export function PropertyCard({ property, isManager, onUpdate, statusIndicators, photoUrl }: PropertyCardProps) {
   const { t } = useLanguage();
   const [tenantStatus, setTenantStatus] = useState<{
     status: "occupied" | "invited" | "free";
@@ -40,7 +40,6 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
     pending_invites?: number;
   } | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
-  const [photoUrl, setPhotoUrl] = useState<string | undefined>();
   const navigate = useNavigate();
 
   const fetchTenantStatus = async () => {
@@ -60,24 +59,6 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
   useEffect(() => {
     fetchTenantStatus();
   }, [property.id]);
-
-  // Fetch signed URL for property photo
-  useEffect(() => {
-    const fetchPhotoUrl = async () => {
-      if (property.images?.[0]) {
-        try {
-          const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, property.images[0], SIGNED_URL_TTL);
-          setPhotoUrl(url);
-        } catch (e) {
-          // ignore
-        }
-      } else {
-        setPhotoUrl(undefined);
-      }
-    };
-
-    fetchPhotoUrl();
-  }, [property.images]);
 
   const getStatusBadge = () => {
     if (property.status === "active") {

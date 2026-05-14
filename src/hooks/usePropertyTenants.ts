@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { authService, tenantService, profileService, propertyService, documentService } from "@/services";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -57,33 +58,10 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
     enabled: !!propertyId,
   });
 
-  const { data: activeTenantWithProfile } = useQuery({
-    queryKey: ["active-tenant-profile", propertyId],
-    queryFn: async () => {
-      const data = await tenantService.getActiveTenancyForProperty(propertyId!);
-      if (!data) return null;
-      return {
-        id: data.id,
-        tenant_id: data.tenantId,
-        tenancy_status: data.status as Tenant['tenancy_status'],
-        started_at: data.startDate,
-        ended_at: data.endedAt,
-        planned_ending_date: data.plannedEndDate,
-        email: data.tenantEmail,
-        first_name: data.tenantFirstName,
-        last_name: data.tenantLastName,
-        notes: data.notes,
-        avatar_url: null,
-        kyc_status: null,
-        profiles: {
-          first_name: data.tenantFirstName,
-          last_name: data.tenantLastName,
-          email: data.tenantEmail,
-        }
-      };
-    },
-    enabled: !!propertyId,
-  });
+  const activeTenantWithProfile = useMemo(() => {
+    if (!allTenants) return null;
+    return allTenants.find(t => t.tenancy_status === 'active') || null;
+  }, [allTenants]);
 
   const { data: allTenants } = useQuery({
     queryKey: ["all-tenants-basic", propertyId],
@@ -178,11 +156,12 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       refetchInvitations();
       queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
     },
-    onError: (error: any) => {
-      if (error.errors) {
-        showToast.error({ title: t("common.validationError"), description: error.errors[0].message });
+    onError: (error: Error) => {
+      const err = error as { errors?: Array<{ message: string }>; message?: string };
+      if (err.errors?.[0]?.message) {
+        showToast.error({ title: t("common.validationError"), description: err.errors[0].message });
       } else {
-        showToast.error({ title: t("common.error"), description: error.message });
+        showToast.error({ title: t("common.error"), description: err.message || 'Unknown error' });
       }
     },
   });
@@ -196,7 +175,7 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       showToast.success({ title: t('invitations.dismissSuccess') });
       refetchInvitations();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       showToast.error({ title: error.message || t('common.error') });
     },
   });
@@ -213,7 +192,7 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       showToast.success({ title: t("dialogs.manageTenants.tenancyEnding") });
       queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       showToast.error({ title: t("common.error"), description: error.message });
     },
   });
@@ -230,7 +209,7 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       showToast.success({ title: t("dialogs.manageTenants.tenancyFinalized") });
       queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       showToast.error({ title: t("common.error"), description: error.message });
     },
   });
@@ -244,7 +223,7 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       showToast.success({ title: t("dialogs.manageTenants.invitationCancelled") });
       refetchInvitations();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       showToast.error({ title: t("common.error"), description: error.message });
     },
   });

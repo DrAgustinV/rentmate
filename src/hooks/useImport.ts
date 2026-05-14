@@ -13,7 +13,7 @@ interface ImportOptions {
 
 interface ImportPayload {
   importType: 'properties' | 'properties_and_tenants' | 'tenants_only';
-  data: any[];
+  data: ParsedRow[];
   options: ImportOptions;
 }
 

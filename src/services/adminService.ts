@@ -1,6 +1,48 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export async function getUserRoles(): Promise<Array<{ user_id: string; role: string }>> {
+interface UserRole {
+  user_id: string;
+  role: string;
+}
+
+interface UserSubscription {
+  user_id: string;
+  status: string;
+  subscription_type: string;
+  current_period_end: string | null;
+  plan: { name: string; slug: string } | null;
+}
+
+interface ExportUserDataResponse {
+  success: boolean;
+  data?: Record<string, unknown>;
+  message?: string;
+}
+
+interface DeleteUserAccountResponse {
+  success: boolean;
+  message?: string;
+}
+
+interface SyncStripePricesResponse {
+  synced: number;
+  errors?: string[];
+}
+
+interface CreateStripeConnectAccountResponse {
+  accountId: string;
+  onboardingUrl?: string;
+}
+
+interface CreateSubscriptionCheckoutResponse {
+  checkoutUrl: string;
+}
+
+interface CustomerPortalSessionResponse {
+  portalUrl: string;
+}
+
+export async function getUserRoles(): Promise<UserRole[]> {
   const { data, error } = await supabase
     .from('user_roles')
     .select('user_id, role');
@@ -15,13 +57,7 @@ export async function addUserRole(userId: string, role: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function getUserSubscriptions(): Promise<Array<{
-  user_id: string;
-  status: string;
-  subscription_type: string;
-  current_period_end: string | null;
-  plan: { name: string; slug: string } | null;
-}>> {
+export async function getUserSubscriptions(): Promise<UserSubscription[]> {
   const { data, error } = await supabase
     .from('user_subscriptions')
     .select(`
@@ -32,13 +68,13 @@ export async function getUserSubscriptions(): Promise<Array<{
       plan:subscription_plans(name, slug)
     `);
   if (error) throw error;
-  return (data || []).map((item: any) => ({
+  return (data || []).map((item) => ({
     user_id: item.user_id,
     status: item.status,
     subscription_type: item.subscription_type,
     current_period_end: item.current_period_end,
     plan: item.plan || null,
-  }));
+  })) as UserSubscription[];
 }
 
 export async function deleteUser(userId: string): Promise<void> {
@@ -63,40 +99,40 @@ export async function createPrivacyRequest(data: Record<string, unknown>): Promi
   if (error) throw error;
 }
 
-export async function exportUserData(body: Record<string, unknown>): Promise<any> {
+export async function exportUserData(body: Record<string, unknown>): Promise<ExportUserDataResponse> {
   const { data, error } = await supabase.functions.invoke('export-user-data', { body });
   if (error) throw error;
-  return data;
+  return data as ExportUserDataResponse;
 }
 
-export async function deleteUserAccount(body: Record<string, unknown>): Promise<any> {
+export async function deleteUserAccount(body: Record<string, unknown>): Promise<DeleteUserAccountResponse> {
   const { data, error } = await supabase.functions.invoke('delete-user-account', { body });
   if (error) throw error;
-  return data;
+  return data as DeleteUserAccountResponse;
 }
 
-export async function syncStripePrices(body: Record<string, unknown>): Promise<any> {
+export async function syncStripePrices(body: Record<string, unknown>): Promise<SyncStripePricesResponse> {
   const { data, error } = await supabase.functions.invoke('sync-stripe-prices', { body });
   if (error) throw error;
-  return data;
+  return data as SyncStripePricesResponse;
 }
 
-export async function createStripeConnectAccount(): Promise<any> {
+export async function createStripeConnectAccount(): Promise<CreateStripeConnectAccountResponse> {
   const { data, error } = await supabase.functions.invoke('create-stripe-connect-account');
   if (error) throw error;
-  return data;
+  return data as CreateStripeConnectAccountResponse;
 }
 
-export async function createSubscriptionCheckout(body: Record<string, unknown>): Promise<any> {
+export async function createSubscriptionCheckout(body: Record<string, unknown>): Promise<CreateSubscriptionCheckoutResponse> {
   const { data, error } = await supabase.functions.invoke('create-subscription-checkout', { body });
   if (error) throw error;
-  return data;
+  return data as CreateSubscriptionCheckoutResponse;
 }
 
-export async function customerPortalSession(body: Record<string, unknown>): Promise<any> {
+export async function customerPortalSession(body: Record<string, unknown>): Promise<CustomerPortalSessionResponse> {
   const { data, error } = await supabase.functions.invoke('customer-portal-session', { body });
   if (error) throw error;
-  return data;
+  return data as CustomerPortalSessionResponse;
 }
 
 export const adminService = {

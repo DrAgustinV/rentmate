@@ -62,7 +62,7 @@ export function useSEPAMandate(agreementId: string) {
       setIsPolling(true);
       toast.success(t('payments.mandate.sessionCreated'));
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t('payments.mandate.sessionFailed'));
     },
   });
@@ -105,7 +105,7 @@ export function useSEPAMandate(agreementId: string) {
       queryClient.invalidateQueries({ queryKey: ['sepa-mandate', agreementId] });
       toast.success(t('payments.mandate.cancelled'));
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t('payments.mandate.cancelFailed'));
     },
   });

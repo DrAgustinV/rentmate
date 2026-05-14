@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ticketService } from '@/services';
 import { toast } from 'sonner';
+import type { TicketStatus } from '@/types/enums';
 
 export const TICKETS_QUERY_KEY = 'tickets';
 
 interface TicketFilters {
   propertyId?: string;
-  status?: 'open' | 'in_progress' | 'resolved' | 'cancelled';
+  status?: TicketStatus;
   type?: 'maintenance' | 'repair' | 'inspection' | 'request' | 'issue' | 'incident' | 'cleaning' | 'other';
   hasSourceTemplate?: boolean;
   page?: number;
@@ -40,23 +41,23 @@ export function useTicketMutations() {
   const queryClient = useQueryClient();
 
   const createTicket = useMutation({
-    mutationFn: async (ticket: any) => ticketService.createTicket(ticket),
+    mutationFn: async (ticket: Parameters<typeof ticketService.createTicket>[0]) => ticketService.createTicket(ticket),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TICKETS_QUERY_KEY] });
       toast.success('Ticket created successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to create ticket');
     },
   });
 
   const updateTicket = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: any }) => ticketService.updateTicket(id, updates),
+    mutationFn: async ({ id, updates }: { id: string; updates: Parameters<typeof ticketService.updateTicket>[1] }) => ticketService.updateTicket(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TICKETS_QUERY_KEY] });
       toast.success('Ticket updated successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to update ticket');
     },
   });

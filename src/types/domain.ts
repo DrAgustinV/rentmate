@@ -1,3 +1,15 @@
+// ========== STATUS ENUMS ==========
+export type TenancyStatus = 'active' | 'ending_tenancy' | 'historic' | 'pending' | null;
+export type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'declined' | 'property_inactive' | 'already_tenant' | 'cancelled';
+export type MandateStatus = 'pending' | 'pending_signature' | 'active' | 'failed' | 'cancelled';
+export type PropertyStatus = 'active' | 'inactive' | 'ending_tenancy';
+export type PaymentStatus = 'pending' | 'paid' | 'overdue' | 'failed';
+export type UtilityPaymentStatus = 'pending' | 'paid' | 'overdue';
+export type UtilityType = 'electricity' | 'gas' | 'water' | 'internet' | 'heating' | 'trash' | 'other';
+export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'cancelled';
+export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type KYCStatus = 'pending' | 'verified' | 'rejected' | 'expired';
+
 // ========== PROFILE DOMAIN ==========
 export interface ProfileDomain {
   id: string;
@@ -7,7 +19,7 @@ export interface ProfileDomain {
   avatarStoragePath: string | null;
   phone: string | null;
   emailVerified: boolean | null;
-  kycStatus: string | null;
+  kycStatus: KYCStatus | null;
   kycVerifiedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -23,7 +35,7 @@ export interface TenancyDomain {
   tenantFirstName: string | null;
   tenantLastName: string | null;
   tenantEmail: string;
-  status: string | null;
+  status: TenancyStatus;
   startDate: string;
   plannedEndDate: string | null;
   endedAt: string | null;
@@ -38,7 +50,7 @@ export interface InvitationDomain {
   propertyId: string;
   propertyTitle: string;
   email: string;
-  status: string;
+  status: InvitationStatus;
   createdAt: string;
   expiresAt: string;
   token: string;
@@ -60,7 +72,7 @@ export interface RentAgreementDomain {
   endDate: string | null;
   isActive: boolean;
   mandateId: string | null;
-  mandateStatus: string;
+  mandateStatus: MandateStatus;
   tenantIban: string | null;
   createdAt: string;
   updatedAt: string;
@@ -76,7 +88,7 @@ export interface PropertyDomain {
   postalCode: string | null;
   country: string | null;
   description: string | null;
-  status: string;
+  status: PropertyStatus;
   images: string[] | null;
   managerId: string;
   createdAt: string;
@@ -99,7 +111,7 @@ export interface PaymentDomain {
   tenantId: string;
   amountCents: number;
   currency: string;
-  status: string;
+  status: PaymentStatus;
   paymentDate: string;
   dueDate: string;
   description: string | null;
@@ -111,10 +123,10 @@ export interface PaymentDomain {
 export interface UtilityPaymentDomain {
   id: string;
   propertyId: string;
-  type: string;
+  type: UtilityType;
   amountCents: number;
   currency: string;
-  status: string;
+  status: UtilityPaymentStatus;
   paymentDate: string;
   dueDate: string;
   provider: string;
@@ -129,8 +141,8 @@ export interface TicketDomain {
   propertyId: string;
   title: string;
   description: string;
-  status: string;
-  priority: string;
+  status: TicketStatus;
+  priority: TicketPriority;
   category: string | null;
   createdBy: string;
   assignedTo: string | null;
@@ -164,4 +176,3 @@ export interface UploadResult {
   storagePath: string;
   bucket: string;
 }
-

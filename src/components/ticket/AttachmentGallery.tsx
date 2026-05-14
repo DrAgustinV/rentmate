@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { documentService, ticketService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 import { Image, Video, Download, X } from "lucide-react";
@@ -7,6 +7,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { formatDateTime } from "@/lib/dateUtils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
+import { getCachedSignedUrl } from "@/lib/signedUrlCache";
 
 interface Attachment {
   id: string;
@@ -41,7 +42,7 @@ export const AttachmentGallery = ({ attachments, ticketId, canDelete }: Attachme
 
     const bucket = fileType === "photo" ? STORAGE_BUCKETS.TICKET_PHOTOS : STORAGE_BUCKETS.TICKET_VIDEOS;
     try {
-      const signedUrl = await documentService.getSignedUrl(bucket, filePath);
+      const signedUrl = await getCachedSignedUrl(bucket, filePath);
       setFileUrls((prev) => ({ ...prev, [filePath]: signedUrl }));
       return signedUrl;
     } catch {
@@ -133,9 +134,9 @@ export const AttachmentGallery = ({ attachments, ticketId, canDelete }: Attachme
 const AttachmentCard = ({ attachment, getFileUrl, onImageClick, onDelete }: any) => {
   const [url, setUrl] = useState<string | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     getFileUrl(attachment.file_path, attachment.file_type).then(setUrl);
-  });
+  }, [attachment.file_path, attachment.file_type, getFileUrl]);
 
   return (
     <div className="relative group aspect-square rounded-lg overflow-hidden bg-muted border">
@@ -174,9 +175,9 @@ const AttachmentCard = ({ attachment, getFileUrl, onImageClick, onDelete }: any)
 const VideoCard = ({ attachment, getFileUrl, onDelete }: any) => {
   const [url, setUrl] = useState<string | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     getFileUrl(attachment.file_path, attachment.file_type).then(setUrl);
-  });
+  }, [attachment.file_path, attachment.file_type, getFileUrl]);
 
   return (
     <div className="relative group rounded-lg overflow-hidden bg-muted border">

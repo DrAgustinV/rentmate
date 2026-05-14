@@ -6,7 +6,7 @@ export interface OptimisticContext<T> {
 
 export async function setupOptimisticUpdate<T>(
   queryClient: QueryClient,
-  queryKey: any[],
+  queryKey: unknown[],
   updater: (old: T | undefined) => T
 ): Promise<OptimisticContext<T>> {
   await queryClient.cancelQueries({ queryKey });
@@ -17,7 +17,7 @@ export async function setupOptimisticUpdate<T>(
 
 export function rollbackOptimisticUpdate<T>(
   queryClient: QueryClient,
-  queryKey: any[],
+  queryKey: unknown[],
   context: OptimisticContext<T> | undefined
 ) {
   if (context?.previousData !== undefined) {

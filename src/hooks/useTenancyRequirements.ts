@@ -37,7 +37,7 @@ export interface TenancyRequirement {
   end_date: string | null;
   utilities_config: UtilitiesConfig;
   questionnaire_enabled: boolean;
-  questionnaire_config: any;
+  questionnaire_config: Record<string, unknown> | null;
   status: 'draft' | 'sent' | 'accepted' | 'completed' | 'cancelled';
   created_at: string;
   updated_at: string;
@@ -115,19 +115,18 @@ export function useTenancyRequirements(propertyId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TENANCY_REQUIREMENTS_QUERY_KEY, propertyId] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t('common.error'));
     },
   });
 
   const updateRequirement = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<TenancyRequirement> & { id: string }) => {
-      // Convert utilities_config to JSON-compatible format if present
-      const dbUpdates: Record<string, any> = { ...updates };
+      const dbUpdates: Record<string, unknown> = { ...updates };
       if (updates.utilities_config) {
         dbUpdates.utilities_config = JSON.parse(JSON.stringify(updates.utilities_config));
       }
-      
+
       const { data, error } = await supabase
         .from('tenancy_requirements')
         .update(dbUpdates)
@@ -141,7 +140,7 @@ export function useTenancyRequirements(propertyId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TENANCY_REQUIREMENTS_QUERY_KEY, propertyId] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t('common.error'));
     },
   });
@@ -165,7 +164,7 @@ export function useTenancyRequirements(propertyId: string) {
       queryClient.invalidateQueries({ queryKey: [TENANCY_REQUIREMENTS_QUERY_KEY, propertyId] });
       toast.success(t('tenancy.setupCancelled') || 'Tenancy setup cancelled');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t('common.error'));
     },
   });

@@ -45,7 +45,7 @@ export function useRentPaymentMutations() {
   const queryClient = useQueryClient();
 
   const createPayment = useMutation({
-    mutationFn: async (payment: any) => paymentService.createRentPayment(payment),
+    mutationFn: async (payment: Parameters<typeof paymentService.createRentPayment>[0]) => paymentService.createRentPayment(payment),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
       toast.success('Rent payment created successfully');

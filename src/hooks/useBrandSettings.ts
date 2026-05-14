@@ -22,10 +22,16 @@ export interface BrandSettings {
   carousel_items: CarouselItem[] | null;
 }
 
+interface RawCarouselItem {
+  image_url?: string;
+  title?: Record<string, string>;
+  description?: Record<string, string>;
+}
+
 function parseCarouselItems(data: Json | null): CarouselItem[] {
   if (!data || !Array.isArray(data)) return [];
   try {
-    return data.map((item: any) => ({
+    return data.map((item: RawCarouselItem) => ({
       image_url: item.image_url || '',
       title: item.title || {},
       description: item.description || {},
@@ -57,7 +63,7 @@ export function useBrandSettings() {
       const data = await brandSettingsService.getBrandSettings();
 
       if (data) {
-        const parsedCarousel = parseCarouselItems(data.carousel_items as any);
+        const parsedCarousel = parseCarouselItems(data.carousel_items as Json | null);
         const parsedSettings: BrandSettings = {
           id: data.id,
           brand_name: data.brand_name,
@@ -82,7 +88,7 @@ export function useBrandSettings() {
         }
         setCarouselItems(parsedCarousel);
       }
-    } catch (error: any) {
+    } catch (error: Error) {
       console.error('Error fetching brand settings:', error);
       toast({
         title: 'Error loading settings',
@@ -128,7 +134,7 @@ export function useBrandSettings() {
       });
 
       return await documentService.getPublicUrl(STORAGE_BUCKETS.BRAND_LOGOS, filePath);
-    } catch (error: any) {
+    } catch (error: Error) {
       toast({
         title: 'Upload failed',
         description: error.message,
@@ -200,7 +206,7 @@ export function useBrandSettings() {
       });
 
       await fetchBrandSettings();
-    } catch (error: any) {
+    } catch (error: Error) {
       toast({
         title: 'Error saving settings',
         description: error.message || 'An unexpected error occurred',
