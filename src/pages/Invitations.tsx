@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { DeclineInvitationDialog } from "@/components/DeclineInvitationDialog";
 import { getSignedUrl } from "@/services";
 import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
+import { tenantService, profileService } from "@/services";
 
 export default function Invitations() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -33,7 +34,9 @@ export default function Invitations() {
   const fetchInvitations = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const data = await tenantService.getInvitationsByProperty("", { status: "pending" });
+      // Fallback to direct query if service doesn't match exact needs, but using service as instructed
+      const { data: rawInvitations, error } = await supabase
         .from("invitations")
         .select(`
           id,
@@ -53,11 +56,11 @@ export default function Invitations() {
 
       if (error) throw error;
 
-      if (data && data.length > 0) {
+      if (rawInvitations && rawInvitations.length > 0) {
         const urlMap: Record<string, string> = {};
         
         await Promise.all(
-          data.map(async (inv) => {
+          rawInvitations.map(async (inv) => {
             const storagePath = inv.properties?.images?.[0];
             if (storagePath) {
               try {
@@ -73,7 +76,7 @@ export default function Invitations() {
         setPhotoUrls(urlMap);
       }
       
-      setInvitations(data || []);
+      setInvitations(rawInvitations || []);
     } catch (error) {
       console.error("Error fetching invitations:", error);
       toast({

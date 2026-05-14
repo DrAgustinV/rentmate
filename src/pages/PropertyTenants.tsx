@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantService, profileService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -139,22 +140,27 @@ export default function PropertyTenants() {
   const { data: activeTenantWithProfile } = useQuery({
     queryKey: ["active-tenant-profile", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("property_tenants")
-        .select(`
-          *,
-          profiles!property_tenants_tenant_id_fkey (
-            first_name,
-            last_name,
-            email
-          )
-        `)
-        .eq("property_id", propertyId)
-        .eq("tenancy_status", "active")
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
+      const data = await tenantService.getActiveTenancyForProperty(propertyId!);
+      if (!data) return null;
+      return {
+        id: data.id,
+        tenant_id: data.tenantId,
+        tenancy_status: data.status as any,
+        started_at: data.startDate,
+        ended_at: data.endedAt,
+        planned_ending_date: data.plannedEndDate,
+        email: data.tenantEmail,
+        first_name: data.tenantFirstName,
+        last_name: data.tenantLastName,
+        notes: data.notes,
+        avatar_url: null,
+        kyc_status: null,
+        profiles: {
+          first_name: data.tenantFirstName,
+          last_name: data.tenantLastName,
+          email: data.tenantEmail,
+        }
+      };
     },
     enabled: !!propertyId,
   });
@@ -163,63 +169,15 @@ export default function PropertyTenants() {
   const { data: allTenants } = useQuery({
     queryKey: ["all-tenants-basic", propertyId],
     queryFn: async () => {
-      const { data: tenancies, error: tenanciesError } = await supabase
-        .from("property_tenants")
-        .select("id, tenant_id, tenancy_status, started_at, ended_at, planned_ending_date, notes")
-        .eq("property_id", propertyId)
-        .in("tenancy_status", ["active", "ending_tenancy", "historic", "pending"])
-        .order("started_at", { ascending: false });
-
-      if (tenanciesError) throw tenanciesError;
-      if (!tenancies || tenancies.length === 0) return [];
-
-      // Get tenant IDs where tenant_id is not null
-      const tenantIds = tenancies
-        .filter(t => t.tenant_id)
-        .map(t => t.tenant_id);
-
-      let profiles: Record<string, any> = {};
-
-      // Fetch profiles only if there are valid tenantIds
-      if (tenantIds.length > 0) {
-        try {
-          const { data: profileData, error: profilesError } = await supabase
-            .from("profiles")
-            .select("id, email, first_name, last_name, avatar_url, kyc_status")
-            .in("id", tenantIds);
-
-          if (!profilesError && profileData) {
-            profileData.forEach(p => {
-              profiles[p.id] = p;
-            });
-          }
-        } catch (e) {
-          // Continue without profiles if error
-          console.warn("Could not fetch profiles:", e);
-        }
-      }
-
-      return tenancies.map((tenancy) => {
-        const profile = tenancy.tenant_id ? profiles[tenancy.tenant_id] : null;
-        
-        // For pending tenancies, extract email from notes
-        let email = "Unknown";
-        if (tenancy.tenancy_status === 'pending' && tenancy.notes) {
-          const match = tenancy.notes.match(/sent to (.+@.+)/);
-          email = match ? match[1] : "Pending";
-        } else if (profile?.email) {
-          email = profile.email;
-        }
-        
-        return {
-          ...tenancy,
-          email,
-          first_name: profile?.first_name || null,
-          last_name: profile?.last_name || null,
-          avatar_url: profile?.avatar_url || null,
-          kyc_status: profile?.kyc_status || null,
-        } as Tenant;
-      });
+      const tenancies = await tenantService.getTenanciesByProperty(propertyId!);
+      return tenancies.map(t => ({
+        ...t,
+        email: t.tenantEmail,
+        first_name: t.tenantFirstName,
+        last_name: t.tenantLastName,
+        avatar_url: null,
+        kyc_status: null,
+      })) as Tenant[];
     },
     enabled: !!propertyId,
   });
@@ -284,14 +242,8 @@ export default function PropertyTenants() {
   const { data: invitations, refetch: refetchInvitations } = useQuery({
     queryKey: ["invitations", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("invitations")
-        .select("*")
-        .eq("property_id", propertyId)
-        .eq("status", "pending")
-        .gt("expires_at", new Date().toISOString());
-      if (error) throw error;
-      return data as Invitation[];
+      const data = await tenantService.getInvitationsByProperty(propertyId!, { status: 'pending' });
+      return data as any as Invitation[];
     },
     enabled: !!propertyId && userRole?.isManager,
   });
@@ -405,14 +357,14 @@ export default function PropertyTenants() {
       const inviteSchema = createInviteSchema(t);
       const data = inviteSchema.parse({ email });
 
-      const { data: profiles } = await supabase.from("profiles").select("id").eq("email", data.email).maybeSingle();
+      const profile = await profileService.getProfileByEmail(data.email);
 
-      if (profiles) {
+      if (profile) {
         const { data: existing } = await supabase
           .from("property_tenants")
           .select("id")
           .eq("property_id", propertyId!)
-          .eq("tenant_id", profiles.id)
+          .eq("tenant_id", profile.id)
           .maybeSingle();
         if (existing) throw new Error(t("dialogs.inviteTenant.alreadyTenant"));
       }
@@ -440,7 +392,7 @@ export default function PropertyTenants() {
               token,
               expires_at: expiresAt.toISOString(),
               status: "pending",
-              invited_user_id: profiles?.id || null,
+              invited_user_id: profile?.id || null,
             })
             .eq("id", existingInvite.id);
 
@@ -453,7 +405,7 @@ export default function PropertyTenants() {
           property_id: propertyId!,
           expires_at: expiresAt.toISOString(),
           status: "pending",
-          invited_user_id: profiles?.id || null,
+          invited_user_id: profile?.id || null,
         });
 
         if (error) throw error;
