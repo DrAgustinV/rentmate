@@ -31,6 +31,8 @@ import { TenancyOverviewCard } from "./TenancyOverviewCard";
 import { ContractCard } from "./ContractCard";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
 import { InspectionCard } from "@/components/inspection";
+import { downloadFile, getSignedUrl } from "@/services";
+import { STORAGE_BUCKETS } from "@/constants";
 
 interface Tenant {
   id: string;
@@ -236,8 +238,7 @@ export function ContractsTab({
 
   const downloadDocument = async (doc: TenancyDocument) => {
     try {
-      const { data, error } = await supabase.storage.from('property-documents').download(doc.file_path);
-      if (error) throw error;
+      const data = await downloadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
       
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
@@ -262,18 +263,10 @@ export function ContractsTab({
       const newWindow = window.open('', '_blank');
       
       try {
-        const { data, error } = await supabase.storage
-          .from("property-documents")
-          .createSignedUrl(doc.file_path, 3600);
-        
-        if (error || !data?.signedUrl) {
-          newWindow?.close();
-          showToast.error({ title: t("properties.openError") });
-          return;
-        }
+        const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
         
         if (newWindow) {
-          newWindow.location.href = data.signedUrl;
+          newWindow.location.href = url;
         }
       } catch (error: any) {
         newWindow?.close();

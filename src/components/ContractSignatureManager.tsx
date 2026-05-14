@@ -15,6 +15,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { getSignedUrl } from "@/services";
+import { STORAGE_BUCKETS } from "@/constants";
 
 // BLOCKED: DocuSeal/AES hidden until explicitly enabled
 const DOCUSEAL_BLOCKED = true;
@@ -659,22 +661,19 @@ export const ContractSignatureManager = ({
                 storagePath = storagePath.split('/qualified-contracts/')[1];
               }
               
-              const { data, error } = await supabase.storage
-                .from('qualified-contracts')
-                .createSignedUrl(storagePath, 3600);
-              
-              if (error || !data?.signedUrl) {
+              try {
+                const url = await getSignedUrl(STORAGE_BUCKETS.QUALIFIED_CONTRACTS, storagePath);
+                
+                if (newWindow) {
+                  newWindow.location.href = url;
+                }
+              } catch (error) {
                 newWindow?.close();
                 toast({
                   title: t('common.error'),
                   description: 'Failed to generate download link',
                   variant: 'destructive',
                 });
-                return;
-              }
-              
-              if (newWindow) {
-                newWindow.location.href = data.signedUrl;
               }
             }}
           >

@@ -12,6 +12,8 @@ import DocumentActionsMenu from "./DocumentActionsMenu";
 import DocumentVersionHistoryModal from "./DocumentVersionHistoryModal";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import { ContractSignatureManager } from "@/components/ContractSignatureManager";
+import { downloadFile, getSignedUrl } from "@/services";
+import { STORAGE_BUCKETS } from "@/constants";
 
 interface ContractBadgeProps {
   state: 'locked' | 'readonly' | 'version';
@@ -141,8 +143,7 @@ export function ContractCard({
 
   const downloadDocument = async (doc: TenancyDocument) => {
     try {
-      const { data, error } = await supabase.storage.from('property-documents').download(doc.file_path);
-      if (error) throw error;
+      const data = await downloadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
       
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
@@ -167,18 +168,10 @@ export function ContractCard({
       const newWindow = window.open('', '_blank');
       
       try {
-        const { data, error } = await supabase.storage
-          .from("property-documents")
-          .createSignedUrl(doc.file_path, 3600);
-        
-        if (error || !data?.signedUrl) {
-          newWindow?.close();
-          showToast.error({ title: t("properties.openError") });
-          return;
-        }
+        const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
         
         if (newWindow) {
-          newWindow.location.href = data.signedUrl;
+          newWindow.location.href = url;
         }
       } catch (error: any) {
         newWindow?.close();

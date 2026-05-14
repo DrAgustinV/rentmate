@@ -21,6 +21,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { deleteFile, getSignedUrl } from "@/services";
+import { STORAGE_BUCKETS } from "@/constants";
 
 export const GlobalTemplatesList = () => {
   const { t } = useLanguage();
@@ -62,11 +64,11 @@ export const GlobalTemplatesList = () => {
   const deleteMutation = useMutation({
     mutationFn: async (template: { id: string; file_path: string }) => {
       // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from("property-documents")
-        .remove([template.file_path]);
-
-      if (storageError) console.warn("Storage delete error:", storageError);
+      try {
+        await deleteFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, template.file_path);
+      } catch (storageError) {
+        console.warn("Storage delete error:", storageError);
+      }
 
       // Delete from database
       const { error: dbError } = await supabase
@@ -99,14 +101,10 @@ export const GlobalTemplatesList = () => {
       }
 
       for (const path of [...new Set(candidates)]) {
-        const { data, error } = await supabase.storage
-          .from("property-documents")
-          .createSignedUrl(path, 60);
-
-        if (error || !data?.signedUrl) continue;
+        const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, path);
 
         const a = document.createElement("a");
-        a.href = data.signedUrl;
+        a.href = url;
         a.download = fileName;
         document.body.appendChild(a);
         a.click();
