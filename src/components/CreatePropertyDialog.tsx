@@ -86,14 +86,10 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
     
     setGeneratingDescription(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-assistant', {
-        body: {
-          type: 'property_description',
-          data: { title, address, city, country }
-        }
+      const data = await identityService.invokeAIAssistant({
+        type: 'property_description',
+        data: { title: data.title, address: data.address, city: data.city, country: data.country }
       });
-      
-      if (error) throw error;
       if (data?.text) {
         setDescription(data.text);
         toast.success(t('ai.descriptionGenerated'));

@@ -199,6 +199,24 @@ export async function createPropertyTenant(data: Record<string, unknown>) {
   if (error) throw error;
 }
 
+export async function manageTenancyLimit(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('manage-tenancy-limit', { body });
+  if (error) throw error;
+  return data;
+}
+
+export async function initiateYousignSignature(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('initiate-yousign-signature', { body });
+  if (error) throw error;
+  return data;
+}
+
+export async function sendYousignReminder(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('send-yousign-reminder', { body });
+  if (error) throw error;
+  return data;
+}
+
 export async function getMandateInfo(agreementId: string) {
   const { data, error } = await supabase
     .from('rent_agreements')
@@ -229,5 +247,8 @@ export const tenancyService = {
   getTenancyStartDate,
   getRentAgreementBasicInfo,
   getMandateInfo,
+  manageTenancyLimit,
+  initiateYousignSignature,
+  sendYousignReminder,
   createPropertyTenant,
 };

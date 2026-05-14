@@ -193,6 +193,11 @@ export async function getRentAgreementsByProperty(propertyId: string): Promise<R
   return (data || []).map(mapToRentAgreementDomain);
 }
 
+export async function createInvitation(data: Record<string, unknown>): Promise<void> {
+  const { error } = await supabase.from('invitations').insert(data);
+  if (error) throw error;
+}
+
 export const tenantService = {
   getTenanciesByProperty,
   getTenanciesByManager,
@@ -201,6 +206,7 @@ export const tenantService = {
   getActiveTenancyForProperty,
   getInvitationsByProperty,
   getInvitationByToken,
+  createInvitation,
   getRentAgreement,
   getRentAgreementsByProperty,
 };

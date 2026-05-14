@@ -17,7 +17,7 @@ import { Save, Archive, Plus, Pencil, Users, Mail, Sparkles, Loader2, Trash2 } f
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { cn } from "@/lib/utils";
 import { usePropertyMutations } from "@/hooks/useProperties";
-import { propertyService, getSignedUrl } from "@/services";
+import { propertyService, getSignedUrl, identityService } from "@/services";
 import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
@@ -53,8 +53,8 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
   const [title, setTitle] = useState(property?.title || "");
   const [address, setAddress] = useState(property?.address || "");
   const [city, setCity] = useState(property?.city || "");
-  const [stateProvince, setStateProvince] = useState(property?.stateProvince || property?.state_province || "");
-  const [postalCode, setPostalCode] = useState(property?.postalCode || property?.postal_code || "");
+  const [stateProvince, setStateProvince] = useState(property?.stateProvince || "");
+  const [postalCode, setPostalCode] = useState(property?.postalCode || "");
   const [country, setCountry] = useState(property?.country || "");
   const [description, setDescription] = useState(property?.description || "");
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
@@ -74,14 +74,10 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
     
     setGeneratingDescription(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-assistant', {
-        body: {
-          type: 'property_description',
-          data: { title, address, city, country }
-        }
+      const data = await identityService.invokeAIAssistant({
+        type: 'property_description',
+        data: { title, address, city, country }
       });
-      
-      if (error) throw error;
       if (data?.text) {
         setDescription(data.text);
         toast.success(t('ai.descriptionGenerated'));

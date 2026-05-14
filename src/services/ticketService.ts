@@ -197,6 +197,13 @@ export async function deleteTicketAttachment(id: string) {
   if (error) throw error;
 }
 
+// ========== TICKET TEMPLATES ==========
+
+export async function deleteTicketTemplate(id: string) {
+  const { error } = await supabase.from('ticket_templates').delete().eq('id', id);
+  if (error) throw error;
+}
+
 // ========== ACTIVITIES ==========
 
 export async function getTicketActivities(ticketId: string) {
@@ -233,4 +240,5 @@ export const ticketService = {
   deleteTicketAttachment,
   getTicketActivities,
   addTicketActivity,
+  deleteTicketTemplate,
 };

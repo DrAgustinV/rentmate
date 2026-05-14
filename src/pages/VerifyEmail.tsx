@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { identityService } from "@/services";
 import { Loader2, CheckCircle2, XCircle, Mail } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { showToast } from "@/lib/toastUtils";
@@ -26,11 +26,7 @@ export default function VerifyEmail() {
       }
 
       try {
-        const { data, error } = await supabase.functions.invoke("verify-email-token", {
-          body: { token },
-        });
-
-        if (error) throw error;
+        const data = await identityService.verifyEmailToken({ token });
 
         if (data?.error) {
           if (data.code === "TOKEN_EXPIRED") {
@@ -62,9 +58,7 @@ export default function VerifyEmail() {
   const handleResendVerification = async () => {
     setSendingVerification(true);
     try {
-      const { data, error } = await supabase.functions.invoke("send-email-verification");
-      
-      if (error) throw error;
+      const data = await identityService.sendEmailVerification();
       
       if (data?.rate_limited) {
         showToast.error(data.error);

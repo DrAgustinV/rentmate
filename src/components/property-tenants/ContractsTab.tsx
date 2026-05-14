@@ -31,7 +31,7 @@ import { TenancyOverviewCard } from "./TenancyOverviewCard";
 import { ContractCard } from "./ContractCard";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
 import { InspectionCard } from "@/components/inspection";
-import { downloadFile, getSignedUrl } from "@/services";
+import { downloadFile, getSignedUrl, documentService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 
 interface Tenant {
@@ -190,8 +190,7 @@ export function ContractsTab({
 
   const deleteDocumentMutation = useMutation({
     mutationFn: async (docId: string) => {
-      const { error } = await supabase.from("property_documents").delete().eq("id", docId);
-      if (error) throw error;
+      await documentService.deleteDocument(docId);
     },
     onSuccess: () => {
       showToast.success({ title: t("properties.propertyDocuments.deleteSuccess") });

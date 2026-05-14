@@ -126,25 +126,26 @@ export function CopyTemplatesDialog({
             continue;
           }
 
-          const { error: dbError } = await supabase.from("property_documents").insert({
-            property_id: propertyId,
-            tenancy_id: tenancyId,
-            uploaded_by: currentUser.id,
-            document_title: template.document_title,
-            file_name: template.file_name,
-            file_path: newFilePath,
-            file_type: template.file_type,
-            file_size_bytes: template.file_size_bytes,
-            mime_type: template.mime_type,
-            document_category: "tenancy",
-            description: template.description,
-            version: 1,
-            is_latest_version: true,
-          }).select();
-
-          if (dbError) {
-            errors.push(`Failed to save "${template.document_title}": ${dbError.message}`);
-          } else {
+          try {
+            await documentService.insertDocument({
+              property_id: propertyId,
+              tenancy_id: tenancyId,
+              uploaded_by: currentUser.id,
+              document_title: template.document_title,
+              file_name: template.file_name,
+              file_path: newFilePath,
+              file_type: template.file_type,
+              file_size_bytes: template.file_size_bytes,
+              mime_type: template.mime_type,
+              document_category: "tenancy",
+              description: template.description,
+              version: 1,
+              is_latest_version: true,
+            });
+            successCount.count++;
+          } catch (err) {
+            errors.push(`Failed to save "${template.document_title}": ${err instanceof Error ? err.message : 'Unknown error'}`);
+          }
             successCount.count++;
           }
         } catch (err) {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { authService, profileService } from "@/services";
+import { authService, profileService, adminService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -121,11 +121,7 @@ export default function Account() {
   const handleExportData = async () => {
     setExporting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('export-user-data', {
-        method: 'POST',
-      });
-
-      if (error) throw error;
+      const data = await adminService.exportUserData({ userId: user.id });
 
       // Create downloadable JSON file
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -155,11 +151,7 @@ export default function Account() {
 
   const handleRequestDeletion = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('delete-user-account', {
-        body: { action: 'request' },
-      });
-
-      if (error) throw error;
+      const data = await adminService.deleteUserAccount({ userId: user.id });
 
       setDeletionScheduled(data.deletion_date);
       setShowDeleteDialog(false);
@@ -184,11 +176,7 @@ export default function Account() {
 
   const handleCancelDeletion = async () => {
     try {
-      const { error } = await supabase.functions.invoke('delete-user-account', {
-        body: { action: 'cancel' },
-      });
-
-      if (error) throw error;
+      await adminService.deleteUserAccount({ action: 'cancel' });
 
       setDeletionScheduled(null);
 

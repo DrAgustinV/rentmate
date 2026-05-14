@@ -48,9 +48,69 @@ export async function deleteUser(userId: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function addSubscriptionHistory(data: Record<string, unknown>): Promise<void> {
+  const { error } = await supabase.from('subscription_history').insert(data);
+  if (error) throw error;
+}
+
+export async function createEnterpriseContactRequest(data: Record<string, unknown>): Promise<void> {
+  const { error } = await supabase.from('enterprise_contact_requests').insert(data);
+  if (error) throw error;
+}
+
+export async function createPrivacyRequest(data: Record<string, unknown>): Promise<void> {
+  const { error } = await supabase.from('privacy_requests').insert(data);
+  if (error) throw error;
+}
+
+export async function exportUserData(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('export-user-data', { body });
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteUserAccount(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('delete-user-account', { body });
+  if (error) throw error;
+  return data;
+}
+
+export async function syncStripePrices(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('sync-stripe-prices', { body });
+  if (error) throw error;
+  return data;
+}
+
+export async function createStripeConnectAccount(): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('create-stripe-connect-account');
+  if (error) throw error;
+  return data;
+}
+
+export async function createSubscriptionCheckout(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('create-subscription-checkout', { body });
+  if (error) throw error;
+  return data;
+}
+
+export async function customerPortalSession(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('customer-portal-session', { body });
+  if (error) throw error;
+  return data;
+}
+
 export const adminService = {
   getUserRoles,
   addUserRole,
   getUserSubscriptions,
   deleteUser,
+  addSubscriptionHistory,
+  createEnterpriseContactRequest,
+  createPrivacyRequest,
+  exportUserData,
+  deleteUserAccount,
+  syncStripePrices,
+  createStripeConnectAccount,
+  createSubscriptionCheckout,
+  customerPortalSession,
 };

@@ -39,11 +39,7 @@ export function OpenAPIOTPDialog({
 
     setVerifying(true);
     try {
-      const { data, error } = await supabase.functions.invoke("verify-openapi-otp", {
-        body: { sessionId, otp },
-      });
-
-      if (error) throw error;
+      const data = await identityService.verifyOpenAPIOTP({ otp, sessionId });
 
       if (data.success) {
         toast.success("Signature completed successfully");

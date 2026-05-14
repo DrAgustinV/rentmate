@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { authService } from "@/services";
+import { authService, adminService } from "@/services";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -105,7 +105,7 @@ export function GrantAccessDialog({
 
       if (updateError) throw updateError;
 
-      await supabase.from("subscription_history").insert({
+      await adminService.addSubscriptionHistory({
         user_id: userId,
         from_plan_id: currentSub.plan_id,
         to_plan_id: targetPlanData.id,
@@ -159,7 +159,7 @@ export function GrantAccessDialog({
 
       if (updateError) throw updateError;
 
-      await supabase.from("subscription_history").insert({
+      await adminService.addSubscriptionHistory({
         user_id: userId,
         from_plan_id: currentSub.plan_id,
         to_plan_id: currentSub.plan_id,
@@ -221,7 +221,7 @@ export function GrantAccessDialog({
 
       if (updateError) throw updateError;
 
-      await supabase.from("subscription_history").insert({
+      await adminService.addSubscriptionHistory({
         user_id: userId,
         from_plan_id: currentSub.plan_id,
         to_plan_id: freePlan.id,

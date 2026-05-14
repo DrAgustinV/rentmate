@@ -15,7 +15,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { getSignedUrl } from "@/services";
+import { getSignedUrl, tenancyService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 
 // BLOCKED: DocuSeal/AES hidden until explicitly enabled
@@ -180,15 +180,10 @@ export const ContractSignatureManager = ({
     setLoading(true);
     try {
       // Digital signature uses YouSign
-      const { data, error } = await supabase.functions.invoke('initiate-yousign-signature', {
-        body: { 
-          tenancyId, 
-          propertyId,
-          ...(selectedDocumentId && { documentId: selectedDocumentId })
-        }
+      const data = await tenancyService.initiateYousignSignature({
+        tenancy_id: tenancyId,
+        agreement_id: rentAgreementId,
       });
-
-      if (error) throw error;
 
       if (!data?.success) {
         const errorMsg = data?.error || 'Unknown error';
@@ -267,11 +262,7 @@ export const ContractSignatureManager = ({
     
     setReminderLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-yousign-reminder', {
-        body: { tenancyId }
-      });
-
-      if (error) throw error;
+      const data = await tenancyService.sendYousignReminder({ tenancy_id: tenancyId });
 
       if (!data?.success) {
         toast({

@@ -182,7 +182,7 @@ export default function Rentals() {
       if (updateError) throw updateError;
 
       // Enforce FIFO tenancy limit
-      await supabase.functions.invoke("manage-tenancy-limit", {
+      await tenancyService.manageTenancyLimit({
         body: { property_id: invitation.property_id },
       });
 

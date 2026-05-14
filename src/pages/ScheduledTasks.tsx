@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { authService } from "@/services";
+import { authService, ticketService } from "@/services";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -128,7 +128,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
 
         if (error) throw error;
 
-        await supabase.from("ticket_activities").insert({
+        await ticketService.addTicketActivity({
           ticket_id: existingTicket.id,
           user_id: user.id,
           activity_type: "status_change",
@@ -155,7 +155,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
 
         if (error) throw error;
 
-        await supabase.from("ticket_activities").insert({
+        await ticketService.addTicketActivity({
           ticket_id: newTicket.id,
           user_id: user.id,
           activity_type: "status_change",
@@ -203,7 +203,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
 
       if (error) throw error;
 
-      await supabase.from("ticket_activities").insert({
+      await ticketService.addTicketActivity({
         ticket_id: ticketId,
         user_id: user.id,
         activity_type: "status_change",

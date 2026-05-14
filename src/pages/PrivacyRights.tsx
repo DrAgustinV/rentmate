@@ -3,8 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { authService } from "@/services";
+import { authService, adminService } from "@/services";
 import { useState } from "react";
 import { Download, FileText, Shield, Trash2, Ban, AlertCircle, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -27,9 +26,7 @@ export default function PrivacyRights() {
 
   const handleExportData = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('export-user-data');
-      
-      if (error) throw error;
+      const data = await adminService.exportUserData({});
 
       // Download the JSON data
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -70,14 +67,12 @@ export default function PrivacyRights() {
       const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase.from('privacy_requests').insert({
+      await adminService.createPrivacyRequest({
         user_id: user.id,
         request_type: requestType,
         request_details: details,
         status: 'pending',
       });
-
-      if (error) throw error;
 
       toast({
         title: "Request Submitted",

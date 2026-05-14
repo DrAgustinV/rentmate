@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { authService } from "@/services";
+import { authService, adminService } from "@/services";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,9 +40,7 @@ export function StripeConnectOnboarding() {
   const connectMutation = useMutation({
     mutationFn: async () => {
       setIsConnecting(true);
-      const { data, error } = await supabase.functions.invoke("create-stripe-connect-account");
-
-      if (error) throw error;
+      const data = await adminService.createStripeConnectAccount();
       return data;
     },
     onSuccess: (data) => {

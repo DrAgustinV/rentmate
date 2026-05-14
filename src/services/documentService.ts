@@ -75,6 +75,12 @@ export async function insertDocument(data: Record<string, unknown>) {
   return result;
 }
 
+export async function uploadDocumentTemplate(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('upload-document-template', { body });
+  if (error) throw error;
+  return data;
+}
+
 export async function getTemplatesByProperty(propertyId: string): Promise<Array<{ id: string; document_title: string }>> {
   const { data, error } = await supabase
     .from('property_documents')
@@ -105,6 +111,7 @@ export const documentService = {
   fileExists,
   deleteDocument,
   insertDocument,
+  uploadDocumentTemplate,
   getTemplatesByProperty,
   listFiles,
 };

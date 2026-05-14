@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { adminService } from "@/services";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -241,10 +241,7 @@ export function SubscriptionPlansManagement() {
   const syncToStripeMutation = useMutation({
     mutationFn: async (planId: string) => {
       setSyncingPlanId(planId);
-      const { data, error } = await supabase.functions.invoke("sync-stripe-prices", {
-        body: { planId },
-      });
-      if (error) throw error;
+      const data = await adminService.syncStripePrices({ planSlug: plan.slug });
       if (data.error) throw new Error(data.error);
       return data;
     },

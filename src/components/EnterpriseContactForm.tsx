@@ -16,8 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Sparkles, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
-import { authService } from "@/services";
+import { authService, adminService } from "@/services";
 import { toast } from "sonner";
 
 const contactSchema = z.object({
@@ -58,7 +57,7 @@ export function EnterpriseContactForm({ open, onOpenChange }: EnterpriseContactF
     try {
       const user = await authService.getCurrentUser();
 
-      const { error } = await supabase.from("enterprise_contact_requests").insert({
+      await adminService.createEnterpriseContactRequest({
         name: data.name,
         email: data.email,
         company_name: data.company_name,
@@ -68,8 +67,6 @@ export function EnterpriseContactForm({ open, onOpenChange }: EnterpriseContactF
         user_id: user?.id || null,
         status: "pending",
       });
-
-      if (error) throw error;
 
       setIsSuccess(true);
       form.reset();

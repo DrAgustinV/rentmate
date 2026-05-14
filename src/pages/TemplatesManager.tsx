@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { showToast } from "@/lib/toast";
+import { ticketService } from "@/services";
 import { TemplatesManagerContent } from "./TemplatesManagerContent";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -33,9 +33,7 @@ export default function TemplatesManager({ propertyId }: TemplatesManagerProps) 
 
   const deleteTemplateMutation = useMutation({
     mutationFn: async (templateId: string) => {
-      const { error } = await supabase.from("ticket_templates").delete().eq("id", templateId);
-
-      if (error) throw error;
+      await ticketService.deleteTicketTemplate(templateId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks-with-schedules"] });

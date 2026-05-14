@@ -57,11 +57,7 @@ export const QualifiedSignatureFlow = ({
     setError(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('initiate-qualified-signature', {
-        body: { tenancyId, propertyId, providerCode }
-      });
-
-      if (error) throw error;
+      const data = await identityService.initiateQualifiedSignature({ tenancy_id: tenancyId });
 
       if (!data?.success) {
         throw new Error(data?.error || 'Failed to initiate signature');

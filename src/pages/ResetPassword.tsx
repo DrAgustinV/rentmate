@@ -79,11 +79,7 @@ export default function ResetPassword() {
 
     try {
       // Call our custom edge function instead of Supabase's built-in method
-      const { error } = await supabase.functions.invoke('send-password-reset-email', {
-        body: { email, language },
-      });
-
-      if (error) throw error;
+      await identityService.sendPasswordResetEmail({ email });
 
       setEmailSent(true);
       setRateLimitRemaining(prev => prev - 1);

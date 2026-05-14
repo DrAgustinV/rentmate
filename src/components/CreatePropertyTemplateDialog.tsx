@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { authService, documentService } from "@/services";
+import { authService, documentService, identityService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -83,24 +82,15 @@ export const CreatePropertyTemplateDialog = ({
 
       const fileType = extension.replace(".", "");
       
-      const { error: dbError } = await supabase.functions.invoke('upload-document-template', {
-        body: {
-          document_title: documentTitle.trim(),
+      await documentService.uploadDocumentTemplate({
+        document_title: documentTitle.trim(),
           file_name: fileName,
           file_path: filePath,
           file_type: fileType,
           file_size_bytes: file.size,
           mime_type: file.type,
           description: description || null,
-        },
       });
-
-      if (dbError) {
-        if (typeof dbError === 'string' && dbError.includes('row-level')) {
-          throw new Error("Database permission denied. Please check RLS policies.");
-        }
-        throw dbError;
-      }
 
       setUploadProgress(100);
     },

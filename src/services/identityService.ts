@@ -68,6 +68,36 @@ export async function cancelSEPAMandate(body: Record<string, unknown>): Promise<
   return data;
 }
 
+export async function sendEmailVerification(): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('send-email-verification');
+  if (error) throw error;
+  return data;
+}
+
+export async function verifyEmailToken(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('verify-email-token', { body });
+  if (error) throw error;
+  return data;
+}
+
+export async function verifyOpenAPIOTP(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('verify-openapi-otp', { body });
+  if (error) throw error;
+  return data;
+}
+
+export async function initiateQualifiedSignature(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('initiate-qualified-signature', { body });
+  if (error) throw error;
+  return data;
+}
+
+export async function sendPasswordResetEmail(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('send-password-reset-email', { body });
+  if (error) throw error;
+  return data;
+}
+
 export const identityService = {
   initiateKiltKYC,
   initiateDiditKYC,
@@ -78,6 +108,11 @@ export const identityService = {
   generateSEPAMandatePDF,
   invokeAIAssistant,
   ensureRentPayments,
+  sendEmailVerification,
+  verifyEmailToken,
+  verifyOpenAPIOTP,
+  initiateQualifiedSignature,
+  sendPasswordResetEmail,
   checkMandateStatus,
   cancelSEPAMandate,
 };

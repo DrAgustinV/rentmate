@@ -397,7 +397,7 @@ export default function PropertyTenants() {
           if (error) throw error;
         }
       } else {
-        const { error } = await supabase.from("invitations").insert({
+        await tenantService.createInvitation({
           token,
           email: data.email,
           property_id: propertyId!,
@@ -405,8 +405,6 @@ export default function PropertyTenants() {
           status: "pending",
           invited_user_id: profile?.id || null,
         });
-
-        if (error) throw error;
       }
 
       return { email: data.email };
