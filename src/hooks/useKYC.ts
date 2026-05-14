@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { profileService } from '@/services';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  KYCProfile, 
-  KYCProfileSchema, 
   KYCInitiationResponseSchema,
   type KYCStatus,
   canInitiateKYC,
@@ -11,6 +10,7 @@ import {
   isKYCPending,
 } from '@/lib/validations/kyc.schema';
 import { useLanguage } from '@/contexts/LanguageContext';
+import type { ProfileDomain } from '@/types/domain';
 
 export type KYCProvider = 'kilt' | 'openapi' | 'didit';
 export type OpenAPIVerificationLevel = 'basic' | 'advanced' | 'expert';
@@ -19,14 +19,14 @@ interface UseKYCOptions {
   autoFetch?: boolean;
   provider?: KYCProvider;
   verificationLevel?: OpenAPIVerificationLevel;
-  onVerificationComplete?: (profile: KYCProfile) => void;
+  onVerificationComplete?: (profile: ProfileDomain) => void;
   onVerificationFailed?: (error: Error) => void;
   onCancel?: () => void;
 }
 
 interface UseKYCReturn {
   // State
-  kycProfile: KYCProfile | null;
+  kycProfile: ProfileDomain | null;
   loading: boolean;
   initiating: boolean;
   checkingStatus: boolean;
@@ -81,7 +81,7 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
     onCancel
   } = options;
   
-  const [kycProfile, setKycProfile] = useState<KYCProfile | null>(null);
+  const [kycProfile, setKycProfile] = useState<ProfileDomain | null>(null);
   const [loading, setLoading] = useState(false);
   const [initiating, setInitiating] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
@@ -105,28 +105,19 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
         throw new Error(t('kyc.errors.notAuthenticated'));
       }
 
-      // Fetch KYC profile data including provider
-      const { data, error: fetchError } = await supabase
-        .from('profiles')
-        .select('kyc_status, kyc_provider, kyc_credential_id, kyc_qr_code_url, kyc_wallet_did, kyc_verified_at, kyc_expires_at')
-        .eq('id', user.id)
-        .single();
+      // Fetch KYC profile data using profileService
+      const profile = await profileService.getProfile(user.id);
 
-      if (fetchError) {
-        throw new Error(t('kyc.errors.fetchFailed'));
-      }
-
-      if (!data) {
+      if (!profile) {
         throw new Error(t('kyc.errors.profileNotFound'));
       }
 
-      // Validate and parse response
-      const validatedProfile = KYCProfileSchema.parse(data);
-      setKycProfile(validatedProfile);
+      // Set validated profile
+      setKycProfile(profile);
 
       // Call completion callback if verified
-      if (isKYCVerified(validatedProfile.kyc_status) && onVerificationComplete) {
-        onVerificationComplete(validatedProfile);
+      if (isKYCVerified(profile.kycStatus) && onVerificationComplete) {
+        onVerificationComplete(profile);
       }
 
     } catch (err) {
@@ -160,7 +151,7 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       setError(null);
 
       // Check if verification can be initiated
-      if (kycProfile && !canInitiateKYC(kycProfile.kyc_status)) {
+      if (kycProfile && !canInitiateKYC(kycProfile.kycStatus)) {
         throw new Error(t('kyc.errors.cannotInitiate'));
       }
 
@@ -243,21 +234,8 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
         throw new Error(t('kyc.errors.notAuthenticated'));
       }
 
-      // Reset KYC status in database
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          kyc_status: 'not_started',
-          kyc_provider: null,
-          kyc_qr_code_url: null,
-          kyc_credential_id: null,
-          kyc_wallet_did: null
-        })
-        .eq('id', user.id);
-
-      if (updateError) {
-        throw new Error(t('kyc.errors.cancelFailed'));
-      }
+      // Reset KYC status in database using profileService
+      await profileService.updateKycData(user.id, { kycStatus: 'not_started' });
 
       // Refresh status to update UI
       await fetchKYCStatus();
@@ -344,18 +322,18 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
   }, [autoFetch, fetchKYCStatus]);
 
   // Computed values
-  const isVerified = isKYCVerified(kycProfile?.kyc_status);
-  const isPending = isKYCPending(kycProfile?.kyc_status);
-  const canInitiate = canInitiateKYC(kycProfile?.kyc_status);
+  const isVerified = isKYCVerified(kycProfile?.kycStatus);
+  const isPending = isKYCPending(kycProfile?.kycStatus);
+  const canInitiate = canInitiateKYC(kycProfile?.kycStatus);
   
-  // Extract current provider from kyc_provider field
-  const currentProvider: KYCProvider | null = kycProfile?.kyc_provider
-    ? (kycProfile.kyc_provider === 'didit' 
+  // Extract current provider from kyc_status field (fallback to options if not available)
+  const currentProvider: KYCProvider | null = kycProfile?.kycStatus
+    ? (kycProfile.kycStatus === 'didit' 
         ? 'didit' 
-        : kycProfile.kyc_provider.startsWith('openapi_') 
+        : kycProfile.kycStatus.startsWith('openapi_') 
         ? 'openapi' 
         : 'kilt')
-    : null;
+    : provider;
 
   return {
     // State
