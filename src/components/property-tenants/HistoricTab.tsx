@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantService } from "@/services";
 import { format, isWithinInterval, subYears, startOfYear, endOfYear } from "date-fns";
 import { Search, History, Eye } from "lucide-react";
 import { HistoricTenancyDetails } from "./HistoricTenancyDetails";
@@ -46,19 +47,17 @@ export function HistoricTab({ propertyId, isManager }: HistoricTabProps) {
   const { data: tenants, isLoading } = useQuery({
     queryKey: ['historic-tenants', propertyId],
     queryFn: async () => {
-      // Fetch historic property_tenants
-      const { data: historicTenants, error } = await supabase
-        .from('property_tenants')
-        .select('*')
-        .eq('property_id', propertyId)
-        .eq('tenancy_status', 'historic')
-        .order('ended_at', { ascending: false });
+      // Fetch historic property_tenants using tenantService
+      const allTenancies = await tenantService.getTenanciesByProperty(propertyId);
+      
+      const historicTenants = allTenancies
+        .filter(t => t.status === 'historic')
+        .sort((a, b) => new Date(b.endedAt || 0).getTime() - new Date(a.endedAt || 0).getTime());
 
-      if (error) throw error;
       if (!historicTenants || historicTenants.length === 0) return [];
 
       // Get unique tenant IDs
-      const tenantIds = [...new Set(historicTenants.map(t => t.tenant_id).filter(Boolean))];
+      const tenantIds = [...new Set(historicTenants.map(t => t.tenantId).filter(Boolean))];
       
       // Fetch tenant details (email, name)
       let tenantDetails: Record<string, { email: string; first_name: string | null; last_name: string | null }> = {};
@@ -83,9 +82,9 @@ export function HistoricTab({ propertyId, isManager }: HistoricTabProps) {
       // Merge data
       return historicTenants.map(t => ({
         ...t,
-        email: t.tenant_id ? tenantDetails[t.tenant_id]?.email || '' : '',
-        first_name: t.tenant_id ? tenantDetails[t.tenant_id]?.first_name : null,
-        last_name: t.tenant_id ? tenantDetails[t.tenant_id]?.last_name : null,
+        email: t.tenantId ? tenantDetails[t.tenantId]?.email || '' : '',
+        first_name: t.tenantId ? tenantDetails[t.tenantId]?.first_name : null,
+        last_name: t.tenantId ? tenantDetails[t.tenantId]?.last_name : null,
       })) as HistoricTenancy[];
     },
   });

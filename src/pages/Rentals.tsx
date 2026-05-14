@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -97,47 +98,29 @@ export default function Rentals() {
 
   const fetchTenantTenancies = async (tenantId: string) => {
     // Include archived tenancies
-    const { data, error } = await supabase
-      .from("property_tenants")
-      .select(`
-        id,
-        property_id,
-        tenant_id,
-        tenancy_status,
-        properties (
-          title,
-          address
-        )
-      `)
-      .eq("tenant_id", tenantId)
-      .in("tenancy_status", ["active", "ending_tenancy", "historic"]);
+    const tenancies = await tenantService.getTenanciesByTenant(tenantId);
 
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-
-    const tenanciesWithDetails = await Promise.all((data || []).map(async (t: any) => {
+    const tenanciesWithDetails = await Promise.all(tenancies.map(async (t) => {
       const { data: agreement } = await supabase
         .from("rent_agreements")
         .select("rent_amount_cents, currency, start_date, end_date")
-        .eq("property_id", t.property_id)
-        .eq("tenant_id", t.tenant_id)
+        .eq("property_id", t.propertyId)
+        .eq("tenant_id", t.tenantId)
         .maybeSingle();
 
       return {
         id: t.id,
-        property_id: t.property_id,
-        tenant_id: t.tenant_id,
-        property_title: t.properties?.title || "",
-        property_address: t.properties?.address || "",
+        property_id: t.propertyId,
+        tenant_id: t.tenantId,
+        property_title: t.propertyTitle,
+        property_address: t.propertyAddress,
         tenant_name: "",
         tenant_email: "",
         rent_amount_cents: agreement?.rent_amount_cents || 0,
         currency: agreement?.currency || "eur",
         contract_start: agreement?.start_date || null,
         contract_end: agreement?.end_date || null,
-        tenancy_status: t.tenancy_status,
+        tenancy_status: t.status || '',
         last_payment_status: null,
       };
     }));

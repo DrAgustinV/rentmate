@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Plus, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,14 +49,9 @@ const PropertyMaintenance = () => {
       
       const isManager = property?.manager_id === user.id;
       
-      // Check if tenant
-      const { data: tenantRel } = await supabase
-        .from("property_tenants")
-        .select("id")
-        .eq("property_id", propertyId!)
-        .eq("tenant_id", user.id)
-        .maybeSingle();
-      
+      // Check if tenant using tenantService
+      const tenancies = await tenantService.getTenanciesByProperty(propertyId!);
+      const tenantRel = tenancies.find(t => t.tenantId === user.id) || null;
       const isTenant = !!tenantRel;
       
       return { isManager, isTenant };

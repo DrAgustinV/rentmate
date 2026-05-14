@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
+import { profileService } from "@/services";
 import { format } from "date-fns";
 import { formatDate } from "@/lib/dateUtils";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
@@ -135,7 +136,7 @@ export function TenancyOverviewCard({
   const showPendingSetup = isManager && !isReadOnly && pendingRequirement;
   const showSetupButton = isManager && !isReadOnly && canSetupNewTenancy && !pendingRequirement;
   
-  // Fetch manager info
+  // Fetch manager info using profileService
   const { data: managerInfo } = useQuery({
     queryKey: ["property-manager", propertyId],
     queryFn: async () => {
@@ -145,12 +146,15 @@ export function TenancyOverviewCard({
         .eq("id", propertyId)
         .single();
       if (!property?.manager_id) return null;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name, phone, avatar_url")
-        .eq("id", property.manager_id)
-        .single();
-      return profile;
+      const profile = await profileService.getProfile(property.manager_id);
+      return profile ? {
+        id: profile.id,
+        email: profile.email,
+        first_name: profile.firstName,
+        last_name: profile.lastName,
+        phone: profile.phone,
+        avatar_url: profile.avatarStoragePath,
+      } : null;
     },
     enabled: !!propertyId,
   });

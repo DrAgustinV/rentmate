@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Plus, Home, Users, Archive, Building2 } from "lucide-react";
 import { PropertyCard } from "@/components/PropertyCard";
@@ -98,14 +99,9 @@ export default function Dashboard() {
         return;
       }
 
-      // Check if user is a tenant
-      const { data: tenancies } = await supabase
-        .from("property_tenants")
-        .select("id")
-        .eq("tenant_id", session.user.id)
-        .limit(1);
-      
-      if (tenancies && tenancies.length > 0) {
+      // Check if user is a tenant using tenantService
+      const tenantTenancies = await tenantService.getTenanciesByTenant(session.user.id);
+      if (tenantTenancies.length > 0) {
         navigate("/rentals", { replace: true });
         return;
       }
