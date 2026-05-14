@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { BadgeCheck, Mail, Phone, User, CalendarX, Plus, Pencil } from "lucide-react";
+import { getSignedUrl } from "@/services";
+import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 
 interface Tenant {
   id: string;
@@ -83,10 +85,12 @@ export function ContactInfoCard({
     const loadAvatarUrl = async () => {
       const avatarPath = userRole?.isManager ? currentTenant?.avatar_url : managerInfo?.avatar_url;
       if (avatarPath) {
-        const { data } = await supabase.storage
-          .from('profile-photos')
-          .createSignedUrl(avatarPath, 3600);
-        if (data) setAvatarUrl(data.signedUrl);
+        try {
+          const url = await getSignedUrl(STORAGE_BUCKETS.PROFILE_PHOTOS, avatarPath, SIGNED_URL_TTL);
+          setAvatarUrl(url);
+        } catch (e) {
+          // ignore
+        }
       }
     };
     loadAvatarUrl();

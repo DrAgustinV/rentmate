@@ -13,150 +13,46 @@ import { formatDate } from "@/lib/dateUtils";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { DeclineInvitationDialog } from "@/components/DeclineInvitationDialog";
-
-interface Invitation {
-  id: string;
-  property_id: string;
-  email: string;
-  token: string;
-  expires_at: string;
-  properties: {
-    title: string;
-    address: string | null;
-    description: string | null;
-    images: string[] | null;
-  } | null;
-}
+import { getSignedUrl } from "@/services";
+import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 
 export default function Invitations() {
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState<string | null>(null);
-  const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
-  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const [invitationPreview, setInvitationPreview] = useState<Invitation | null>(null);
-  const [showDecisionPage, setShowDecisionPage] = useState(false);
-  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
-  const autoAcceptTriggeredRef = useRef(false);
+  const { t } = useLanguage();
   
-  // Decline dialog state
-  const [declineDialogInvitation, setDeclineDialogInvitation] = useState<Invitation | null>(null);
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  // Auto-accept invitation when token is present in URL
-  useEffect(() => {
-    const token = searchParams.get('token');
-    if (token && !loading && invitations.length > 0 && !autoAcceptTriggeredRef.current) {
-      const invitation = invitations.find(inv => inv.token === token);
-      if (invitation) {
-        autoAcceptTriggeredRef.current = true;
-        sessionStorage.removeItem('invitation_token');
-        // Auto-accept immediately
-        handleAccept(invitation.id, invitation.property_id);
-      }
-    }
-  }, [searchParams, loading, invitations]);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    // Get token from URL search params
-    const token = searchParams.get('token');
-    
-    console.log('[Invitations] checkAuth - session:', !!session, 'token:', token);
-    
-    if (!session) {
-      // If not logged in and has token, detect account and redirect
-      if (token) {
-        console.log('[Invitations] Anonymous user with token, fetching invitation...');
-        
-        // For anonymous users, fetch ONLY invitation data (no properties join)
-        // Properties table RLS blocks anonymous access, so we skip the join
-        const { data: invitation, error: invitationError } = await supabase
-          .from("invitations")
-          .select("id, property_id, email, token, expires_at")
-          .eq("token", token)
-          .eq("status", "pending")
-          .gt("expires_at", new Date().toISOString())
-          .single();
-        
-        console.log('[Invitations] Invitation fetch result:', { invitation, error: invitationError });
-        
-        if (!invitation || invitationError) {
-          console.log('[Invitations] Invitation not found, redirecting to /auth');
-          toast({
-            title: "Invitation Not Found",
-            description: "This invitation may have expired or been used already.",
-            variant: "destructive",
-          });
-          navigate("/auth");
-          return;
-        }
-
-        // Check if email has an existing account using SECURITY DEFINER function
-        const { data: hasAccount, error: rpcError } = await supabase
-          .rpc('check_email_has_account', { check_email: invitation.email });
-
-        console.log('[Invitations] check_email_has_account result:', { email: invitation.email, hasAccount, rpcError });
-
-        // Determine mode based on whether user exists
-        const mode = hasAccount ? 'signin' : 'signup';
-        
-        console.log('[Invitations] Redirecting to /auth with mode:', mode);
-        // Redirect to auth with appropriate mode and detection flag
-        navigate(`/auth?mode=${mode}&token=${token}&detected=true`);
-        return;
-      } else {
-        console.log('[Invitations] No token, redirecting to /auth');
-        navigate("/auth");
-      }
-      return;
-    }
-    
-    // If logged in, proceed to fetch invitations
-    fetchInvitations();
-  };
+  const [invitations, setInvitations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+  const [selectedInvitation, setSelectedInvitation] = useState<any>(null);
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  const declineReasonRef = useRef<string>("");
 
   const fetchInvitations = async () => {
+    setLoading(true);
     try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("id", (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (!profile) return;
-
       const { data, error } = await supabase
         .from("invitations")
         .select(`
           id,
-          property_id,
           email,
-          token,
+          status,
           expires_at,
+          created_at,
           properties (
+            id,
             title,
             address,
-            description,
             images
           )
         `)
-        .eq("email", profile.email)
         .eq("status", "pending")
-        .gt("expires_at", new Date().toISOString());
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setInvitations(data || []);
-      
-      // Fetch signed URLs for all property images
+
       if (data && data.length > 0) {
         const urlMap: Record<string, string> = {};
         
@@ -164,12 +60,11 @@ export default function Invitations() {
           data.map(async (inv) => {
             const storagePath = inv.properties?.images?.[0];
             if (storagePath) {
-              const { data: signedData } = await supabase.storage
-                .from('property-photos')
-                .createSignedUrl(storagePath, 3600);
-              
-              if (signedData) {
-                urlMap[inv.id] = signedData.signedUrl;
+              try {
+                const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, storagePath, SIGNED_URL_TTL);
+                urlMap[inv.id] = url;
+              } catch (e) {
+                // ignore
               }
             }
           })
@@ -177,10 +72,13 @@ export default function Invitations() {
         
         setPhotoUrls(urlMap);
       }
-    } catch (error: any) {
+      
+      setInvitations(data || []);
+    } catch (error) {
+      console.error("Error fetching invitations:", error);
       toast({
-        title: t('common.error'),
-        description: error.message,
+        title: t("invitations.error"),
+        description: t("invitations.errorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -188,468 +86,185 @@ export default function Invitations() {
     }
   };
 
-  const handleAccept = async (invitationId: string, propertyId: string) => {
-    setProcessingId(invitationId);
+  useEffect(() => {
+    fetchInvitations();
+  }, []);
+
+  const handleAccept = async (invitationId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Get user's profile for email
-      const { data: userProfile, error: profileReadError } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("id", user.id)
-        .single();
-
-      if (profileReadError) throw profileReadError;
-
-      // CRITICAL: Accepting an invitation MUST verify the user's email.
-      // Clicking the unique invitation link proves email ownership.
-      const { error: verifyEmailError } = await supabase
-        .from("profiles")
-        .update({ email_verified: true })
-        .eq("id", user.id);
-
-      if (verifyEmailError) throw verifyEmailError;
-
-      // Check for existing pending tenancy and convert to active
-      const { data: pendingTenancy } = await supabase
-        .from("property_tenants")
-        .select("id")
-        .eq("property_id", propertyId)
-        .eq("tenancy_status", "pending")
-        .maybeSingle();
-
-      let tenancyId: string;
-
-      if (pendingTenancy) {
-        // Update existing pending tenancy to active
-        const { data: updatedTenancy, error: updateTenancyError } = await supabase
-          .from("property_tenants")
-          .update({
-            tenant_id: user.id,
-            tenancy_status: 'active',
-            notes: null, // Clear the pending notes
-          })
-          .eq("id", pendingTenancy.id)
-          .select("id")
-          .single();
-
-        if (updateTenancyError) throw updateTenancyError;
-        tenancyId = updatedTenancy.id;
-      } else {
-        // No pending tenancy found - create new active tenancy (legacy fallback)
-        const { data: newTenancy, error: tenantError } = await supabase
-          .from("property_tenants")
-          .insert({
-            property_id: propertyId,
-            tenant_id: user.id,
-            tenancy_status: 'active',
-            started_at: new Date().toISOString(),
-          })
-          .select('id')
-          .single();
-
-        if (tenantError) throw tenantError;
-        tenancyId = newTenancy.id;
-      }
-
-      // Update invitation status
-      const { error: updateError } = await supabase
-        .from("invitations")
-        .update({
-          status: "accepted",
-          invited_user_id: user.id,
-        })
-        .eq("id", invitationId);
-
-      if (updateError) throw updateError;
-
-      // Find matching tenancy_requirements for this invitation
-      const { data: requirements } = await supabase
-        .from("tenancy_requirements")
-        .select("*")
-        .eq("property_id", propertyId)
-        .eq("tenant_email", userProfile?.email || '')
-        .in("status", ["sent", "draft"])
-        .maybeSingle();
-
-      if (requirements && tenancyId) {
-        // Get property manager_id for rent_agreement
-        const { data: propertyData } = await supabase
-          .from("properties")
-          .select("manager_id")
-          .eq("id", propertyId)
-          .single();
-
-        // Create rent_agreement from requirements if rent data exists
-        if (requirements.rent_amount_cents && propertyData?.manager_id) {
-          await supabase.from("rent_agreements").insert({
-            property_id: propertyId,
-            tenancy_id: tenancyId,
-            manager_id: propertyData.manager_id,
-            tenant_id: user.id,
-            rent_amount_cents: requirements.rent_amount_cents,
-            currency: requirements.currency || 'EUR',
-            security_deposit_cents: requirements.security_deposit_cents,
-            payment_day: requirements.payment_day || 1,
-            start_date: requirements.start_date,
-            end_date: requirements.end_date,
-          });
-        }
-
-        // Update tenancy_requirements to link to tenancy and mark as accepted
-        await supabase
-          .from("tenancy_requirements")
-          .update({ 
-            tenancy_id: tenancyId,
-            status: 'accepted' 
-          })
-          .eq("id", requirements.id);
-      }
-
-      // Enforce FIFO tenancy limit (delete oldest inactive if > 5 tenancies)
-      await supabase.functions.invoke("manage-tenancy-limit", {
-        body: { property_id: propertyId },
-      });
-
-      // Invalidate tenant properties cache to refresh the list
-      await queryClient.invalidateQueries({ 
-        queryKey: [TENANT_PROPERTIES_QUERY_KEY] 
-      });
-
-      // Send notification to property manager
-      try {
-        const { data: propertyData } = await supabase
-          .from("properties")
-          .select("title, manager_id")
-          .eq("id", propertyId)
-          .single();
-
-        if (propertyData?.manager_id) {
-          const { data: managerProfile } = await supabase
-            .from("profiles")
-            .select("email, first_name, last_name")
-            .eq("id", propertyData.manager_id)
-            .single();
-
-          const { data: tenantProfile } = await supabase
-            .from("profiles")
-            .select("first_name, last_name")
-            .eq("id", user.id)
-            .single();
-
-          if (managerProfile?.email) {
-            const managerName = managerProfile.first_name && managerProfile.last_name
-              ? `${managerProfile.first_name} ${managerProfile.last_name}`.trim()
-              : managerProfile.email.split('@')[0];
-
-            const tenantName = tenantProfile?.first_name && tenantProfile?.last_name
-              ? `${tenantProfile.first_name} ${tenantProfile.last_name}`.trim()
-              : userProfile?.email?.split('@')[0] || 'The tenant';
-
-            await supabase.functions.invoke("send-tenant-accepted-notification", {
-              body: {
-                propertyId,
-                propertyTitle: propertyData.title || 'Property',
-                tenantName,
-                tenantEmail: userProfile?.email || '',
-                managerEmail: managerProfile.email,
-                managerName,
-                language: localStorage.getItem("language") || "en",
-                projectId: import.meta.env.VITE_SUPABASE_PROJECT_ID,
-              },
-            });
-          }
-        }
-      } catch (notifyError) {
-        console.warn("Failed to send manager notification:", notifyError);
-      }
-
-      toast({
-        title: t('invitations.accepted'),
-        description: t('invitations.acceptedDesc'),
-      });
-
-      setInvitations(invitations.filter((inv) => inv.id !== invitationId));
-      
-      // Redirect to property hub
-      navigate(`/properties/${propertyId}/tenants`);
-    } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message || 'Failed to accept invitation. Please try again.',
-        variant: "destructive",
-      });
-    } finally {
-      setProcessingId(null);
-    }
-  };
-
-  const handleDecline = async (invitationId: string, reason?: string) => {
-    setProcessingId(invitationId);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
       const { error } = await supabase
         .from("invitations")
-        .update({ 
-          status: "declined",
-          decline_reason: reason || null,
-          declined_at: new Date().toISOString(),
-        })
+        .update({ status: "accepted" })
         .eq("id", invitationId);
 
       if (error) throw error;
 
       toast({
-        title: t('invitations.declined'),
-        description: t('invitations.declinedDesc'),
+        title: t("invitations.accepted"),
+        description: t("invitations.acceptedDesc"),
       });
 
-      setInvitations(invitations.filter((inv) => inv.id !== invitationId));
-      setDeclineDialogInvitation(null);
-    } catch (error: any) {
+      await queryClient.invalidateQueries({ queryKey: TENANT_PROPERTIES_QUERY_KEY });
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error accepting invitation:", error);
       toast({
-        title: t('common.error'),
-        description: error.message,
+        title: t("invitations.error"),
+        description: t("invitations.errorDesc"),
         variant: "destructive",
       });
-    } finally {
-      setProcessingId(null);
     }
   };
 
-  const handleTokenAccept = async (token: string) => {
+  const handleDecline = async () => {
+    if (!selectedInvitation) return;
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: t('invitations.loginRequired'),
-          description: t('invitations.loginRequiredDesc'),
-          variant: "destructive",
-        });
-        navigate('/auth');
-        return;
-      }
+      const { error } = await supabase
+        .from("invitations")
+        .update({ 
+          status: "declined",
+          declined_reason: declineReasonRef.current
+        })
+        .eq("id", selectedInvitation.id);
 
-      // Find invitation by token
-      const invitation = invitations.find(inv => inv.token === token);
+      if (error) throw error;
 
-      if (!invitation) {
-        toast({
-          title: t('common.error'),
-          description: t('invitations.notFound'),
-          variant: "destructive",
-        });
-        return;
-      }
-
-      await handleAccept(invitation.id, invitation.property_id);
-    } catch (error: any) {
       toast({
-        title: t('common.error'),
-        description: error.message,
+        title: t("invitations.declined"),
+        description: t("invitations.declinedDesc"),
+      });
+
+      setDeclineDialogOpen(false);
+      setSelectedInvitation(null);
+      declineReasonRef.current = "";
+      
+      await fetchInvitations();
+    } catch (error) {
+      console.error("Error declining invitation:", error);
+      toast({
+        title: t("invitations.error"),
+        description: t("invitations.errorDesc"),
         variant: "destructive",
       });
     }
   };
 
-  if (loading) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </AppLayout>
-    );
-  }
-
-  // Decision page for unauthenticated users with invitation token
-  if (showDecisionPage && invitationPreview) {
-    const propertyImageUrl = photoUrls[invitationPreview.id];
-    const token = searchParams.get('token');
-    
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-2xl overflow-hidden">
-          {propertyImageUrl && (
-            <AspectRatio ratio={16 / 9}>
-              <img
-                src={propertyImageUrl}
-                alt={invitationPreview.properties?.title || "Property"}
-                className="object-cover w-full h-full"
-              />
-            </AspectRatio>
-          )}
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <Badge variant="secondary" className="text-lg px-4 py-2">
-                <Home className="h-5 w-5 mr-2" />
-                You're Invited!
-              </Badge>
-            </div>
-            <CardTitle>{invitationPreview.properties?.title}</CardTitle>
-            {invitationPreview.properties?.address && (
-              <CardDescription className="flex items-center justify-center gap-2 text-base mt-2">
-                <MapPin className="h-4 w-4" />
-                {invitationPreview.properties.address}
-              </CardDescription>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {invitationPreview.properties?.description && (
-              <p className="text-center text-muted-foreground">
-                {invitationPreview.properties.description}
-              </p>
-            )}
-            
-            <div className="bg-muted/50 rounded-lg p-6 text-center space-y-4">
-              <h3 className="text-xl font-semibold text-foreground">Do you already have an account?</h3>
-              <p className="text-sm text-muted-foreground">
-                Choose how you'd like to proceed with this invitation
-              </p>
-              
-              <div className="grid sm:grid-cols-2 gap-4 pt-4">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-auto py-6 flex-col gap-2"
-                  onClick={() => navigate(`/auth?mode=signin&token=${token}`)}
-                >
-                  <div className="text-base font-semibold">Yes, I have an account</div>
-                  <div className="text-xs text-muted-foreground font-normal">Sign in to accept</div>
-                </Button>
-                
-                <Button
-                  size="lg"
-                  className="h-auto py-6 flex-col gap-2"
-                  onClick={() => navigate(`/auth?mode=signup&token=${token}`)}
-                >
-                  <div className="text-base font-semibold">No, I'm new here</div>
-                  <div className="text-xs text-muted-foreground font-normal">Create account to accept</div>
-                </Button>
-              </div>
-            </div>
-            
-            <div className="text-center text-xs text-muted-foreground">
-              Invitation expires: {formatDate(invitationPreview.expires_at)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "accepted":
+        return <Badge variant="success">{t("invitations.accepted")}</Badge>;
+      case "declined":
+        return <Badge variant="destructive">{t("invitations.declined")}</Badge>;
+      case "expired":
+        return <Badge variant="secondary">{t("invitations.expired")}</Badge>;
+      default:
+        return <Badge variant="outline">{t("invitations.pending")}</Badge>;
+    }
+  };
 
   return (
     <AppLayout>
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">{t('invitations.title')}</h1>
-        <p className="text-muted-foreground mb-8">
-          {t('invitations.description')}
-        </p>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">{t("invitations.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("invitations.description")}</p>
+        </div>
 
-        {invitations.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : invitations.length === 0 ? (
           <Card>
-            <CardContent className="pt-6 text-center">
-              <p className="text-muted-foreground">{t('invitations.noPending')}</p>
-              <Button
-                variant="default"
-                className="mt-4"
-                onClick={() => navigate("/dashboard")}
-              >
-                {t('invitations.goToDashboard')}
-              </Button>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Home className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">{t("invitations.noInvitations")}</h3>
+              <p className="text-muted-foreground text-center max-w-md">
+                {t("invitations.noInvitationsDesc")}
+              </p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-6">
-            {invitations.map((invitation) => {
-              const propertyImageUrl = photoUrls[invitation.id];
-              const daysUntilExpiry = Math.ceil((new Date(invitation.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-              
-              return (
-                <Card key={invitation.id} className="overflow-hidden">
-                  {propertyImageUrl && (
-                    <AspectRatio ratio={16 / 9}>
-                      <img
-                        src={propertyImageUrl}
-                        alt={invitation.properties?.title || "Property"}
-                        className="object-cover w-full h-full"
-                      />
-                    </AspectRatio>
-                  )}
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Home className="h-5 w-5 text-primary" />
-                          <Badge variant="secondary">You're Invited!</Badge>
+          <div className="grid gap-4">
+            {invitations.map((invitation) => (
+              <Card key={invitation.id} className="overflow-hidden">
+                <div className="flex flex-col md:flex-row">
+                  <div className="md:w-48 bg-muted/50">
+                    <AspectRatio ratio={1 / 1}>
+                      {photoUrls[invitation.id] ? (
+                        <img
+                          src={photoUrls[invitation.id]}
+                          alt={invitation.properties?.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Home className="h-8 w-8 text-muted-foreground" />
                         </div>
-                        <CardTitle>{invitation.properties?.title || t('invitations.property')}</CardTitle>
-                        {invitation.properties?.address && (
-                          <CardDescription className="flex items-center gap-1 mt-2">
-                            <MapPin className="h-4 w-4" />
-                            {invitation.properties.address}
-                          </CardDescription>
-                        )}
+                      )}
+                    </AspectRatio>
+                  </div>
+                  
+                  <div className="flex-1 p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-semibold text-lg">{invitation.properties?.title}</h3>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          <span>{invitation.properties?.address}</span>
+                        </div>
+                      </div>
+                      {getStatusBadge(invitation.status)}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t("invitations.email")}</p>
+                        <p className="font-medium">{invitation.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t("invitations.expiresAt")}</p>
+                        <p className="font-medium">
+                          {formatDate(invitation.expires_at)}
+                        </p>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {invitation.properties?.description && (
-                      <p className="text-sm text-muted-foreground">
-                        {invitation.properties.description}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{t('invitations.expires')}: {formatDate(invitation.expires_at)}</span>
-                      <Badge variant={daysUntilExpiry <= 3 ? "destructive" : "outline"}>
-                        Expires in {daysUntilExpiry} {daysUntilExpiry === 1 ? 'day' : 'days'}
-                      </Badge>
+                    
+                    <div className="flex gap-2 mt-4">
+                      {invitation.status === "pending" && (
+                        <>
+                          <Button onClick={() => handleAccept(invitation.id)}>
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            {t("invitations.accept")}
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              setSelectedInvitation(invitation);
+                              setDeclineDialogOpen(true);
+                            }}
+                          >
+                            <XCircle className="mr-2 h-4 w-4" />
+                            {t("invitations.decline")}
+                          </Button>
+                        </>
+                      )}
                     </div>
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        size="lg"
-                        className="flex-1"
-                        onClick={() => handleAccept(invitation.id, invitation.property_id)}
-                        disabled={processingId === invitation.id}
-                      >
-                        {processingId === invitation.id ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                        )}
-                        {t('invitations.accept')}
-                      </Button>
-                      <Button
-                        size="lg"
-                        variant="ghost"
-                        onClick={() => setDeclineDialogInvitation(invitation)}
-                        disabled={processingId === invitation.id}
-                      >
-                        <XCircle className="mr-2 h-4 w-4" />
-                        {t('invitations.decline')}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         )}
 
+        <DeclineInvitationDialog
+          open={declineDialogOpen}
+          onOpenChange={setDeclineDialogOpen}
+          onDecline={handleDecline}
+          reasonRef={declineReasonRef}
+        />
       </div>
-
-      {/* Decline Invitation Dialog */}
-      <DeclineInvitationDialog
-        open={!!declineDialogInvitation}
-        onOpenChange={(open) => !open && setDeclineDialogInvitation(null)}
-        propertyTitle={declineDialogInvitation?.properties?.title || t('invitations.property')}
-        onConfirm={(reason) => declineDialogInvitation && handleDecline(declineDialogInvitation.id, reason)}
-        isProcessing={processingId === declineDialogInvitation?.id}
-      />
     </AppLayout>
   );
 }

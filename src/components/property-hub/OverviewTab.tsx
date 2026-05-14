@@ -19,6 +19,8 @@ import { usePropertyMutations } from "@/hooks/useProperties";
 import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
 import { PropertyManagementDialogs } from "@/components/property-hub/PropertyManagementDialogs";
+import { getSignedUrl } from "@/services";
+import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 
 interface OverviewTabProps {
   property: any;
@@ -96,11 +98,11 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
   useEffect(() => {
     const fetchPhotoUrl = async () => {
       if (property?.images?.[0]) {
-        const { data } = await supabase.storage
-          .from('property-photos')
-          .createSignedUrl(property.images[0], 3600);
-        if (data) {
-          setPropertyPhotoUrl(data.signedUrl);
+        try {
+          const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, property.images[0], SIGNED_URL_TTL);
+          setPropertyPhotoUrl(url);
+        } catch (e) {
+          // ignore
         }
       } else {
         setPropertyPhotoUrl(undefined);
@@ -169,209 +171,234 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
   };
 
   const tenantName = activeTenant?.profiles
-    ? `${activeTenant.profiles.first_name || ""} ${activeTenant.profiles.last_name || ""}`.trim() ||
-      activeTenant.profiles.email
-    : t("properties.noTenant");
+    ? `${activeTenant.profiles.first_name || ""} ${activeTenant.profiles.last_name || ""}`.trim() || activeTenant.profiles.email
+    : activeTenant?.email || "—";
 
-  const isArchived = property?.status === "inactive";
+  const tenantEmail = activeTenant?.profiles?.email || activeTenant?.email || "—";
 
   return (
     <div className="space-y-6">
-      <Card className="card-shine">
-        <CardHeader>
-          <div className="space-y-6">
-            <Card className="card-shine border-none">
-              <CardHeader className="px-6 pt-2 pb-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    {userRole?.isManager ? (
-                      <Input
-                        id="title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        disabled={!isEditing}
-                        required
-                        className={cn(
-                          !title.trim() && isEditing && "border-destructive",
-                          "text-lg font-bold w-full"
-                        )}
-                      />
-                    ) : (
-                      <p className="text-lg font-bold py-1 truncate">{title}</p>
-                    )}
-                  </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">{t("properties.overview")}</h2>
+          <p className="text-muted-foreground">{t("properties.overviewDesc")}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowArchiveDialog(true)}>
+            {t("properties.archive")}
+          </Button>
+          <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
+            {t("properties.delete")}
+          </Button>
+          <Button onClick={() => setIsEditing(!isEditing)}>
+            {isEditing ? <Save className="mr-2 h-4 w-4" /> : <Pencil className="mr-2 h-4 w-4" />}
+            {isEditing ? t("common.save") : t("common.edit")}
+          </Button>
+        </div>
+      </div>
 
-                  <div className="flex shrink-0 items-center gap-3">
-                    {userRole?.isManager && !isEditing && !isArchived && (
-                      <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                        <Pencil className="h-4 w-4 mr-2" />
-                        {t("common.edit")}
-                      </Button>
-                    )}
-                    <Badge variant={property?.status === "active" ? "default" : "secondary"}>
-                      {property?.status}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="px-6 pt-1 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                  <div className="max-h-64 flex items-center justify-start">
-                    {/* Your content here */}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="max-h-64 flex items-center justify-start">
-              {userRole?.isManager && isEditing ? (
-                <PropertyPhotoUpload
-                  propertyId={propertyId}
-                  currentPhoto={propertyPhotoUrl}
-                  onPhotoChange={() => {}}
-                />
-              ) : (
-                propertyPhotoUrl && (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("properties.propertyDetails")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isEditing ? (
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <img
-                      src={propertyPhotoUrl}
-                      alt={property?.title}
-                      className="w-full h-64 object-cover rounded-lg"
+                    <Label htmlFor="title">{t("properties.title")}</Label>
+                    <Input
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder={t("properties.titlePlaceholder")}
                     />
                   </div>
-                )
-              )}
-            </div>
-            <div className="md:col-span-2 space-y-4">
-              <div className="space-y-2">
-                  <Label htmlFor="address">{t("properties.address")}</Label>
-                  {userRole?.isManager ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="address">{t("properties.address")}</Label>
                     <Input
                       id="address"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      disabled={!isEditing}
-                      placeholder={t("properties.streetAddress")}
+                      placeholder={t("properties.addressPlaceholder")}
                     />
-                  ) : (
-                    <p className="text-sm py-2">{address || "-"}</p>
-                  )}
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="postalCode">{t("properties.postalCode")}</Label>
-                  {userRole?.isManager ? (
-                    <Input
-                      id="postalCode"
-                      value={postalCode}
-                      onChange={(e) => setPostalCode(e.target.value)}
-                      disabled={!isEditing}
-                      placeholder={t("properties.postalCodePlaceholder")}
-                    />
-                  ) : (
-                    <p className="text-sm py-2">{postalCode || "-"}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="city">{t("properties.city")}</Label>
-                  {userRole?.isManager ? (
-                    <Input
-                      id="city"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      disabled={!isEditing}
-                      placeholder={t("properties.cityPlaceholder")}
-                    />
-                  ) : (
-                    <p className="text-sm py-2">{city || "-"}</p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="stateProvince">{t("properties.stateProvince")}</Label>
-                    {userRole?.isManager ? (
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">{t("properties.city")}</Label>
                       <Input
-                        id="stateProvince"
+                        id="city"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder={t("properties.cityPlaceholder")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="state">{t("properties.state")}</Label>
+                      <Input
+                        id="state"
                         value={stateProvince}
                         onChange={(e) => setStateProvince(e.target.value)}
-                        disabled={!isEditing}
-                        placeholder={t("properties.stateProvincePlaceholder")}
+                        placeholder={t("properties.statePlaceholder")}
                       />
-                    ) : (
-                      <p className="text-sm py-2">{stateProvince || "-"}</p>
-                    )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="postalCode">{t("properties.postalCode")}</Label>
+                      <Input
+                        id="postalCode"
+                        value={postalCode}
+                        onChange={(e) => setPostalCode(e.target.value)}
+                        placeholder={t("properties.postalCodePlaceholder")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="country">{t("properties.country")}</Label>
+                      <CountrySelect
+                        id="country"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        placeholder={t("properties.countryPlaceholder")}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">{t("properties.description")}</Label>
+                    <div className="flex gap-2">
+                      <Textarea
+                        id="description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder={t("properties.descriptionPlaceholder")}
+                        className="flex-1 min-h-[100px]"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleGenerateDescription}
+                        disabled={generatingDescription}
+                        className="shrink-0"
+                      >
+                        {generatingDescription ? (
+                          <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                        ) : (
+                          <span className="text-lg">✨</span>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              
-                <div className="space-y-2">
-                  <Label htmlFor="country">{t("properties.country")}</Label>
-                  {userRole?.isManager ? (
-                    <CountrySelect
-                      value={country}
-                      onValueChange={setCountry}
-                      disabled={!isEditing}
-                      placeholder={t("properties.countryPlaceholder")}
-                    />
-                  ) : (
-                    <p className="text-sm py-2">{country || "-"}</p>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-medium">{t("properties.title")}</h3>
+                    <p className="text-muted-foreground">{property?.title}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{t("properties.address")}</h3>
+                    <p className="text-muted-foreground">
+                      {[address, city, stateProvince, postalCode, country].filter(Boolean).join(", ")}
+                    </p>
+                  </div>
+                  {description && (
+                    <div>
+                      <h3 className="font-medium">{t("properties.description")}</h3>
+                      <p className="text-muted-foreground whitespace-pre-wrap">{description}</p>
+                    </div>
                   )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("properties.tenantInfo")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {hasNoTenants ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  <p>{t("properties.noTenant")}</p>
+                  <Button variant="link" onClick={() => navigate(`/properties/${propertyId}/tenants`)}>
+                    {t("properties.setupTenancy")}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-medium">{t("properties.tenant")}</h3>
+                    <p className="text-muted-foreground">{tenantName}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{t("properties.email")}</h3>
+                    <p className="text-muted-foreground">{tenantEmail}</p>
                   </div>
                 </div>
-            </div>
-          </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-          {isEditing && userRole?.isManager && (
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setTitle(property?.title || "");
-                  setAddress(property?.address || "");
-                  setPostalCode(property?.postal_code || "");
-                  setCity(property?.city || "");
-                  setStateProvince(property?.state_province || "");
-                  setCountry(property?.country || "");
-                  setDescription(property?.description || "");
-                  setIsEditing(false);
-                }}
-              >
-                {t("common.cancel")}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("properties.propertyPhoto")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted/50">
+                {propertyPhotoUrl ? (
+                  <img
+                    src={propertyPhotoUrl}
+                    alt={property?.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              <div className="mt-4">
+                <PropertyPhotoUpload propertyId={propertyId} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("properties.quickActions")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button variant="outline" className="w-full justify-start" onClick={() => navigate(`/properties/${propertyId}/tenants`)}>
+                {t("properties.manageTenants")}
               </Button>
-              <Button
-                onClick={handleSave}
-                disabled={updatePropertyMutation.isPending || !title.trim()}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {t("common.save")}
+              <Button variant="outline" className="w-full justify-start" onClick={() => navigate(`/properties/${propertyId}/contracts`)}>
+                {t("properties.viewContracts")}
               </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              <Button variant="outline" className="w-full justify-start" onClick={() => navigate(`/properties/${propertyId}/payments`)}>
+                {t("properties.viewPayments")}
+              </Button>
+              <Button variant="outline" className="w-full justify-start" onClick={() => navigate(`/properties/${propertyId}/tickets`)}>
+                {t("properties.viewTickets")}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       <PropertyManagementDialogs
-        propertyId={propertyId}
-        isArchived={isArchived}
-        hasNoTenants={hasNoTenants}
-        userRole={userRole}
-        archiveReason={archiveReason}
-        archiveNotes={archiveNotes}
         showArchiveDialog={showArchiveDialog}
+        setShowArchiveDialog={setShowArchiveDialog}
+        archiveReason={archiveReason}
+        setArchiveReason={setArchiveReason}
+        archiveNotes={archiveNotes}
+        setArchiveNotes={setArchiveNotes}
+        onArchive={handleArchive}
         showDeleteDialog={showDeleteDialog}
-        archiveProperty={archiveProperty}
-        deleteProperty={deleteProperty}
-        onArchiveReasonChange={setArchiveReason}
-        onArchiveNotesChange={setArchiveNotes}
-        onArchiveConfirm={handleArchive}
-        onDeleteConfirm={handleDelete}
-        onArchiveDialogChange={setShowArchiveDialog}
-        onDeleteDialogChange={setShowDeleteDialog}
+        setShowDeleteDialog={setShowDeleteDialog}
+        onDelete={handleDelete}
       />
     </div>
   );

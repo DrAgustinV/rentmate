@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
+import { getSignedUrl } from "@/services";
+import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 
 export interface PropertyStatusIndicators {
   property_id: string;
@@ -66,10 +68,11 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
   useEffect(() => {
     const fetchPhotoUrl = async () => {
       if (property.images?.[0]) {
-        const { data } = await supabase.storage.from("property-photos").createSignedUrl(property.images[0], 3600);
-
-        if (data) {
-          setPhotoUrl(data.signedUrl);
+        try {
+          const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, property.images[0], SIGNED_URL_TTL);
+          setPhotoUrl(url);
+        } catch (e) {
+          // ignore
         }
       } else {
         setPhotoUrl(undefined);
