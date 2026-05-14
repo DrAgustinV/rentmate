@@ -24,7 +24,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { getSignedUrl, propertyService, authService } from "@/services";
+import { propertyService, authService, documentService } from "@/services";
 import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 
 export default function Properties() {
@@ -64,7 +64,7 @@ export default function Properties() {
       await Promise.all(
         photosToFetch.map(async (property) => {
           try {
-            const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, property.images![0], SIGNED_URL_TTL);
+            const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, property.images![0], SIGNED_URL_TTL);
             urls[property.id] = url;
           } catch (e) {
             // ignore

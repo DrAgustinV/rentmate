@@ -158,12 +158,7 @@ export function BrandSettings() {
   };
 
   const handleSave = async () => {
-    console.log("=== BRAND SETTINGS SAVE STARTED ===");
-    console.log("Current settings state:", settings);
-    
-    // Check if settings are loaded
     if (!settings?.id) {
-      console.error("Brand settings not loaded yet. Settings:", settings);
       toast({
         title: "Error",
         description: "Brand settings not loaded. Please refresh the page.",
@@ -172,7 +167,6 @@ export function BrandSettings() {
       return;
     }
 
-    console.log("Brand name:", brandName);
     if (!brandName.trim()) {
       toast({
         title: "Validation error",
@@ -182,12 +176,7 @@ export function BrandSettings() {
       return;
     }
 
-    // Validate HSL format
     const hslRegex = /^\d{1,3}\s+\d{1,3}%\s+\d{1,3}%$/;
-    console.log("Primary color:", primaryColor, "Valid:", hslRegex.test(primaryColor));
-    console.log("Accent color:", accentColor, "Valid:", hslRegex.test(accentColor));
-    console.log("Header background:", headerBackgroundColor, "Valid:", hslRegex.test(headerBackgroundColor));
-    
     if (!hslRegex.test(primaryColor) || !hslRegex.test(accentColor) || !hslRegex.test(headerBackgroundColor)) {
       toast({
         title: "Invalid color format",
@@ -199,20 +188,14 @@ export function BrandSettings() {
 
     setLoading(true);
     try {
-      console.log("Starting logo upload...");
       const logoUrl = await uploadLogo();
-      console.log("Logo upload result:", logoUrl);
       
       if (logoUrl === null && logoFile) {
-        // Upload failed
-        console.error("Logo upload failed");
         setLoading(false);
         return;
       }
 
-      console.log("Getting current user...");
       const user = await authService.getCurrentUser();
-      console.log("Current user:", user?.id);
       
       const updates = {
         brand_name: brandName.trim(),
@@ -226,43 +209,27 @@ export function BrandSettings() {
         updated_at: new Date().toISOString(),
       };
 
-      console.log("Updating brand settings with ID:", settings.id);
-      console.log("Update payload:", updates);
-
       const { error, data } = await supabase
         .from("brand_settings")
         .update(updates)
         .eq("id", settings.id)
         .select();
 
-      console.log("Update response - Error:", error);
-      console.log("Update response - Data:", data);
-
       if (error) {
-        console.error("Update error details:", JSON.stringify(error, null, 2));
         throw error;
       }
 
-      // Check if update actually affected rows (RLS may silently block updates)
       if (!data || data.length === 0) {
-        console.error("Update returned no rows - RLS policy may have blocked the update");
         throw new Error("Failed to save changes. You may not have permission to update brand settings.");
       }
-
-      console.log("Update successful!");
 
       toast({
         title: "Brand settings updated",
         description: "Changes applied successfully! The brand name, logo, and colors are now updated system-wide.",
       });
 
-      // Refresh settings locally - realtime subscription will handle propagation
-      console.log("Refreshing brand settings...");
       await fetchBrandSettings();
-      console.log("=== BRAND SETTINGS SAVE COMPLETED ===");
     } catch (error: any) {
-      console.error("Save error:", error);
-      console.error("Error details:", JSON.stringify(error, null, 2));
       toast({
         title: "Error saving settings",
         description: error.message || "An unexpected error occurred",

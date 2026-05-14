@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { authService, deleteFile, getSignedUrl } from "@/services";
+import { authService, documentService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 
 export const GlobalTemplatesList = () => {
@@ -65,7 +65,7 @@ export const GlobalTemplatesList = () => {
     mutationFn: async (template: { id: string; file_path: string }) => {
       // Delete from storage
       try {
-        await deleteFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, template.file_path);
+        await documentService.deleteFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, template.file_path);
       } catch (storageError) {
         console.warn("Storage delete error:", storageError);
       }
@@ -101,7 +101,7 @@ export const GlobalTemplatesList = () => {
       }
 
       for (const path of [...new Set(candidates)]) {
-        const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, path);
+        const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, path);
 
         const a = document.createElement("a");
         a.href = url;

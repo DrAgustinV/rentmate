@@ -12,7 +12,7 @@ import DocumentActionsMenu from "./DocumentActionsMenu";
 import DocumentVersionHistoryModal from "./DocumentVersionHistoryModal";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import { ContractSignatureManager } from "@/components/ContractSignatureManager";
-import { downloadFile, getSignedUrl, documentService, tenancyService } from "@/services";
+import { documentService, tenancyService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 
 interface ContractBadgeProps {
@@ -129,7 +129,7 @@ export function ContractCard({
 
   const downloadDocument = async (doc: TenancyDocument) => {
     try {
-      const data = await downloadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
+      const data = await documentService.downloadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
       
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
@@ -154,7 +154,7 @@ export function ContractCard({
       const newWindow = window.open('', '_blank');
       
       try {
-        const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
+        const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
         
         if (newWindow) {
           newWindow.location.href = url;

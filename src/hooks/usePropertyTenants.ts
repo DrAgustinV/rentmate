@@ -65,7 +65,7 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       return {
         id: data.id,
         tenant_id: data.tenantId,
-        tenancy_status: data.status as any,
+        tenancy_status: data.status as Tenant['tenancy_status'],
         started_at: data.startDate,
         ended_at: data.endedAt,
         planned_ending_date: data.plannedEndDate,
@@ -96,7 +96,7 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
         last_name: t.tenantLastName,
         avatar_url: null,
         kyc_status: null,
-      })) as any as Tenant[];
+      })) as Tenant[];
     },
     enabled: !!propertyId,
   });
@@ -105,7 +105,7 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
     queryKey: ["invitations", propertyId],
     queryFn: async () => {
       const data = await tenantService.getInvitationsByProperty(propertyId!, { status: 'pending' });
-      return data as any as Invitation[];
+      return data as Invitation[];
     },
     enabled: !!propertyId && userRole?.isManager,
   });

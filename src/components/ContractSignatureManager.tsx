@@ -15,7 +15,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { getSignedUrl, tenancyService } from "@/services";
+import { documentService, tenancyService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 
 // BLOCKED: DocuSeal/AES hidden until explicitly enabled
@@ -653,7 +653,7 @@ export const ContractSignatureManager = ({
               }
               
               try {
-                const url = await getSignedUrl(STORAGE_BUCKETS.QUALIFIED_CONTRACTS, storagePath);
+                const url = await documentService.getSignedUrl(STORAGE_BUCKETS.QUALIFIED_CONTRACTS, storagePath);
                 
                 if (newWindow) {
                   newWindow.location.href = url;

@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { BadgeCheck, Mail, Phone, User, CalendarX, Plus, Pencil } from "lucide-react";
-import { getSignedUrl } from "@/services";
+import { documentService } from "@/services";
 import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 
 interface Tenant {
@@ -86,7 +86,7 @@ export function ContactInfoCard({
       const avatarPath = userRole?.isManager ? currentTenant?.avatar_url : managerInfo?.avatar_url;
       if (avatarPath) {
         try {
-          const url = await getSignedUrl(STORAGE_BUCKETS.PROFILE_PHOTOS, avatarPath, SIGNED_URL_TTL);
+          const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROFILE_PHOTOS, avatarPath, SIGNED_URL_TTL);
           setAvatarUrl(url);
         } catch (e) {
           // ignore

@@ -17,7 +17,7 @@ import { Save, Archive, Plus, Pencil, Users, Mail, Sparkles, Loader2, Trash2 } f
 import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { cn } from "@/lib/utils";
 import { usePropertyMutations } from "@/hooks/useProperties";
-import { propertyService, getSignedUrl, identityService } from "@/services";
+import { propertyService, identityService, documentService } from "@/services";
 import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
@@ -110,7 +110,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
     const fetchPhotoUrl = async () => {
       if (property?.images?.[0]) {
         try {
-          const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, property.images[0], SIGNED_URL_TTL);
+          const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, property.images[0], SIGNED_URL_TTL);
           if (mounted) setPropertyPhotoUrl(url);
         } catch {
           if (mounted) setPropertyPhotoUrl(undefined);

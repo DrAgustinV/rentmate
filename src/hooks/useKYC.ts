@@ -97,24 +97,20 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       setLoading(true);
       setError(null);
 
-      // Get authenticated user
       const user = await authService.getCurrentUser();
       
       if (!user) {
         throw new Error(t('kyc.errors.notAuthenticated'));
       }
 
-      // Fetch KYC profile data using profileService
       const profile = await profileService.getProfile(user.id);
 
       if (!profile) {
         throw new Error(t('kyc.errors.profileNotFound'));
       }
 
-      // Set validated profile
       setKycProfile(profile);
 
-      // Call completion callback if verified
       if (isKYCVerified(profile.kycStatus) && onVerificationComplete) {
         onVerificationComplete(profile);
       }
@@ -149,7 +145,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       setInitiating(true);
       setError(null);
 
-      // Check if verification can be initiated
       if (kycProfile && !canInitiateKYC(kycProfile.kycStatus)) {
         throw new Error(t('kyc.errors.cannotInitiate'));
       }
@@ -182,7 +177,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
         description: `${providerName}: ${t('kyc.success.initiatedDescription')}`,
       });
 
-      // Refresh status to get QR code
       await fetchKYCStatus();
 
     } catch (err) {
@@ -210,20 +204,16 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
     try {
       setError(null);
 
-      // Get authenticated user
       const user = await authService.getCurrentUser();
       
       if (!user) {
         throw new Error(t('kyc.errors.notAuthenticated'));
       }
 
-      // Reset KYC status in database using profileService
       await profileService.updateKycData(user.id, { kycStatus: 'not_started' });
 
-      // Refresh status to update UI
       await fetchKYCStatus();
       
-      // Call cancel callback
       if (onCancel) {
         onCancel();
       }
@@ -276,7 +266,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
         });
       }
 
-      // Refresh the profile to get updated data
       await fetchKYCStatus();
 
     } catch (err) {

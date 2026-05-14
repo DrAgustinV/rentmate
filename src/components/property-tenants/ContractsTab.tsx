@@ -31,7 +31,7 @@ import { TenancyOverviewCard } from "./TenancyOverviewCard";
 import { ContractCard } from "./ContractCard";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
 import { InspectionCard } from "@/components/inspection";
-import { downloadFile, getSignedUrl, documentService } from "@/services";
+import { documentService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 
 interface Tenant {
@@ -248,7 +248,7 @@ export function ContractsTab({
 
   const downloadDocument = async (doc: TenancyDocument) => {
     try {
-      const data = await downloadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
+      const data = await documentService.downloadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
       
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
@@ -273,7 +273,7 @@ export function ContractsTab({
       const newWindow = window.open('', '_blank');
       
       try {
-        const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
+        const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
         
         if (newWindow) {
           newWindow.location.href = url;

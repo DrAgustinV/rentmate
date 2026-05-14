@@ -13,7 +13,7 @@ import { formatDate } from "@/lib/dateUtils";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { DeclineInvitationDialog } from "@/components/DeclineInvitationDialog";
-import { getSignedUrl } from "@/services";
+import { documentService } from "@/services";
 import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 import { tenantService, profileService } from "@/services";
 
@@ -64,7 +64,7 @@ export default function Invitations() {
             const storagePath = inv.properties?.images?.[0];
             if (storagePath) {
               try {
-                const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, storagePath, SIGNED_URL_TTL);
+                const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, storagePath, SIGNED_URL_TTL);
                 urlMap[inv.id] = url;
               } catch (e) {
                 // ignore

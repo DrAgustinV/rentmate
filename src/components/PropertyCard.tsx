@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
-import { getSignedUrl, propertyService } from "@/services";
+import { propertyService, documentService } from "@/services";
 import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 
 export interface PropertyStatusIndicators {
@@ -66,7 +66,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
     const fetchPhotoUrl = async () => {
       if (property.images?.[0]) {
         try {
-          const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, property.images[0], SIGNED_URL_TTL);
+          const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, property.images[0], SIGNED_URL_TTL);
           setPhotoUrl(url);
         } catch (e) {
           // ignore
