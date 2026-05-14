@@ -52,6 +52,8 @@ export default function Properties() {
   const [statusIndicators, setStatusIndicators] = useState<Record<string, PropertyStatusIndicators>>({});
 
   useEffect(() => {
+    let mounted = true;
+
     const fetchPhotoUrls = async () => {
       const propertyList = propertiesData?.properties;
       if (!propertyList || propertyList.length === 0) return;
@@ -70,13 +72,16 @@ export default function Properties() {
         })
       );
       
-      setPropertyPhotoUrls(urls);
+      if (mounted) setPropertyPhotoUrls(urls);
     };
 
     fetchPhotoUrls();
+    return () => { mounted = false; };
   }, [propertiesData]);
 
   useEffect(() => {
+    let mounted = true;
+
     const fetchStatusIndicators = async () => {
       const propertyList = propertiesData?.properties;
       if (!propertyList || propertyList.length === 0) return;
@@ -96,10 +101,11 @@ export default function Properties() {
         })
       );
       
-      setStatusIndicators(indicators);
+      if (mounted) setStatusIndicators(indicators);
     };
 
     fetchStatusIndicators();
+    return () => { mounted = false; };
   }, [propertiesData]);
 
   const activeProperties = useMemo(() => {

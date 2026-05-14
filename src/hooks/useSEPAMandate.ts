@@ -94,7 +94,7 @@ export function useSEPAMandate(agreementId: string) {
     }, 3000);
 
     return () => clearInterval(pollInterval);
-  }, [isPolling, viafirmaSession, refetch, queryClient, t]);
+  }, [isPolling, viafirmaSession, refetch]);
 
   // Cancel mandate
   const cancelMandateMutation = useMutation({

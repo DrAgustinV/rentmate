@@ -105,19 +105,22 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
 
   // Fetch signed URL for property photo
   useEffect(() => {
+    let mounted = true;
+
     const fetchPhotoUrl = async () => {
       if (property?.images?.[0]) {
         try {
           const url = await getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, property.images[0], SIGNED_URL_TTL);
-          setPropertyPhotoUrl(url);
+          if (mounted) setPropertyPhotoUrl(url);
         } catch {
-          setPropertyPhotoUrl(undefined);
+          if (mounted) setPropertyPhotoUrl(undefined);
         }
       } else {
-        setPropertyPhotoUrl(undefined);
+        if (mounted) setPropertyPhotoUrl(undefined);
       }
     };
     fetchPhotoUrl();
+    return () => { mounted = false; };
   }, [property?.images]);
 
   const { archiveProperty, deleteProperty } = usePropertyMutations();

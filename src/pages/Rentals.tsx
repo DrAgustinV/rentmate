@@ -53,21 +53,24 @@ export default function Rentals() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    let mounted = true;
+
     const checkUser = async () => {
       const session = await authService.getSession();
       if (!session) {
         navigate("/auth");
         return;
       }
-      setUserId(session.user.id);
-      const isManagerResult = await checkIfManager(session.user.id);
-      await fetchData(session.user.id, session.user.email || "", isManagerResult);
+      if (mounted) setUserId(session.user.id);
+      const isManagerResult = await checkIfManager(session.user.id, mounted);
+      if (mounted) await fetchData(session.user.id, session.user.email || "", isManagerResult, mounted);
     };
 
     checkUser();
+    return () => { mounted = false; };
   }, [navigate]);
 
-  const checkIfManager = async (uid: string): Promise<boolean> => {
+  const checkIfManager = async (uid: string, mounted: boolean): Promise<boolean> => {
     const { data } = await supabase
       .from("properties")
       .select("id")
@@ -75,24 +78,18 @@ export default function Rentals() {
       .limit(1);
     
     const isManagerResult = data && data.length > 0;
-    setIsManager(isManagerResult);
+    if (mounted) setIsManager(isManagerResult);
     return isManagerResult;
   };
 
-  const fetchData = async (uid: string, email: string, isManagerParam: boolean) => {
+  const fetchData = async (uid: string, email: string, isManagerParam: boolean, mounted: boolean) => {
+    if (!mounted) return;
     setLoading(true);
     try {
-      // Always fetch tenancies for both managers and tenants
-      if (isManagerParam) {
-        // For managers, fetch their tenancies as tenants (if any)
-        await fetchTenantTenancies(uid);
-      } else {
-        await fetchTenantTenancies(uid);
-      }
-      // Always fetch invitations for the user's email
+      await fetchTenantTenancies(uid);
       await fetchTenantInvitations(email);
     } finally {
-      setLoading(false);
+      if (mounted) setLoading(false);
     }
   };
 

@@ -44,6 +44,7 @@ export default function Configuration() {
   }, [searchParams, activeTab]);
 
   useEffect(() => {
+    let mounted = true;
 
     const checkUser = async () => {
       const session = await authService.getSession();
@@ -52,7 +53,6 @@ export default function Configuration() {
         return;
       }
       
-      // Check if user is a manager
       const { data: properties } = await supabase
         .from("properties")
         .select("id")
@@ -64,14 +64,16 @@ export default function Configuration() {
         return;
       }
 
-      setUserId(session.user.id);
-      await fetchDefaultSettings(session.user.id);
+      if (mounted) setUserId(session.user.id);
+      await fetchDefaultSettings(session.user.id, mounted);
     };
 
     checkUser();
+    return () => { mounted = false; };
   }, [navigate]);
 
-  const fetchDefaultSettings = async (uid: string) => {
+  const fetchDefaultSettings = async (uid: string, mounted: boolean) => {
+    if (!mounted) return;
     setLoading(true);
     try {
       const profile = await profileService.getProfile(uid);
@@ -84,7 +86,7 @@ export default function Configuration() {
 
       if (error && error.code !== "PGRST116") throw error;
 
-      if (settingsData?.default_rent_settings) {
+      if (mounted && settingsData?.default_rent_settings) {
         const settings = settingsData.default_rent_settings as any;
         setDefaultRequireKYC(settings.require_kyc || false);
         setDefaultDeposit((settings.default_deposit_amount || 0).toString());
@@ -93,9 +95,9 @@ export default function Configuration() {
         setDefaultRequireElectricityBill(settings.require_electricity_bill || false);
       }
     } catch (error: any) {
-      toast.error(error.message);
+      if (mounted) toast.error(error.message);
     } finally {
-      setLoading(false);
+      if (mounted) setLoading(false);
     }
   };
 

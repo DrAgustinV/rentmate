@@ -39,18 +39,8 @@ export function AppHeader() {
   useEffect(() => {
     const checkSession = async () => {
       const session = await authService.getSession();
-      
-      if (session) {
-        const user = await authService.getCurrentUser();
-        if (!user) {
-          console.warn("Stale session detected, clearing...");
-          setUser(null);
-          return;
-        }
-        setUser(user);
-      } else {
-        setUser(null);
-      }
+      const user = session ? await authService.getCurrentUser() : null;
+      setUser(user);
     };
 
     checkSession();
@@ -63,31 +53,21 @@ export function AppHeader() {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      checkAdminRole();
-      checkManagerRole();
-      fetchPendingInvitations();
-    }
+    if (!user) return;
+
+    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
+      setIsAdmin(data || false);
+    });
+
+    supabase.from("properties").select("id").eq("manager_id", user.id).limit(1).then(({ data }) => {
+      setIsManager(data && data.length > 0);
+    });
+
+    fetchPendingInvitations(user.email);
   }, [user]);
 
-  const checkAdminRole = async () => {
-    if (!user) return;
-    const { data } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
-    setIsAdmin(data || false);
-  };
-
-  const checkManagerRole = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("properties")
-      .select("id")
-      .eq("manager_id", user.id)
-      .limit(1);
-    setIsManager(data && data.length > 0);
-  };
-
-  const fetchPendingInvitations = async () => {
-    if (!user || !user.email) return;
+  const fetchPendingInvitations = async (email?: string) => {
+    if (!email) return;
     const { count } = await supabase
       .from("invitations")
       .select("*", { count: "exact", head: true })

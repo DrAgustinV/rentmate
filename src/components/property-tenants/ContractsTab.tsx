@@ -74,59 +74,70 @@ interface TenancyDocument {
   parent_document_id: string | null;
 }
 
-interface ContractsTabProps {
+interface TenantContext {
   currentTenant: Tenant | null;
   propertyId: string;
   userRole: { isManager: boolean } | undefined;
   isReadOnly: boolean;
-  // Tenancy setup props (manager only)
+}
+
+interface TenancySetupState {
   pendingRequirement?: TenancyRequirement | null;
   canSetupNewTenancy?: boolean;
   hasEndingTenancy?: boolean;
+  isDeleting?: boolean;
+  isResending?: boolean;
+  isDismissing?: boolean;
+}
+
+interface ContractsTabCallbacks {
   onStartSetup?: () => void;
   onSendInvitation?: (req: TenancyRequirement) => void;
   onCancelSetup?: (req: TenancyRequirement) => void;
   onResendInvitation?: (req: TenancyRequirement) => void;
-  isDeleting?: boolean;
-  isResending?: boolean;
-  // Tenant management callbacks
   onEditTenant?: (tenant: Tenant) => void;
   onEndTenancy?: (tenant: Tenant) => void;
   onFinalizeTenancy?: (tenant: Tenant) => void;
   setCancellingInvitation?: (invitation: Invitation | null) => void;
-  // Declined invitation callbacks
   onEditAndResend?: (invitation: Invitation) => void;
   onDismissInvitation?: (invitation: Invitation) => void;
-  isDismissing?: boolean;
-  // Edit handlers
   onEditRentalTerms?: () => void;
   onInviteInSelfManaged?: () => void;
 }
 
+interface ContractsTabProps {
+  tenant: TenantContext;
+  setupState?: TenancySetupState;
+  callbacks?: ContractsTabCallbacks;
+}
+
 export function ContractsTab({
-  currentTenant,
-  propertyId,
-  userRole,
-  isReadOnly,
-  pendingRequirement,
-  canSetupNewTenancy,
-  hasEndingTenancy,
-  onStartSetup,
-  onSendInvitation,
-  onCancelSetup,
-  onResendInvitation,
-  isDeleting,
-  isResending,
-  onEditTenant,
-  onEndTenancy,
-  onFinalizeTenancy,
-  setCancellingInvitation,
-  onEditAndResend,
-  onDismissInvitation,
-  isDismissing,
-  onEditRentalTerms,
-  onInviteInSelfManaged,
+  tenant: { currentTenant, propertyId, userRole, isReadOnly },
+  setupState = {},
+  callbacks = {},
 }: ContractsTabProps) {
+  const {
+    pendingRequirement,
+    canSetupNewTenancy,
+    hasEndingTenancy,
+    isDeleting,
+    isResending,
+    isDismissing,
+  } = setupState;
+  const {
+    onStartSetup,
+    onSendInvitation,
+    onCancelSetup,
+    onResendInvitation,
+    onEditTenant,
+    onEndTenancy,
+    onFinalizeTenancy,
+    setCancellingInvitation,
+    onEditAndResend,
+    onDismissInvitation,
+    onEditRentalTerms,
+    onInviteInSelfManaged,
+  } = callbacks;
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   

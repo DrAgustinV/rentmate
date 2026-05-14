@@ -47,35 +47,38 @@ export default function Account() {
   const defaultTab = searchParams.get("tab") || "profile";
 
   useEffect(() => {
+    let mounted = true;
+
     const checkUser = async () => {
       const session = await authService.getSession();
       if (!session) {
         navigate("/auth");
         return;
       }
-      setUser(session.user);
-      await fetchProfile(session.user.id);
+      if (mounted) setUser(session.user);
+      await fetchProfile(session.user.id, mounted);
     };
 
     checkUser();
+    return () => { mounted = false; };
   }, [navigate]);
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [kycStatus, setKycStatus] = useState<string | null>(null);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, mounted: boolean) => {
+    if (!mounted) return;
     setLoading(true);
     try {
       const profile = await profileService.getProfile(userId);
       
-      // Fetch deletion date separately as it's not in ProfileDomain
       const { data: deletionData } = await supabase
         .from("profiles")
         .select("deletion_scheduled_for")
         .eq("id", userId)
         .maybeSingle();
 
-      if (profile) {
+      if (mounted && profile) {
         setFirstName(profile.firstName || "");
         setLastName(profile.lastName || "");
         setDeletionScheduled(deletionData?.deletion_scheduled_for || null);
@@ -83,13 +86,15 @@ export default function Account() {
         setKycStatus(profile.kycStatus);
       }
     } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message,
-        variant: "destructive",
-      });
+      if (mounted) {
+        toast({
+          title: t('common.error'),
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (mounted) setLoading(false);
     }
   };
 

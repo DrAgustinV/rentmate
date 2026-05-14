@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { identityService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Loader2, Mail, LogOut, RefreshCw } from "lucide-react";
 import { showToast } from "@/lib/toast";
@@ -122,26 +123,24 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
     };
   }, [fetchVerificationStatus]);
 
-  // Auto-send verification email on first load if not verified
   useEffect(() => {
-    if (loading || isPublicRoute || emailVerified !== false || !userId || verificationSent) {
-      return;
-    }
+    if (loading || isPublicRoute || emailVerified !== false || !userId || verificationSent) return;
+
+    let mounted = true;
 
     const sendInitialVerification = async () => {
-      // Check if we've already sent in this session
       const sentKey = `verification_sent_${userId}`;
       if (sessionStorage.getItem(sentKey)) {
-        setVerificationSent(true);
+        if (mounted) setVerificationSent(true);
         return;
       }
 
       try {
         setSendingVerification(true);
-        const { data, error } = await supabase.functions.invoke("send-email-verification");
+        const data = await identityService.sendEmailVerification();
         
-        if (error) throw error;
-        
+        if (!mounted) return;
+
         if (data?.already_verified) {
           setEmailVerified(true);
           return;
@@ -152,19 +151,18 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
       } catch (error) {
         console.error("Error sending initial verification:", error);
       } finally {
-        setSendingVerification(false);
+        if (mounted) setSendingVerification(false);
       }
     };
 
     sendInitialVerification();
+    return () => { mounted = false; };
   }, [emailVerified, userId, loading, verificationSent, isPublicRoute]);
 
   const handleResendVerification = async () => {
     setSendingVerification(true);
     try {
-      const { data, error } = await supabase.functions.invoke("send-email-verification");
-      
-      if (error) throw error;
+      const data = await identityService.sendEmailVerification();
       
       if (data?.rate_limited) {
         showToast.error({ title: data.error });
