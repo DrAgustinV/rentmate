@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { supabase } from "@/integrations/supabase/client";
+import { authService, documentService } from "@/services";
+import { STORAGE_BUCKETS, FILE_SIZE_LIMITS } from "@/constants";
 import { propertyBaseSchema } from "@/lib/validations";
 import { usePropertyMutations } from "@/hooks/useProperties";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -56,7 +58,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
     const fetchPropertyCount = async () => {
       setLimitLoading(true);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const user = await authService.getCurrentUser();
         if (!user) return;
 
         const { count } = await supabase
@@ -119,7 +121,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
         description 
       });
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       // Check property limit based on subscription plan
@@ -155,17 +157,11 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
               const fileExt = photoFile.name.split('.').pop();
               const fileName = `${newProperty.id}/profile.${fileExt}`;
 
-              const { error: uploadError } = await supabase.storage
-                .from('property-photos')
-                .upload(fileName, photoFile, { upsert: true });
-
-              if (!uploadError) {
-                // Update property with photo path
-                await supabase
-                  .from('properties')
-                  .update({ images: [fileName] })
-                  .eq('id', newProperty.id);
-              }
+              await documentService.uploadFile(STORAGE_BUCKETS.PROPERTY_PHOTOS, fileName, photoFile, { upsert: true });
+              await supabase
+                .from('properties')
+                .update({ images: [fileName] })
+                .eq('id', newProperty.id);
             } catch (photoError) {
               console.error('Photo upload error:', photoError);
             }
@@ -307,7 +303,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
                       toast.error("Please upload an image file");
                       return;
                     }
-                    if (file.size > 5 * 1024 * 1024) {
+                    if (file.size > FILE_SIZE_LIMITS.PROPERTY_PHOTO) {
                       toast.error("Image must be less than 5MB");
                       return;
                     }

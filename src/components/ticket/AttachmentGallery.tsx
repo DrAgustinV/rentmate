@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { documentService, ticketService } from "@/services";
+import { STORAGE_BUCKETS } from "@/constants";
 import { Image, Video, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -38,34 +39,23 @@ export const AttachmentGallery = ({ attachments, ticketId, canDelete }: Attachme
   const getFileUrl = async (filePath: string, fileType: string) => {
     if (fileUrls[filePath]) return fileUrls[filePath];
 
-    const bucket = fileType === "photo" ? "ticket-photos" : "ticket-videos";
-    const { data } = await supabase.storage.from(bucket).createSignedUrl(filePath, 3600);
-    
-    if (data?.signedUrl) {
-      setFileUrls((prev) => ({ ...prev, [filePath]: data.signedUrl }));
-      return data.signedUrl;
+    const bucket = fileType === "photo" ? STORAGE_BUCKETS.TICKET_PHOTOS : STORAGE_BUCKETS.TICKET_VIDEOS;
+    try {
+      const signedUrl = await documentService.getSignedUrl(bucket, filePath);
+      setFileUrls((prev) => ({ ...prev, [filePath]: signedUrl }));
+      return signedUrl;
+    } catch {
+      return null;
     }
-    return null;
   };
 
   const deleteAttachmentMutation = useMutation({
     mutationFn: async (attachment: Attachment) => {
-      const bucket = attachment.file_type === "photo" ? "ticket-photos" : "ticket-videos";
-      
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from(bucket)
-        .remove([attachment.file_path]);
+      const bucket = attachment.file_type === "photo" ? STORAGE_BUCKETS.TICKET_PHOTOS : STORAGE_BUCKETS.TICKET_VIDEOS;
 
-      if (storageError) throw storageError;
+      await documentService.deleteFile(bucket, attachment.file_path);
 
-      // Delete from database
-      const { error: dbError } = await supabase
-        .from("ticket_attachments")
-        .delete()
-        .eq("id", attachment.id);
-
-      if (dbError) throw dbError;
+      await ticketService.deleteTicketAttachment(attachment.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ticket-attachments", ticketId] });

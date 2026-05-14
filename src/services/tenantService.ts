@@ -1,7 +1,17 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { TenancyDomain, InvitationDomain, RentAgreementDomain } from '@/types/domain';
+import type { PropertyTenant, Invitation, RentAgreement, Property, Profile } from '@/types';
 
-function mapToTenancyDomain(row: any): TenancyDomain {
+type PropertyTenantJoined = PropertyTenant & {
+  properties: Pick<Property, 'title' | 'address'> | null;
+  profiles: Pick<Profile, 'first_name' | 'last_name' | 'email'> | null;
+};
+
+type InvitationJoined = Invitation & {
+  properties: Pick<Property, 'title'> | null;
+};
+
+function mapToTenancyDomain(row: PropertyTenantJoined): TenancyDomain {
   return {
     id: row.id,
     propertyId: row.property_id,
@@ -21,7 +31,7 @@ function mapToTenancyDomain(row: any): TenancyDomain {
   };
 }
 
-function mapToInvitationDomain(row: any): InvitationDomain {
+function mapToInvitationDomain(row: InvitationJoined): InvitationDomain {
   return {
     id: row.id,
     propertyId: row.property_id,
@@ -36,7 +46,7 @@ function mapToInvitationDomain(row: any): InvitationDomain {
   };
 }
 
-function mapToRentAgreementDomain(row: any): RentAgreementDomain {
+function mapToRentAgreementDomain(row: RentAgreement): RentAgreementDomain {
   return {
     id: row.id,
     propertyId: row.property_id,
@@ -182,3 +192,15 @@ export async function getRentAgreementsByProperty(propertyId: string): Promise<R
   if (error) throw error;
   return (data || []).map(mapToRentAgreementDomain);
 }
+
+export const tenantService = {
+  getTenanciesByProperty,
+  getTenanciesByManager,
+  getTenanciesByTenant,
+  getTenancy,
+  getActiveTenancyForProperty,
+  getInvitationsByProperty,
+  getInvitationByToken,
+  getRentAgreement,
+  getRentAgreementsByProperty,
+};

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { tenantService } from "@/services";
+import { authService, tenantService, tenancyService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,7 +54,7 @@ export default function Rentals() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await authService.getSession();
       if (!session) {
         navigate("/auth");
         return;
@@ -101,12 +101,7 @@ export default function Rentals() {
     const tenancies = await tenantService.getTenanciesByTenant(tenantId);
 
     const tenanciesWithDetails = await Promise.all(tenancies.map(async (t) => {
-      const { data: agreement } = await supabase
-        .from("rent_agreements")
-        .select("rent_amount_cents, currency, start_date, end_date")
-        .eq("property_id", t.propertyId)
-        .eq("tenant_id", t.tenantId)
-        .maybeSingle();
+      const agreement = await tenancyService.getRentAgreementBasicInfo(t.propertyId, t.tenantId);
 
       return {
         id: t.id,
@@ -160,7 +155,7 @@ export default function Rentals() {
   const handleAcceptInvitation = async (invitationId: string) => {
     setProcessingInvitation(invitationId);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       // Find the invitation to get property_id
@@ -168,16 +163,12 @@ export default function Rentals() {
       if (!invitation) throw new Error("Invitation not found");
 
       // Create property_tenants record
-      const { error: tenantError } = await supabase
-        .from("property_tenants")
-        .insert({
-          property_id: invitation.property_id,
-          tenant_id: user.id,
-          tenancy_status: 'active',
-          started_at: new Date().toISOString(),
-        });
-
-      if (tenantError) throw tenantError;
+      await tenancyService.createPropertyTenant({
+        property_id: invitation.property_id,
+        tenant_id: user.id,
+        tenancy_status: 'active',
+        started_at: new Date().toISOString(),
+      });
 
       // Update invitation status
       const { error: updateError } = await supabase

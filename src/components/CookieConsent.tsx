@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { X, Cookie } from "lucide-react";
 import { useUserPreferences } from "@/contexts/UserPreferencesContext";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function CookieConsent() {
@@ -27,7 +28,7 @@ export function CookieConsent() {
     localStorage.setItem('cookie-consent-analytics', 'true');
     
     // Try to store in database if authenticated
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await authService.getCurrentUser();
     if (user) {
       // Update user_preferences
       await supabase
@@ -67,7 +68,7 @@ export function CookieConsent() {
     localStorage.setItem('cookie-consent-analytics', 'false');
     
     // Try to store in database if authenticated
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await authService.getCurrentUser();
     if (user) {
       // Update user_preferences
       await supabase

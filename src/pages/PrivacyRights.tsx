@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { useState } from "react";
 import { Download, FileText, Shield, Trash2, Ban, AlertCircle, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -66,7 +67,7 @@ export default function PrivacyRights() {
 
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase.from('privacy_requests').insert({

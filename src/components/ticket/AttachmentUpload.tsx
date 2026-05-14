@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Upload, Image, Video, X } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { authService, documentService, ticketService } from "@/services";
+import { STORAGE_BUCKETS } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -62,7 +64,7 @@ export const AttachmentUpload = ({ ticketId }: AttachmentUploadProps) => {
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const uploads = [];
@@ -70,48 +72,32 @@ export const AttachmentUpload = ({ ticketId }: AttachmentUploadProps) => {
       // Upload photos
       for (const file of photoFiles) {
         const filePath = `${ticketId}/${Date.now()}-${file.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from("ticket-photos")
-          .upload(filePath, file);
+        await documentService.uploadFile(STORAGE_BUCKETS.TICKET_PHOTOS, filePath, file);
 
-        if (uploadError) throw uploadError;
-
-        const { error: dbError } = await supabase
-          .from("ticket_attachments")
-          .insert({
-            ticket_id: ticketId,
-            file_path: filePath,
-            file_type: "photo",
-            original_filename: file.name,
-            file_size_bytes: file.size,
-            uploaded_by: user.id,
-          });
-
-        if (dbError) throw dbError;
+        await ticketService.addTicketAttachment({
+          ticket_id: ticketId,
+          file_path: filePath,
+          file_type: "photo",
+          original_filename: file.name,
+          file_size_bytes: file.size,
+          uploaded_by: user.id,
+        });
         uploads.push(file.name);
       }
 
       // Upload video
       if (videoFile) {
         const filePath = `${ticketId}/${Date.now()}-${videoFile.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from("ticket-videos")
-          .upload(filePath, videoFile);
+        await documentService.uploadFile(STORAGE_BUCKETS.TICKET_VIDEOS, filePath, videoFile);
 
-        if (uploadError) throw uploadError;
-
-        const { error: dbError } = await supabase
-          .from("ticket_attachments")
-          .insert({
-            ticket_id: ticketId,
-            file_path: filePath,
-            file_type: "video",
-            original_filename: videoFile.name,
-            file_size_bytes: videoFile.size,
-            uploaded_by: user.id,
-          });
-
-        if (dbError) throw dbError;
+        await ticketService.addTicketAttachment({
+          ticket_id: ticketId,
+          file_path: filePath,
+          file_type: "video",
+          original_filename: videoFile.name,
+          file_size_bytes: videoFile.size,
+          uploaded_by: user.id,
+        });
         uploads.push(videoFile.name);
       }
 

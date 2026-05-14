@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Calendar as CalendarIcon, Wrench } from "lucide-react";
 import { format } from "date-fns";
@@ -82,15 +83,15 @@ export function ScheduleStandardTaskDialog({
         throw new Error("Missing required fields");
       }
 
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Not authenticated");
+      const user = await authService.getCurrentUser();
+      if (!user) throw new Error("Not authenticated");
 
       // Create ticket template from standard template
       const { data: template, error: templateError } = await supabase
         .from("ticket_templates")
         .insert([{
           property_id: propertyId,
-          created_by: userData.user.id,
+          created_by: user.id,
           title: standardTemplate.title,
           description: standardTemplate.description,
           type: standardTemplate.type as any,
@@ -112,7 +113,7 @@ export function ScheduleStandardTaskDialog({
           type: standardTemplate.type as any,
           priority: standardTemplate.priority as any,
           status: "open",
-          created_by: userData.user.id,
+          created_by: user.id,
           source_template_id: template.id,
           scheduled_date: format(startDate, "yyyy-MM-dd"),
         });
@@ -131,7 +132,7 @@ export function ScheduleStandardTaskDialog({
         .insert({
           property_id: propertyId,
           template_id: template.id,
-          created_by: userData.user.id,
+          created_by: user.id,
           frequency,
           start_date: format(startDate, "yyyy-MM-dd"),
           end_date: endDate ? format(endDate, "yyyy-MM-dd") : null,

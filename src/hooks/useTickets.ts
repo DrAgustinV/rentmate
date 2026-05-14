@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { ticketService } from '@/services';
 import { toast } from 'sonner';
 
 export const TICKETS_QUERY_KEY = 'tickets';
@@ -19,47 +19,7 @@ export function useTickets(filters: TicketFilters = {}) {
   return useQuery({
     queryKey: [TICKETS_QUERY_KEY, propertyId, status, type, hasSourceTemplate, page, pageSize],
     queryFn: async () => {
-      let query = supabase
-        .from('tickets')
-        .select(`
-          *,
-          property:properties(title, address),
-          created_by_profile:profiles!tickets_created_by_fkey(first_name, last_name, email)
-        `, { count: 'exact' })
-        .order('created_at', { ascending: false });
-
-      if (propertyId) {
-        query = query.eq('property_id', propertyId);
-      }
-
-      if (status) {
-        query = query.eq('status', status);
-      }
-
-      if (type) {
-        query = query.eq('type', type);
-      }
-
-      // Filter by source template (maintenance vs issues)
-      if (hasSourceTemplate === true) {
-        query = query.not('source_template_id', 'is', null);
-      } else if (hasSourceTemplate === false) {
-        query = query.is('source_template_id', null);
-      }
-      // Pagination
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      query = query.range(from, to);
-
-      const { data, error, count } = await query;
-
-      if (error) throw error;
-
-      return {
-        tickets: data || [],
-        totalCount: count || 0,
-        totalPages: Math.ceil((count || 0) / pageSize),
-      };
+      return ticketService.getTickets({ propertyId, status, type, hasSourceTemplate, page, pageSize });
     },
   });
 }
@@ -70,19 +30,7 @@ export function useTicket(ticketId: string | undefined) {
     queryFn: async () => {
       if (!ticketId) return null;
 
-      const { data, error } = await supabase
-        .from('tickets')
-        .select(`
-          *,
-          property:properties(title, address),
-          created_by_profile:profiles!tickets_created_by_fkey(first_name, last_name, email),
-          assigned_to_profile:profiles!tickets_assigned_to_fkey(first_name, last_name, email)
-        `)
-        .eq('id', ticketId)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
+      return ticketService.getTicket(ticketId!);
     },
     enabled: !!ticketId,
   });
@@ -92,16 +40,7 @@ export function useTicketMutations() {
   const queryClient = useQueryClient();
 
   const createTicket = useMutation({
-    mutationFn: async (ticket: any) => {
-      const { data, error } = await supabase
-        .from('tickets')
-        .insert(ticket)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: async (ticket: any) => ticketService.createTicket(ticket),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TICKETS_QUERY_KEY] });
       toast.success('Ticket created successfully');
@@ -112,17 +51,7 @@ export function useTicketMutations() {
   });
 
   const updateTicket = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
-      const { data, error } = await supabase
-        .from('tickets')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: async ({ id, updates }: { id: string; updates: any }) => ticketService.updateTicket(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TICKETS_QUERY_KEY] });
       toast.success('Ticket updated successfully');

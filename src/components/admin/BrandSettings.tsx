@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { authService, documentService } from "@/services";
+import { STORAGE_BUCKETS, FILE_SIZE_LIMITS } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -111,7 +113,7 @@ export function BrandSettings() {
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
+      if (file.size > FILE_SIZE_LIMITS.BRAND_LOGO) {
         toast({
           title: "File too large",
           description: "Logo must be less than 2MB",
@@ -137,20 +139,12 @@ export function BrandSettings() {
       const fileName = `logo-${Date.now()}.${fileExt}`;
       const filePath = fileName;
 
-      const { error: uploadError } = await supabase.storage
-        .from("brand-logos")
-        .upload(filePath, logoFile, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+      await documentService.uploadFile(STORAGE_BUCKETS.BRAND_LOGOS, filePath, logoFile, {
+        cacheControl: "3600",
+        upsert: false,
+      });
 
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from("brand-logos")
-        .getPublicUrl(filePath);
-
-      return data.publicUrl;
+      return await documentService.getPublicUrl(STORAGE_BUCKETS.BRAND_LOGOS, filePath);
     } catch (error: any) {
       toast({
         title: "Upload failed",
@@ -217,8 +211,8 @@ export function BrandSettings() {
       }
 
       console.log("Getting current user...");
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      console.log("Current user:", user?.id, "Error:", userError);
+      const user = await authService.getCurrentUser();
+      console.log("Current user:", user?.id);
       
       const updates = {
         brand_name: brandName.trim(),

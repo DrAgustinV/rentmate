@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,9 +45,7 @@ export const CreateMaintenanceTaskDialog = ({
 
   const createTaskMutation = useMutation({
     mutationFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
 
       if (!user) throw new Error("Not authenticated");
       if (!startDate) throw new Error("Start date is required");

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { paymentService, identityService } from '@/services';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -60,14 +61,8 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
   const fetchPayments = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('rent_payments')
-        .select('*')
-        .eq('property_id', propertyId)
-        .order('payment_due_date', { ascending: false });
+      const data = await paymentService.getRentPayments(propertyId);
 
-      if (error) throw error;
-      
       const mappedPayments: RentPayment[] = (data || []).map(p => ({
         ...p,
         proof_review_status: (p.proof_review_status as 'pending' | 'approved' | 'rejected') || 'pending',
@@ -91,23 +86,13 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
     
     setGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ensure-rent-payments', {
-        body: { rent_agreement_id: rentAgreementId },
-      });
-
-      if (error) throw error;
+      const data = await identityService.ensureRentPayments({ rent_agreement_id: rentAgreementId });
 
       if (data?.generated > 0) {
         console.log(`Generated ${data.generated} payment records`);
         // Refetch payments after generation
-        const { data: newPayments, error: fetchError } = await supabase
-          .from('rent_payments')
-          .select('*')
-          .eq('property_id', propertyId)
-          .order('payment_due_date', { ascending: false });
+        const newPayments = await paymentService.getRentPayments(propertyId);
 
-        if (fetchError) throw fetchError;
-        
         const mappedPayments: RentPayment[] = (newPayments || []).map(p => ({
           ...p,
           proof_review_status: (p.proof_review_status as 'pending' | 'approved' | 'rejected') || 'pending',
@@ -126,16 +111,11 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
   const handleMarkAsPaid = async (paymentId: string) => {
     setMarking(paymentId);
     try {
-      const { error } = await supabase
-        .from('rent_payments')
-        .update({
-          status: 'paid',
-          payment_received_date: new Date().toISOString().split('T')[0],
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', paymentId);
-
-      if (error) throw error;
+      await paymentService.updateRentPaymentSimple(paymentId, {
+        status: 'paid',
+        payment_received_date: new Date().toISOString().split('T')[0],
+        updated_at: new Date().toISOString(),
+      });
 
       toast.success(t("payments.toasts.markedPaid"));
       fetchPayments();

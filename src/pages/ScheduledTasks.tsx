@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -114,7 +115,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
 
   const startTaskMutation = useMutation({
     mutationFn: async ({ schedule, template }: { schedule: any; template: any }) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const existingTicket = schedule.ticket;
@@ -187,7 +188,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
 
   const completeTaskMutation = useMutation({
     mutationFn: async ({ ticketId, notes }: { ticketId: string; notes: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase

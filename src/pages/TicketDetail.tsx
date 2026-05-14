@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { authService, ticketService } from "@/services";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,19 +43,7 @@ const TicketDetail = () => {
   const { data: ticket, isLoading } = useQuery({
     queryKey: ["ticket", ticketId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tickets")
-        .select(`
-          *,
-          properties (id, title, address, manager_id),
-          profiles!tickets_created_by_fkey (id, first_name, last_name, email),
-          ticket_templates (title, description)
-        `)
-        .eq("id", ticketId!)
-        .single();
-
-      if (error) throw error;
-      return data;
+      return ticketService.getTicketDetail(ticketId!);
     },
     enabled: !!ticketId,
   });
@@ -63,17 +52,7 @@ const TicketDetail = () => {
   const { data: comments = [] } = useQuery({
     queryKey: ["ticket-comments", ticketId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ticket_comments")
-        .select(`
-          *,
-          profiles (first_name, last_name, email)
-        `)
-        .eq("ticket_id", ticketId!)
-        .order("created_at", { ascending: true });
-
-      if (error) throw error;
-      return data;
+      return ticketService.getTicketComments(ticketId!);
     },
     enabled: !!ticketId,
   });
@@ -82,17 +61,7 @@ const TicketDetail = () => {
   const { data: attachments = [] } = useQuery({
     queryKey: ["ticket-attachments", ticketId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ticket_attachments")
-        .select(`
-          *,
-          profiles (first_name, last_name)
-        `)
-        .eq("ticket_id", ticketId!)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
+      return ticketService.getTicketAttachments(ticketId!);
     },
     enabled: !!ticketId,
   });
@@ -101,17 +70,7 @@ const TicketDetail = () => {
   const { data: activities = [] } = useQuery({
     queryKey: ["ticket-activities", ticketId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ticket_activities")
-        .select(`
-          *,
-          profiles (first_name, last_name)
-        `)
-        .eq("ticket_id", ticketId!)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
+      return ticketService.getTicketActivities(ticketId!);
     },
     enabled: !!ticketId,
   });
@@ -120,7 +79,7 @@ const TicketDetail = () => {
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       return user;
     },
   });

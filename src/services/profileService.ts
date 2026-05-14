@@ -31,7 +31,7 @@ export async function getProfile(userId: string): Promise<ProfileDomain | null> 
 export async function getAllProfiles(): Promise<ProfileDomain[]> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, first_name, last_name, created_at');
+    .select('*');
   if (error) throw error;
   return (data || []).map(mapProfile);
 }
@@ -107,3 +107,13 @@ export async function updateKycData(userId: string, data: {
     .eq('id', userId);
   if (error) throw error;
 }
+
+export const profileService = {
+  getProfile,
+  getAllProfiles,
+  getProfileByEmail,
+  updateProfile,
+  updateAvatarStoragePath,
+  getKycStatus,
+  updateKycData,
+};

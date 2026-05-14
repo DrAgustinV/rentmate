@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Send, Sparkles, Loader2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { authService, ticketService, identityService } from "@/services";
 import { toast } from "sonner";
 import { commentSchema } from "@/lib/validations";
 import { z } from "zod";
@@ -39,20 +40,16 @@ export const CommentInput = ({ ticketId, isManager, ticketContext }: CommentInpu
     
     setGeneratingResponse(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-assistant', {
-        body: {
-          type: 'comment_response',
-          data: {
-            ticketTitle: ticketContext.title,
-            ticketType: ticketContext.type,
-            ticketPriority: ticketContext.priority,
-            ticketDescription: ticketContext.description,
-            recentComments: ticketContext.recentComments?.slice(-5)
-          }
+      const data = await identityService.invokeAIAssistant({
+        type: 'comment_response',
+        data: {
+          ticketTitle: ticketContext.title,
+          ticketType: ticketContext.type,
+          ticketPriority: ticketContext.priority,
+          ticketDescription: ticketContext.description,
+          recentComments: ticketContext.recentComments?.slice(-5)
         }
       });
-      
-      if (error) throw error;
       if (data?.text) {
         setComment(data.text);
         toast.success(t('ai.responseGenerated'));
@@ -67,19 +64,15 @@ export const CommentInput = ({ ticketId, isManager, ticketContext }: CommentInpu
 
   const addCommentMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase
-        .from("ticket_comments")
-        .insert({
-          ticket_id: ticketId,
-          user_id: user.id,
-          comment: comment.trim(),
-          is_internal: isInternal,
-        });
-
-      if (error) throw error;
+      await ticketService.addTicketComment({
+        ticketId,
+        userId: user.id,
+        comment: comment.trim(),
+        isInternal,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ticket-comments", ticketId] });

@@ -21,7 +21,7 @@ export async function getSignedUrl(
   path: string,
   ttlSeconds: number = SIGNED_URL_TTL
 ): Promise<string> {
-  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, { timeout: ttlSeconds });
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, ttlSeconds);
   if (error) throw error;
   return data.signedUrl;
 }
@@ -64,11 +64,47 @@ export async function fileExists(
   }
 }
 
+export async function deleteDocument(id: string): Promise<void> {
+  const { error } = await supabase.from('property_documents').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function insertDocument(data: Record<string, unknown>) {
+  const { data: result, error } = await supabase.from('property_documents').insert(data).select().single();
+  if (error) throw error;
+  return result;
+}
+
+export async function getTemplatesByProperty(propertyId: string): Promise<Array<{ id: string; document_title: string }>> {
+  const { data, error } = await supabase
+    .from('property_documents')
+    .select('id, document_title')
+    .eq('document_category', 'template')
+    .or(`property_id.eq.${propertyId},property_id.is.null`)
+    .eq('is_latest_version', true)
+    .order('document_title');
+  if (error) throw error;
+  return data || [];
+}
+
 export async function listFiles(
   bucket: BucketName,
   prefix?: string
-): Promise<{ name: string; createdAt: string }[]> {
+): Promise<{ name: string; created_at: string }[]> {
   const { data, error } = await supabase.storage.from(bucket).list(prefix);
   if (error) throw error;
-  return (data || []) as { name: string; createdAt: string }[];
+  return (data || []) as { name: string; created_at: string }[];
 }
+
+export const documentService = {
+  uploadFile,
+  getSignedUrl,
+  getPublicUrl,
+  downloadFile,
+  deleteFile,
+  fileExists,
+  deleteDocument,
+  insertDocument,
+  getTemplatesByProperty,
+  listFiles,
+};

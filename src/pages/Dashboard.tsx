@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { tenantService } from "@/services";
+import { authService, tenantService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Plus, Home, Users, Archive, Building2 } from "lucide-react";
 import { PropertyCard } from "@/components/PropertyCard";
@@ -63,9 +63,9 @@ export default function Dashboard() {
     // Sort
     filtered.sort((a, b) => {
       if (sortBy === 'newest') {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       } else if (sortBy === 'oldest') {
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       } else {
         return (a.title || '').localeCompare(b.title || '');
       }
@@ -80,7 +80,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await authService.getSession();
       if (!session) {
         navigate("/auth");
         return;
@@ -112,7 +112,7 @@ export default function Dashboard() {
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const subscription = authService.onAuthStateChange((_event, session) => {
       if (!session) {
         navigate("/auth");
         setUserId(null);

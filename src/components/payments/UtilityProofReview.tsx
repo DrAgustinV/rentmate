@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useUtilityPaymentMutations } from "@/hooks/useUtilityPayments";
-import { supabase } from "@/integrations/supabase/client";
+import { documentService } from "@/services";
+import { STORAGE_BUCKETS } from "@/constants";
 import { CheckCircle, XCircle } from "lucide-react";
 
 interface UtilityProofReviewProps {
@@ -19,15 +20,18 @@ export function UtilityProofReview({ payment, open, onOpenChange, onSuccess }: U
   const { t } = useLanguage();
   const [notes, setNotes] = useState("");
   const [imageError, setImageError] = useState(false);
+  const [proofUrl, setProofUrl] = useState<string | null>(null);
   const { reviewProof } = useUtilityPaymentMutations();
 
-  const getProofUrl = () => {
-    if (!payment.proof_of_payment_url) return null;
-    const { data } = supabase.storage
-      .from('utility-payment-proofs')
-      .getPublicUrl(payment.proof_of_payment_url);
-    return data.publicUrl;
-  };
+  useEffect(() => {
+    if (!payment.proof_of_payment_url) {
+      setProofUrl(null);
+      return;
+    }
+    documentService.getPublicUrl(STORAGE_BUCKETS.UTILITY_PAYMENT_PROOFS, payment.proof_of_payment_url)
+      .then(setProofUrl)
+      .catch(() => setProofUrl(null));
+  }, [payment.proof_of_payment_url]);
 
   const handleReview = (status: 'approved' | 'rejected') => {
     reviewProof.mutate(
@@ -41,7 +45,6 @@ export function UtilityProofReview({ payment, open, onOpenChange, onSuccess }: U
     );
   };
 
-  const proofUrl = getProofUrl();
   const isPdf = payment.proof_of_payment_url?.toLowerCase().endsWith('.pdf');
 
   return (

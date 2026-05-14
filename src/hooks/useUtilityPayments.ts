@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { documentService, paymentService, authService } from '@/services';
+import { STORAGE_BUCKETS } from '@/constants';
 import { toast } from 'sonner';
 
 export interface UtilityPayment {
@@ -34,14 +35,7 @@ export function useUtilityPayments(propertyId?: string) {
     queryFn: async () => {
       if (!propertyId) return [];
 
-      const { data, error } = await supabase
-        .from('utility_payments')
-        .select('*')
-        .eq('property_id', propertyId)
-        .order('payment_due_date', { ascending: false });
-
-      if (error) throw error;
-      return data as UtilityPayment[];
+      return paymentService.getUtilityPayments(propertyId) as Promise<UtilityPayment[]>;
     },
     enabled: !!propertyId,
   });
@@ -51,16 +45,7 @@ export function useUtilityPaymentMutations() {
   const queryClient = useQueryClient();
 
   const createPayment = useMutation({
-    mutationFn: async (payment: any) => {
-      const { data, error } = await supabase
-        .from('utility_payments')
-        .insert([payment])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: async (payment: any) => paymentService.createUtilityPayment(payment),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
       toast.success('Utility payment created successfully');
@@ -71,17 +56,7 @@ export function useUtilityPaymentMutations() {
   });
 
   const updatePayment = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<UtilityPayment> }) => {
-      const { data, error } = await supabase
-        .from('utility_payments')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<UtilityPayment> }) => paymentService.updateUtilityPayment(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
       toast.success('Utility payment updated successfully');
@@ -96,24 +71,12 @@ export function useUtilityPaymentMutations() {
       const fileExt = file.name.split('.').pop();
       const filePath = `${paymentId}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('utility-payment-proofs')
-        .upload(filePath, file);
+      await documentService.uploadFile(STORAGE_BUCKETS.UTILITY_PAYMENT_PROOFS, filePath, file);
 
-      if (uploadError) throw uploadError;
-
-      const { data, error: updateError } = await supabase
-        .from('utility_payments')
-        .update({
-          proof_of_payment_url: filePath,
-          proof_review_status: 'pending',
-        })
-        .eq('id', paymentId)
-        .select()
-        .single();
-
-      if (updateError) throw updateError;
-      return data;
+      return paymentService.updateUtilityPayment(paymentId, {
+        proof_of_payment_url: filePath,
+        proof_review_status: 'pending',
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
@@ -134,7 +97,7 @@ export function useUtilityPaymentMutations() {
       status: 'approved' | 'rejected';
       notes?: string;
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
       const updates: Partial<UtilityPayment> = {
@@ -149,15 +112,7 @@ export function useUtilityPaymentMutations() {
         updates.payment_date = new Date().toISOString().split('T')[0];
       }
 
-      const { data, error } = await supabase
-        .from('utility_payments')
-        .update(updates)
-        .eq('id', paymentId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return paymentService.updateUtilityPayment(paymentId, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
@@ -170,23 +125,15 @@ export function useUtilityPaymentMutations() {
 
   const markAsPaid = useMutation({
     mutationFn: async (paymentId: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
-        .from('utility_payments')
-        .update({
-          status: 'paid',
-          payment_date: new Date().toISOString().split('T')[0],
-          manager_reviewed_by: user.id,
-          manager_reviewed_at: new Date().toISOString(),
-        })
-        .eq('id', paymentId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return paymentService.updateUtilityPayment(paymentId, {
+        status: 'paid',
+        payment_date: new Date().toISOString().split('T')[0],
+        manager_reviewed_by: user.id,
+        manager_reviewed_at: new Date().toISOString(),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });

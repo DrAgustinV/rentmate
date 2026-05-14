@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Building, Users } from "lucide-react";
+import { ArrowLeft, Building } from "lucide-react";
 import { OverviewTab } from "@/components/property-hub/OverviewTab";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { propertyService, tenantService, documentService, authService } from "@/services";
 
 interface Tenant {
   id: string;
@@ -40,9 +40,7 @@ export default function PropertyOverview() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const session = await authService.getSession();
       if (!session) {
         navigate("/auth");
         return;
@@ -51,9 +49,7 @@ export default function PropertyOverview() {
     };
     checkUser();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const subscription = authService.onAuthStateChange((_event, session) => {
       if (!session) {
         navigate("/auth");
         setUserId(null);
@@ -68,13 +64,8 @@ export default function PropertyOverview() {
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("id", propertyId)
-        .single();
-      if (error) throw error;
-      return data;
+      if (!propertyId) return null;
+      return propertyService.getProperty(propertyId);
     },
     enabled: !!propertyId,
   });
@@ -82,56 +73,28 @@ export default function PropertyOverview() {
   const { data: allTenants, isLoading: tenantsLoading } = useQuery({
     queryKey: ["property-tenants", propertyId],
     queryFn: async () => {
-      const { data: tenancies, error } = await supabase
-        .from("property_tenants")
-        .select("*")
-        .eq("property_id", propertyId)
-        .order("created_at", { ascending: false });
+      if (!propertyId) return [];
 
-      if (error) throw error;
-      if (!tenancies) return [];
-
-      const tenantIds = tenancies
-        .map((t) => t.tenant_id)
-        .filter((id) => id);
-
-      let profiles: Record<string, { id: string; email: string; first_name: string | null; last_name: string | null; avatar_url: string | null; kyc_status: string | null }> = {};
-
-      if (tenantIds.length > 0) {
-        try {
-          const { data: profileData, error: profilesError } = await supabase
-            .from("profiles")
-            .select("id, email, first_name, last_name, avatar_url, kyc_status")
-            .in("id", tenantIds);
-
-          if (!profilesError && profileData) {
-            profileData.forEach((p) => {
-              profiles[p.id] = p;
-            });
-          }
-        } catch (e) {
-          console.warn("Could not fetch profiles:", e);
-        }
-      }
+      const tenancies = await tenantService.getTenanciesByProperty(propertyId);
 
       return tenancies.map((tenancy) => {
-        const profile = tenancy.tenant_id ? profiles[tenancy.tenant_id] : null;
-        
-        let email = "Unknown";
-        if (tenancy.tenancy_status === 'pending' && tenancy.notes) {
+        let email = tenancy.tenantEmail || "Unknown";
+        if (tenancy.status === 'pending' && tenancy.notes) {
           const match = tenancy.notes.match(/sent to (.+@.+)/);
           email = match ? match[1] : "Pending";
-        } else if (profile?.email) {
-          email = profile.email;
         }
-        
+
         return {
-          ...tenancy,
+          id: tenancy.id,
+          tenant_id: tenancy.tenantId || "",
+          tenancy_status: tenancy.status as Tenant['tenancy_status'],
+          started_at: tenancy.startDate,
+          ended_at: tenancy.endedAt,
+          planned_ending_date: tenancy.plannedEndDate,
           email,
-          first_name: profile?.first_name || null,
-          last_name: profile?.last_name || null,
-          avatar_url: profile?.avatar_url || null,
-          kyc_status: profile?.kyc_status || null,
+          first_name: tenancy.tenantFirstName,
+          last_name: tenancy.tenantLastName,
+          notes: tenancy.notes,
         } as Tenant;
       });
     },
@@ -141,14 +104,20 @@ export default function PropertyOverview() {
   const { data: invitations } = useQuery({
     queryKey: ["invitations", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("invitations")
-        .select("*")
-        .eq("property_id", propertyId)
-        .eq("status", "pending")
-        .gt("expires_at", new Date().toISOString());
-      if (error) throw error;
-      return data as Invitation[];
+      if (!propertyId) return [];
+
+      const result = await tenantService.getInvitationsByProperty(propertyId, { status: 'pending' });
+
+      const now = new Date().toISOString();
+      const filtered = result.filter((inv) => inv.expiresAt > now);
+
+      return filtered.map((inv) => ({
+        id: inv.id,
+        email: inv.email,
+        status: inv.status,
+        expires_at: inv.expiresAt,
+        created_at: inv.createdAt,
+      })) as Invitation[];
     },
     enabled: !!propertyId && !!userId,
   });
@@ -156,22 +125,14 @@ export default function PropertyOverview() {
   const { data: templates } = useQuery({
     queryKey: ["contract-templates", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("property_documents")
-        .select("id, document_title")
-        .eq("document_category", "template")
-        .or(`property_id.eq.${propertyId},property_id.is.null`)
-        .eq("is_latest_version", true)
-        .order("document_title");
-      if (error) throw error;
-      return data as Array<{ id: string; document_title: string }>;
+      if (!propertyId) return [];
+      return documentService.getTemplatesByProperty(propertyId);
     },
     enabled: !!propertyId,
   });
 
   const selectableTenants = allTenants?.filter(t => t.tenancy_status !== 'historic') || [];
   const currentTenant = selectableTenants.length > 0 ? selectableTenants[0] : null;
-  const isHistoricView = currentTenant?.tenancy_status === 'historic';
 
   const userRole = {
     isManager: true,

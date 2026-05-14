@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
+import { tenancyService } from "@/services";
 import { formatDate } from "@/lib/dateUtils";
 import { TenancyRequirement, UtilitiesConfig } from "@/hooks/useTenancyRequirements";
 import {
@@ -104,14 +105,7 @@ export function RentalTermsCard({
     queryKey: ["rent-agreement-summary", propertyId, tenancyId],
     queryFn: async () => {
       if (!tenancyId) return null;
-      const { data, error } = await supabase
-        .from("rent_agreements")
-        .select("*")
-        .eq("tenancy_id", tenancyId)
-        .eq("is_active", true)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      return tenancyService.getActiveRentAgreement(tenancyId);
     },
     enabled: !!tenancyId,
   });

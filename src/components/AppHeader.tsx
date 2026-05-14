@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -37,20 +38,16 @@ export function AppHeader() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await authService.getSession();
       
       if (session) {
-        // Verify session is still valid on server - but be conservative
-        const { error: userError } = await supabase.auth.getUser();
-        // Only clear for explicit session_not_found errors (status 403)
-        // Avoid clearing on network errors or other transient issues
-        if (userError?.message?.toLowerCase().includes('session_not_found')) {
+        const user = await authService.getCurrentUser();
+        if (!user) {
           console.warn("Stale session detected, clearing...");
-          localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');
           setUser(null);
           return;
         }
-        setUser(session.user);
+        setUser(user);
       } else {
         setUser(null);
       }
@@ -58,7 +55,7 @@ export function AppHeader() {
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const subscription = authService.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
@@ -101,12 +98,7 @@ export function AppHeader() {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.warn("Sign out error (clearing local state anyway):", error.message);
-        // Force clear local storage if server-side session is already gone
-        localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');
-      }
+      await authService.signOut();
     } catch (err) {
       console.warn("Sign out failed (clearing local state):", err);
       localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');

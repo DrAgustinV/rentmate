@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { tenantService, profileService } from "@/services";
+import { authService, tenantService, profileService, propertyService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -114,9 +114,7 @@ export default function PropertyTenants() {
   const { data: property, isLoading: propertyLoading } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("properties").select("*").eq("id", propertyId).single();
-      if (error) throw error;
-      return data;
+      return propertyService.getProperty(propertyId);
     },
     enabled: !!propertyId,
   });
@@ -124,7 +122,7 @@ export default function PropertyTenants() {
   const { data: userRole } = useQuery({
     queryKey: ["user-role", propertyId],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) return null;
       const { data: propertyData } = await supabase
         .from("properties")

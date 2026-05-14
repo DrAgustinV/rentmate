@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { showToast } from "@/lib/toastUtils";
 import { Lock, Loader2 } from "lucide-react";
@@ -39,7 +40,7 @@ export function ChangePassword() {
 
     try {
       // First verify current password by attempting to sign in
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       
       if (!user?.email) {
         throw new Error("User not found");

@@ -1,6 +1,5 @@
 import { useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { 
   getSessionId, 
   getDeviceType, 
@@ -9,6 +8,7 @@ import {
   trackNavigation as svcTrackNavigation, 
   initializeSession as svcInitializeSession 
 } from '@/services/analyticsService';
+import { authService } from '@/services';
 
 export const useAnalytics = () => {
   const location = useLocation();
@@ -16,7 +16,7 @@ export const useAnalytics = () => {
 
   const trackPageView = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       const deviceType = getDeviceType();
       const userAgent = navigator.userAgent;
       const referrer = document.referrer;
@@ -42,7 +42,7 @@ export const useAnalytics = () => {
     event_metadata 
   }: { event_name: string; event_category?: string; event_metadata?: Record<string, any> }) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
 
       await svcTrackEvent({
         userId: user?.id || null,
@@ -61,7 +61,7 @@ export const useAnalytics = () => {
 
   const trackNavigation = useCallback(async (fromPath: string, toPath: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
 
       await svcTrackNavigation({
         userId: user?.id || null,
@@ -78,7 +78,7 @@ export const useAnalytics = () => {
 
   const initializeSession = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       
       await svcInitializeSession(user?.id || null);
       

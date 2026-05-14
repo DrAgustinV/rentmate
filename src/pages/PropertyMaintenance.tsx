@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { tenantService } from "@/services";
+import { tenantService, authService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Plus, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,7 +37,7 @@ const PropertyMaintenance = () => {
   const { data: userRole } = useQuery({
     queryKey: ["user-role", propertyId],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) return { isManager: false, isTenant: false };
       
       // Check if manager

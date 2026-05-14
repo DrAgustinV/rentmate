@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Building, Archive, Upload, Zap, Ticket, Wrench, ImageIcon, Search } from "lucide-react";
@@ -25,17 +24,27 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { getSignedUrl } from "@/services";
+import { getSignedUrl, propertyService, authService } from "@/services";
 import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 
 export default function Properties() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { data: propertiesData, isLoading } = useProperties();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    authService.getCurrentUser().then((user) => {
+      setUserId(user?.id || null);
+    });
+  }, []);
+
+  const { data: propertiesData, isLoading } = useProperties({
+    managerId: userId || undefined,
+  });
   const [propertyView, setPropertyView] = useState<"active" | "ending_tenancy" | "archived">("active");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "created_at">("created_at");
+  const [sortBy, setSortBy] = useState<"name" | "createdAt">("createdAt");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [maxPropertiesLimit] = useState(5);
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -77,13 +86,9 @@ export default function Properties() {
       await Promise.all(
         propertyList.map(async (property) => {
           try {
-            const { data, error } = await supabase.rpc("get_property_status_indicators", {
-              p_property_id: property.id
-            });
-            
-            if (error) throw error;
-            if (data && data.length > 0) {
-              indicators[property.id] = data[0] as PropertyStatusIndicators;
+            const indicator = await propertyService.getPropertyStatusIndicators(property.id);
+            if (indicator) {
+              indicators[property.id] = indicator as PropertyStatusIndicators;
             }
           } catch (error) {
             console.error(`Error fetching status indicators for property ${property.id}:`, error);
@@ -131,7 +136,7 @@ export default function Properties() {
       if (sortBy === "name") {
         return a.title.localeCompare(b.title);
       }
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }, [activeProperties, endingTenancyProperties, archivedProperties, debouncedSearch, sortBy, propertyView]);
 

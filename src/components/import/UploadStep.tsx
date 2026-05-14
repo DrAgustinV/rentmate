@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Upload, FileText, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { FILE_SIZE_LIMITS } from '@/constants';
 
 interface UploadStepProps {
   onFileSelect: (file: File) => void;
@@ -56,7 +57,7 @@ export function UploadStep({ onFileSelect, importType, setImportType }: UploadSt
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > FILE_SIZE_LIMITS.IMPORT_FILE) {
       toast({
         title: 'File too large',
         description: 'Maximum file size is 5 MB',

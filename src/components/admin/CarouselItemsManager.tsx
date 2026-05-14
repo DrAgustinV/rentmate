@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { authService, documentService } from "@/services";
+import { STORAGE_BUCKETS, FILE_SIZE_LIMITS } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -79,7 +81,7 @@ export function CarouselItemsManager({ items, onUpdate, settingsId }: CarouselIt
   };
 
   const handleImageUpload = async (index: number, file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > FILE_SIZE_LIMITS.CAROUSEL_IMAGE) {
       toast({
         title: "File too large",
         description: "Image must be less than 5MB",
@@ -93,15 +95,11 @@ export function CarouselItemsManager({ items, onUpdate, settingsId }: CarouselIt
       const fileExt = file.name.split(".").pop();
       const fileName = `carousel-${Date.now()}-${index}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("brand-logos")
-        .upload(fileName, file, { cacheControl: "3600", upsert: false });
+      await documentService.uploadFile(STORAGE_BUCKETS.BRAND_LOGOS, fileName, file, { cacheControl: "3600", upsert: false });
 
-      if (uploadError) throw uploadError;
+      const publicUrl = await documentService.getPublicUrl(STORAGE_BUCKETS.BRAND_LOGOS, fileName);
 
-      const { data } = supabase.storage.from("brand-logos").getPublicUrl(fileName);
-
-      handleItemChange(index, "image_url", data.publicUrl);
+      handleItemChange(index, "image_url", publicUrl);
       toast({ title: "Image uploaded", description: "Carousel image uploaded successfully" });
     } catch (error: any) {
       toast({
@@ -117,7 +115,7 @@ export function CarouselItemsManager({ items, onUpdate, settingsId }: CarouselIt
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       
       const { error } = await supabase
         .from("brand_settings")

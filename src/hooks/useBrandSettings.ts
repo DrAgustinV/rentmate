@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { brandSettingsService, documentService, authService } from '@/services';
+import { STORAGE_BUCKETS, FILE_SIZE_LIMITS } from '@/constants';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Json } from '@/integrations/supabase/types';
 
 export interface CarouselItem {
   image_url: string;
@@ -53,47 +53,42 @@ export function useBrandSettings() {
 
   const fetchBrandSettings = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('brand_settings')
-      .select('*')
-      .maybeSingle();
+    try {
+      const data = await brandSettingsService.getBrandSettings();
 
-    if (error) {
+      if (data) {
+        const parsedCarousel = parseCarouselItems(data.carousel_items as any);
+        const parsedSettings: BrandSettings = {
+          id: data.id,
+          brand_name: data.brand_name,
+          logo_url: data.logo_url,
+          primary_color: data.primary_color,
+          accent_color: data.accent_color,
+          header_background_color: data.header_background_color,
+          header_background_opacity: data.header_background_opacity,
+          custom_domain: data.custom_domain,
+          carousel_items: parsedCarousel,
+        };
+        
+        setSettings(parsedSettings);
+        setBrandName(data.brand_name);
+        setCustomDomain(data.custom_domain || '');
+        setPrimaryColor(data.primary_color);
+        setAccentColor(data.accent_color);
+        setHeaderBackgroundColor(data.header_background_color || '173 77% 40%');
+        setHeaderBackgroundOpacity(data.header_background_opacity ?? 100);
+        if (data.logo_url) {
+          setLogoPreview(data.logo_url);
+        }
+        setCarouselItems(parsedCarousel);
+      }
+    } catch (error: any) {
       console.error('Error fetching brand settings:', error);
       toast({
         title: 'Error loading settings',
         description: error.message,
         variant: 'destructive',
       });
-      setLoading(false);
-      return;
-    }
-
-    if (data) {
-      const parsedCarousel = parseCarouselItems(data.carousel_items);
-      const parsedSettings: BrandSettings = {
-        id: data.id,
-        brand_name: data.brand_name,
-        logo_url: data.logo_url,
-        primary_color: data.primary_color,
-        accent_color: data.accent_color,
-        header_background_color: data.header_background_color,
-        header_background_opacity: data.header_background_opacity,
-        custom_domain: data.custom_domain,
-        carousel_items: parsedCarousel,
-      };
-      
-      setSettings(parsedSettings);
-      setBrandName(data.brand_name);
-      setCustomDomain(data.custom_domain || '');
-      setPrimaryColor(data.primary_color);
-      setAccentColor(data.accent_color);
-      setHeaderBackgroundColor(data.header_background_color || '173 77% 40%');
-      setHeaderBackgroundOpacity(data.header_background_opacity ?? 100);
-      if (data.logo_url) {
-        setLogoPreview(data.logo_url);
-      }
-      setCarouselItems(parsedCarousel);
     }
     setLoading(false);
   };
@@ -101,7 +96,7 @@ export function useBrandSettings() {
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
+      if (file.size > FILE_SIZE_LIMITS.BRAND_LOGO) {
         toast({
           title: 'File too large',
           description: 'Logo must be less than 2MB',
@@ -127,20 +122,12 @@ export function useBrandSettings() {
       const fileName = `logo-${Date.now()}.${fileExt}`;
       const filePath = fileName;
 
-      const { error: uploadError } = await supabase.storage
-        .from('brand-logos')
-        .upload(filePath, logoFile, {
-          cacheControl: '3600',
-          upsert: false,
-        });
+      await documentService.uploadFile(STORAGE_BUCKETS.BRAND_LOGOS, filePath, logoFile, {
+        cacheControl: '3600',
+        upsert: false,
+      });
 
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('brand-logos')
-        .getPublicUrl(filePath);
-
-      return data.publicUrl;
+      return await documentService.getPublicUrl(STORAGE_BUCKETS.BRAND_LOGOS, filePath);
     } catch (error: any) {
       toast({
         title: 'Upload failed',
@@ -191,7 +178,7 @@ export function useBrandSettings() {
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       
       const updates = {
         brand_name: brandName.trim(),
@@ -205,17 +192,7 @@ export function useBrandSettings() {
         updated_at: new Date().toISOString(),
       };
 
-      const { error, data } = await supabase
-        .from('brand_settings')
-        .update(updates)
-        .eq('id', settings.id)
-        .select();
-
-      if (error) throw error;
-
-      if (!data || data.length === 0) {
-        throw new Error('Failed to save changes. You may not have permission to update brand settings.');
-      }
+      await brandSettingsService.updateBrandSettings(settings.id, updates);
 
       toast({
         title: 'Brand settings updated',

@@ -5,11 +5,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Copy, AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Badge } from "@/components/ui/badge";
-import { useMutationWithToast } from "@/hooks/useMutationWithToast";
+import { authService, documentService } from "@/services";
+import { STORAGE_BUCKETS } from "@/constants";
 
 interface CopyTemplatesDialogProps {
   open: boolean;
@@ -27,19 +28,9 @@ function normalizeFilePath(filePath: string): string {
   return filePath;
 }
 
-// Check if a file exists in storage using createSignedUrl (more reliable than list)
 async function checkFileExists(filePath: string): Promise<boolean> {
   const normalizedPath = normalizeFilePath(filePath);
-  
-  // createSignedUrl fails if file doesn't exist, making it a reliable existence check
-  const { data, error } = await supabase.storage
-    .from("property-documents")
-    .createSignedUrl(normalizedPath, 60);
-  
-  if (error) {
-    return false;
-  }
-  return !!data?.signedUrl;
+  return documentService.fileExists(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, normalizedPath);
 }
 
 export function CopyTemplatesDialog({ 
@@ -90,12 +81,12 @@ export function CopyTemplatesDialog({
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       return user;
     },
   });
 
-  const copyMutation = useMutationWithToast({
+  const copyMutation = useMutation({
     mutationFn: async (templateIds: string[]) => {
       if (!currentUser) throw new Error("Not authenticated");
 
@@ -109,46 +100,32 @@ export function CopyTemplatesDialog({
           continue;
         }
 
-        // Skip templates without files
         if (!template.fileExists) {
           errors.push(`"${template.document_title}" has no file in storage (ghost record)`);
           continue;
         }
 
         try {
-          // Normalize the file path before download
           const downloadPath = normalizeFilePath(template.file_path);
 
-          // Download the file
-          const { data: fileData, error: downloadError } = await supabase.storage
-            .from("property-documents")
-            .download(downloadPath);
-
-          if (downloadError) {
-            errors.push(`Failed to download "${template.document_title}": ${downloadError.message}`);
+          let fileData: Blob;
+          try {
+            fileData = await documentService.downloadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, downloadPath);
+          } catch (downloadError) {
+            errors.push(`Failed to download "${template.document_title}": ${downloadError instanceof Error ? downloadError.message : 'Unknown error'}`);
             continue;
           }
 
-          if (!fileData) {
-            errors.push(`"${template.document_title}" file is empty or not found`);
-            continue;
-          }
-
-          // Create new file path for tenancy
           const extension = template.file_name.match(/\.[^.]+$/)?.[0] || "";
           const newFilePath = `${propertyId}/tenancy_${tenancyId}/${crypto.randomUUID()}${extension}`;
 
-          // Upload to new path
-          const { error: uploadError } = await supabase.storage
-            .from("property-documents")
-            .upload(newFilePath, fileData);
-
-          if (uploadError) {
-            errors.push(`Failed to upload "${template.document_title}": ${uploadError.message}`);
+          try {
+            await documentService.uploadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, newFilePath, fileData);
+          } catch (uploadError) {
+            errors.push(`Failed to upload "${template.document_title}": ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`);
             continue;
           }
 
-          // Create new document record
           const { error: dbError } = await supabase.from("property_documents").insert({
             property_id: propertyId,
             tenancy_id: tenancyId,
@@ -181,30 +158,24 @@ export function CopyTemplatesDialog({
       
       return { successCount: successCount.count, errors };
     },
-    toastOptions: {
-      success: {
-        title: t('common.success'),
-        description: t('properties.templatesCopied'),
-      },
-      error: {
-        title: t('common.error'),
-        description: (err: unknown) => err instanceof Error ? err.message : "Failed to copy templates",
-      },
-    },
     onSuccess: (result) => {
-      // Handle partial success feedback if needed
-      if (result.errors && result.errors.length > 0) {
-        toast({
-          title: `${result.successCount} template(s) copied`,
-          description: `Some templates failed: ${result.errors.join(', ')}`,
-          variant: "default",
-        });
-      }
-      
+      toast({
+        title: result.errors?.length ? `${result.successCount} template(s) copied` : t('common.success'),
+        description: result.errors?.length ? `Some templates failed: ${result.errors.join(', ')}` : t('properties.templatesCopied'),
+        variant: "default",
+      });
+
       setSelectedTemplateIds([]);
       queryClient.invalidateQueries({ queryKey: ["tenancy-documents", tenancyId] });
       queryClient.invalidateQueries({ queryKey: ["tenancy-documents"] });
       onOpenChange(false);
+    },
+    onError: (err) => {
+      toast({
+        title: t('common.error'),
+        description: err instanceof Error ? err.message : "Failed to copy templates",
+        variant: "destructive",
+      });
     },
   });
 

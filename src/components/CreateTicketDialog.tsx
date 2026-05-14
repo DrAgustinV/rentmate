@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { authService, ticketService } from "@/services";
 import {
   Dialog,
   DialogContent,
@@ -49,11 +50,11 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
   const { data: currentUserData } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
-      return await supabase.auth.getUser();
+      return await authService.getCurrentUser();
     },
   });
 
-  const user = currentUserData?.data?.user;
+  const user = currentUserData;
 
   // Fetch current user's tenancy for the selected property
   const { data: userTenancy } = useQuery({
@@ -78,7 +79,7 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
   const { data: properties } = useQuery({
     queryKey: ["user-properties"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       // Step 1: Get property IDs where user is a tenant
@@ -111,25 +112,18 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
-        .from("tickets")
-        .insert({
-          title: formData.title,
-          description: formData.description,
-          type: formData.type,
-          priority: formData.priority,
-          property_id: formData.propertyId,
-          created_by: user.id,
-          tenancy_id: userTenancy?.id || null,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return ticketService.createTicket({
+        title: formData.title,
+        description: formData.description,
+        type: formData.type,
+        priority: formData.priority,
+        property_id: formData.propertyId,
+        created_by: user.id,
+        tenancy_id: userTenancy?.id || null,
+      });
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["tickets"] });

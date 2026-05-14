@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { authService, documentService } from "@/services";
+import { STORAGE_BUCKETS } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,7 +88,7 @@ export default function PropertyDocumentUpload({
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       return user;
     },
   });
@@ -156,16 +158,12 @@ export default function PropertyDocumentUpload({
 
       setUploadProgress(30);
 
-      const { error: uploadError } = await supabase.storage
-        .from("property-documents")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
+      await documentService.uploadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, filePath, file);
 
       setUploadProgress(70);
 
       const fileType = extension.replace(".", "");
-      const { error: dbError } = await supabase.from("property_documents").insert({
+      await documentService.insertDocument({
         property_id: propertyId,
         uploaded_by: currentUser.id,
         document_title: finalTitle,
@@ -181,8 +179,6 @@ export default function PropertyDocumentUpload({
         document_category: category,
         tenancy_id: tenancyId || null,
       });
-
-      if (dbError) throw dbError;
 
       setUploadProgress(100);
     },

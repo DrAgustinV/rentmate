@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { tenancyService } from "@/services";
 import { format, isBefore, startOfDay } from "date-fns";
 
 interface UseTenancyStartedResult {
@@ -15,16 +15,7 @@ export function useTenancyStarted(propertyId: string, tenancyId?: string): UseTe
     queryFn: async () => {
       if (!tenancyId) return null;
       
-      const { data, error } = await supabase
-        .from('rent_agreements')
-        .select('start_date')
-        .eq('property_id', propertyId)
-        .eq('tenancy_id', tenancyId)
-        .eq('is_active', true)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data?.start_date || null;
+      return tenancyService.getTenancyStartDate(propertyId, tenancyId);
     },
     enabled: !!propertyId && !!tenancyId,
     staleTime: 5 * 60 * 1000, // 5 minutes

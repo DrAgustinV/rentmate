@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { documentService, paymentService, authService } from '@/services';
+import { STORAGE_BUCKETS } from '@/constants';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { showToast } from '@/lib/toastUtils';
 import { format, differenceInDays } from 'date-fns';
@@ -97,7 +98,7 @@ export function usePaymentsTab(payments: RentPayment[], hasData: boolean) {
       const updates: any = {
         manager_reviewed: true,
         manager_reviewed_at: new Date().toISOString(),
-        manager_reviewed_by: (await supabase.auth.getUser()).data.user?.id,
+        manager_reviewed_by: (await authService.getCurrentUser())?.id,
         proof_review_status: status,
         proof_review_notes: notes || null,
       };
@@ -112,15 +113,10 @@ export function usePaymentsTab(payments: RentPayment[], hasData: boolean) {
         updates.tenant_confirmed_at = null;
       }
 
-      const { error } = await supabase
-        .from('rent_payments')
-        .update(updates)
-        .eq('id', paymentId);
-
-      if (error) throw error;
+      await paymentService.updateRentPaymentSimple(paymentId, updates);
 
       if (status === 'rejected' && proofUrl) {
-        await supabase.storage.from('payment-proofs').remove([proofUrl]);
+        await documentService.deleteFile(STORAGE_BUCKETS.PAYMENT_PROOFS, proofUrl);
       }
     },
     onSuccess: (_, variables) => {
@@ -144,11 +140,7 @@ export function usePaymentsTab(payments: RentPayment[], hasData: boolean) {
 
   const handleDownload = async (proofUrl: string) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('payment-proofs')
-        .download(proofUrl);
-
-      if (error) throw error;
+      const data = await documentService.downloadFile(STORAGE_BUCKETS.PAYMENT_PROOFS, proofUrl);
 
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');

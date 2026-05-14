@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { ticketService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { CreateTicketDialog } from "@/components/CreateTicketDialog";
@@ -18,17 +18,7 @@ const Tickets = () => {
   const { data: tickets, isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tickets")
-        .select(`
-          *,
-          properties (id, title),
-          profiles!tickets_created_by_fkey (id, first_name, last_name, email)
-        `)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
+      return ticketService.getAllTickets();
     },
   });
 

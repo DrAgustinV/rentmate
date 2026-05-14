@@ -13,7 +13,8 @@ import {
   X,
   Image as ImageIcon,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { documentService } from "@/services";
+import { STORAGE_BUCKETS, FILE_SIZE_LIMITS } from "@/constants";
 import { showToast } from "@/lib/toast";
 import { InspectionItem, ConditionRating, CONDITION_RATINGS } from "./types";
 import { cn } from "@/lib/utils";
@@ -58,15 +59,9 @@ export function RoomInspectionItem({
         const fileExt = file.name.split('.').pop();
         const fileName = `${inspectionId}/${item.id}/photos/${Date.now()}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('inspection-media')
-          .upload(fileName, file);
+        await documentService.uploadFile(STORAGE_BUCKETS.INSPECTION_MEDIA, fileName, file);
 
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('inspection-media')
-          .getPublicUrl(fileName);
+        const publicUrl = await documentService.getPublicUrl(STORAGE_BUCKETS.INSPECTION_MEDIA, fileName);
 
         newPhotos.push(publicUrl);
       }
@@ -91,7 +86,7 @@ export function RoomInspectionItem({
 
     try {
       for (const file of Array.from(files)) {
-        if (file.size > 50 * 1024 * 1024) {
+        if (file.size > FILE_SIZE_LIMITS.INSPECTION_MEDIA) {
           showToast.error({ title: "Video must be under 50MB" });
           continue;
         }
@@ -99,15 +94,9 @@ export function RoomInspectionItem({
         const fileExt = file.name.split('.').pop();
         const fileName = `${inspectionId}/${item.id}/videos/${Date.now()}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('inspection-media')
-          .upload(fileName, file);
+        await documentService.uploadFile(STORAGE_BUCKETS.INSPECTION_MEDIA, fileName, file);
 
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('inspection-media')
-          .getPublicUrl(fileName);
+        const publicUrl = await documentService.getPublicUrl(STORAGE_BUCKETS.INSPECTION_MEDIA, fileName);
 
         newVideos.push(publicUrl);
       }

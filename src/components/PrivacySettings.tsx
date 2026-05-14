@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { showToast } from "@/lib/toast";
 
@@ -28,7 +29,7 @@ export function PrivacySettings() {
 
   const loadConsents = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) return;
 
       // Load current consents
@@ -67,7 +68,7 @@ export function PrivacySettings() {
   const updateConsent = async (consentType: 'analytics' | 'marketing', granted: boolean) => {
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
       // Get anonymized IP (in production, you'd call an edge function for this)

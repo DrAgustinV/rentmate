@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { propertyService } from "@/services";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
@@ -21,10 +22,7 @@ export default function MaintenanceCalendar() {
     queryKey: ["property", propertyId],
     queryFn: async () => {
       if (!propertyId) return null;
-      const { data, error } = await supabase.from("properties").select("title, address").eq("id", propertyId).single();
-
-      if (error) throw error;
-      return data;
+      return propertyService.getPropertyBasicInfo(propertyId);
     },
   });
 

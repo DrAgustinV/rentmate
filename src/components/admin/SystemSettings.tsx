@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,7 +51,7 @@ export function SystemSettings() {
 
   const updateUtilityTypesMutation = useMutation({
     mutationFn: async (types: string[]) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase
@@ -80,7 +81,7 @@ export function SystemSettings() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: number }) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase

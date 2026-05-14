@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { authService, documentService, paymentService } from "@/services";
+import { STORAGE_BUCKETS } from "@/constants";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,7 @@ export function PaymentProofReview({
       const updates: any = {
         manager_reviewed: true,
         manager_reviewed_at: new Date().toISOString(),
-        manager_reviewed_by: (await supabase.auth.getUser()).data.user?.id,
+        manager_reviewed_by: (await authService.getCurrentUser())?.id,
         proof_review_status: status,
         proof_review_notes: notes || null,
       };
@@ -59,16 +60,11 @@ export function PaymentProofReview({
         updates.tenant_confirmed_at = null;
       }
 
-      const { error } = await supabase
-        .from("rent_payments")
-        .update(updates)
-        .eq("id", paymentId);
-
-      if (error) throw error;
+      await paymentService.updateRentPaymentSimple(paymentId, updates);
 
       // If rejected, delete the file from storage
       if (status === "rejected" && proofUrl) {
-        await supabase.storage.from("payment-proofs").remove([proofUrl]);
+        await documentService.deleteFile(STORAGE_BUCKETS.PAYMENT_PROOFS, proofUrl);
       }
     },
     onSuccess: (_, variables) => {
@@ -100,11 +96,7 @@ export function PaymentProofReview({
 
   const handleDownload = async () => {
     try {
-      const { data, error } = await supabase.storage
-        .from("payment-proofs")
-        .download(proofUrl);
-
-      if (error) throw error;
+      const data = await documentService.downloadFile(STORAGE_BUCKETS.PAYMENT_PROOFS, proofUrl);
 
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');

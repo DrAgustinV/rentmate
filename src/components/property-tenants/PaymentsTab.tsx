@@ -15,6 +15,7 @@ import { useRentPayments } from "@/hooks/useRentPayments";
 import { useUtilityPayments } from "@/hooks/useUtilityPayments";
 import { UnifiedPayment } from "@/components/payments/UnifiedPaymentHistory";
 import { supabase } from "@/integrations/supabase/client";
+import { tenancyService } from "@/services";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { showToast } from "@/lib/toast";
 import { format, isWithinInterval, subMonths, startOfMonth, endOfMonth } from "date-fns";
@@ -87,12 +88,7 @@ export function PaymentsTab({
   // Mutation to toggle auto reminders
   const toggleRemindersMutation = useMutation({
     mutationFn: async ({ agreementId, enabled }: { agreementId: string; enabled: boolean }) => {
-      const { error } = await supabase
-        .from('rent_agreements')
-        .update({ auto_reminders_enabled: enabled })
-        .eq('id', agreementId);
-      
-      if (error) throw error;
+      await tenancyService.updateRentAgreementSimple(agreementId, { auto_reminders_enabled: enabled });
     },
     onSuccess: (_, { enabled }) => {
       queryClient.invalidateQueries({ queryKey: ['rent-agreements', propertyId] });

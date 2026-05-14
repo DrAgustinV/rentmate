@@ -30,6 +30,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { InfoIcon, CheckCircle2, Edit, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { tenancyService, identityService } from '@/services';
 import { toast } from 'sonner';
 
 const ibanSchema = z.object({
@@ -73,23 +74,16 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
     setSaving(true);
     try {
       // 1. Save IBAN to rent_agreements
-      const { error: updateError } = await supabase
-        .from('rent_agreements')
-        .update({
-          tenant_iban: data.iban.toUpperCase().replace(/\s/g, ''),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', agreement.id);
-
-      if (updateError) throw updateError;
+      await tenancyService.updateRentAgreementSimple(agreement.id, {
+        tenant_iban: data.iban.toUpperCase().replace(/\s/g, ''),
+        updated_at: new Date().toISOString(),
+      });
 
       // 2. Generate SEPA mandate PDF
-      const { data: pdfData, error: pdfError } = await supabase.functions.invoke(
-        'generate-sepa-mandate-pdf',
-        { body: { agreement_id: agreement.id } }
-      );
-
-      if (pdfError) {
+      let pdfData;
+      try {
+        pdfData = await identityService.generateSEPAMandatePDF({ agreement_id: agreement.id });
+      } catch (pdfError: any) {
         console.error('PDF generation error:', pdfError);
         // Check if error is due to missing manager SEPA settings
         if (pdfError.message?.includes('SEPA settings not configured')) {

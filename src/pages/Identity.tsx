@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { ShieldCheck } from "lucide-react";
 import { IdentityVerification } from "@/components/IdentityVerification";
@@ -10,7 +10,7 @@ export default function Identity() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await authService.getSession();
       if (!session) {
         navigate("/auth");
       }

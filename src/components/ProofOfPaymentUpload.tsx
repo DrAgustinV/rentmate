@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { documentService, paymentService } from "@/services";
+import { STORAGE_BUCKETS, FILE_SIZE_LIMITS } from "@/constants";
 import {
   Dialog,
   DialogContent,
@@ -38,14 +39,13 @@ export function ProofOfPaymentUpload({
 
     // File validation
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/pdf'];
-    const maxSize = 10 * 1024 * 1024; // 10MB
 
     if (!allowedTypes.includes(file.type)) {
       toast.error("Please upload an image (JPG, PNG, WEBP) or PDF file");
       return;
     }
 
-    if (file.size > maxSize) {
+    if (file.size > FILE_SIZE_LIMITS.PAYMENT_PROOF) {
       toast.error("File size must be less than 10MB");
       return;
     }
@@ -57,26 +57,17 @@ export function ProofOfPaymentUpload({
       const fileName = `${paymentId}_${Date.now()}.${fileExt}`;
       const filePath = `${paymentId}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("payment-proofs")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
+      await documentService.uploadFile(STORAGE_BUCKETS.PAYMENT_PROOFS, filePath, file);
 
       // Update payment record with proof_uploaded status
-      const { error: updateError } = await supabase
-        .from("rent_payments")
-        .update({
-          proof_of_payment_url: filePath,
-          status: 'proof_uploaded',
-          tenant_confirmed: true,
-          tenant_confirmed_at: new Date().toISOString(),
-          proof_review_status: 'pending',
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", paymentId);
-
-      if (updateError) throw updateError;
+      await paymentService.updateRentPaymentSimple(paymentId, {
+        proof_of_payment_url: filePath,
+        status: 'proof_uploaded',
+        tenant_confirmed: true,
+        tenant_confirmed_at: new Date().toISOString(),
+        proof_review_status: 'pending',
+        updated_at: new Date().toISOString(),
+      });
 
       toast.success("Proof of payment uploaded successfully");
       setFile(null);

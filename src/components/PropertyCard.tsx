@@ -6,11 +6,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { MapPin, Edit, Mail, Archive, Users, Home, Image as ImageIcon, Eye, Ticket, Wrench, Zap, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
-import { getSignedUrl } from "@/services";
+import { getSignedUrl, propertyService } from "@/services";
 import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 
 export interface PropertyStatusIndicators {
@@ -47,11 +46,9 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
   const fetchTenantStatus = async () => {
     try {
       setLoadingStatus(true);
-      const { data, error } = await supabase.rpc("get_property_tenant_status", { p_property_id: property.id });
-
-      if (error) throw error;
-      if (data && data.length > 0) {
-        setTenantStatus(data[0] as any);
+      const status = await propertyService.getPropertyTenantStatus(property.id);
+      if (status) {
+        setTenantStatus(status as any);
       }
     } catch (error) {
       console.error("Error fetching tenant status:", error);
@@ -257,12 +254,12 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators }
         </CardHeader>
 
         {/* Archived Details Only - No Description */}
-        {isArchived && property.deleted_at && (
+        {isArchived && property.deletedAt && (
           <CardContent className="p-2 pt-0">
             <div className="pt-1 border-t border-border">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Archive className="h-3 w-3" />
-                <span>{formatDate(property.deleted_at)}</span>
+                <span>{formatDate(property.deletedAt)}</span>
               </div>
             </div>
           </CardContent>

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBrand } from "@/contexts/BrandContext";
@@ -37,7 +38,7 @@ export default function Auth() {
 
   useEffect(() => {
     const checkAuthAndToken = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await authService.getSession();
       
       // Check for mode parameter
       const mode = searchParams.get('mode');
@@ -80,7 +81,7 @@ export default function Auth() {
     
     checkAuthAndToken();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const subscription = authService.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         // Handle invitation token if present
         const storedToken = sessionStorage.getItem('invitation_token');

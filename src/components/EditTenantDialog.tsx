@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { tenancyService } from "@/services";
 import {
   Dialog,
   DialogContent,
@@ -58,16 +59,13 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
     mutationFn: async () => {
       if (!tenant || !startDate) return;
 
-      const { error } = await supabase
-        .from("property_tenants")
-        .update({
-          started_at: startDate.toISOString(),
-          tenancy_status: tenancyStatus,
-          notes: notes.trim() || null,
-        })
-        .eq("id", tenant.id);
-
-      if (error) throw error;
+      await tenancyService.updatePropertyTenantStatus(tenantId, {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        notes: data.notes,
+      });
     },
     onSuccess: () => {
       showToast.success({

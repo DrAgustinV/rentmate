@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { supabase as supabaseAdmin } from "@/integrations/supabase/client";
+import { authService, documentService } from "@/services";
+import { STORAGE_BUCKETS } from "@/constants";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,15 +58,15 @@ export const CreatePropertyTemplateDialog = ({
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       return user;
     },
   });
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("Not authenticated");
+      const user = await authService.getCurrentUser();
+      if (!user) throw new Error("Not authenticated");
 
       if (!documentTitle.trim()) throw new Error(t('dialogs.pleaseEnterTitle'));
 
@@ -76,11 +77,7 @@ export const CreatePropertyTemplateDialog = ({
 
       setUploadProgress(30);
 
-      const { error: uploadError } = await supabase.storage
-        .from("property-documents")
-        .upload(filePath, file);
-
-      if (uploadError) throw new Error(`Storage error: ${uploadError.message}`);
+      await documentService.uploadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, filePath, file);
 
       setUploadProgress(70);
 

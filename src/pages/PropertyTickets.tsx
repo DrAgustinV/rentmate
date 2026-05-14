@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { propertyService, ticketService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { CreateTicketDialog } from "@/components/CreateTicketDialog";
@@ -26,14 +26,7 @@ const PropertyTickets = () => {
   const { data: property, isLoading: isLoadingProperty } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("properties")
-        .select("id, title, address")
-        .eq("id", propertyId!)
-        .single();
-
-      if (error) throw error;
-      return data;
+      return propertyService.getPropertyBasicInfo(propertyId!);
     },
     enabled: !!propertyId,
   });
@@ -41,18 +34,7 @@ const PropertyTickets = () => {
   const { data: tickets, isLoading: isLoadingTickets } = useQuery({
     queryKey: ["property-tickets", propertyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tickets")
-        .select(`
-          *,
-          properties (id, title),
-          profiles!tickets_created_by_fkey (id, first_name, last_name, email)
-        `)
-        .eq("property_id", propertyId!)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
+      return ticketService.getPropertyTickets(propertyId!);
     },
     enabled: !!propertyId,
   });

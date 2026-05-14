@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { deleteFile, getSignedUrl } from "@/services";
+import { authService, deleteFile, getSignedUrl } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 
 export const GlobalTemplatesList = () => {
@@ -37,7 +37,7 @@ export const GlobalTemplatesList = () => {
   const { data: templates, isLoading } = useQuery({
     queryKey: ["property-templates"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase

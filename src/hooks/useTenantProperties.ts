@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { tenancyService, propertyService } from '@/services';
 
 export const TENANT_PROPERTIES_QUERY_KEY = 'tenant-properties';
 
@@ -19,13 +19,7 @@ export function useTenantProperties(filters: TenantPropertyFilters = {}) {
         return { properties: [], totalCount: 0, totalPages: 0 };
       }
 
-      // First get property IDs where user is a tenant
-      const { data: tenantRels, error: tenantError } = await supabase
-        .from('property_tenants')
-        .select('property_id')
-        .eq('tenant_id', tenantId);
-
-      if (tenantError) throw tenantError;
+      const tenantRels = await tenancyService.getTenantPropertyIds(tenantId);
 
       if (!tenantRels || tenantRels.length === 0) {
         return { properties: [], totalCount: 0, totalPages: 0 };
@@ -34,22 +28,12 @@ export function useTenantProperties(filters: TenantPropertyFilters = {}) {
       const propertyIds = tenantRels.map((rel) => rel.property_id);
 
       // Then fetch properties with pagination
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-
-      const { data, error, count } = await supabase
-        .from('properties')
-        .select('*', { count: 'exact' })
-        .in('id', propertyIds)
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      if (error) throw error;
+      const result = await propertyService.getPropertiesByIds(propertyIds, page, pageSize);
 
       return {
-        properties: data || [],
-        totalCount: count || 0,
-        totalPages: Math.ceil((count || 0) / pageSize),
+        properties: result.properties,
+        totalCount: result.totalCount,
+        totalPages: Math.ceil(result.totalCount / pageSize),
       };
     },
     enabled: !!tenantId,

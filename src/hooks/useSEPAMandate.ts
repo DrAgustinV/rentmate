@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { documentService, tenancyService, identityService } from '@/services';
+import { STORAGE_BUCKETS } from '@/constants';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
@@ -38,14 +39,7 @@ export function useSEPAMandate(agreementId: string) {
   const { data: mandate, isLoading, refetch } = useQuery({
     queryKey: ['sepa-mandate', agreementId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('rent_agreements')
-        .select('mandate_id, mandate_status, mandate_pdf_url, mandate_signed_at, tenant_iban')
-        .eq('id', agreementId)
-        .single();
-
-      if (error) throw error;
-      return data;
+      return tenancyService.getMandateInfo(agreementId);
     },
     enabled: !!agreementId,
   });
@@ -61,14 +55,7 @@ export function useSEPAMandate(agreementId: string) {
       currency: string;
       paymentDay: number;
     }) => {
-      // In production, this would call Viafirma API to create a signature session
-      // For now, we simulate the flow
-      const { data: session, error } = await supabase.functions.invoke('create-sepa-mandate-session', {
-        body: data,
-      });
-
-      if (error) throw error;
-      return session;
+      return identityService.createSEPAMandateSession(data);
     },
     onSuccess: (session) => {
       setViafirmaSession(session);
@@ -85,11 +72,10 @@ export function useSEPAMandate(agreementId: string) {
     if (!isPolling || !viafirmaSession) return;
 
     const pollInterval = setInterval(async () => {
-      const { data, error } = await supabase.functions.invoke('check-mandate-status', {
-        body: { sessionId: viafirmaSession.sessionId },
-      });
-
-      if (error) {
+      let data;
+      try {
+        data = await identityService.checkMandateStatus({ sessionId: viafirmaSession.sessionId });
+      } catch (error) {
         console.error('Polling error:', error);
         return;
       }
@@ -113,10 +99,7 @@ export function useSEPAMandate(agreementId: string) {
   // Cancel mandate
   const cancelMandateMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.functions.invoke('cancel-sepa-mandate', {
-        body: { agreementId },
-      });
-      if (error) throw error;
+      await identityService.cancelSEPAMandate({ agreementId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sepa-mandate', agreementId] });
@@ -131,11 +114,7 @@ export function useSEPAMandate(agreementId: string) {
   const downloadMandatePdf = useCallback(async () => {
     if (!mandate?.mandate_pdf_url) return;
 
-    const { data, error } = await supabase.storage
-      .from('sepa-mandates')
-      .download(mandate.mandate_pdf_url);
-
-    if (error) throw error;
+    const data = await documentService.downloadFile(STORAGE_BUCKETS.SEPA_MANDATES, mandate.mandate_pdf_url);
 
     const url = URL.createObjectURL(data);
     const a = document.createElement('a');

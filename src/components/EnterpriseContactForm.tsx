@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Sparkles, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { toast } from "sonner";
 
 const contactSchema = z.object({
@@ -55,7 +56,7 @@ export function EnterpriseContactForm({ open, onOpenChange }: EnterpriseContactF
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
 
       const { error } = await supabase.from("enterprise_contact_requests").insert({
         name: data.name,

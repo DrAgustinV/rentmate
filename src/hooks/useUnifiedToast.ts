@@ -1,4 +1,4 @@
-import { toast } from "@/lib/toast";
+import { showToast as toast } from "@/lib/toast";
 
 export type ToastVariant = 'success' | 'error' | 'info' | 'warning' | 'silent' | 'loading';
 

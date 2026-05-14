@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { profileService } from '@/services';
+import { profileService, authService, adminService } from '@/services';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -35,29 +34,15 @@ export function useUsersManagement() {
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (user) setCurrentUserId(user.id);
 
       const profiles = await profileService.getAllProfiles();
       profiles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
+      const roles = await adminService.getUserRoles();
 
-      if (rolesError) throw rolesError;
-
-      const { data: subscriptions, error: subsError } = await supabase
-        .from('user_subscriptions')
-        .select(`
-          user_id,
-          status,
-          subscription_type,
-          current_period_end,
-          plan:subscription_plans(name, slug)
-        `);
-
-      if (subsError) throw subsError;
+      const subscriptions = await adminService.getUserSubscriptions();
 
       return profiles.map((profile): UserWithSubscription => {
         const userRoles = roles.filter((r) => r.user_id === profile.id).map((r) => r.role);
@@ -80,10 +65,7 @@ export function useUsersManagement() {
 
   const addRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: UserRole }) => {
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({ user_id: userId, role });
-      if (error) throw error;
+      await adminService.addUserRole(userId, role);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -96,10 +78,7 @@ export function useUsersManagement() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase.functions.invoke('delete-user', {
-        body: { userId }
-      });
-      if (error) throw error;
+      await adminService.deleteUser(userId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });

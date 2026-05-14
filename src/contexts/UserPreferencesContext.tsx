@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { authService } from '@/services';
 
 export interface UserPreferences {
   theme_mode: 'light' | 'dark' | 'system';
@@ -77,7 +78,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
     localStorage.setItem('user-preferences', JSON.stringify(updatedPrefs));
     
     // Try to save to database if authenticated (use getSession for cache)
-    const { data: { session } } = await supabase.auth.getSession();
+    const session = await authService.getSession();
     if (session?.user) {
       const { error } = await supabase
         .from('user_preferences')
@@ -101,7 +102,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
   useEffect(() => {
     // Check session and load DB preferences in background (non-blocking)
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await authService.getSession();
       if (session?.user) {
         loadPreferencesFromDB(session.user.id);
       }
@@ -109,7 +110,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
     init();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const subscription = authService.onAuthStateChange((event, session) => {
       if (session?.user) {
         // Defer DB fetch to avoid auth deadlock
         setTimeout(() => {

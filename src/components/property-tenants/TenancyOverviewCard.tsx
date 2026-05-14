@@ -5,16 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
-import { profileService } from "@/services";
-import { format } from "date-fns";
+import { profileService, tenancyService } from "@/services";
 import { formatDate } from "@/lib/dateUtils";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
 import { 
-  User, Mail, Phone, Calendar, CalendarDays, DollarSign, Shield, 
-  FileSignature, CheckCircle, Zap, Pencil, Send, FileText, Settings
+  User, Mail, FileSignature, CheckCircle, Zap, Pencil, Send, FileText, Settings
 } from "lucide-react";
 
 interface Tenant {
@@ -140,13 +138,9 @@ export function TenancyOverviewCard({
   const { data: managerInfo } = useQuery({
     queryKey: ["property-manager", propertyId],
     queryFn: async () => {
-      const { data: property } = await supabase
-        .from("properties")
-        .select("manager_id")
-        .eq("id", propertyId)
-        .single();
-      if (!property?.manager_id) return null;
-      const profile = await profileService.getProfile(property.manager_id);
+      const managerId = await tenancyService.getPropertyManagerId(propertyId);
+      if (!managerId) return null;
+      const profile = await profileService.getProfile(managerId);
       return profile ? {
         id: profile.id,
         email: profile.email,
@@ -164,14 +158,7 @@ export function TenancyOverviewCard({
     queryKey: ["rent-agreement-summary", propertyId, tenancyId],
     queryFn: async () => {
       if (!tenancyId) return null;
-      const { data, error } = await supabase
-        .from("rent_agreements")
-        .select("*")
-        .eq("tenancy_id", tenancyId)
-        .eq("is_active", true)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      return tenancyService.getActiveRentAgreement(tenancyId);
     },
     enabled: !!tenancyId,
   });
@@ -195,7 +182,7 @@ export function TenancyOverviewCard({
   const hasRentalData = !!rentAgreement || !!tenancyRequirements;
 
   // Extract data from rent agreement or tenancy requirements
-  const rentAmountCents = rentAgreement?.monthly_rent_cents || rentAgreement?.rent_amount_cents || tenancyRequirements?.rent_amount_cents;
+  const rentAmountCents = rentAgreement?.rent_amount_cents || tenancyRequirements?.rent_amount_cents;
   const depositCents = rentAgreement?.security_deposit_cents || tenancyRequirements?.security_deposit_cents;
   const currency = rentAgreement?.currency || tenancyRequirements?.currency || 'EUR';
   const paymentDay = rentAgreement?.payment_day || tenancyRequirements?.payment_day;

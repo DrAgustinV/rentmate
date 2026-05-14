@@ -5,6 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { showToast } from "@/lib/toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { documentService } from "@/services";
+import { STORAGE_BUCKETS, SIGNED_URL_TTL, FILE_SIZE_LIMITS } from "@/constants";
 
 interface ProfilePhotoUploadProps {
   userId: string;
@@ -48,12 +50,11 @@ export function ProfilePhotoUpload({
   useEffect(() => {
     const loadSignedUrl = async () => {
       if (currentPhotoPath) {
-        const { data, error } = await supabase.storage
-          .from('profile-photos')
-          .createSignedUrl(currentPhotoPath, 3600);
-        
-        if (!error && data) {
-          setPreviewUrl(data.signedUrl);
+        try {
+          const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROFILE_PHOTOS, currentPhotoPath);
+          setPreviewUrl(url);
+        } catch {
+          // ignore
         }
       } else {
         setPreviewUrl(null);
@@ -73,8 +74,8 @@ export function ProfilePhotoUpload({
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size
+    if (file.size > FILE_SIZE_LIMITS.PROFILE_PHOTO) {
       toast.error({ title: t('common.error'), description: t('account.photoTooLarge') });
       return;
     }
@@ -84,20 +85,10 @@ export function ProfilePhotoUpload({
       const fileExt = file.name.split('.').pop();
       const fileName = `${userId}/avatar.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('profile-photos')
-        .upload(fileName, file, { upsert: true });
+      await documentService.uploadFile(STORAGE_BUCKETS.PROFILE_PHOTOS, fileName, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      const signedUrl = await documentService.getSignedUrl(STORAGE_BUCKETS.PROFILE_PHOTOS, fileName);
 
-      // Generate signed URL for preview
-      const { data: signedData, error: signedError } = await supabase.storage
-        .from('profile-photos')
-        .createSignedUrl(fileName, 3600);
-
-      if (signedError) throw signedError;
-
-      // Update database with storage path
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: fileName })
@@ -105,7 +96,7 @@ export function ProfilePhotoUpload({
 
       if (updateError) throw updateError;
 
-      setPreviewUrl(signedData.signedUrl);
+      setPreviewUrl(signedUrl);
       onPhotoChange?.(fileName);
       
       toast.success({ title: t('common.success'), description: t('account.photoUploaded') });
@@ -120,12 +111,7 @@ export function ProfilePhotoUpload({
     if (!currentPhotoPath) return;
 
     try {
-      // Delete from storage
-      await supabase.storage
-        .from('profile-photos')
-        .remove([currentPhotoPath]);
-
-      // Update database
+      await documentService.deleteFile(STORAGE_BUCKETS.PROFILE_PHOTOS, currentPhotoPath);
       const { error } = await supabase
         .from('profiles')
         .update({ avatar_url: null })

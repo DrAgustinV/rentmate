@@ -9,7 +9,8 @@ import { useUtilityPaymentMutations } from "@/hooks/useUtilityPayments";
 import { useRentPaymentMutations } from "@/hooks/useRentPayments";
 import { useRentAgreements } from "@/hooks/useRentAgreements";
 import { supabase } from "@/integrations/supabase/client";
-import { useMutationWithToast } from "@/hooks/useMutationWithToast";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface CreatePaymentDialogProps {
   open: boolean;
@@ -34,26 +35,21 @@ export function CreatePaymentDialog({
   const { createPayment: createUtilityPayment } = useUtilityPaymentMutations();
   const { createPayment: createRentPayment } = useRentPaymentMutations();
   const { data: rentAgreements } = useRentAgreements(propertyId);
-  const { mutate: createPayment } = useMutationWithToast(
-    async (data: { type: 'utility' | 'rent'; payload: any }) => {
+  const createPaymentMutation = useMutation({
+    mutationFn: async (data: { type: 'utility' | 'rent'; payload: any }) => {
       if (data.type === 'utility') {
         return createUtilityPayment.mutateAsync(data.payload);
       }
       return createRentPayment.mutateAsync(data.payload);
     },
-    {
-      toastOptions: {
-        success: {
-          title: t("common.success"),
-          description: t("payments.paymentCreated"),
-        },
-        error: {
-          title: t("common.error"),
-          description: t("payments.paymentFailed"),
-        },
-      },
-    }
-  );
+    onSuccess: () => {
+      toast.success(t("payments.paymentCreated"));
+    },
+    onError: () => {
+      toast.error(t("payments.paymentFailed"));
+    },
+  });
+  const createPayment = createPaymentMutation.mutate;
 
   const [paymentType, setPaymentType] = useState<'rent' | 'utility'>('utility');
   const [utilityType, setUtilityType] = useState<typeof utilityTypes[number]>('electricity');
@@ -296,10 +292,10 @@ export function CreatePaymentDialog({
               (paymentType === 'utility' && !billingStart) ||
               (paymentType === 'utility' && !billingEnd) ||
               (paymentType === 'rent' && !selectedRentAgreement) ||
-              createPayment.isPending
+              createPaymentMutation.isPending
             }
           >
-            {createPayment.isPending 
+            {createPaymentMutation.isPending 
               ? t("common.creating") 
               : t("common.create")}
           </Button>

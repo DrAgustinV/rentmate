@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { profileService } from '@/services';
+import { profileService, authService, identityService } from '@/services';
 import { useToast } from '@/hooks/use-toast';
 import { 
   KYCInitiationResponseSchema,
@@ -99,9 +98,9 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       setError(null);
 
       // Get authenticated user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       
-      if (authError || !user) {
+      if (!user) {
         throw new Error(t('kyc.errors.notAuthenticated'));
       }
 
@@ -156,29 +155,13 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       }
 
       let functionData;
-      let functionError;
 
-      // Call appropriate edge function based on provider
       if (selectedProvider === 'kilt') {
-        const result = await supabase.functions.invoke('initiate-kilt-kyc');
-        functionData = result.data;
-        functionError = result.error;
+        functionData = await identityService.initiateKiltKYC();
       } else if (selectedProvider === 'didit') {
-        // Didit.me (FREE)
-        const result = await supabase.functions.invoke('initiate-didit-kyc');
-        functionData = result.data;
-        functionError = result.error;
+        functionData = await identityService.initiateDiditKYC();
       } else {
-        // OpenAPI IDV
-        const result = await supabase.functions.invoke('initiate-openapi-kyc', {
-          body: { level }
-        });
-        functionData = result.data;
-        functionError = result.error;
-      }
-
-      if (functionError) {
-        throw new Error(t('kyc.errors.initiationFailed'));
+        functionData = await identityService.initiateOpenAPIKYC(level);
       }
 
       // Validate response
@@ -228,9 +211,9 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       setError(null);
 
       // Get authenticated user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       
-      if (authError || !user) {
+      if (!user) {
         throw new Error(t('kyc.errors.notAuthenticated'));
       }
 
@@ -275,11 +258,7 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       setCheckingStatus(true);
       setError(null);
 
-      const { data, error: functionError } = await supabase.functions.invoke('check-didit-kyc-status');
-
-      if (functionError) {
-        throw new Error('Failed to check status');
-      }
+      const data = await identityService.checkDiditKYCStatus();
 
       if (!data.success) {
         throw new Error(data.error || 'Status check failed');

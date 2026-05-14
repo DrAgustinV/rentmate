@@ -42,7 +42,7 @@ describe('useKYC', () => {
     });
 
     expect(result.current.isPending).toBe(false);
-    expect(result.current.currentProvider).toBeNull();
+    expect(result.current.currentProvider).toBe('didit');
   });
 
   it('should not call fetchKYCStatus when autoFetch is false', async () => {

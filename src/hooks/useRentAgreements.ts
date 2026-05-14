@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { tenancyService, authService, identityService } from '@/services';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
 
@@ -71,7 +72,7 @@ export function useRentAgreements(propertyId?: string) {
       }
 
       // Get current user to determine if they're a tenant
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) {
         console.log('[useRentAgreements] No authenticated user');
         return [];
@@ -79,49 +80,10 @@ export function useRentAgreements(propertyId?: string) {
 
       console.log('[useRentAgreements] Fetching for user:', user.id, 'property:', propertyId);
 
-      // Build query with filters
-      let query = supabase
-        .from('rent_agreements')
-        .select(`
-          *,
-          tenant:profiles!rent_agreements_tenant_id_fkey (
-            id,
-            first_name,
-            last_name,
-            email
-          )
-        `)
-        .eq('property_id', propertyId)
-        .eq('is_active', true);
-
-      // If user is a tenant (not the property manager), filter to only their agreements
-      // This helps with RLS policy joins
-      const { data: propertyData } = await supabase
-        .from('properties')
-        .select('manager_id')
-        .eq('id', propertyId)
-        .single();
-
-      const isManager = propertyData && propertyData.manager_id === user.id;
-      console.log('[useRentAgreements] User is manager:', isManager);
-
-      if (!isManager) {
-        // User is a tenant, not the manager
-        console.log('[useRentAgreements] Filtering by tenant_id:', user.id);
-        query = query.eq('tenant_id', user.id);
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('[useRentAgreements] Query error:', error);
-        throw error;
-      }
-
-      console.log('[useRentAgreements] Query result:', data?.length, 'agreements found');
-      console.log('[useRentAgreements] Data:', JSON.stringify(data, null, 2));
-      
-      return data;
+      const managerId = await tenancyService.getPropertyManagerId(propertyId);
+      const isManager = managerId === user.id;
+      const data = await tenancyService.getRentAgreementsForProperty(propertyId);
+      return isManager ? data : data.filter(a => a.tenant_id === user.id);
     },
     enabled: !!propertyId,
   });
@@ -141,9 +103,7 @@ export function useRentAgreementMutations() {
       end_date?: string;
       currency: string;
     }) => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
       const insertData: any = {
@@ -161,14 +121,7 @@ export function useRentAgreementMutations() {
         insertData.end_date = data.end_date;
       }
 
-      const { data: result, error } = await supabase
-        .from('rent_agreements')
-        .insert(insertData)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return result;
+      return tenancyService.createRentAgreement(insertData);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY, variables.property_id] });
@@ -193,43 +146,17 @@ export function useRentAgreementMutations() {
       utilities_tenant_responsible?: string | null;
       utilities_manager_responsible?: string | null;
     }) => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Check if contract signing is in progress
-      const { data: existingAgreement } = await supabase
-        .from('rent_agreements')
-        .select('tenancy_id, property_id')
-        .eq('id', data.agreement_id)
-        .single();
+      const existingAgreement = await tenancyService.getRentAgreementForEdit(data.agreement_id);
+      if (!existingAgreement) throw new Error('Agreement not found');
 
-      if (!existingAgreement) {
-        throw new Error('Agreement not found');
-      }
-
-      const { data: activeSignature } = await supabase
-        .from('contract_signatures')
-        .select('workflow_status')
-        .eq('tenancy_id', existingAgreement.tenancy_id)
-        .in('workflow_status', ['pending', 'in_progress'])
-        .maybeSingle();
-
-      if (activeSignature) {
-        throw new Error('Cannot edit rent agreement while contract signing is in progress');
-      }
+      const activeSignature = await tenancyService.getActiveSignature(existingAgreement.tenancy_id);
+      if (activeSignature) throw new Error('Cannot edit rent agreement while contract signing is in progress');
 
       const { agreement_id, ...updateData } = data;
-
-      const { data: result, error } = await supabase
-        .from('rent_agreements')
-        .update(updateData)
-        .eq('id', agreement_id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const result = await tenancyService.updateRentAgreement(agreement_id, updateData);
       return { result, property_id: existingAgreement.property_id };
     },
     onSuccess: (data) => {
@@ -248,16 +175,10 @@ export function useRentAgreementMutations() {
 
   const updateIban = useMutation({
     mutationFn: async (data: { agreement_id: string; tenant_iban: string }) => {
-      // Call edge function to create SEPA mandate
-      const { data: result, error } = await supabase.functions.invoke('create-sepa-mandate', {
-        body: {
-          agreement_id: data.agreement_id,
-          tenant_iban: data.tenant_iban,
-        },
+      return identityService.createSEPAMandate({
+        agreement_id: data.agreement_id,
+        tenant_iban: data.tenant_iban,
       });
-
-      if (error) throw error;
-      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY] });

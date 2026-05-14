@@ -1,5 +1,3 @@
-// import { translations } from './translations/index';
-// ✅ Correct - access the exports properly
 const translationsModule = await import('./translations/index.ts');
 const translations = translationsModule.default || translationsModule;
 

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { documentService, paymentService, authService } from '@/services';
+import { STORAGE_BUCKETS } from '@/constants';
 import { toast } from 'sonner';
 
 export interface RentPayment {
@@ -34,14 +35,7 @@ export function useRentPayments(propertyId?: string) {
     queryFn: async () => {
       if (!propertyId) return [];
 
-      const { data, error } = await supabase
-        .from('rent_payments')
-        .select('*')
-        .eq('property_id', propertyId)
-        .order('payment_due_date', { ascending: false });
-
-      if (error) throw error;
-      return data as RentPayment[];
+      return paymentService.getRentPayments(propertyId) as Promise<RentPayment[]>;
     },
     enabled: !!propertyId,
   });
@@ -51,16 +45,7 @@ export function useRentPaymentMutations() {
   const queryClient = useQueryClient();
 
   const createPayment = useMutation({
-    mutationFn: async (payment: any) => {
-      const { data, error } = await supabase
-        .from('rent_payments')
-        .insert([payment])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: async (payment: any) => paymentService.createRentPayment(payment),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
       toast.success('Rent payment created successfully');
@@ -71,17 +56,7 @@ export function useRentPaymentMutations() {
   });
 
   const updatePayment = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<RentPayment> }) => {
-      const { data, error } = await supabase
-        .from('rent_payments')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<RentPayment> }) => paymentService.updateRentPayment(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
       toast.success('Rent payment updated successfully');
@@ -96,24 +71,12 @@ export function useRentPaymentMutations() {
       const fileExt = file.name.split('.').pop();
       const filePath = `${paymentId}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('rent-payment-proofs')
-        .upload(filePath, file);
+      await documentService.uploadFile(STORAGE_BUCKETS.RENT_PAYMENT_PROOFS, filePath, file);
 
-      if (uploadError) throw uploadError;
-
-      const { data, error: updateError } = await supabase
-        .from('rent_payments')
-        .update({
-          proof_of_payment_url: filePath,
-          proof_review_status: 'pending',
-        })
-        .eq('id', paymentId)
-        .select()
-        .single();
-
-      if (updateError) throw updateError;
-      return data;
+      return paymentService.updateRentPayment(paymentId, {
+        proof_of_payment_url: filePath,
+        proof_review_status: 'pending',
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
@@ -125,21 +88,11 @@ export function useRentPaymentMutations() {
   });
 
   const markAsPaid = useMutation({
-    mutationFn: async (paymentId: string) => {
-      const { data, error } = await supabase
-        .from('rent_payments')
-        .update({
-          status: 'paid',
-          payment_received_date: new Date().toISOString().split('T')[0],
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', paymentId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: async (paymentId: string) => paymentService.updateRentPayment(paymentId, {
+      status: 'paid',
+      payment_received_date: new Date().toISOString().split('T')[0],
+      updated_at: new Date().toISOString(),
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
       toast.success('Payment marked as paid');
@@ -159,7 +112,7 @@ export function useRentPaymentMutations() {
       status: 'approved' | 'rejected';
       notes?: string;
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
       const updates: Partial<RentPayment> = {
@@ -174,15 +127,7 @@ export function useRentPaymentMutations() {
         updates.payment_received_date = new Date().toISOString().split('T')[0];
       }
 
-      const { data, error } = await supabase
-        .from('rent_payments')
-        .update(updates)
-        .eq('id', paymentId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return paymentService.updateRentPayment(paymentId, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });

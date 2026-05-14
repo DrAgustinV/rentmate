@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { profileService } from "@/services";
+import { authService, profileService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FolderOpen, Wrench, FileText, ClipboardList, Settings, Plus } from "lucide-react";
@@ -16,9 +16,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CreatePropertyTemplateDialog } from "@/components/CreatePropertyTemplateDialog";
 import { GlobalTemplatesList } from "@/components/GlobalTemplatesList";
-// SEPA bank-to-bank payments UI hidden - backend code preserved for future use
-// import { StripeConnectOnboarding } from "@/components/payments/StripeConnectOnboarding";
-
 type ConfigTab = "maintenance" | "templates" | "repair-shops" | "defaults";
 
 export default function Configuration() {
@@ -49,7 +46,7 @@ export default function Configuration() {
   useEffect(() => {
 
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await authService.getSession();
       if (!session) {
         navigate("/auth");
         return;
@@ -190,7 +187,6 @@ export default function Configuration() {
             <span className="hidden sm:inline">{t("configuration.tabs.repairShops")}</span>
             <span className="sm:hidden">Shops</span>
           </TabsTrigger>
-          {/* SEPA payments tab hidden - backend code preserved for future use */}
           <TabsTrigger value="defaults" className="gap-2">
             <Settings className="h-4 w-4" />
             <span className="hidden sm:inline">{t("configuration.tabs.defaults")}</span>
@@ -227,8 +223,6 @@ export default function Configuration() {
         <TabsContent value="repair-shops" className="space-y-4">
           <RepairShopsSection />
         </TabsContent>
-
-        {/* SEPA payments tab content hidden - backend code preserved for future use */}
 
         <TabsContent value="defaults" className="space-y-4">
           <Card>

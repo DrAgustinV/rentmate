@@ -52,11 +52,13 @@ export async function initializeSession(userId: string | null): Promise<string> 
     return sessionId;
   }
 
-  const { data: existingSession } = await supabase
+  const { data: existingSession, error: existingError } = await supabase
     .from('analytics_sessions')
     .select('id')
     .eq('session_id', sessionId)
     .maybeSingle();
+
+  if (existingError) throw existingError;
 
   if (existingSession) {
     return sessionId;
@@ -66,22 +68,24 @@ export async function initializeSession(userId: string | null): Promise<string> 
   let subscriptionTier = null;
 
   if (userId) {
-    const { data: roleData } = await supabase
+    const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
       .single();
+    if (roleError) throw roleError;
     userRole = roleData?.role || null;
 
-    const { data: subData } = await supabase
+    const { data: subData, error: subError } = await supabase
       .from('user_subscriptions')
       .select('subscription_type')
       .eq('user_id', userId)
       .maybeSingle();
+    if (subError) throw subError;
     subscriptionTier = subData?.subscription_type || 'free';
   }
 
-  await supabase.from('analytics_sessions').insert({
+  const { error: insertError } = await supabase.from('analytics_sessions').insert({
     session_id: sessionId,
     user_id: userId,
     is_authenticated: !!userId,
@@ -89,6 +93,8 @@ export async function initializeSession(userId: string | null): Promise<string> 
     subscription_tier: subscriptionTier,
     started_at: new Date().toISOString(),
   });
+
+  if (insertError) throw insertError;
 
   return sessionId;
 }
@@ -122,10 +128,8 @@ export async function trackPageView(params: {
     .select('id')
     .single();
 
-  if (insertError || !pageView) {
-    console.error('[Analytics] Error inserting page view:', insertError);
-    return;
-  }
+  if (insertError) throw insertError;
+  if (!pageView) throw new Error('Failed to create page view record');
 
   // Fire-and-forget geolocation update
   supabase.functions
@@ -160,7 +164,7 @@ export async function trackEvent(params: {
 }): Promise<void> {
   if (!hasAnalyticsConsent()) return;
 
-  await supabase.from('analytics_events').insert({
+  const { error } = await supabase.from('analytics_events').insert({
     user_id: params.userId,
     session_id: params.sessionId,
     event_name: params.eventName,
@@ -168,6 +172,7 @@ export async function trackEvent(params: {
     event_metadata: params.eventMetadata || null,
     page_path: params.pagePath,
   });
+  if (error) throw error;
 }
 
 export async function trackNavigation(params: {
@@ -178,10 +183,11 @@ export async function trackNavigation(params: {
 }): Promise<void> {
   if (!hasAnalyticsConsent()) return;
 
-  await supabase.from('analytics_navigation_paths').insert({
+  const { error } = await supabase.from('analytics_navigation_paths').insert({
     user_id: params.userId,
     session_id: params.sessionId,
     from_path: params.fromPath,
     to_path: params.toPath,
   });
+  if (error) throw error;
 }

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { documentService } from "@/services";
+import { STORAGE_BUCKETS, FILE_SIZE_LIMITS } from "@/constants";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { PROPERTIES_QUERY_KEY } from "@/hooks/useProperties";
@@ -42,8 +44,8 @@ export function PropertyPhotoUpload({
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size
+    if (file.size > FILE_SIZE_LIMITS.PROPERTY_PHOTO) {
       error(t('common.error'), "Image must be less than 5MB");
       return;
     }
@@ -66,18 +68,9 @@ export function PropertyPhotoUpload({
       const fileExt = file.name.split('.').pop();
       const fileName = `${propertyId}/profile.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('property-photos')
-        .upload(fileName, file, { upsert: true });
+      await documentService.uploadFile(STORAGE_BUCKETS.PROPERTY_PHOTOS, fileName, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
-
-      // Generate signed URL for preview (expires in 1 hour)
-      const { data: signedData, error: signedError } = await supabase.storage
-        .from('property-photos')
-        .createSignedUrl(fileName, 3600);
-
-      if (signedError) throw signedError;
+      const signedUrl = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_PHOTOS, fileName);
 
       // Update database with storage path
       const { error: updateError } = await supabase
@@ -88,7 +81,7 @@ export function PropertyPhotoUpload({
       if (updateError) throw updateError;
 
       // Set preview to signed URL for display
-      setPreviewUrl(signedData.signedUrl);
+      setPreviewUrl(signedUrl);
       // Pass storage path to parent, not signed URL
       onPhotoChange(fileName);
       

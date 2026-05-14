@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
+import { authService, tenancyService } from "@/services";
 import {
   CheckCircle2,
   Circle,
@@ -46,7 +47,7 @@ export function TenantOnboardingChecklist({
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["current-user-profile-checklist"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) return null;
       
       const { data, error } = await supabase
@@ -96,14 +97,7 @@ export function TenantOnboardingChecklist({
   const { data: rentAgreement, isLoading: agreementLoading } = useQuery({
     queryKey: ["rent-agreement-checklist", tenancyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("rent_agreements")
-        .select("tenant_iban")
-        .eq("tenancy_id", tenancyId)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data;
+      return tenancyService.getActiveRentAgreement(tenancyId);
     },
     enabled: !!tenancyId,
   });
@@ -156,19 +150,6 @@ export function TenantOnboardingChecklist({
       actionLabel: t("onboarding.checklist.signContract"),
     });
   }
-
-  // SEPA IBAN setup hidden - backend code preserved for future use
-  // if (rentAgreement) {
-  //   items.push({
-  //     id: "iban",
-  //     label: t("onboarding.checklist.bankSetup"),
-  //     description: t("onboarding.checklist.bankSetupDesc"),
-  //     isRequired: false, // Optional
-  //     isCompleted: !!rentAgreement.tenant_iban,
-  //     action: !rentAgreement.tenant_iban ? onSwitchToPayments : undefined,
-  //     actionLabel: t("onboarding.checklist.setupBank"),
-  //   });
-  // }
 
   // Don't show checklist if no items or all complete
   if (items.length === 0) return null;

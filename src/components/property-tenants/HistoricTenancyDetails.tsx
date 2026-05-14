@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { paymentService } from "@/services";
 import { format } from "date-fns";
 import { User, Calendar, DollarSign, CreditCard, Ticket, CheckCircle, Clock } from "lucide-react";
 
@@ -72,13 +68,7 @@ export function HistoricTenancyDetails({
         setRentAgreement(agreements);
 
         // Fetch payment summary for this tenancy
-        const { data: payments } = await supabase
-          .from('rent_payments')
-          .select('payment_received_date, amount_cents')
-          .eq('tenancy_id', tenancy.tenant_id)
-          .eq('property_id', propertyId)
-          .eq('status', 'paid')
-          .order('payment_received_date', { ascending: false });
+        const payments = await paymentService.getRentPaymentSummary(tenancy.tenant_id, propertyId);
 
         if (payments && payments.length > 0) {
           const totalPaid = payments.reduce((sum, p) => sum + p.amount_cents, 0);

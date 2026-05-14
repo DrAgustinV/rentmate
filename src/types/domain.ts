@@ -66,14 +66,102 @@ export interface RentAgreementDomain {
   updatedAt: string;
 }
 
+// ========== PROPERTY DOMAIN ==========
+export interface PropertyDomain {
+  id: string;
+  title: string;
+  address: string | null;
+  city: string | null;
+  stateProvince: string | null;
+  postalCode: string | null;
+  country: string | null;
+  description: string | null;
+  status: string;
+  images: string[] | null;
+  managerId: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  deleteReason: string | null;
+  modificationReason: string | null;
+}
+
+export interface PropertyBasicInfo {
+  title: string;
+  address: string | null;
+}
+
+// ========== PAYMENT DOMAIN ==========
+export interface PaymentDomain {
+  id: string;
+  propertyId: string;
+  tenancyId: string;
+  tenantId: string;
+  amountCents: number;
+  currency: string;
+  status: string;
+  paymentDate: string;
+  dueDate: string;
+  description: string | null;
+  proofPath: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UtilityPaymentDomain {
+  id: string;
+  propertyId: string;
+  type: string;
+  amountCents: number;
+  currency: string;
+  status: string;
+  paymentDate: string;
+  dueDate: string;
+  provider: string;
+  proofPath: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ========== TICKET DOMAIN ==========
+export interface TicketDomain {
+  id: string;
+  propertyId: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  category: string | null;
+  createdBy: string;
+  assignedTo: string | null;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt: string | null;
+}
+
+export interface TicketCommentDomain {
+  id: string;
+  ticketId: string;
+  userId: string;
+  comment: string;
+  isInternal: boolean;
+  createdAt: string;
+}
+
+export interface TicketAttachmentDomain {
+  id: string;
+  ticketId: string;
+  userId: string;
+  fileName: string;
+  filePath: string;
+  fileSize: number;
+  mimeType: string;
+  createdAt: string;
+}
+
 // ========== UPLOAD RESULT ==========
 export interface UploadResult {
   storagePath: string;
   bucket: string;
 }
 
-// ========== SERVICE RESULT ==========
-export interface ServiceResult<T> {
-  data: T | null;
-  error: string | null;
-}

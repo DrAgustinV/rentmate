@@ -18,7 +18,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { authService, ticketService } from "@/services";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -45,7 +45,7 @@ const StatusManager = ({
 
   const updateStatusMutation = useMutation({
     mutationFn: async (data: { status?: TicketStatus; priority?: TicketPriority; resolution_notes?: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const updates: any = {};
@@ -57,16 +57,11 @@ const StatusManager = ({
         updates.resolution_notes = data.resolution_notes;
       }
 
-      const { error } = await supabase
-        .from("tickets")
-        .update(updates)
-        .eq("id", ticketId);
-
-      if (error) throw error;
+      await ticketService.updateTicketSimple(ticketId, updates);
 
       // Record activity
       if (data.status && data.status !== currentStatus) {
-        await supabase.from("ticket_activities").insert({
+        await ticketService.addTicketActivity({
           ticket_id: ticketId,
           user_id: user.id,
           activity_type: "status_change",
@@ -76,7 +71,7 @@ const StatusManager = ({
       }
 
       if (data.priority && data.priority !== currentPriority) {
-        await supabase.from("ticket_activities").insert({
+        await ticketService.addTicketActivity({
           ticket_id: ticketId,
           user_id: user.id,
           activity_type: "priority_change",

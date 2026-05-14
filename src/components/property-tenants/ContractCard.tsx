@@ -12,7 +12,7 @@ import DocumentActionsMenu from "./DocumentActionsMenu";
 import DocumentVersionHistoryModal from "./DocumentVersionHistoryModal";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import { ContractSignatureManager } from "@/components/ContractSignatureManager";
-import { downloadFile, getSignedUrl } from "@/services";
+import { downloadFile, getSignedUrl, documentService, tenancyService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 
 interface ContractBadgeProps {
@@ -97,13 +97,7 @@ export function ContractCard({
     queryKey: ["tenancy-documents", currentTenant?.id],
     queryFn: async () => {
       if (!currentTenant) return [];
-      const { data, error } = await supabase
-        .from("property_documents")
-        .select("*")
-        .eq("tenancy_id", currentTenant.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as TenancyDocument[];
+      return tenancyService.getTenancyDocuments(currentTenant.id) as Promise<TenancyDocument[]>;
     },
     enabled: !!currentTenant,
   });
@@ -113,14 +107,7 @@ export function ContractCard({
     queryKey: ["contract-signature-status", currentTenant?.id],
     queryFn: async () => {
       if (!currentTenant) return null;
-      const { data } = await supabase
-        .from("contract_signatures")
-        .select("workflow_status")
-        .eq("tenancy_id", currentTenant.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data;
+      return tenancyService.getContractSignatureStatus(currentTenant.id);
     },
     enabled: !!currentTenant?.id,
   });
@@ -129,8 +116,7 @@ export function ContractCard({
 
   const deleteDocumentMutation = useMutation({
     mutationFn: async (docId: string) => {
-      const { error } = await supabase.from("property_documents").delete().eq("id", docId);
-      if (error) throw error;
+      await documentService.deleteDocument(docId);
     },
     onSuccess: () => {
       showToast.success({ title: t("properties.propertyDocuments.deleteSuccess") });

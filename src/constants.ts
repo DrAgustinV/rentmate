@@ -29,7 +29,8 @@ export const FILE_SIZE_LIMITS = {
   TICKET_PHOTO: 5 * 1024 * 1024,        // 5 MB
   TICKET_VIDEO: 50 * 1024 * 1024,       // 50 MB
   INSPECTION_MEDIA: 50 * 1024 * 1024,   // 50 MB
-  BRAND_LOGO: 5 * 1024 * 1024,          // 5 MB
+  BRAND_LOGO: 2 * 1024 * 1024,          // 2 MB
+  CAROUSEL_IMAGE: 5 * 1024 * 1024,      // 5 MB
   IMPORT_FILE: 5 * 1024 * 1024,         // 5 MB
 } as const;
 
