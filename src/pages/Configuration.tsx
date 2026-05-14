@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { profileService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FolderOpen, Wrench, FileText, ClipboardList, Settings, Plus } from "lucide-react";
@@ -76,7 +77,9 @@ export default function Configuration() {
   const fetchDefaultSettings = async (uid: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const profile = await profileService.getProfile(uid);
+      
+      const { data: settingsData, error } = await supabase
         .from("profiles")
         .select("default_rent_settings")
         .eq("id", uid)
@@ -84,8 +87,8 @@ export default function Configuration() {
 
       if (error && error.code !== "PGRST116") throw error;
 
-      if (data?.default_rent_settings) {
-        const settings = data.default_rent_settings as any;
+      if (settingsData?.default_rent_settings) {
+        const settings = settingsData.default_rent_settings as any;
         setDefaultRequireKYC(settings.require_kyc || false);
         setDefaultDeposit((settings.default_deposit_amount || 0).toString());
         setDefaultRequirePaymentConfirmation(settings.require_payment_confirmation !== false);

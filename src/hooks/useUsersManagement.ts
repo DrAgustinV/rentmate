@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { profileService } from '@/services';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -37,12 +38,8 @@ export function useUsersManagement() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) setCurrentUserId(user.id);
 
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, email, first_name, last_name, created_at')
-        .order('created_at', { ascending: false });
-
-      if (profilesError) throw profilesError;
+      const profiles = await profileService.getAllProfiles();
+      profiles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { profileService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,20 +66,21 @@ export default function Account() {
   const fetchProfile = async (userId: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const profile = await profileService.getProfile(userId);
+      
+      // Fetch deletion date separately as it's not in ProfileDomain
+      const { data: deletionData } = await supabase
         .from("profiles")
-        .select("first_name, last_name, deletion_scheduled_for, avatar_url, kyc_status")
+        .select("deletion_scheduled_for")
         .eq("id", userId)
         .maybeSingle();
 
-      if (error && error.code !== "PGRST116") throw error;
-
-      if (data) {
-        setFirstName(data.first_name || "");
-        setLastName(data.last_name || "");
-        setDeletionScheduled(data.deletion_scheduled_for);
-        setAvatarUrl(data.avatar_url);
-        setKycStatus(data.kyc_status);
+      if (profile) {
+        setFirstName(profile.firstName || "");
+        setLastName(profile.lastName || "");
+        setDeletionScheduled(deletionData?.deletion_scheduled_for || null);
+        setAvatarUrl(profile.avatarStoragePath);
+        setKycStatus(profile.kycStatus);
       }
     } catch (error: any) {
       toast({
@@ -96,16 +98,10 @@ export default function Account() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          first_name: firstName,
-          last_name: lastName,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
+      await profileService.updateProfile(user.id, {
+        firstName: firstName || null,
+        lastName: lastName || null,
+      });
 
       toast({
         title: t('common.success'),

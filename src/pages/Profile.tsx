@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { profileService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -51,17 +52,11 @@ export default function Profile() {
   const fetchProfile = async (userId: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("first_name, last_name")
-        .eq("id", userId)
-        .maybeSingle();
+      const profile = await profileService.getProfile(userId);
 
-      if (error && error.code !== "PGRST116") throw error;
-
-      if (data) {
-        setFirstName(data.first_name || "");
-        setLastName(data.last_name || "");
+      if (profile) {
+        setFirstName(profile.firstName || "");
+        setLastName(profile.lastName || "");
       }
       setSelectedLanguage(language);
     } catch (error: any) {
@@ -79,16 +74,10 @@ export default function Profile() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          first_name: firstName,
-          last_name: lastName,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
+      await profileService.updateProfile(user.id, {
+        firstName: firstName || null,
+        lastName: lastName || null,
+      });
 
       if (selectedLanguage !== language) {
         await changeLanguage(selectedLanguage);
