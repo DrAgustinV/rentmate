@@ -58,11 +58,6 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
     enabled: !!propertyId,
   });
 
-  const activeTenantWithProfile = useMemo(() => {
-    if (!allTenants) return null;
-    return allTenants.find(t => t.tenancy_status === 'active') || null;
-  }, [allTenants]);
-
   const { data: allTenants } = useQuery({
     queryKey: ["all-tenants-basic", propertyId],
     queryFn: async () => {
@@ -78,6 +73,11 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
     },
     enabled: !!propertyId,
   });
+
+  const activeTenantWithProfile = useMemo(() => {
+    if (!allTenants) return null;
+    return allTenants.find(t => t.tenancy_status === 'active') || null;
+  }, [allTenants]);
 
   const { data: invitations, refetch: refetchInvitations } = useQuery({
     queryKey: ["invitations", propertyId],

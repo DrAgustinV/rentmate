@@ -4,12 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MapPin, Edit, Mail, Archive, Users, Home, Image as ImageIcon, Eye, Ticket, Wrench, Zap, Plus } from "lucide-react";
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
-import { propertyService } from "@/services";
 
 export interface PropertyStatusIndicators {
   property_id: string;
@@ -23,42 +21,34 @@ export interface PropertyStatusIndicators {
   maintenance_has_data: boolean;
 }
 
+export interface TenantStatusInfo {
+  status: "occupied" | "invited" | "free";
+  tenant_name?: string;
+  tenant_email?: string;
+  pending_invites?: number;
+}
+
 interface PropertyCardProps {
-  property: any;
+  property: {
+    id: string;
+    title: string;
+    address?: string | null;
+    status: string;
+    deletedAt?: string | null;
+    createdAt?: string;
+    images?: string[] | null;
+  };
   isManager: boolean;
   onUpdate: () => void;
   statusIndicators?: PropertyStatusIndicators;
+  tenantStatus?: TenantStatusInfo | null;
+  isTenantStatusLoading?: boolean;
   photoUrl?: string;
 }
 
-export function PropertyCard({ property, isManager, onUpdate, statusIndicators, photoUrl }: PropertyCardProps) {
+export function PropertyCard({ property, isManager, onUpdate, statusIndicators, tenantStatus, isTenantStatusLoading = false, photoUrl }: PropertyCardProps) {
   const { t } = useLanguage();
-  const [tenantStatus, setTenantStatus] = useState<{
-    status: "occupied" | "invited" | "free";
-    tenant_name?: string;
-    tenant_email?: string;
-    pending_invites?: number;
-  } | null>(null);
-  const [loadingStatus, setLoadingStatus] = useState(true);
   const navigate = useNavigate();
-
-  const fetchTenantStatus = async () => {
-    try {
-      setLoadingStatus(true);
-      const status = await propertyService.getPropertyTenantStatus(property.id);
-      if (status) {
-        setTenantStatus(status as any);
-      }
-    } catch (error) {
-      console.error("Error fetching tenant status:", error);
-    } finally {
-      setLoadingStatus(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTenantStatus();
-  }, [property.id]);
 
   const getStatusBadge = () => {
     if (property.status === "active") {
@@ -139,7 +129,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
                   </CardDescription>
                 )}
               </div>
-              {loadingStatus ? (
+              {isTenantStatusLoading ? (
                 <Skeleton className="h-5 w-12" />
               ) : (
                 <Badge variant={statusBadge.variant} className="text-[10px] px-1.5 py-0">
@@ -151,7 +141,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
             {/* Tenant Status - Compact */}
             {!isEndingTenancy && !isArchived && (
               <div className="mt-1 pt-1 border-t border-border/50">
-                {loadingStatus ? (
+                {isTenantStatusLoading ? (
                   <Skeleton className="h-4 w-20" />
                 ) : (
                   tenantStatus && (

@@ -118,7 +118,7 @@ export function InspectionCard({
     <>
       <Card className="card-shine">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div>
+          {/* <div>
             <CardTitle className="flex items-center gap-2">
               <ClipboardCheck className="h-5 w-5" />
               {t('inspections.title')}
@@ -126,7 +126,7 @@ export function InspectionCard({
             <CardDescription>
               {t('inspections.description') || 'Move-in and move-out condition reports'}
             </CardDescription>
-          </div>
+          </div> */}
           {isManager && !isReadOnly && (canCreateMoveIn || canCreateMoveOut) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

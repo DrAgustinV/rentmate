@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { showToast } from "@/lib/toast";
-import { Upload, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import DocumentActionsMenu from "./DocumentActionsMenu";
 import DocumentVersionHistoryModal from "./DocumentVersionHistoryModal";
@@ -69,6 +69,10 @@ interface ContractCardProps {
   isReadOnly: boolean;
   pendingRequirement?: TenancyRequirement | null;
   tenancyRequirements?: { contract_method?: string | null } | null;
+  uploadDocumentOpen?: boolean;
+  selectedParentDoc?: { id: string; title: string } | null;
+  onSetUploadDocumentOpen?: (open: boolean) => void;
+  onSetSelectedParentDoc?: (doc: { id: string; title: string } | null) => void;
 }
 
 const formatFileSize = (bytes: number) => {
@@ -82,12 +86,21 @@ export function ContractCard({
   isReadOnly,
   pendingRequirement,
   tenancyRequirements,
+  uploadDocumentOpen: propsUploadOpen,
+  selectedParentDoc: propsSelectedDoc,
+  onSetUploadDocumentOpen,
+  onSetSelectedParentDoc,
 }: ContractCardProps) {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   
-  const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
-  const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
+  const [localUploadDocumentOpen, setLocalUploadDocumentOpen] = useState(false);
+  const [localSelectedParentDoc, setLocalSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
+  
+  const uploadDocumentOpen = propsUploadOpen ?? localUploadDocumentOpen;
+  const selectedParentDoc = propsSelectedDoc ?? localSelectedParentDoc;
+  const setUploadDocumentOpen = onSetUploadDocumentOpen || setLocalUploadDocumentOpen;
+  const setSelectedParentDoc = onSetSelectedParentDoc || setLocalSelectedParentDoc;
   const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
   const [versionModalOpen, setVersionModalOpen] = useState(false);
   const [selectedDocForVersions, setSelectedDocForVersions] = useState<{ title: string; versions: TenancyDocument[] } | null>(null);
@@ -182,30 +195,6 @@ export function ContractCard({
   return (
     <>
     <Card className="card-shine" id="contract-signature-section">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">                
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-              <FileText className="h-4 w-4 text-white" />
-            </div>
-            {t("properties.contract") || "Contract"}
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            {isContractLocked && (
-              <ContractBadge state="locked" label={t("properties.contractLocked") || "Locked"} />
-            )}
-            {isReadOnly && !isContractLocked && (
-              <ContractBadge state="readonly" label={t("properties.readOnlyAccess")} />
-            )}
-            {!isReadOnly && !isContractLocked && !uploadDocumentOpen && !selectedParentDoc && userRole?.isManager && (
-              <Button variant="outline" size="sm" className="h-8" onClick={() => setUploadDocumentOpen(true)}>
-                <Upload className="h-4 w-4 mr-2" />
-                {t("properties.uploadContract") || "Upload Contract"}
-              </Button>
-            )}
-          </div>
-        </div>
-      </CardHeader>
       <CardContent className="space-y-6">
         {/* Uploaded Documents List */}
         <div className="space-y-4">
@@ -284,7 +273,7 @@ export function ContractCard({
                           onDelete={() => !isReadOnly && !isContractLocked && userRole?.isManager && deleteDocumentMutation.mutate(latestDoc.id)}
                           canEdit={!isReadOnly && !isContractLocked && !!userRole?.isManager}
                         />
-                        {olderVersions.length > 0 && (
+                        {/* {olderVersions.length > 0 && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -297,7 +286,7 @@ export function ContractCard({
                               {t("properties.propertyDocuments.history") || "History"}
                             </span>
                           </Button>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   </div>
@@ -310,12 +299,12 @@ export function ContractCard({
                 <FileText className="h-8 w-8 text-muted-foreground" />
               </div>
               <p className="text-muted-foreground mb-2">{t("properties.noTenancyDocuments")}</p>
-              {!isReadOnly && userRole?.isManager && (
+              {/* {!isReadOnly && userRole?.isManager && (
                 <Button variant="outline" size="sm" className="h-8" onClick={() => setUploadDocumentOpen(true)}>
                   <Upload className="h-4 w-4 mr-2" />
                   {t("properties.uploadContract") || "Upload Contract"}
                 </Button>
-              )}
+              )} */}
             </div>
           )}
         </div>

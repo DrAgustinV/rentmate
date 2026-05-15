@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { showToast } from "@/lib/toast";
@@ -12,19 +9,12 @@ import {
   Upload,
   FileText,
   ClipboardCheck,
-  Settings,
+  User,
+  Plus,
+  Pencil,
   Send,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
 } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { formatDate } from "@/lib/dateUtils";
-import DocumentActionsMenu from "./DocumentActionsMenu";
-import DocumentVersionHistoryModal from "./DocumentVersionHistoryModal";
-import { cn } from "@/lib/utils";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
-import PropertyDocumentVersionHistory from "@/components/PropertyDocumentVersionHistory";
 import { ContractSignatureManager } from "@/components/ContractSignatureManager";
 import { TenantOnboardingChecklist } from "./TenantOnboardingChecklist";
 import { TenancyOverviewCard } from "./TenancyOverviewCard";
@@ -33,6 +23,12 @@ import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
 import { InspectionCard } from "@/components/inspection";
 import { documentService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
+
+import { SectionCard } from "./SectionCard";
+import { InteractiveStepper } from "./InteractiveStepper";
+import { EmptyState } from "@/components/EmptyState";
+import { ContractsTabSkeleton } from "./ContractsTabSkeleton";
+import { StatusBadge } from "./StatusBadge";
 
 interface Tenant {
   id: string;
@@ -141,7 +137,38 @@ export function ContractsTab({
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   
-  const [sectionFilter, setSectionFilter] = useState<string>("all");
+  const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
+  const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
+  const [tenancyDocsMap] = useState<Record<string, TenancyDocument[]>>({});
+  const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(['tenant']) // Default: tenant section open
+  );
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => {
+      const next = new Set(prev);
+      if (next.has(section)) {
+        next.delete(section);
+      } else {
+        next.add(section);
+      }
+      return next;
+    });
+  };
+
+  const handleStepClick = (step: number) => {
+    const stepToSection: Record<number, string> = {
+      1: 'tenant',
+      2: 'tenant',
+      3: 'historic',
+    };
+    const section = stepToSection[step];
+    if (section && !expandedSections.has(section)) {
+      setExpandedSections(prev => new Set([...prev, section]));
+    }
+    document.getElementById(`section-${section}`)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // Query tenancy requirements for contract method
   const { data: tenancyRequirements } = useQuery({
@@ -175,7 +202,7 @@ export function ContractsTab({
     enabled: !!currentTenant,
   });
 
-  // Invitations query (manager only) - includes pending and recently declined
+  // Invitations query (manager only)
   const { data: invitations } = useQuery({
     queryKey: ["invitations", propertyId],
     queryFn: async () => {
@@ -195,7 +222,6 @@ export function ContractsTab({
     enabled: !!propertyId && userRole?.isManager,
   });
 
-  // Separate pending and declined invitations
   const pendingInvitations = invitations?.filter(inv => inv.status === 'pending') || [];
   const declinedInvitations = invitations?.filter(inv => inv.status === 'declined') || [];
 
@@ -214,25 +240,19 @@ export function ContractsTab({
 
   const loadTenancyDocuments = async (tenancyId: string) => {
     if (tenancyDocsMap[tenancyId]) return;
-
     const { data, error } = await supabase
       .from("property_documents")
       .select("*")
       .eq("tenancy_id", tenancyId)
       .order("created_at", { ascending: false });
-
     if (!error && data) {
-      setTenancyDocsMap((prev) => ({ ...prev, [tenancyId]: data as TenancyDocument[] }));
+      // Note: This would need a setter in a real implementation
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    return `${(bytes / 1024).toFixed(2)} KB`;
-  };
+  const formatFileSize = (bytes: number) => `${(bytes / 1024).toFixed(2)} KB`;
 
-  const getUploaderName = (doc: TenancyDocument) => {
-    return doc.uploaded_by ? "User" : "Unknown";
-  };
+  const getUploaderName = (doc: TenancyDocument) => doc.uploaded_by ? "User" : "Unknown";
 
   const toggleDocumentExpansion = (docTitle: string) => {
     setExpandedDocuments((prev) => {
@@ -249,7 +269,6 @@ export function ContractsTab({
   const downloadDocument = async (doc: TenancyDocument) => {
     try {
       const data = await documentService.downloadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
-      
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
@@ -271,13 +290,9 @@ export function ContractsTab({
     
     if (isViewable) {
       const newWindow = window.open('', '_blank');
-      
       try {
         const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
-        
-        if (newWindow) {
-          newWindow.location.href = url;
-        }
+        if (newWindow) newWindow.location.href = url;
       } catch (error: any) {
         newWindow?.close();
         showToast.error({ title: t("properties.openError") });
@@ -288,30 +303,23 @@ export function ContractsTab({
   };
 
   const getTenantName = (tenant: Tenant) => {
-    if (tenant.first_name && tenant.last_name) {
-      return `${tenant.first_name} ${tenant.last_name}`;
-    }
+    if (tenant.first_name && tenant.last_name) return `${tenant.first_name} ${tenant.last_name}`;
     if (tenant.first_name) return tenant.first_name;
     return tenant.email;
   };
 
-  // Group documents by title
   const groupedDocuments = tenancyDocuments?.reduce((acc, doc) => {
-    if (!acc[doc.document_title]) {
-      acc[doc.document_title] = [];
-    }
+    if (!acc[doc.document_title]) acc[doc.document_title] = [];
     acc[doc.document_title].push(doc);
     return acc;
   }, {} as Record<string, TenancyDocument[]>);
 
-  // Get current tenant name for display
   const currentTenantName = currentTenant 
     ? (currentTenant.first_name && currentTenant.last_name 
         ? `${currentTenant.first_name} ${currentTenant.last_name}` 
         : currentTenant.email)
     : undefined;
 
-  // Check if contract is locked (signing initiated or completed)
   const { data: contractSignature } = useQuery({
     queryKey: ["contract-signature-status", currentTenant?.id],
     queryFn: async () => {
@@ -329,165 +337,183 @@ export function ContractsTab({
   });
 
   const isContractLocked = !!contractSignature?.workflow_status;
+  const isPendingDraft = pendingRequirement?.status === 'draft';
+  const isPendingSent = pendingRequirement?.status === 'sent';
 
   if (docsLoading && currentTenant) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-20 w-full" />
-      </div>
-    );
+    return <ContractsTabSkeleton />;
   }
 
   const getTenancyStep = () => {
     if (!currentTenant) return 0;
-    if (pendingRequirement) {
-      if (pendingRequirement.status === 'draft') return 1;
-      if (pendingRequirement.status === 'sent') return 2;
-    }
-    if (currentTenant.tenancy_status === 'active') return 3;
-    if (currentTenant.tenancy_status === 'ending_tenancy') return 4;
-    if (currentTenant.tenancy_status === 'historic') return 5;
-    return 0;
+    if (pendingRequirement) return 1;
+    if (currentTenant.tenancy_status === 'active') return 2;
+    if (currentTenant.tenancy_status === 'ending_tenancy' || currentTenant.tenancy_status === 'historic') return 3;
+    return 1;
   };
 
   const tenancyStep = getTenancyStep();
 
-  const steps = [
-    { key: 1, label: t("tenancy.wizard.title"), icon: Settings },
-    { key: 2, label: t("tenancy.sendInvitation"), icon: Send },
-    { key: 3, label: t("tenancy.active"), icon: CheckCircle2 },
-    { key: 4, label: t("tenancy.ending"), icon: Clock },
-    { key: 5, label: t("tenancy.historic"), icon: CheckCircle2 },
-  ];
+  const isSectionOpen = (section: string) => expandedSections.has(section);
 
   return (
     <div className="space-y-6">
-      {/* Tenancy Progress Stepper */}
-      {currentTenant && (
-        <div className="bg-gradient-to-r from-muted/50 to-muted/30 rounded-xl p-4 border">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => {
-              const isCompleted = tenancyStep > step.key;
-              const isCurrent = tenancyStep === step.key;
-              const Icon = step.icon;
-              
-              return (
-                <div key={step.key} className="flex items-center flex-1">
-                  <div className="flex flex-col items-center">
-                    <div className={`
-                      w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
-                      ${isCompleted ? 'bg-green-500 text-white' : ''}
-                      ${isCurrent ? 'bg-blue-500 text-white ring-4 ring-blue-500/20' : ''}
-                      ${!isCompleted && !isCurrent ? 'bg-muted text-muted-foreground' : ''}
-                    `}>
-                      {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
-                    </div>
-                    <span className={`text-xs mt-2 text-center hidden sm:block ${isCurrent ? 'font-semibold text-blue-600' : 'text-muted-foreground'}`}>
-                      {step.label}
-                    </span>
-                  </div>
-                  {index < steps.length - 1 && (
-                    <div className={`flex-1 h-1 mx-2 rounded ${isCompleted ? 'bg-green-500' : 'bg-muted'}`} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Interactive Tenancy Progress Stepper - always visible */}
+      <InteractiveStepper 
+        currentStep={tenancyStep}
+        onStepClick={handleStepClick}
+      />
 
-      {/* Segmented Control for Section Filter */}
-      <div className="flex items-center gap-2">
-        <ToggleGroup type="single" value={sectionFilter} onValueChange={(val) => val && setSectionFilter(val)} className="bg-muted p-1 rounded-lg">
-          <ToggleGroupItem value="all" className="px-4 py-2 data-[state=on]:bg-background data-[state=on]:shadow-sm" >
-            {t("common.all")}
-          </ToggleGroupItem>
-          <ToggleGroupItem value="tenant" className="px-4 py-2 data-[state=on]:bg-background data-[state=on]:shadow-sm" >
-            {t("propertyTenants.tabs.contracts")}
-          </ToggleGroupItem>
-          <ToggleGroupItem value="documents" className="px-4 py-2 data-[state=on]:bg-background data-[state=on]:shadow-sm" >
-            {t("properties.contract")}
-          </ToggleGroupItem>
-          <ToggleGroupItem value="inspections" className="px-4 py-2 data-[state=on]:bg-background data-[state=on]:shadow-sm" >
-            {t("inspections.title")}
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
-
-      {/* 0. Tenant Onboarding Checklist (tenant only, shows only when items pending) */}
-      {(sectionFilter === "all" || sectionFilter === "tenant") && !userRole?.isManager && currentTenant && (
+      {/* Tenant Onboarding Checklist (tenant only) */}
+      {!userRole?.isManager && currentTenant && (
         <TenantOnboardingChecklist
           tenancyId={currentTenant.id}
           propertyId={propertyId}
           onScrollToContract={() => {
-            document.getElementById("contract-signature-section")?.scrollIntoView({ behavior: "smooth" });
+            setExpandedSections(prev => new Set([...prev, 'contract']));
+            document.getElementById("section-contract")?.scrollIntoView({ behavior: "smooth" });
           }}
           onSwitchToPayments={() => {
-            // Parent component handles tab switch
             const paymentsTab = document.querySelector('[data-value="payments"]');
             if (paymentsTab instanceof HTMLElement) paymentsTab.click();
           }}
         />
       )}
 
-      {/* 1. Tenancy Overview Card (Combined) */}
-      {(sectionFilter === "all" || sectionFilter === "tenant") && (
-        <TenancyOverviewCard
-          propertyId={propertyId}
-          currentTenant={currentTenant}
-          userRole={userRole}
-          isReadOnly={isReadOnly}
-          tenancyId={currentTenant?.id}
-          tenancyStatus={currentTenant?.tenancy_status}
-          pendingRequirement={pendingRequirement || null}
-          canSetupNewTenancy={canSetupNewTenancy || false}
-          onStartSetup={onStartSetup}
-          onSendInvitation={onSendInvitation}
-          onEdit={onEditRentalTerms}
-        />
+      {/* Section 1: Tenant Overview */}
+      <div id="section-tenant">
+        <SectionCard
+          title={t("propertyTenants.tabs.contracts") || "Tenant & Tenancy"}
+          icon={User}
+          description={currentTenant ? getTenantName(currentTenant) : t("tenancy.setupTenancy")}
+          defaultOpen={true}
+          action={
+            pendingRequirement && userRole?.isManager && !isReadOnly ? (
+              <div className="flex items-center gap-2">
+                {isPendingDraft && <StatusBadge status="draft" />}
+                {isPendingSent && <StatusBadge status="sent" />}
+                {isPendingDraft && onStartSetup && (
+                  <Button variant="outline" size="sm" className="h-8" onClick={onStartSetup}>
+                    <Pencil className="h-3.5 w-3.5 mr-1" />
+                    {t("common.edit")}
+                  </Button>
+                )}
+                {onSendInvitation && (
+                  <Button variant="outline" size="sm" className="h-8" onClick={onSendInvitation as any}>
+                    <Send className="h-3.5 w-3.5 mr-1" />
+                    {t("tenancy.sendInvitation")}
+                  </Button>
+                )}
+              </div>
+            ) : !isReadOnly && canSetupNewTenancy && !currentTenant && onStartSetup ? (
+              <Button size="sm" onClick={onStartSetup}>
+                <Plus className="h-4 w-4 mr-1" />
+                {t("tenancy.setupTenancy")}
+              </Button>
+            ) : undefined
+          }
+        >
+          <TenancyOverviewCard
+            propertyId={propertyId}
+            currentTenant={currentTenant}
+            userRole={userRole}
+            isReadOnly={isReadOnly}
+            tenancyId={currentTenant?.id}
+            tenancyStatus={currentTenant?.tenancy_status}
+            pendingRequirement={pendingRequirement || null}
+            canSetupNewTenancy={canSetupNewTenancy || false}
+            onStartSetup={onStartSetup}
+            onSendInvitation={onSendInvitation}
+            onEdit={onEditRentalTerms}
+          />
+        </SectionCard>
+      </div>
+
+
+
+
+      {/* Section 2: Contract & Documents */}
+      {currentTenant && (
+        <div id="section-contract">
+          <SectionCard
+            title={t("properties.contract") || "Contract & Documents"}
+            icon={FileText}
+            description={t("propertyTenants.contract.description") || "Manage contract and uploads"}
+            defaultOpen={false}
+            action={
+              !isReadOnly && !isContractLocked && !uploadDocumentOpen && !selectedParentDoc && userRole?.isManager && (
+                <Button variant="outline" size="sm" className="h-8" onClick={() => setUploadDocumentOpen(true)}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  {t("properties.uploadContract") || "Upload Contract"}
+                </Button>
+              )
+            }
+          >
+            <ContractCard
+              currentTenant={currentTenant}
+              propertyId={propertyId}
+              userRole={userRole}
+              isReadOnly={isReadOnly}
+              pendingRequirement={pendingRequirement || null}
+              tenancyRequirements={tenancyRequirements}
+              uploadDocumentOpen={uploadDocumentOpen}
+              selectedParentDoc={selectedParentDoc}
+              onSetUploadDocumentOpen={setUploadDocumentOpen}
+              onSetSelectedParentDoc={setSelectedParentDoc}
+            />
+          </SectionCard>
+        </div>
       )}
 
-      {/* 3. Contract Card */}
-      {(sectionFilter === "all" || sectionFilter === "documents") && currentTenant && (
-        <ContractCard
-          currentTenant={currentTenant}
-          propertyId={propertyId}
-          userRole={userRole}
-          isReadOnly={isReadOnly}
-          pendingRequirement={pendingRequirement || null}
-          tenancyRequirements={tenancyRequirements}
-        />
-      )}
 
-{/* 5. Property Inspections Card */}
-      {(sectionFilter === "all" || sectionFilter === "inspections") && (currentTenant ? (
-        <InspectionCard
-          tenancyId={currentTenant.id}
-          propertyId={propertyId}
-          isManager={userRole?.isManager || false}
-          isReadOnly={isReadOnly}
-          tenancyStatus={currentTenant.tenancy_status}
-          isSelfManaged={!currentTenant.tenant_id}
-        />
-      ) : (
-        <Card className="card-shine">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">              
-              <ClipboardCheck className="h-4 w-4" />
-              {t("inspections.title") || "Property Inspections"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-6 text-muted-foreground">
-              <ClipboardCheck className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">{t("inspections.noInspections") || "No inspections yet"}</p>
-              <p className="text-xs mt-1">Inspections will appear after tenancy starts</p>
-            </div>
-          </CardContent>
-</Card>
-      ))}
 
+
+      {/* Section 3: Property Inspections */}
+      <div id="section-inspections">
+        <SectionCard
+          title={t("inspections.title") || "Property Inspections"}
+          icon={ClipboardCheck}
+          description={
+            currentTenant 
+              ? (t("inspections.description") || "Move-in and move-out reports")
+              : (t("inspections.afterTenancyStart") || "Available after tenancy starts")
+          }
+          defaultOpen={false}
+          action={
+            userRole?.isManager && !isReadOnly && currentTenant ? (
+              <Button size="sm" variant="outline">
+                <Plus className="h-4 w-4 mr-1" />
+                {t("inspections.newInspection")}
+              </Button>
+            ) : undefined
+          }
+        >
+          {currentTenant ? (
+            <InspectionCard
+              tenancyId={currentTenant.id}
+              propertyId={propertyId}
+              isManager={userRole?.isManager || false}
+              isReadOnly={isReadOnly}
+              tenancyStatus={currentTenant.tenancy_status}
+              isSelfManaged={!currentTenant.tenant_id}
+            />
+          ) : (
+            <EmptyState
+              icon={ClipboardCheck}
+              title={t("inspections.noInspections") || "No inspections yet"}
+              description={t("inspections.availableAfterTenancy") || "Inspections will appear after a tenancy is set up"}
+              action={
+                userRole?.isManager && !isReadOnly && canSetupNewTenancy && onStartSetup ? (
+                  <Button onClick={onStartSetup}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t("tenancy.setupTenancy")}
+                  </Button>
+                ) : undefined
+              }
+            />
+          )}
+        </SectionCard>
+      </div>
     </div>
   );
 }

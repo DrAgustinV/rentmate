@@ -257,29 +257,14 @@ export function TenancyOverviewCard({
     <div className="grid gap-4">
       {/* PENDING SETUP VIEW - Keep as single card */}
       {showPendingSetup && pendingRequirement && (
-        <Card className={`card-shine ${getCardStyles()}`}>
+        <Card className={`card-shine`}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Settings className="h-4 w-4" />
                 {t("tenancy.wizard.title")}
               </CardTitle>
-              <div className="flex items-center gap-2">
-                {isDraft && <StateBadge state="draft" />}
-                {isSent && <StateBadge state="sent" />}
-                {isDraft && onStartSetup && (
-                  <Button size="sm" className="h-8" onClick={onStartSetup}>
-                    <Pencil className="h-3.5 w-3.5 mr-1" />
-                    {t("common.edit")}
-                  </Button>
-                )}
-                {onSendInvitation && (
-                  <Button size="sm" className="h-8" onClick={onSendInvitation}>
-                    <Send className="h-3.5 w-3.5 mr-1" />
-                    {t("tenancy.sendInvitation")}
-                  </Button>
-                )}
-              </div>
+
             </div>
           </CardHeader>
           <CardContent className="space-y-4">

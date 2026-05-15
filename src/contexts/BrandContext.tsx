@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useBrandSettings } from '@/hooks/useBrandSettings';
 import { BRAND_CONFIG } from '@/config/brand.config';
 
@@ -16,14 +16,14 @@ const BrandContext = createContext<BrandContextType | undefined>(undefined);
 export function BrandContextProvider({ children }: { children: ReactNode }) {
   const { settings, loading } = useBrandSettings();
 
-  const value: BrandContextType = {
+  const value = useMemo<BrandContextType>(() => ({
     brandName: settings?.brand_name || BRAND_CONFIG.name,
     logoUrl: settings?.logo_url || BRAND_CONFIG.logo.src,
     logoAlt: `${settings?.brand_name || BRAND_CONFIG.name} Logo`,
     tagline: BRAND_CONFIG.tagline,
     email: BRAND_CONFIG.contact.email,
     loading,
-  };
+  }), [settings, loading]);
 
   return (
     <BrandContext.Provider value={value}>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Building, Archive, Upload, Zap, Ticket, Wrench, ImageIcon, Search } from "lucide-react";
-import { PropertyCard, PropertyStatusIndicators } from "@/components/PropertyCard";
+import { PropertyCard, PropertyStatusIndicators, TenantStatusInfo } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
@@ -51,6 +51,7 @@ export default function Properties() {
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [propertyPhotoUrls, setPropertyPhotoUrls] = useState<Record<string, string>>({});
   const [statusIndicators, setStatusIndicators] = useState<Record<string, PropertyStatusIndicators>>({});
+  const [tenantStatusMap, setTenantStatusMap] = useState<Record<string, TenantStatusInfo | null>>({});
 
   useEffect(() => {
     let mounted = true;
@@ -59,7 +60,7 @@ export default function Properties() {
       const propertyList = propertiesData?.properties;
       if (!propertyList || propertyList.length === 0) return;
 
-      const [urls, indicators] = await Promise.all([
+      const [urls, indicators, tenantStatuses] = await Promise.all([
         Promise.all(
           propertyList
             .filter(p => p.images?.[0])
@@ -85,12 +86,23 @@ export default function Properties() {
               return [property.id, null];
             }
           })
+        ).then(Object.fromEntries),
+        Promise.all(
+          propertyList.map(async (property) => {
+            try {
+              const status = await propertyService.getPropertyTenantStatus(property.id);
+              return [property.id, status];
+            } catch (error) {
+              return [property.id, null];
+            }
+          })
         ).then(Object.fromEntries)
       ]);
 
       if (mounted) {
         setPropertyPhotoUrls(urls as Record<string, string>);
         setStatusIndicators(indicators as Record<string, PropertyStatusIndicators>);
+        setTenantStatusMap(tenantStatuses as Record<string, TenantStatusInfo | null>);
       }
     };
 
@@ -135,19 +147,6 @@ export default function Properties() {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }, [activeProperties, endingTenancyProperties, archivedProperties, debouncedSearch, sortBy, propertyView]);
-
-  const dashboardData = useMemo(() => {
-    const data: Record<string, any> = {};
-    propertiesData?.properties?.forEach(property => {
-      data[property.id] = {
-        occupancy_status: property.status === "active" ? "Occupied" : "Vacant",
-        tenant_name: property.status === "active" ? "John Doe" : null,
-        payment_status: property.status === "active" ? "Paid" : null,
-        open_tickets_count: 0
-      };
-    });
-    return data;
-  }, [propertiesData]);
 
   if (isLoading) {
     return (
@@ -258,6 +257,8 @@ export default function Properties() {
               isManager={true}
               onUpdate={() => {}}
               statusIndicators={statusIndicators[property.id]}
+              tenantStatus={tenantStatusMap[property.id] ?? null}
+              isTenantStatusLoading={!propertiesData || Object.keys(tenantStatusMap).length === 0}
               photoUrl={propertyPhotoUrls[property.id]}
             />
           ))}
@@ -277,13 +278,18 @@ export default function Properties() {
             </TableHeader>
             <TableBody>
               {filteredAndSortedProperties.map((property) => {
-                const dashboard = dashboardData[property.id];
+                const tenantStatus = tenantStatusMap[property.id];
+                const indicators = statusIndicators[property.id];
+                const occupancyStatus = tenantStatus?.status === 'occupied' ? 'Occupied' :
+                  tenantStatus?.status === 'invited' ? 'Invited' : 'Vacant';
+                const paymentStatus = indicators?.rent_overdue ? 'Due' : 'Paid';
+                const ticketCount = indicators?.tickets_open ? 1 : 0;
                 return (
                   <TableRow key={property.id} className="hover:bg-muted/50">
                     <TableCell className="w-14">
                       {propertyPhotoUrls[property.id] ? (
-                        <img 
-                          src={propertyPhotoUrls[property.id]} 
+                        <img
+                          src={propertyPhotoUrls[property.id]}
                           alt={property.title}
                           className="w-10 h-10 rounded object-cover"
                         />
@@ -293,7 +299,7 @@ export default function Properties() {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell 
+                    <TableCell
                       className="font-medium cursor-pointer hover:text-primary"
                       onClick={() => navigate(`/properties/${property.id}/overview`)}
                     >
@@ -302,22 +308,22 @@ export default function Properties() {
                         {property.address ? `${property.address}, ${property.city || ''}` : '-'}
                       </div>
                     </TableCell>
-                    <TableCell 
+                    <TableCell
                       className="hidden md:table-cell cursor-pointer hover:text-primary"
                       onClick={() => navigate(`/properties/${property.id}/tenants?tab=contracts`)}
                     >
-                      <OccupancyBadge status={(dashboard?.occupancy_status as any) || 'Vacant'} />
+                      <OccupancyBadge status={occupancyStatus} />
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {dashboard?.tenant_name || '—'}
+                      {tenantStatus?.tenant_name || '—'}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      {dashboard?.payment_status ? (
-                        <PaymentBadge status={(dashboard.payment_status as any) || 'Due'} />
+                      {indicators?.rent_has_data ? (
+                        <PaymentBadge status={paymentStatus} />
                       ) : '—'}
                     </TableCell>
                     <TableCell>
-                      <TicketCount count={dashboard?.open_tickets_count || 0} />
+                      <TicketCount count={ticketCount} />
                     </TableCell>
                   </TableRow>
                 );
