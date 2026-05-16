@@ -12,7 +12,7 @@ import { profileService, tenancyService } from "@/services";
 import { formatDate } from "@/lib/dateUtils";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
 import { 
-  User, Mail, FileSignature, CheckCircle, Zap, Pencil, Send, FileText, Settings
+  User, Mail, FileSignature, CheckCircle, Zap, Pencil, Send, FileText, Settings, Trash2
 } from "lucide-react";
 
 interface Tenant {
@@ -42,6 +42,7 @@ interface TenancyOverviewCardProps {
   onStartSetup?: () => void;
   onSendInvitation?: () => void;
   onEdit?: () => void;
+  onDeleteTenancy?: (tenantId: string) => void;
 }
 
 const formatCurrency = (cents: number | null | undefined, currency: string = 'EUR') => {
@@ -126,6 +127,7 @@ export function TenancyOverviewCard({
   onStartSetup,
   onSendInvitation,
   onEdit,
+  onDeleteTenancy,
 }: TenancyOverviewCardProps) {
   const { t } = useLanguage();
   const isManager = userRole?.isManager;
@@ -295,10 +297,6 @@ export function TenancyOverviewCard({
                 <User className="h-8 w-8 text-muted-foreground" />
               </div>
               <p className="text-muted-foreground mb-4">{t("tenancy.setupTenancy")}</p>
-              <Button className="h-9" onClick={onStartSetup}>
-                <Pencil className="h-4 w-4 mr-2" />
-                {t("tenancy.setupTenancy")}
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -412,8 +410,8 @@ export function TenancyOverviewCard({
               </div>
             )}
 
-            {/* Edit Button */}
-            <div className="flex justify-end pt-2">
+            {/* Edit / Delete Buttons */}
+            <div className="flex justify-end gap-2 pt-2">
               {onEdit && !isReadOnly && tenancyStatus === 'active' && (
                 <Button variant="outline" size="sm" className="h-8" onClick={onEdit}>
                   <Pencil className="h-3.5 w-3.5 mr-1" />
@@ -424,6 +422,12 @@ export function TenancyOverviewCard({
                 <Button variant="outline" size="sm" className="h-8" onClick={onEdit}>
                   <Pencil className="h-3.5 w-3.5 mr-1" />
                   {t("tenancy.setUpNextTenancy")}
+                </Button>
+              )}
+              {onDeleteTenancy && !isReadOnly && currentTenant && !currentTenant.tenant_id && tenancyStatus === 'active' && (
+                <Button variant="outline" size="sm" className="h-8 border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30" onClick={() => onDeleteTenancy(currentTenant.id)}>
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                  {t("tenancy.deleteSelfManaged") || "Remove Tenancy"}
                 </Button>
               )}
             </div>

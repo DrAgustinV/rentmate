@@ -292,8 +292,9 @@ export const ContractSignatureManager = ({
     }
   };
 
-  // Check if reminder can be sent (1-hour cooldown)
+  // Check if reminder can be sent (1-hour cooldown, max 3 reminders)
   const canSendReminder = () => {
+    if ((signature?.reminder_count ?? 0) >= 3) return false;
     if (!signature?.last_reminder_sent_at) return true;
     const lastSent = new Date(signature.last_reminder_sent_at);
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
@@ -486,14 +487,24 @@ export const ContractSignatureManager = ({
               )}
             </div>
 
-            <Button 
-              onClick={handleInitiateSignature} 
-              disabled={loading || !selectedDocumentId}
-              className="w-full"
-            >
-              <FileSignature className="h-4 w-4 mr-2" />
-              {loading ? t('common.loading') : (t('contractSignature.initiate') || 'Start Signature Process')}
-            </Button>
+            <div className="relative">
+              <Button 
+                onClick={handleInitiateSignature} 
+                disabled={loading || !selectedDocumentId || !canCreateSignature}
+                className="w-full"
+              >
+                <FileSignature className="h-4 w-4 mr-2" />
+                {loading ? t('common.loading') : (t('contractSignature.initiate') || 'Start Signature Process')}
+              </Button>
+              {!canCreateSignature && !isPro && (
+                <Badge 
+                  variant="secondary" 
+                  className="absolute -top-2 -right-2 text-xs bg-amber-500/10 text-amber-600 border-amber-500/30"
+                >
+                  Pro
+                </Badge>
+              )}
+            </div>
           </>
         )}
         {!isManager && (

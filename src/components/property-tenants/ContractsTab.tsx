@@ -99,6 +99,7 @@ interface ContractsTabCallbacks {
   onDismissInvitation?: (invitation: Invitation) => void;
   onEditRentalTerms?: () => void;
   onInviteInSelfManaged?: () => void;
+  onDeleteTenancy?: (tenantId: string) => void;
 }
 
 interface ContractsTabProps {
@@ -133,6 +134,7 @@ export function ContractsTab({
     onDismissInvitation,
     onEditRentalTerms,
     onInviteInSelfManaged,
+    onDeleteTenancy,
   } = callbacks;
   const { t } = useLanguage();
   const queryClient = useQueryClient();
@@ -425,6 +427,7 @@ export function ContractsTab({
             onStartSetup={onStartSetup}
             onSendInvitation={onSendInvitation}
             onEdit={onEditRentalTerms}
+            onDeleteTenancy={onDeleteTenancy}
           />
         </SectionCard>
       </div>
@@ -469,51 +472,53 @@ export function ContractsTab({
 
 
       {/* Section 3: Property Inspections */}
-      <div id="section-inspections">
-        <SectionCard
-          title={t("inspections.title") || "Property Inspections"}
+{/* Section 3: Property Inspections */}
+{currentTenant && (
+  <div id="section-inspections">
+    <SectionCard
+      title={t("inspections.title") || "Property Inspections"}
+      icon={ClipboardCheck}
+      description={
+        currentTenant 
+          ? (t("inspections.description") || "Move-in and move-out reports")
+          : (t("inspections.afterTenancyStart") || "Available after tenancy starts")
+      }
+      defaultOpen={false}
+      action={
+        userRole?.isManager && !isReadOnly && currentTenant ? (
+          <Button size="sm" variant="outline">
+            <Plus className="h-4 w-4 mr-1" />
+            {t("inspections.newInspection")}
+          </Button>
+        ) : undefined
+      }
+    >
+      {currentTenant ? (
+        <InspectionCard
+          tenancyId={currentTenant.id}
+          propertyId={propertyId}
+          isManager={userRole?.isManager || false}
+          isReadOnly={isReadOnly}
+          tenancyStatus={currentTenant.tenancy_status}
+          isSelfManaged={!currentTenant.tenant_id}
+        />
+      ) : (
+        <EmptyState
           icon={ClipboardCheck}
-          description={
-            currentTenant 
-              ? (t("inspections.description") || "Move-in and move-out reports")
-              : (t("inspections.afterTenancyStart") || "Available after tenancy starts")
-          }
-          defaultOpen={false}
+          title={t("inspections.noInspections") || "No inspections yet"}
+          description={t("inspections.availableAfterTenancy") || "Inspections will appear after a tenancy is set up"}
           action={
-            userRole?.isManager && !isReadOnly && currentTenant ? (
-              <Button size="sm" variant="outline">
-                <Plus className="h-4 w-4 mr-1" />
-                {t("inspections.newInspection")}
+            userRole?.isManager && !isReadOnly && canSetupNewTenancy && onStartSetup ? (
+              <Button onClick={onStartSetup}>
+                <Plus className="h-4 w-4 mr-2" />
+                {t("tenancy.setupTenancy")}
               </Button>
             ) : undefined
           }
-        >
-          {currentTenant ? (
-            <InspectionCard
-              tenancyId={currentTenant.id}
-              propertyId={propertyId}
-              isManager={userRole?.isManager || false}
-              isReadOnly={isReadOnly}
-              tenancyStatus={currentTenant.tenancy_status}
-              isSelfManaged={!currentTenant.tenant_id}
-            />
-          ) : (
-            <EmptyState
-              icon={ClipboardCheck}
-              title={t("inspections.noInspections") || "No inspections yet"}
-              description={t("inspections.availableAfterTenancy") || "Inspections will appear after a tenancy is set up"}
-              action={
-                userRole?.isManager && !isReadOnly && canSetupNewTenancy && onStartSetup ? (
-                  <Button onClick={onStartSetup}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t("tenancy.setupTenancy")}
-                  </Button>
-                ) : undefined
-              }
-            />
-          )}
-        </SectionCard>
-      </div>
-    </div>
+        />
+      )}
+    </SectionCard>
+  </div>
+)}    </div>
   );
 }

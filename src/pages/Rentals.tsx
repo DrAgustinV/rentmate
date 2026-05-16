@@ -178,6 +178,17 @@ export default function Rentals() {
 
       if (updateError) throw updateError;
 
+      // Update tenancy_requirements status to accepted
+      if (invitation.email) {
+        const { error: reqError } = await supabase
+          .from("tenancy_requirements")
+          .update({ status: "accepted" })
+          .eq("property_id", invitation.property_id)
+          .eq("tenant_email", invitation.email)
+          .in("status", ["draft", "sent"]);
+        if (reqError) console.error("Error updating requirement status:", reqError);
+      }
+
       // Enforce FIFO tenancy limit
       await tenancyService.manageTenancyLimit({
         body: { property_id: invitation.property_id },

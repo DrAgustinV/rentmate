@@ -15,27 +15,13 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useSubscription } from "@/hooks/useSubscription";
-import { 
-  Mail, 
-  Shield, 
-  FileSignature, 
-  Zap, 
-  CheckCircle2, 
-  ChevronRight, 
-  ChevronLeft,
-  Lock,
-  Smartphone,
-  FileText,
-  Info,
-  Plus,
-  X,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { UtilityConfig, UtilitiesConfig, CreateTenancyRequirementInput } from "@/hooks/useTenancyRequirements";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { showToast } from "@/lib/toast";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useUtilityTypes } from "@/hooks/useUtilityTypes";
-import { StepTenantEmail, StepVerification, StepContractMethod, StepRentDeposits } from "@/components/tenancy-wizard";
+import { Mail, Shield, FileSignature, FileText, Zap, CheckCircle2, ChevronRight, ChevronLeft, Info } from "lucide-react";
+import { StepTenantEmail, StepVerification, StepContractMethod, StepRentDeposits, StepUtilities, StepReview } from "@/components/tenancy-wizard";
 
 const formSchema = z.object({
   tenant_email: z.string().email("Valid email required").or(z.literal("")).optional(),
@@ -79,6 +65,7 @@ interface CreateTenancyWizardProps {
     utilities_config?: UtilitiesConfig | Record<string, unknown> | null;
   } | null;
   mode?: 'new' | 'edit' | 'invite' | 'next_tenancy';
+  invitationExpiryNotice?: boolean;
 }
 
 const STEPS = [
@@ -100,6 +87,7 @@ export function CreateTenancyWizard({
   isSubmitting = false,
   initialData,
   mode = 'new',
+  invitationExpiryNotice = false,
 }: CreateTenancyWizardProps) {
   const { t } = useLanguage();
   const { canUseGovernmentIdKYC, isFree } = useSubscription();
@@ -238,6 +226,15 @@ export function CreateTenancyWizard({
           </DialogTitle>
         </DialogHeader>
 
+        {invitationExpiryNotice && (
+          <Alert className="mb-4 bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              {t('tenancy.wizard.invitationTimerReset') || 'Saving updated terms will reset the invitation timer to 7 days.'}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Step Indicator */}
         <div className="flex items-center justify-between mb-6 overflow-x-auto pb-2">
           {STEPS.map((step, index) => {
@@ -293,6 +290,8 @@ export function CreateTenancyWizard({
             {currentStep === 1 && <StepVerification form={form} canUseGovId={canUseGovId} />}
             {currentStep === 2 && <StepContractMethod form={form} templates={templates} />}
             {currentStep === 3 && <StepRentDeposits form={form} />}
+            {currentStep === 4 && <StepUtilities form={form} utilityTypes={utilityTypes} />}
+            {currentStep === 5 && <StepReview form={form} />}
 
             {/* Navigation Buttons */}
             <div className="flex justify-between pt-4">

@@ -95,12 +95,26 @@ export default function Invitations() {
 
   const handleAccept = async (invitationId: string) => {
     try {
+      const invitation = invitations.find(inv => inv.id === invitationId);
+      if (!invitation) throw new Error("Invitation not found");
+
       const { error } = await supabase
         .from("invitations")
         .update({ status: "accepted" })
         .eq("id", invitationId);
 
       if (error) throw error;
+
+      // Update tenancy_requirements status to accepted
+      if (invitation.properties?.id && invitation.email) {
+        const { error: reqError } = await supabase
+          .from("tenancy_requirements")
+          .update({ status: "accepted" })
+          .eq("property_id", invitation.properties.id)
+          .eq("tenant_email", invitation.email)
+          .in("status", ["draft", "sent"]);
+        if (reqError) console.error("Error updating requirement status:", reqError);
+      }
 
       toast({
         title: t("invitations.accepted"),
@@ -264,8 +278,12 @@ export default function Invitations() {
         <DeclineInvitationDialog
           open={declineDialogOpen}
           onOpenChange={setDeclineDialogOpen}
-          onDecline={handleDecline}
-          reasonRef={declineReasonRef}
+          onConfirm={(reason) => {
+            declineReasonRef.current = reason || "";
+            handleDecline();
+          }}
+          isProcessing={false}
+          propertyTitle={selectedInvitation?.properties?.title || ""}
         />
       </div>
     </AppLayout>

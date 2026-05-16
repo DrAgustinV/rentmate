@@ -1,18 +1,29 @@
-import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Plus, Clock, Bell, BellOff, Coins } from "lucide-react";
+import { UnifiedPaymentHistory, UnifiedPayment } from "@/components/payments/UnifiedPaymentHistory";
+import { CreatePaymentDialog } from "@/components/CreatePaymentDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useRentPayments, RentPayment } from "@/hooks/useRentPayments";
+import { useRentAgreements } from "@/hooks/useRentAgreements";
+import { useTenancyStarted } from "@/hooks/useTenancyStarted";
+import { useRentPayments } from "@/hooks/useRentPayments";
+import { useUtilityPayments } from "@/hooks/useUtilityPayments";
 import { tenancyService } from "@/services";
 import { showToast } from "@/lib/toast";
-import { format } from "date-fns";
-import { Coins, Calendar, Bell, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { isWithinInterval, subMonths, startOfMonth, endOfMonth } from "date-fns";
+
+interface AgreementRow {
+  id: string;
+  tenancy_id: string;
+  is_active: boolean;
+  auto_reminders_enabled: boolean | null;
+}
 
 interface PaymentsTabProps {
   currentTenant: {
@@ -27,35 +38,38 @@ interface PaymentsTabProps {
   userRole: { isManager: boolean } | undefined;
 }
 
-const ITEMS_PER_PAGE = 10;
+type TypeFilter = "all" | "rent" | "utility";
+type StatusFilter = "all" | "paid" | "pending" | "overdue";
+type PeriodFilter = "this_month" | "last_month" | "last_3_months" | "last_6_months" | "all_time";
 
-interface RentAgreement {
-  id: string;
-  auto_reminders_enabled: boolean | null;
-}
+const ITEMS_PER_PAGE = 10;
 
 export function PaymentsTab({ currentTenant, propertyId, userRole }: PaymentsTabProps) {
   const { t } = useLanguage();
+  const isManager = userRole?.isManager || false;
   const queryClient = useQueryClient();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [managerId, setManagerId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("all_time");
 
-  const { data: payments, isLoading } = useRentPayments(propertyId);
+  const { isStarted, formattedStartDate } = useTenancyStarted(propertyId, currentTenant?.id);
 
-  const { data: rentAgreements } = useQuery({
-    queryKey: ["rent-agreements", propertyId],
-    queryFn: async () => {
-      if (!currentTenant?.tenant_id) return [];
-      const data = await tenancyService.getRentAgreementsForProperty(propertyId);
-      return data.filter((a: RentAgreement) => a.tenant_id === currentTenant.tenant_id);
-    },
-    enabled: !!currentTenant?.tenant_id,
-  });
+  const { data: rentPayments, isLoading: rentLoading } = useRentPayments(propertyId);
+  const { data: utilityPayments, isLoading: utilityLoading } = useUtilityPayments(propertyId);
+  const { data: rentAgreements, isLoading: agreementsLoading } = useRentAgreements(propertyId);
 
-  const activeAgreement = rentAgreements?.find((a: RentAgreement) => a.is_active);
+  const isLoading = rentLoading || utilityLoading || agreementsLoading;
+
+  useEffect(() => {
+    tenancyService.getPropertyManagerId(propertyId).then(setManagerId);
+  }, [propertyId]);
 
   const toggleRemindersMutation = useMutation({
     mutationFn: async ({ agreementId, enabled }: { agreementId: string; enabled: boolean }) => {
-      await tenancyService.updateRentAgreementSimple(agreementId, { auto_reminders_enabled: enabled });
+      await tenancyService.updateRentAgreementSimple(agreementId, { auto_reminders_enabled: enabled } as never);
     },
     onSuccess: (_, { enabled }) => {
       queryClient.invalidateQueries({ queryKey: ["rent-agreements", propertyId] });
@@ -63,36 +77,99 @@ export function PaymentsTab({ currentTenant, propertyId, userRole }: PaymentsTab
         title: enabled ? t("payments.remindersEnabled") : t("payments.remindersDisabled")
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       showToast.error({ title: error.message });
     },
   });
 
-  const filteredPayments = useMemo(() => {
-    if (!payments) return [];
+  const allPayments: UnifiedPayment[] = useMemo(() => {
+    if (!rentPayments || !utilityPayments) return [];
     if (!currentTenant?.tenant_id) return [];
-    return payments.filter((p: RentPayment) => p.tenant_id === currentTenant.tenant_id);
-  }, [payments, currentTenant]);
 
-  const paginatedPayments = useMemo(() =>
-    filteredPayments.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
-    [filteredPayments, currentPage]
+    const now = new Date();
+    let periodStart: Date | null = null;
+
+    switch (periodFilter) {
+      case "this_month":
+        periodStart = startOfMonth(now);
+        break;
+      case "last_month":
+        periodStart = startOfMonth(subMonths(now, 1));
+        break;
+      case "last_3_months":
+        periodStart = subMonths(now, 3);
+        break;
+      case "last_6_months":
+        periodStart = subMonths(now, 6);
+        break;
+      case "all_time":
+        periodStart = null;
+    }
+
+    const rent: UnifiedPayment[] = (rentPayments || [])
+      .filter(p => p.tenant_id === currentTenant.tenant_id)
+      .map(p => ({
+        id: p.id,
+        type: "rent" as const,
+        dueDate: p.payment_due_date,
+        amountCents: p.amount_cents,
+        currency: p.currency,
+        status: p.status as "pending" | "paid" | "overdue",
+        proofOfPaymentUrl: p.proof_of_payment_url,
+        proofReviewStatus: p.proof_review_status,
+        data: p,
+      }));
+
+    const utility: UnifiedPayment[] = (utilityPayments || [])
+      .filter(p => p.tenant_id === currentTenant.tenant_id)
+      .map(p => ({
+        id: p.id,
+        type: "utility" as const,
+        dueDate: p.payment_due_date,
+        amountCents: p.amount_cents,
+        currency: p.currency,
+        status: p.status as "pending" | "paid" | "overdue",
+        proofOfPaymentUrl: p.proof_of_payment_url,
+        proofReviewStatus: p.proof_review_status,
+        data: p,
+      }));
+
+    return [...rent, ...utility]
+      .filter(p => {
+        if (typeFilter !== "all" && p.type !== typeFilter) return false;
+        if (statusFilter !== "all" && p.status !== statusFilter) return false;
+        if (periodStart) {
+          const dueDate = new Date(p.dueDate);
+          if (!isWithinInterval(dueDate, { start: periodStart, end: endOfMonth(now) })) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+  }, [rentPayments, utilityPayments, currentTenant, typeFilter, statusFilter, periodFilter]);
+
+  const totalPages = Math.ceil(allPayments.length / ITEMS_PER_PAGE);
+  const paginatedPayments = allPayments.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
-  const totalPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [typeFilter, statusFilter, periodFilter]);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "paid":
-        return <Badge className="bg-green-500 hover:bg-green-600">Paid</Badge>;
-      case "pending":
-        return <Badge className="bg-blue-500 hover:bg-blue-600">Pending</Badge>;
-      case "overdue":
-        return <Badge className="bg-red-500 hover:bg-red-600">Overdue</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
+  const currentAgreement = rentAgreements?.find(
+    (ra: AgreementRow) => ra.tenancy_id === currentTenant?.id && ra.is_active
+  );
+
+  if (!currentTenant) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <Coins className="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <p className="text-lg font-medium">{t("payments.noPayments")}</p>
+        <p className="text-sm">{t("payments.noPaymentsDesc")}</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -112,125 +189,113 @@ export function PaymentsTab({ currentTenant, propertyId, userRole }: PaymentsTab
 
   return (
     <div className="space-y-6">
-      {userRole?.isManager && activeAgreement && (
-        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-          <div className="flex items-center gap-3">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <Label htmlFor="auto-reminders" className="text-sm font-medium">
-                {t("payments.autoReminders")}
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                {t("payments.autoRemindersDesc")}
-              </p>
-            </div>
-          </div>
-          <Switch
-            id="auto-reminders"
-            checked={activeAgreement.auto_reminders_enabled ?? false}
-            onCheckedChange={(enabled) =>
-              toggleRemindersMutation.mutate({
-                agreementId: activeAgreement.id,
-                enabled,
-              })
-            }
-            disabled={toggleRemindersMutation.isPending}
-          />
+      {!isStarted && formattedStartDate && (
+        <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+          <Clock className="h-4 w-4 flex-shrink-0" />
+          <span>{t("payments.availableAfterStart")} {formattedStartDate}</span>
         </div>
       )}
 
-      {filteredPayments.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <Coins className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p className="text-lg font-medium">{t("payments.noPayments")}</p>
-          <p className="text-sm">{t("payments.noPaymentsDesc")}</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select value={typeFilter} onValueChange={(v: TypeFilter) => setTypeFilter(v)}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder={t("payments.filters.all")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("payments.filters.all")}</SelectItem>
+              <SelectItem value="rent">{t("payments.filters.rent")}</SelectItem>
+              <SelectItem value="utility">{t("payments.filters.utility")}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={statusFilter} onValueChange={(v: StatusFilter) => setStatusFilter(v)}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder={t("payments.filters.allStatuses")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("payments.filters.allStatuses")}</SelectItem>
+              <SelectItem value="paid">{t("payments.filters.paidStatus")}</SelectItem>
+              <SelectItem value="pending">{t("payments.filters.pending")}</SelectItem>
+              <SelectItem value="overdue">{t("payments.filters.overdue")}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={periodFilter} onValueChange={(v: PeriodFilter) => setPeriodFilter(v)}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder={t("payments.filters.allTime")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="this_month">{t("payments.filters.thisMonth")}</SelectItem>
+              <SelectItem value="last_month">{t("payments.filters.lastMonth")}</SelectItem>
+              <SelectItem value="last_3_months">{t("payments.filters.last3Months")}</SelectItem>
+              <SelectItem value="last_6_months">{t("payments.filters.last6Months")}</SelectItem>
+              <SelectItem value="all_time">{t("payments.filters.allTime")}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      ) : (
-        <>
-          <div className="space-y-2">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("payments.status")}</TableHead>
-                  <TableHead>{t("payments.amount")}</TableHead>
-                  <TableHead>{t("payments.dueDate")}</TableHead>
-                  <TableHead>{t("payments.paidDate")}</TableHead>
-                  <TableHead>{t("payments.method")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedPayments.map((payment: RentPayment) => {
-                  const isOverdue =
-                    payment.status === "pending" &&
-                    new Date(payment.payment_due_date) < new Date();
 
-                  return (
-                    <TableRow key={payment.id}>
-                      <TableCell>
-                        {isOverdue ? (
-                          <div className="flex items-center gap-1 text-red-600">
-                            <AlertCircle className="h-4 w-4" />
-                            <span>Overdue</span>
-                          </div>
-                        ) : (
-                          getStatusBadge(payment.status)
-                        )}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {t("payments.currency")} {(payment.amount_cents / 100).toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          {format(new Date(payment.payment_due_date), "MMM d, yyyy")}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {payment.payment_received_date ? (
-                          <div className="flex items-center gap-1">
-                            <CheckCircle2 className="h-4 w-4 text-green-600" />
-                            {format(new Date(payment.payment_received_date), "MMM d, yyyy")}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {payment.payment_method ? (
-                          <span className="capitalize">{payment.payment_method}</span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          {t("payments.createPayment")}
+        </Button>
+      </div>
 
-          {totalPages > 1 && (
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+      {isManager && currentAgreement && (
+        <div className="flex items-center justify-end">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2">
+                  {currentAgreement.auto_reminders_enabled !== false ? (
+                    <Bell className="h-4 w-4 text-primary" />
+                  ) : (
+                    <BellOff className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <Switch
+                    checked={currentAgreement.auto_reminders_enabled !== false}
+                    onCheckedChange={(checked) =>
+                      toggleRemindersMutation.mutate({ agreementId: currentAgreement.id, enabled: checked })
+                    }
+                    disabled={toggleRemindersMutation.isPending}
                   />
-                </PaginationItem>
-                <PaginationItem className="px-4 text-sm">
-                  {t("payments.page")} {currentPage} {t("payments.of")} {totalPages}
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          )}
-        </>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t("payments.autoReminders")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
+
+      <Card className="card-shine">
+        <CardHeader>
+          <CardTitle>{t("payments.title")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <UnifiedPaymentHistory
+            propertyId={propertyId}
+            isManager={isManager}
+            payments={paginatedPayments}
+            totalPages={totalPages}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            hasPayments={allPayments.length > 0}
+            noAgreements={!rentAgreements || rentAgreements.length === 0}
+          />
+        </CardContent>
+      </Card>
+
+      {managerId && (
+        <CreatePaymentDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          propertyId={propertyId}
+          tenantId={currentTenant.tenant_id}
+          managerId={managerId}
+          isManager={isManager}
+        />
       )}
     </div>
   );

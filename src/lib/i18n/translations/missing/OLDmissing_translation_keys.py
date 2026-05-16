@@ -9,25 +9,21 @@ Missing keys (used in code but absent from the translation file) are
 logged to a report file.
 
 Usage:
-    python check_missing_translation_keys.py              # defaults
-    python check_missing_translation_keys.py en.ts src/  # custom paths
-    python check_missing_translation_keys.py en.ts src/ report.txt
+    python check_missing_translation_keys.py                        # defaults
+    python check_missing_translation_keys.py en.ts src/             # custom paths
+    python check_missing_translation_keys.py en.ts src/ report.txt  # custom output
 
 Positional args (all optional):
     1. path to translation file  (default: src/locales/en.ts)
     2. path to src directory     (default: src)
     3. output report file        (default: missing_translation_keys.txt)
 
-Detection patterns:
-    t("some.key")  t('some.key')  t(`some.key`)
+Detection patterns (all configurable below):
+    t("some.key")   t('some.key')   t(`some.key`)
     i18n.t("some.key")
     useTranslation("some.key")
     trans("some.key")
-    $t("some.key")        <- Vue / Svelte
-    {t("some.key")}       <- JSX / TSX expression blocks
-    ||t("some.key")       <- logical OR fallback
-    &&t("some.key")       <- short-circuit render
-    ?t("a.b"):t("c.d")   <- ternary
+    $t("some.key")           ← Vue / Svelte
 """
 
 import os
@@ -41,7 +37,7 @@ from collections import defaultdict
 # ──────────────────────────────────────────────────────────────────────────────
 
 TRANSLATION_FILE        = "/home/dragutin/projects/rentmate/src/lib/i18n/translations/en.ts"
-TRANSLATION_EXPORT_NAME = "en"   # the `export const <name> = {...}`
+TRANSLATION_EXPORT_NAME = "en"          # the `export const <name> = {...}`
 SRC_DIR                 = "/home/dragutin/projects/rentmate/src"
 OUTPUT_FILE             = "missing_translation_keys.txt"
 
@@ -55,37 +51,39 @@ SKIP_DIRS = {"node_modules", ".git", "dist", "build", ".next", ".nuxt", "__pycac
 SKIP_TRANSLATION_FILE = True
 
 # ── Key detection regex ────────────────────────────────────────────────────────
+# Matches the string argument passed to any of these i18n call patterns:
+#   t("a.b.c")   t('a.b.c')   $t("a.b.c")   i18n.t("a.b.c")
+#   useTranslation("a.b.c")   trans("a.b.c")
 #
-# Uses a lookbehind so the preceding char is not consumed, which correctly
-# handles back-to-back calls like ?t('a'):t('b') and JSX blocks {t('key')}.
+# A valid translation key: dot-separated camelCase/snake_case segments,
+# e.g.  "common.save"  "landing.carousel.rent.title"
 #
-# Lookbehind chars:
-#   \s  whitespace          (,=:  punctuation / JSX props
-#   {   JSX expression      |&    logical OR / AND
-#   !   negation            ?     ternary
-#   [   array literal       >     JSX closing angle  >{t('k')}
-#
+# The regex captures the key string (without quotes) from inside the call.
 KEY_CALL_PATTERN = re.compile(
-    r"(?:(?<=[\s(,=:{|&!?\[>])|^)"   # lookbehind: valid preceding chars (non-consuming)
-    r"\$?(?:\w+\.)*t\s*\(\s*"         # t(  /  i18n.t(  /  $t(
-    r"(?:[\"'`])"                      # opening quote
-    r"([a-zA-Z_$][a-zA-Z0-9_$]*"      # first key segment
-    r"(?:\.[a-zA-Z_$][a-zA-Z0-9_$]*)*)"  # additional .segment parts
-    r"(?:[\"'`])"                      # closing quote
-    r"\s*[,)]",                        # followed by , or )
+    r"""(?:^|[\s(,=:])"""                # preceded by whitespace / punctuation
+    r"""\$?(?:\w+\.)*t\s*\(\s*"""        # optional chain like i18n.t(  or  $t(
+    r"""(?:["'`])"""                     # opening quote
+    r"""([a-zA-Z_$][a-zA-Z0-9_$]*"""    # first segment
+    r"""(?:\.[a-zA-Z_$][a-zA-Z0-9_$]*)*)"""  # additional .segment parts
+    r"""(?:["'`])"""                     # closing quote
+    r"""\s*[,)]""",                      # followed by comma or closing paren
     re.MULTILINE,
 )
 
-# Secondary: bare dot-notation strings passed as props, e.g. label="common.save"
+# Additional bare-string pattern: catches keys that appear as plain string
+# literals but aren't necessarily inside a t() call — e.g. passed as a prop.
+# Format: "namespace.key"  where there are at least 2 segments.
 BARE_STRING_PATTERN = re.compile(
-    r"[\"'`]([a-zA-Z_$][a-zA-Z0-9_$]*(?:\.[a-zA-Z_$][a-zA-Z0-9_$]+)+)[\"'`]"
+    r"""["'`]([a-zA-Z_$][a-zA-Z0-9_$]*(?:\.[a-zA-Z_$][a-zA-Z0-9_$]+)+)["'`]"""
 )
 
-# Minimum dot-segments for a bare string to be treated as a key (avoids "en-US" etc.)
+# Minimum number of dot-segments for a bare string to be considered a key.
+# Set to 2 to avoid false positives on short strings like "en-US".
 MIN_SEGMENTS_FOR_BARE = 2
 
+
 # ──────────────────────────────────────────────────────────────────────────────
-# Translation file parsing
+# Translation file parsing  (reused from check_translation_keys.py)
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _extract_balanced_braces(s: str, start: int) -> str:
@@ -186,27 +184,42 @@ def load_translation_keys(filepath: str, export_name: str) -> set:
     _collect_keys(obj_str, "", keys)
     return keys
 
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Source file scanning
 # ──────────────────────────────────────────────────────────────────────────────
 
 def extract_keys_from_source(content: str) -> set:
+    """
+    Return all translation key strings found in a single source file's content.
+    Uses KEY_CALL_PATTERN (t("...") style) as the primary detector, and
+    BARE_STRING_PATTERN as a secondary catch-all for prop-passed keys.
+    """
     found = set()
+
     for m in KEY_CALL_PATTERN.finditer(content):
         found.add(m.group(1))
+
     for m in BARE_STRING_PATTERN.finditer(content):
         key = m.group(1)
         if key.count(".") >= MIN_SEGMENTS_FOR_BARE - 1:
             found.add(key)
+
     return found
 
 
-def scan_src_for_keys(src_dir: str, skip_file: str | None = None) -> dict:
+def scan_src_for_keys(
+    src_dir: str,
+    skip_file: str | None = None,
+) -> dict:
     """
     Walk src_dir and collect all translation keys referenced in source files.
-    Returns: { dot_key: [ (filepath, [line_numbers]), ... ] }
+
+    Returns:
+        { dot_key: [ (filepath, [line_numbers]), ... ] }
     """
     skip_abs = os.path.abspath(skip_file) if skip_file else None
+    # key → {filepath → set of line numbers}
     occurrences: dict = defaultdict(lambda: defaultdict(set))
 
     for root, dirs, files in os.walk(src_dir):
@@ -226,18 +239,21 @@ def scan_src_for_keys(src_dir: str, skip_file: str | None = None) -> dict:
             if not file_keys:
                 continue
 
+            # Map each found key to the line numbers where it appears
             lines = content.splitlines()
             for key in file_keys:
                 for lineno, line in enumerate(lines, 1):
                     if key in line:
                         occurrences[key][fpath].add(lineno)
 
+    # Convert inner defaultdicts to plain sorted lists
     result = {}
     for key, file_map in occurrences.items():
         result[key] = sorted(
             (fp, sorted(lnos)) for fp, lnos in file_map.items()
         )
     return result
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Main
@@ -248,6 +264,7 @@ def main():
     src_dir          = sys.argv[2] if len(sys.argv) > 2 else SRC_DIR
     output_file      = sys.argv[3] if len(sys.argv) > 3 else OUTPUT_FILE
 
+    # ── Validate ────────────────────────────────────────────────────────────
     if not os.path.isfile(translation_file):
         print(f"[ERROR] Translation file not found: {translation_file}", file=sys.stderr)
         sys.exit(1)
@@ -260,18 +277,22 @@ def main():
     print(f"Output file      : {output_file}")
     print()
 
+    # ── Load known keys ─────────────────────────────────────────────────────
     print("[1/3] Loading translation keys...")
     known_keys = load_translation_keys(translation_file, TRANSLATION_EXPORT_NAME)
     print(f"      {len(known_keys)} keys in translation file")
 
+    # ── Scan source files ────────────────────────────────────────────────────
     print("\n[2/3] Scanning source files for key usage...")
     skip = translation_file if SKIP_TRANSLATION_FILE else None
     src_keys = scan_src_for_keys(src_dir, skip_file=skip)
     print(f"      {len(src_keys)} unique keys referenced in source")
 
+    # ── Classify ─────────────────────────────────────────────────────────────
     missing = {k: v for k, v in src_keys.items() if k not in known_keys}
     present = {k: v for k, v in src_keys.items() if k in known_keys}
 
+    # ── Write report ─────────────────────────────────────────────────────────
     print(f"\n[3/3] Writing report to {output_file}...")
 
     report_lines = [
@@ -296,10 +317,8 @@ def main():
             report_lines.append(f"  {key}")
             for filepath, linenos in missing[key]:
                 lines_str = ", ".join(str(n) for n in linenos)
-                report_lines.append(
-                    f"    {filepath} (line{'s' if len(linenos) > 1 else ''} {lines_str})"
-                )
-            report_lines.append("")
+                report_lines.append(f"      {filepath}  (line{'s' if len(linenos)>1 else ''} {lines_str})")
+        report_lines.append("")
     else:
         report_lines.append(
             "All keys referenced in source files exist in the translation file."
@@ -307,6 +326,7 @@ def main():
 
     Path(output_file).write_text("\n".join(report_lines) + "\n", encoding="utf-8")
 
+    # ── Summary ──────────────────────────────────────────────────────────────
     print()
     print(f"  ✓ Present : {len(present)}")
     print(f"  ✗ Missing : {len(missing)}")
@@ -316,7 +336,7 @@ def main():
         print()
         print("Missing keys:")
         for key in sorted(missing):
-            print(f"  {key}")
+            print(f"    {key}")
 
 
 if __name__ == "__main__":

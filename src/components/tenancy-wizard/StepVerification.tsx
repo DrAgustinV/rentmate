@@ -4,6 +4,7 @@ import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/for
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 import { Mail, Shield, Smartphone, Info, Lock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 

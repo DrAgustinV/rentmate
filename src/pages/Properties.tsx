@@ -46,7 +46,9 @@ export default function Properties() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "createdAt">("createdAt");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">(() =>
+    window.innerWidth >= 768 ? "list" : "grid"
+  );
   const [maxPropertiesLimit] = useState(5);
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [propertyPhotoUrls, setPropertyPhotoUrls] = useState<Record<string, string>>({});

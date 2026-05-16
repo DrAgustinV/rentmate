@@ -151,10 +151,20 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
 
       return { email };
     },
-    onSuccess: () => {
+    onSuccess: async (result) => {
       showToast.success({ title: t("dialogs.inviteTenant.sent"), description: t("dialogs.inviteTenant.sentDesc") });
       refetchInvitations();
       queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["tenancy-requirements", propertyId] });
+      
+      // Update requirement status from draft → sent
+      const { error: reqError } = await supabase
+        .from("tenancy_requirements")
+        .update({ status: "sent" })
+        .eq("property_id", propertyId)
+        .eq("tenant_email", result.email)
+        .eq("status", "draft");
+      if (reqError) console.error("Error updating requirement status:", reqError);
     },
     onError: (error: Error) => {
       const err = error as { errors?: Array<{ message: string }>; message?: string };
@@ -214,6 +224,35 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
     },
   });
 
+  const undoFinalizeTenancyMutation = useMutation({
+    mutationFn: async (tenantId: string) => {
+      const { data: tenant } = await supabase
+        .from("property_tenants")
+        .select("ended_at")
+        .eq("id", tenantId)
+        .single();
+
+      if (!tenant?.ended_at) throw new Error("Cannot undo: tenancy was not finalized");
+
+      const endedAt = new Date(tenant.ended_at);
+      const hoursSinceEnd = (Date.now() - endedAt.getTime()) / (1000 * 60 * 60);
+      if (hoursSinceEnd > 24) throw new Error(t("dialogs.manageTenants.undoExpired") || "Undo window has expired (24 hours)");
+
+      const { error } = await supabase
+        .from("property_tenants")
+        .update({ tenancy_status: "ending_tenancy", ended_at: null })
+        .eq("id", tenantId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      showToast.success({ title: t("dialogs.manageTenants.undoFinalizeSuccess") || "Tenancy restored to ending" });
+      queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
+    },
+    onError: (error: Error) => {
+      showToast.error({ title: t("common.error"), description: error.message });
+    },
+  });
+
   const cancelInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
       const { error } = await supabase.from("invitations").update({ status: "cancelled" }).eq("id", invitationId);
@@ -222,6 +261,23 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
     onSuccess: () => {
       showToast.success({ title: t("dialogs.manageTenants.invitationCancelled") });
       refetchInvitations();
+    },
+    onError: (error: Error) => {
+      showToast.error({ title: t("common.error"), description: error.message });
+    },
+  });
+
+  const deleteTenancyMutation = useMutation({
+    mutationFn: async (tenantId: string) => {
+      const { error } = await supabase
+        .from("property_tenants")
+        .delete()
+        .eq("id", tenantId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      showToast.success({ title: t("dialogs.manageTenants.tenancyDeleted") || "Tenancy deleted" });
+      queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
     },
     onError: (error: Error) => {
       showToast.error({ title: t("common.error"), description: error.message });
@@ -240,6 +296,8 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
     dismissInvitationMutation,
     endTenancyMutation,
     finalizeTenancyMutation,
+    undoFinalizeTenancyMutation,
     cancelInvitationMutation,
+    deleteTenancyMutation,
   };
 }
