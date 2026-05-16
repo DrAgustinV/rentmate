@@ -13,6 +13,8 @@ import {
   Plus,
   Pencil,
   Send,
+  X,
+  Mail,
 } from "lucide-react";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
 import { ContractSignatureManager } from "@/components/ContractSignatureManager";
@@ -88,8 +90,8 @@ interface TenancySetupState {
 
 interface ContractsTabCallbacks {
   onStartSetup?: () => void;
-  onSendInvitation?: (req: TenancyRequirement) => void;
-  onCancelSetup?: (req: TenancyRequirement) => void;
+  onSendInvitation?: () => void;
+  onCancelSetup?: () => void;
   onResendInvitation?: (req: TenancyRequirement) => void;
   onEditTenant?: (tenant: Tenant) => void;
   onEndTenancy?: (tenant: Tenant) => void;
@@ -97,6 +99,7 @@ interface ContractsTabCallbacks {
   setCancellingInvitation?: (invitation: Invitation | null) => void;
   onEditAndResend?: (invitation: Invitation) => void;
   onDismissInvitation?: (invitation: Invitation) => void;
+  onBulkDismissDeclined?: (invitations: Invitation[]) => void;
   onEditRentalTerms?: () => void;
   onInviteInSelfManaged?: () => void;
   onDeleteTenancy?: (tenantId: string) => void;
@@ -132,6 +135,7 @@ export function ContractsTab({
     setCancellingInvitation,
     onEditAndResend,
     onDismissInvitation,
+    onBulkDismissDeclined,
     onEditRentalTerms,
     onInviteInSelfManaged,
     onDeleteTenancy,
@@ -204,7 +208,7 @@ export function ContractsTab({
     enabled: !!currentTenant,
   });
 
-  // Invitations query (manager only)
+  // Invitations query (manager only) — includes pending, expired, and declined
   const { data: invitations } = useQuery({
     queryKey: ["invitations", propertyId],
     queryFn: async () => {
@@ -215,8 +219,8 @@ export function ContractsTab({
         .from("invitations")
         .select("id, email, status, expires_at, created_at, decline_reason, declined_at, tenancy_requirements_id")
         .eq("property_id", propertyId)
-        .in("status", ["pending", "declined"])
-        .or(`expires_at.gt.${new Date().toISOString()},declined_at.gt.${thirtyDaysAgo.toISOString()}`)
+        .in("status", ["pending", "declined", "expired"])
+        .or(`expires_at.gt.${new Date().toISOString()},declined_at.gt.${thirtyDaysAgo.toISOString()},status.eq.expired,created_at.gt.${thirtyDaysAgo.toISOString()}`)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Invitation[];
@@ -224,7 +228,9 @@ export function ContractsTab({
     enabled: !!propertyId && userRole?.isManager,
   });
 
-  const pendingInvitations = invitations?.filter(inv => inv.status === 'pending') || [];
+  const now = new Date();
+  const pendingInvitations = invitations?.filter(inv => inv.status === 'pending' && new Date(inv.expires_at) > now) || [];
+  const expiredInvitations = invitations?.filter(inv => inv.status === 'expired' || (inv.status === 'pending' && new Date(inv.expires_at) <= now)) || [];
   const declinedInvitations = invitations?.filter(inv => inv.status === 'declined') || [];
 
   const deleteDocumentMutation = useMutation({
@@ -400,13 +406,24 @@ export function ContractsTab({
                     {t("common.edit")}
                   </Button>
                 )}
-                {onSendInvitation && (
-                  <Button variant="outline" size="sm" className="h-8" onClick={onSendInvitation as any}>
+                {isPendingDraft && onSendInvitation && (
+                  <Button variant="outline" size="sm" className="h-8" onClick={onSendInvitation}>
                     <Send className="h-3.5 w-3.5 mr-1" />
                     {t("tenancy.sendInvitation")}
                   </Button>
                 )}
+                {onCancelSetup && (
+                  <Button variant="ghost" size="sm" className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={onCancelSetup} disabled={isDeleting}>
+                    <X className="h-3.5 w-3.5 mr-1" />
+                    {t("common.cancel")}
+                  </Button>
+                )}
               </div>
+            ) : currentTenant && currentTenant.tenancy_status === 'active' && !currentTenant.tenant_id && onInviteInSelfManaged && userRole?.isManager && !isReadOnly ? (
+              <Button size="sm" onClick={onInviteInSelfManaged}>
+                <Mail className="h-4 w-4 mr-1" />
+                {t("tenancy.inviteTenant")}
+              </Button>
             ) : !isReadOnly && canSetupNewTenancy && !currentTenant && onStartSetup ? (
               <Button size="sm" onClick={onStartSetup}>
                 <Plus className="h-4 w-4 mr-1" />
@@ -429,6 +446,106 @@ export function ContractsTab({
             onEdit={onEditRentalTerms}
             onDeleteTenancy={onDeleteTenancy}
           />
+
+          {/* Invitations List */}
+          {userRole?.isManager && !isReadOnly && (pendingInvitations.length > 0 || expiredInvitations.length > 0 || declinedInvitations.length > 0) && (
+            <div className="mt-6 space-y-3 border-t pt-4">
+              <h4 className="text-sm font-medium text-muted-foreground">
+                {t("tenancy.invitations") || "Invitations"}
+              </h4>
+              {pendingInvitations.map((inv) => (
+                <div key={inv.id} className="flex items-center justify-between gap-4 p-3 bg-muted/50 rounded-lg">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{inv.email}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("tenancy.expires") || "Expires"}: {new Date(inv.expires_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {onEditAndResend && (
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onEditAndResend(inv)}>
+                        <Pencil className="h-3 w-3 mr-1" />
+                        {t("tenancy.editAndResend") || "Edit & Resend"}
+                      </Button>
+                    )}
+                    {setCancellingInvitation && (
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setCancellingInvitation(inv)}>
+                        {t("common.cancel")}
+                      </Button>
+                    )}
+                    {onDismissInvitation && (
+                      <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => onDismissInvitation(inv)}>
+                        {t("common.dismiss") || "Dismiss"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {expiredInvitations.length > 0 && (
+                <>
+                  <h5 className="text-xs font-medium text-muted-foreground mt-4">
+                    {t("tenancy.expiredInvitations") || "Expired"}
+                  </h5>
+                  {expiredInvitations.map((inv) => (
+                    <div key={inv.id} className="flex items-center justify-between gap-4 p-3 bg-muted/30 rounded-lg">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{inv.email}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("tenancy.expiredOn") || "Expired"}: {new Date(inv.expires_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {onEditAndResend && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onEditAndResend(inv)}>
+                            <Pencil className="h-3 w-3 mr-1" />
+                            {t("tenancy.editAndResend") || "Edit & Resend"}
+                          </Button>
+                        )}
+                        {onDismissInvitation && (
+                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => onDismissInvitation(inv)}>
+                            {t("common.dismiss") || "Dismiss"}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+              {declinedInvitations.length > 0 && (
+                <>
+                  <div className="flex items-center justify-between mt-4">
+                    <h5 className="text-xs font-medium text-muted-foreground">
+                      {t("tenancy.declinedInvitations") || "Declined"}
+                    </h5>
+                    {onBulkDismissDeclined && declinedInvitations.length > 1 && (
+                      <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => onBulkDismissDeclined(declinedInvitations)}>
+                        {t("tenancy.dismissAll") || "Dismiss All"}
+                      </Button>
+                    )}
+                  </div>
+                  {declinedInvitations.map((inv) => (
+                    <div key={inv.id} className="flex items-center justify-between gap-4 p-3 bg-muted/30 rounded-lg">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{inv.email}</p>
+                        {inv.decline_reason && (
+                          <p className="text-xs text-muted-foreground">
+                            {t("tenancy.declineReason") || "Reason"}: {inv.decline_reason}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {onDismissInvitation && (
+                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => onDismissInvitation(inv)}>
+                            {t("common.dismiss") || "Dismiss"}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
         </SectionCard>
       </div>
 

@@ -1,11 +1,10 @@
 import { UseFormReturn } from "react-hook-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { FormField } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
-import { Mail, Shield, Smartphone, Info, Lock } from "lucide-react";
+import { Mail, Shield, Info, Lock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StepProps {
@@ -63,19 +62,6 @@ export function StepVerification({ form, canUseGovId }: StepProps) {
             )}
           </div>
         )} />
-        <div className="flex items-center justify-between p-4 border rounded-lg opacity-60">
-          <div className="flex items-center gap-3">
-            <Smartphone className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <div className="flex items-center gap-2">
-                <Label className="font-medium">{t('tenancy.wizard.phoneVerification')}</Label>
-                <Badge variant="secondary" className="text-xs">{t('common.comingSoon')}</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">{t('tenancy.wizard.phoneVerificationDesc')}</p>
-            </div>
-          </div>
-          <Switch disabled />
-        </div>
       </CardContent>
     </Card>
   );

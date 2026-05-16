@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { UserCircle, ShieldCheck, Crown, Download, Trash2, AlertTriangle, Palette } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
-import { useToast } from "@/hooks/use-toast";
+import { showToast } from "@/lib/toast";
 import { User } from "@supabase/supabase-js";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -30,10 +30,13 @@ import { PrivacySettings } from "@/components/PrivacySettings";
 import { ChangePassword } from "@/components/auth/ChangePassword";
 import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
 import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
 export default function Account() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +48,35 @@ export default function Account() {
   const [deletionScheduled, setDeletionScheduled] = useState<string | null>(null);
   const { t } = useLanguage();
   const defaultTab = searchParams.get("tab") || "profile";
+  const returnTo = searchParams.get("returnTo");
+
+  // Fetch user's role and quick stats
+  const { data: roleData } = useQuery({
+    queryKey: ["account-role-stats", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data: propertiesManaged } = await supabase
+        .from("properties")
+        .select("id", { count: "exact", head: true })
+        .eq("manager_id", user.id);
+
+      if (propertiesManaged && propertiesManaged.length > 0) {
+        const { count: propertyCount } = await supabase
+          .from("properties")
+          .select("id", { count: "exact", head: true })
+          .eq("manager_id", user.id);
+        return { role: "manager" as const, count: propertyCount || 0 };
+      }
+
+      const { count: tenancyCount } = await supabase
+        .from("property_tenants")
+        .select("id", { count: "exact", head: true })
+        .eq("tenant_id", user.id);
+
+      return { role: "tenant" as const, count: tenancyCount || 0 };
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -87,11 +119,7 @@ export default function Account() {
       }
     } catch (error: any) {
       if (mounted) {
-        toast({
-          title: t('common.error'),
-          description: error.message,
-          variant: "destructive",
-        });
+        showToast.error(t('common.error'), error.message);
       }
     } finally {
       if (mounted) setLoading(false);
@@ -108,16 +136,9 @@ export default function Account() {
         lastName: lastName || null,
       });
 
-      toast({
-        title: t('common.success'),
-        description: t('settings.saved'),
-      });
+      showToast.success(t('common.success'), t('settings.saved'));
     } catch (error: any) {
-      toast({
-        title: t('common.error'),
-        description: error.message,
-        variant: "destructive",
-      });
+      showToast.error(t('common.error'), error.message);
     } finally {
       setSaving(false);
     }
@@ -139,16 +160,9 @@ export default function Account() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast({
-        title: "Data Export Complete",
-        description: "Your data has been downloaded successfully.",
-      });
+      showToast.success(t('account.dataExportSuccess') || 'Data Export Complete', t('account.dataExportSuccessDesc') || 'Your data has been downloaded successfully.');
     } catch (error: any) {
-      toast({
-        title: "Export Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      showToast.error(t('account.dataExportFailed') || 'Export Failed', error.message);
     } finally {
       setExporting(false);
     }
@@ -161,21 +175,16 @@ export default function Account() {
       setDeletionScheduled(data.deletion_date);
       setShowDeleteDialog(false);
 
-      toast({
-        title: "Account Deletion Scheduled",
-        description: `Your account will be deleted on ${new Date(data.deletion_date).toLocaleDateString()}. You can cancel this anytime before that date.`,
-        variant: "destructive",
-      });
+      showToast.success(
+        t('account.deletionScheduled') || 'Account Deletion Scheduled',
+        `${t('account.deletionScheduledDesc') || 'Your account will be deleted on'} ${new Date(data.deletion_date).toLocaleDateString()}. ${t('account.deletionCancelHint') || 'You can cancel this anytime before that date.'}`
+      );
 
       if (user) {
         await fetchProfile(user.id);
       }
     } catch (error: any) {
-      toast({
-        title: "Deletion Request Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      showToast.error(t('account.deletionFailed') || 'Deletion Request Failed', error.message);
     }
   };
 
@@ -185,20 +194,13 @@ export default function Account() {
 
       setDeletionScheduled(null);
 
-      toast({
-        title: "Deletion Cancelled",
-        description: "Your account deletion has been cancelled successfully.",
-      });
+      showToast.success(t('account.deletionCancelled') || 'Deletion Cancelled', t('account.deletionCancelledDesc') || 'Your account deletion has been cancelled successfully.');
 
       if (user) {
         await fetchProfile(user.id);
       }
     } catch (error: any) {
-      toast({
-        title: "Cancellation Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      showToast.error(t('account.cancellationFailed') || 'Cancellation Failed', error.message);
     }
   };
 
@@ -223,8 +225,34 @@ export default function Account() {
             <UserCircle className="h-8 w-8 text-primary" />
             {t('header.myAccount')}
           </h1>
-          <p className="text-muted-foreground mt-1">Manage your account settings and verification</p>
+          <p className="text-muted-foreground mt-1">{t('account.pageDescription') || 'Manage your account settings and verification'}</p>
         </div>
+
+        {/* Back to Property Banner */}
+        {returnTo && (
+          <Alert className="mb-6 cursor-pointer" onClick={() => navigate(decodeURIComponent(returnTo))}>
+            <ArrowLeft className="h-4 w-4" />
+            <AlertDescription className="cursor-pointer">
+              {t('account.backToProperty') || 'Back to Property'}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Role Stats Card */}
+        {roleData && (
+          <Card className="mb-6">
+            <CardContent className="py-3 flex items-center gap-3">
+              <Badge variant={roleData.role === 'manager' ? 'default' : 'secondary'}>
+                {roleData.role === 'manager' ? t('common.manager') || 'Manager' : t('common.tenant') || 'Tenant'}
+              </Badge>
+              <span className="text-sm text-muted-foreground">
+                {roleData.role === 'manager'
+                  ? `${t('account.managingProperties') || 'Managing'} ${roleData.count} ${t('account.properties') || 'properties'}`
+                  : `${t('account.tenantAt') || 'Tenant at'} ${roleData.count} ${t('account.properties') || 'properties'}`}
+              </span>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-5">
@@ -308,6 +336,12 @@ export default function Account() {
                   />
                 </div>
 
+                {user?.last_sign_in_at && (
+                  <div className="text-sm text-muted-foreground">
+                    {t('account.lastSignIn') || 'Last sign in'}: {new Date(user.last_sign_in_at).toLocaleString()}
+                  </div>
+                )}
+
                 <div className="flex justify-end">
                   <Button onClick={handleSaveProfile} disabled={saving}>
                     {saving ? t('settings.saving') : t('settings.saveChanges')}
@@ -332,7 +366,7 @@ export default function Account() {
           </TabsContent>
 
           <TabsContent value="identity" className="mt-6">
-            <IdentityVerification />
+            <IdentityVerification returnTo={returnTo || undefined} />
           </TabsContent>
 
           <TabsContent value="subscription" className="mt-6">
@@ -351,16 +385,16 @@ export default function Account() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Download className="h-5 w-5" />
-                  Download My Data
+                  {t('account.downloadMyData') || 'Download My Data'}
                 </CardTitle>
                 <CardDescription>
-                  Export all your personal data in machine-readable format (JSON)
+                  {t('account.downloadMyDataDesc') || 'Export all your personal data in machine-readable format (JSON)'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button onClick={handleExportData} disabled={exporting}>
                   <Download className="mr-2 h-4 w-4" />
-                  {exporting ? 'Exporting...' : 'Download My Data'}
+                  {exporting ? (t('common.loading') || 'Exporting...') : (t('account.downloadMyData') || 'Download My Data')}
                 </Button>
               </CardContent>
             </Card>
@@ -369,26 +403,26 @@ export default function Account() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-destructive">
                   <Trash2 className="h-5 w-5" />
-                  Delete My Account
+                  {t('account.deleteAccount') || 'Delete My Account'}
                 </CardTitle>
                 <CardDescription>
-                  Permanently delete your account (14-day grace period)
+                  {t('account.deleteAccountDesc') || 'Permanently delete your account (14-day grace period)'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {deletionScheduled ? (
                   <div className="space-y-3">
                     <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                      <p className="font-semibold text-destructive">Deletion scheduled for {new Date(deletionScheduled).toLocaleDateString()}</p>
+                      <p className="font-semibold text-destructive">{t('account.deletionScheduledFor') || 'Deletion scheduled for'} {new Date(deletionScheduled).toLocaleDateString()}</p>
                     </div>
                     <Button onClick={handleCancelDeletion} variant="outline">
-                      Cancel Deletion
+                      {t('account.cancelDeletion') || 'Cancel Deletion'}
                     </Button>
                   </div>
                 ) : (
                   <Button onClick={() => setShowDeleteDialog(true)} variant="destructive">
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete My Account
+                    {t('account.deleteAccount') || 'Delete My Account'}
                   </Button>
                 )}
               </CardContent>
@@ -399,15 +433,15 @@ export default function Account() {
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-destructive">Confirm Account Deletion</AlertDialogTitle>
+              <AlertDialogTitle className="text-destructive">{t('account.confirmDeletion') || 'Confirm Account Deletion'}</AlertDialogTitle>
               <AlertDialogDescription>
-                Your account will be deleted in 14 days. You can cancel anytime before then.
+                {t('account.confirmDeletionDesc') || 'Your account will be deleted in 14 days. You can cancel anytime before then.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
               <AlertDialogAction onClick={handleRequestDeletion} className="bg-destructive">
-                Schedule Deletion
+                {t('account.scheduleDeletion') || 'Schedule Deletion'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -13,15 +13,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Sun, Moon, Monitor, Type, Calendar, Globe } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Language } from '@/lib/i18n/translations/index';
 import { AVAILABLE_LANGUAGES } from '@/lib/i18n/languages.config';
+import { showToast } from '@/lib/toast';
 
 export const AppearanceSettings = () => {
   const { preferences, loading, updateTheme, resetToDefaults } = useTheme();
   const { t, language, changeLanguage } = useLanguage();
   const [tempPrefs, setTempPrefs] = useState(preferences);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   if (loading || !preferences) {
     return (
@@ -44,6 +56,12 @@ export const AppearanceSettings = () => {
   const handleReset = async () => {
     await resetToDefaults();
     setTempPrefs(null);
+    setResetDialogOpen(false);
+    showToast.success(t('settings.resetComplete') || 'Preferences reset to defaults');
+  };
+
+  const handleResetClick = () => {
+    setResetDialogOpen(true);
   };
 
   const updateTempPrefs = (update: Partial<typeof currentPrefs>) => {
@@ -196,8 +214,26 @@ export const AppearanceSettings = () => {
       {/* Action Buttons */}
       <div className="flex gap-3 pt-4">
         <Button onClick={handleSave}>{t('settings.saveChanges')}</Button>
-        <Button variant="outline" onClick={handleReset}>{t('settings.resetDefaults')}</Button>
+        <Button variant="outline" onClick={handleResetClick}>{t('settings.resetDefaults')}</Button>
       </div>
+
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('settings.resetConfirmTitle') || 'Reset Preferences?'}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('settings.resetConfirmDesc') || 'This will reset all appearance settings to their defaults. This action can be undone by saving your current preferences again.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReset}>
+              {t('settings.resetDefaults') || 'Reset to Defaults'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

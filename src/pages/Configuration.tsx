@@ -133,6 +133,18 @@ export default function Configuration() {
     }
   };
 
+  const handleRestoreDefaults = async () => {
+    setDefaultRequireKYC(false);
+    setDefaultDeposit("0");
+    setDefaultRequirePaymentConfirmation(true);
+    setDefaultRequireWaterBill(false);
+    setDefaultRequireElectricityBill(false);
+    
+    await handleSaveDefaults();
+    
+    toast.success(t('configuration.defaultsRestored') || 'Defaults restored');
+  };
+
   if (loading) {
     return (
       <AppLayout>
@@ -250,21 +262,24 @@ export default function Configuration() {
                 />
               </div>
 
-              {/* <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <Label htmlFor="default-deposit">{t('configuration.defaultDepositTitle')}</Label>
-                </div>  
-                <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="default-deposit">{t('configuration.defaultDepositTitle') || 'Default Security Deposit'}</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t('configuration.defaultDepositHelper') || 'Pre-fill the deposit field in the tenancy wizard'}
+                  </p>
+                </div>
+                <div className="w-32">
                   <Input
                     id="default-deposit"
                     type="number"
                     step="0.01"
                     value={defaultDeposit}
                     onChange={(e) => setDefaultDeposit(e.target.value)}
-                    placeholder={t('configuration.defaultDepositPlaceholder')}
+                    placeholder={t('configuration.defaultDepositPlaceholder') || '0'}
                   />
                 </div>
-              </div> */}
+              </div>
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -311,7 +326,10 @@ export default function Configuration() {
                 />
               </div>
             </CardContent>
-            <CardFooter className="justify-end">
+            <CardFooter className="justify-between">
+              <Button variant="ghost" size="sm" onClick={handleRestoreDefaults} disabled={isSaving}>
+                {t('configuration.restoreDefaults') || 'Restore Defaults'}
+              </Button>
               <Button onClick={handleSaveDefaults} disabled={isSaving}>
                 {isSaving ? t('configuration.saving') : t('common.save')}
               </Button>

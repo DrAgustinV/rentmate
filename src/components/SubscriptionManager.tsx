@@ -1,21 +1,39 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Crown, Sparkles, ExternalLink, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { Crown, Sparkles, ExternalLink, AlertCircle, CheckCircle2, Loader2, Building, Users } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
+import { authService } from "@/services";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useNavigate } from "react-router-dom";
 
 export function SubscriptionManager() {
   const { t } = useLanguage();
-  const { subscription, isLoading, refresh } = useSubscription();
+  const navigate = useNavigate();
+  const { subscription, isLoading, refresh, getPropertyLimit } = useSubscription();
+
+  const { data: propertyCount } = useQuery({
+    queryKey: ["subscription-property-count"],
+    queryFn: async () => {
+      const user = await authService.getCurrentUser();
+      if (!user) return 0;
+      const { count, error } = await supabase
+        .from("properties")
+        .select("id", { count: "exact", head: true })
+        .eq("manager_id", user.id);
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!subscription,
+  });
 
   // Create checkout session
   const createCheckout = useMutation({
@@ -206,6 +224,35 @@ export function SubscriptionManager() {
                 </p>
               )}
             </div>
+
+            {propertyCount !== undefined && getPropertyLimit() > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium flex items-center gap-1.5">
+                    <Building className="h-3.5 w-3.5" />
+                    {t("subscription.propertiesUsed") || "Properties"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {propertyCount} / {getPropertyLimit()}
+                  </p>
+                </div>
+                <Progress
+                  value={(propertyCount / getPropertyLimit()) * 100}
+                  className={`h-2 ${propertyCount >= getPropertyLimit() ? '[&>div]:bg-red-500' : propertyCount / getPropertyLimit() > 0.8 ? '[&>div]:bg-amber-500' : ''}`}
+                />
+                {propertyCount / getPropertyLimit() > 0.8 && (
+                  <p className={`text-sm mt-1 flex items-center gap-1 ${propertyCount >= getPropertyLimit() ? 'text-red-600' : 'text-amber-600'}`}>
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    {propertyCount >= getPropertyLimit()
+                      ? (t("subscription.propertyLimitReached") || "Property limit reached. Upgrade to add more.")
+                      : (t("subscription.propertyLimitNear") || "Approaching property limit. Upgrade to add more.")}
+                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => navigate("/pricing")}>
+                      {t("subscription.upgrade") || "Upgrade"}
+                    </Button>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <Separator />

@@ -119,7 +119,7 @@ export function TenantOnboardingChecklist({
       description: t("onboarding.checklist.emailVerificationDesc"),
       isRequired: true,
       isCompleted: profile?.email_verified === true,
-      action: !profile?.email_verified ? () => navigate("/account") : undefined,
+      action: !profile?.email_verified ? () => navigate(`/account?returnTo=${encodeURIComponent(`/properties/${propertyId}/tenants?tab=contracts`)}`) : undefined,
       actionLabel: t("onboarding.checklist.verifyEmail"),
     });
   }
@@ -132,7 +132,7 @@ export function TenantOnboardingChecklist({
       description: t("onboarding.checklist.identityVerificationDesc"),
       isRequired: true,
       isCompleted: profile?.kyc_status === "verified",
-      action: profile?.kyc_status !== "verified" ? () => navigate("/account") : undefined,
+      action: profile?.kyc_status !== "verified" ? () => navigate(`/account?returnTo=${encodeURIComponent(`/properties/${propertyId}/tenants?tab=contracts`)}`) : undefined,
       actionLabel: t("onboarding.checklist.verifyIdentity"),
     });
   }

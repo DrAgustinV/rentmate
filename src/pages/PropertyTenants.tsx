@@ -221,7 +221,21 @@ export default function PropertyTenants() {
     }
   };
 
-  const handleSendInvitation = async (email: string) => {
+  const handleSaveAndStartAnother = async (data: any, mode: 'new' | 'edit' | 'invite' | 'next_tenancy') => {
+    await handleWizardSubmit(data, mode);
+    // handleWizardSubmit sets showTenancyWizard(false); reopen and reset for another
+    setShowTenancyWizard(true);
+    setWizardMode('new');
+    setWizardInitialData(null);
+    setEditingInvitation(null);
+  };
+
+  const handleSendInvitation = async () => {
+    const email = pendingRequirement?.tenant_email;
+    if (!email) {
+      showToast.error(t('tenancy.noEmailToInvite') || 'No tenant email configured');
+      return;
+    }
     try {
       await inviteMutation.mutateAsync(email);
       showToast.success(t('tenancy.invitationSent') || 'Invitation sent to tenant');
@@ -388,6 +402,24 @@ export default function PropertyTenants() {
     }
   };
 
+  const handleBulkDismissDeclined = async (invitations: Invitation[]) => {
+    const results = await Promise.allSettled(
+      invitations.map((inv) => dismissInvitationMutation.mutateAsync(inv.id))
+    );
+    const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+    const failed = results.filter((r) => r.status === 'rejected').length;
+    if (succeeded > 0) {
+      showToast.success(
+        failed > 0
+          ? `${succeeded} dismissed, ${failed} failed`
+          : t('tenancy.declinedDismissed') || 'Declined invitations dismissed'
+      );
+    }
+    if (failed > 0) {
+      showToast.error(`${failed} invitation(s) failed to dismiss`);
+    }
+  };
+
   const getTenantName = (tenant: Tenant) => {
     if (tenant.tenancy_status === 'pending') return tenant.email;
     return `${tenant.first_name || ''} ${tenant.last_name || ''}`.trim() || tenant.email;
@@ -425,7 +457,9 @@ export default function PropertyTenants() {
         {isHistoricView && (
           <Alert variant="default" className="border-muted-foreground/30 bg-muted/30">
             <History className="h-4 w-4" />
-            <AlertTitle className="text-muted-foreground">{t("tenancy.viewingHistoric")}</AlertTitle>
+            <AlertTitle className="text-muted-foreground">
+              {currentTenant ? `${getTenantName(currentTenant)} — ${t("tenancy.viewingHistoric")}` : t("tenancy.viewingHistoric")}
+            </AlertTitle>
             {userRole?.isManager && currentTenant?.ended_at && (
               <div className="flex items-center gap-2 mt-2">
                 {(() => {
@@ -494,6 +528,7 @@ export default function PropertyTenants() {
                     setCancellingInvitation,
                     onEditAndResend: handleEditAndResend,
                     onDismissInvitation: setDismissingInvitation,
+                    onBulkDismissDeclined: handleBulkDismissDeclined,
                     onEditRentalTerms: handleEditRentalTerms,
                     onInviteInSelfManaged: handleInviteInSelfManaged,
                     onDeleteTenancy: handleDeleteTenancy,
@@ -621,6 +656,7 @@ export default function PropertyTenants() {
         propertyCountry={property?.country}
         templates={templates}
         onSubmit={editingInvitation ? handleWizardSubmitWithResend : handleWizardSubmit}
+        onSaveAndStartAnother={handleSaveAndStartAnother}
         isSubmitting={createRequirement.isPending}
         initialData={wizardInitialData}
         mode={wizardMode}
@@ -675,7 +711,7 @@ export default function PropertyTenants() {
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => dismissingInvitation && dismissInvitationMutation.mutate(dismissingInvitation)}
+              onClick={() => dismissingInvitation && dismissInvitationMutation.mutate(dismissingInvitation.id)}
             >
               {t("invitations.dismissDialog.confirm")}
             </AlertDialogAction>

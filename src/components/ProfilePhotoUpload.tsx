@@ -2,16 +2,18 @@ import { useState, useEffect, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getCachedSignedUrl } from "@/lib/signedUrlCache";
-import { documentService } from "@/services";
+import { documentService, profileService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
-import { Upload, Camera } from "lucide-react";
+import { Upload, Camera, Trash2 } from "lucide-react";
+import { showToast } from "@/lib/toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfilePhotoUploadProps {
   userId: string;
   currentPhotoPath: string | null;
   firstName: string;
   lastName: string;
-  onPhotoChange: (path: string) => void;
+  onPhotoChange: (path: string | null) => void;
   isKycVerified?: boolean;
 }
 
@@ -23,6 +25,7 @@ export function ProfilePhotoUpload({
   onPhotoChange,
   isKycVerified,
 }: ProfilePhotoUploadProps) {
+  const { t } = useLanguage();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +99,21 @@ export function ProfilePhotoUpload({
     }
   };
 
+  const handleRemovePhoto = async () => {
+    setError(null);
+    try {
+      if (currentPhotoPath) {
+        await documentService.deleteFile(STORAGE_BUCKETS.PROFILE_PHOTOS, currentPhotoPath);
+      }
+      await profileService.updateProfile(userId, { avatarStoragePath: null } as any);
+      onPhotoChange(null);
+      setPreviewUrl(null);
+      showToast.success(t('common.success') || 'Photo removed');
+    } catch (err) {
+      showToast.error(t('common.error') || 'Failed to remove photo');
+    }
+  };
+
   const getInitials = () => {
     const first = firstName?.charAt(0) || "";
     const last = lastName?.charAt(0) || "";
@@ -129,16 +147,29 @@ export function ProfilePhotoUpload({
       />
 
       <div className="flex flex-col items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="gap-2"
-        >
-          <Upload className="h-4 w-4" />
-          {uploading ? "Uploading..." : "Change Photo"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="gap-2"
+          >
+            <Upload className="h-4 w-4" />
+            {uploading ? "Uploading..." : "Change Photo"}
+          </Button>
+          {previewUrl && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRemovePhoto}
+              className="gap-2 text-destructive hover:text-destructive border-destructive/50 hover:bg-destructive/10"
+            >
+              <Trash2 className="h-4 w-4" />
+              {t('common.remove') || 'Remove'}
+            </Button>
+          )}
+        </div>
 
         {error && (
           <p className="text-xs text-destructive">{error}</p>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,9 +19,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { showToast } from "@/lib/toast";
+import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useUtilityTypes } from "@/hooks/useUtilityTypes";
-import { Mail, Shield, FileSignature, FileText, Zap, CheckCircle2, ChevronRight, ChevronLeft, Info } from "lucide-react";
+import { Mail, Shield, FileSignature, FileText, Zap, CheckCircle2, ChevronRight, ChevronLeft, Info, Rocket } from "lucide-react";
 import { StepTenantEmail, StepVerification, StepContractMethod, StepRentDeposits, StepUtilities, StepReview } from "@/components/tenancy-wizard";
 
 const formSchema = z.object({
@@ -49,6 +51,7 @@ interface CreateTenancyWizardProps {
   propertyCountry?: string;
   templates?: Array<{ id: string; document_title: string }>;
   onSubmit: (data: CreateTenancyRequirementInput, mode: 'new' | 'edit' | 'invite' | 'next_tenancy') => Promise<void>;
+  onSaveAndStartAnother?: (data: CreateTenancyRequirementInput, mode: 'new' | 'edit' | 'invite' | 'next_tenancy') => Promise<void>;
   isSubmitting?: boolean;
   initialData?: {
     id?: string;
@@ -69,12 +72,9 @@ interface CreateTenancyWizardProps {
 }
 
 const STEPS = [
-  { id: 'tenant', label: 'Tenant', icon: Mail },
-  { id: 'verification', label: 'Verification', icon: Shield },
-  { id: 'contract', label: 'Contract', icon: FileSignature },
-  { id: 'rent', label: 'Rent', icon: FileText },
-  { id: 'utilities', label: 'Utilities', icon: Zap },
-  { id: 'review', label: 'Review', icon: CheckCircle2 },
+  { id: 'tenant', label: 'Tenant & Verification', icon: Mail },
+  { id: 'contract', label: 'Contract & Rent', icon: FileText },
+  { id: 'review', label: 'Utilities & Review', icon: CheckCircle2 },
 ] as const;
 
 export function CreateTenancyWizard({
@@ -84,6 +84,7 @@ export function CreateTenancyWizard({
   propertyCountry,
   templates = [],
   onSubmit,
+  onSaveAndStartAnother,
   isSubmitting = false,
   initialData,
   mode = 'new',
@@ -93,55 +94,92 @@ export function CreateTenancyWizard({
   const { canUseGovernmentIdKYC, isFree } = useSubscription();
   const { utilityTypes } = useUtilityTypes();
   const [currentStep, setCurrentStep] = useState(0);
-  const [isReadyToSubmit, setIsReadyToSubmit] = useState(false);
   const [newUtilityType, setNewUtilityType] = useState("");
   const [newUtilityResponsibility, setNewUtilityResponsibility] = useState("not_applicable");
   
   const canUseGovId = canUseGovernmentIdKYC();
 
-  // Only allow submission after user has been on review step for a moment
-  useEffect(() => {
-    if (currentStep === STEPS.length - 1) {
-      const timer = setTimeout(() => setIsReadyToSubmit(true), 500);
-      return () => clearTimeout(timer);
-    } else {
-      setIsReadyToSubmit(false);
-    }
-  }, [currentStep]);
+  // Fetch property title for display
+  const { data: propertyTitle } = useQuery({
+    queryKey: ["property-title", propertyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("title")
+        .eq("id", propertyId)
+        .single();
+      if (error) throw error;
+      return data?.title;
+    },
+    enabled: open,
+  });
+
+  // Fetch default rent settings from Configuration page
+  const { data: defaultSettings } = useQuery({
+    queryKey: ["default-rent-settings"],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("default_rent_settings")
+        .eq("id", userData.user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.default_rent_settings as { require_kyc?: boolean; default_deposit_amount?: number } | null;
+    },
+    enabled: open && mode === 'new',
+  });
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       tenant_email: initialData?.tenant_email || '',
       require_email_verification: initialData?.require_email_verification ?? true,
-      require_kyc_verification: initialData?.require_kyc_verification ?? false,
+      require_kyc_verification: initialData?.require_kyc_verification ?? defaultSettings?.require_kyc ?? false,
       require_phone_verification: false,
       self_manage_only: false,
       contract_method: (initialData?.contract_method as 'digital' | 'manual' | 'none') || 'manual',
       selected_template_id: null,
       rent_amount: initialData?.rent_amount_cents ? (initialData.rent_amount_cents / 100).toString() : '',
       currency: initialData?.currency || 'EUR',
-      security_deposit: initialData?.security_deposit_cents ? (initialData.security_deposit_cents / 100).toString() : '',
+      security_deposit: initialData?.security_deposit_cents
+        ? (initialData.security_deposit_cents / 100).toString()
+        : defaultSettings?.default_deposit_amount
+          ? (defaultSettings.default_deposit_amount / 100).toString()
+          : '',
       payment_day: initialData?.payment_day?.toString() || '1',
       start_date: initialData?.start_date || '',
       end_date: initialData?.end_date || '',
-      utilities_config: (initialData?.utilities_config as Record<string, UtilityConfig>) || {},
+      utilities_config: (initialData?.utilities_config as Record<string, UtilityConfig>) || {
+        electricity: 'not_applicable',
+        water: 'not_applicable',
+        gas: 'not_applicable',
+        internet: 'not_applicable',
+        heating: 'not_applicable',
+        trash: 'not_applicable',
+      },
     },
   });
 
-  // Reset form when initialData changes
+  // Reset form when initialData changes (edit/invite mode)
   useEffect(() => {
     if (open && initialData) {
       form.reset({
         tenant_email: initialData.tenant_email || '',
         require_email_verification: initialData.require_email_verification ?? true,
-        require_kyc_verification: initialData.require_kyc_verification ?? false,
+        require_kyc_verification: initialData.require_kyc_verification ?? defaultSettings?.require_kyc ?? false,
         require_phone_verification: false,
+        self_manage_only: false,
         contract_method: (initialData.contract_method as 'digital' | 'manual' | 'none') || 'manual',
         selected_template_id: null,
         rent_amount: initialData.rent_amount_cents ? (initialData.rent_amount_cents / 100).toString() : '',
         currency: initialData.currency || 'EUR',
-        security_deposit: initialData.security_deposit_cents ? (initialData.security_deposit_cents / 100).toString() : '',
+        security_deposit: initialData.security_deposit_cents
+          ? (initialData.security_deposit_cents / 100).toString()
+          : defaultSettings?.default_deposit_amount
+            ? (defaultSettings.default_deposit_amount / 100).toString()
+            : '',
         payment_day: initialData.payment_day?.toString() || '1',
         start_date: initialData.start_date || '',
         end_date: initialData.end_date || '',
@@ -155,7 +193,60 @@ export function CreateTenancyWizard({
         },
       });
     }
-  }, [open, initialData, form]);
+  }, [open, initialData, form, defaultSettings]);
+
+  // Apply configuration defaults when they load in new mode
+  const defaultRequireKyc = defaultSettings?.require_kyc;
+  const defaultDepositAmount = defaultSettings?.default_deposit_amount;
+  useEffect(() => {
+    if (open && mode === 'new' && defaultSettings) {
+      form.setValue('require_kyc_verification', defaultRequireKyc ?? false);
+      if (defaultDepositAmount) {
+        form.setValue('security_deposit', (defaultDepositAmount / 100).toString());
+      }
+    }
+  }, [open, mode, defaultSettings, form, defaultRequireKyc, defaultDepositAmount]);
+
+  const SESSION_KEY = `tenancy-wizard-${propertyId}`;
+
+  // Save on step change and dialog close
+  useEffect(() => {
+    if (open && mode === 'new') {
+      try {
+        const values = form.getValues();
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+          values,
+          currentStep,
+          mode,
+          timestamp: Date.now(),
+        }));
+      } catch { /* storage full or unavailable */ }
+    }
+  }, [currentStep, open, mode, form, SESSION_KEY]);
+
+  // Restore saved state on dialog open (for 'new' mode only)
+  useEffect(() => {
+    if (open && mode === 'new' && !initialData) {
+      try {
+        const saved = sessionStorage.getItem(SESSION_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.mode === 'new' && parsed.values) {
+            const age = Date.now() - (parsed.timestamp || 0);
+            if (age < 3600000) { // 1 hour expiry
+              form.reset(parsed.values);
+              setCurrentStep(parsed.currentStep || 0);
+            }
+          }
+        }
+      } catch { /* ignore parse errors */ }
+    }
+  }, [open, mode, initialData, form, SESSION_KEY]);
+
+  // Clear session on successful submit
+  const clearSession = () => {
+    try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
+  };
 
   const handleNext = async () => {
     const fieldsToValidate = getFieldsForStep(currentStep);
@@ -171,31 +262,38 @@ export function CreateTenancyWizard({
     }
   };
 
-  const handleSubmit = async (data: FormData) => {
-    // Guard: Only allow submission if explicitly ready AND on last step
-    if (!isReadyToSubmit || currentStep !== STEPS.length - 1) {
-      console.log('Blocked premature submission', { isReadyToSubmit, currentStep });
-      return;
+  const handleQuickSetup = async () => {
+    const fieldsToValidate = getFieldsForStep(currentStep);
+    const isValid = await form.trigger(fieldsToValidate as any);
+    if (isValid && currentStep < STEPS.length - 1) {
+      setCurrentStep(STEPS.length - 1);
     }
+  };
+
+  const buildSubmitInput = (data: FormData): CreateTenancyRequirementInput => ({
+    property_id: propertyId,
+    tenant_email: data.tenant_email || null,
+    require_email_verification: data.self_manage_only ? false : data.require_email_verification,
+    require_kyc_verification: data.require_kyc_verification,
+    require_phone_verification: data.require_phone_verification,
+    self_manage_only: data.self_manage_only,
+    contract_method: data.contract_method,
+    selected_template_id: data.selected_template_id,
+    rent_amount_cents: data.rent_amount ? Math.round(parseFloat(data.rent_amount) * 100) : null,
+    currency: data.currency,
+    security_deposit_cents: data.security_deposit ? Math.round(parseFloat(data.security_deposit) * 100) : null,
+    payment_day: data.payment_day ? parseInt(data.payment_day) : null,
+    start_date: data.start_date || null,
+    end_date: data.end_date || null,
+    utilities_config: data.utilities_config as UtilitiesConfig,
+  });
+
+  const handleSubmit = async (data: FormData) => {
+    if (currentStep !== STEPS.length - 1) return;
     
-    const input: CreateTenancyRequirementInput = {
-      property_id: propertyId,
-      tenant_email: data.tenant_email || null,
-      require_email_verification: data.self_manage_only ? false : data.require_email_verification,
-      require_kyc_verification: data.require_kyc_verification,
-      require_phone_verification: data.require_phone_verification,
-      self_manage_only: data.self_manage_only,
-      contract_method: data.contract_method,
-      selected_template_id: data.selected_template_id,
-      rent_amount_cents: data.rent_amount ? Math.round(parseFloat(data.rent_amount) * 100) : null,
-      currency: data.currency,
-      security_deposit_cents: data.security_deposit ? Math.round(parseFloat(data.security_deposit) * 100) : null,
-      payment_day: data.payment_day ? parseInt(data.payment_day) : null,
-      start_date: data.start_date || null,
-      end_date: data.end_date || null,
-      utilities_config: data.utilities_config as UtilitiesConfig,
-    };
+    const input = buildSubmitInput(data);
     await onSubmit(input, mode);
+    clearSession();
     // Don't close dialog here - let parent control closing after successful save
     form.reset();
     setCurrentStep(0);
@@ -203,11 +301,9 @@ export function CreateTenancyWizard({
 
   const getFieldsForStep = (step: number): (keyof FormData)[] => {
     switch (step) {
-      case 0: return ['tenant_email'];
-      case 1: return ['require_email_verification', 'require_kyc_verification'];
-      case 2: return ['contract_method'];
-      case 3: return ['rent_amount', 'currency', 'security_deposit', 'payment_day', 'start_date'];
-      case 4: return ['utilities_config'];
+      case 0: return ['tenant_email', 'require_email_verification', 'require_kyc_verification'];
+      case 1: return ['contract_method', 'rent_amount', 'currency', 'security_deposit', 'payment_day', 'start_date'];
+      case 2: return ['utilities_config'];
       default: return [];
     }
   };
@@ -219,6 +315,9 @@ export function CreateTenancyWizard({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
+            {propertyTitle && (
+              <span className="block text-xs font-normal text-muted-foreground mb-0.5">{propertyTitle}</span>
+            )}
             {mode === 'edit' ? (t('tenancy.wizard.editTitle') || 'Edit Tenancy Setup') :
              mode === 'invite' ? (t('tenancy.wizard.inviteTitle') || 'Invite Tenant') :
              mode === 'next_tenancy' ? (t('tenancy.wizard.nextTenancyTitle') || 'Set Up Next Tenancy') :
@@ -241,15 +340,21 @@ export function CreateTenancyWizard({
             const Icon = step.icon;
             const isActive = index === currentStep;
             const isCompleted = index < currentStep;
+            const canJump = isCompleted;
             
             return (
               <div key={step.id} className="flex items-center">
-                <div className="flex flex-col items-center">
+                <button
+                  type="button"
+                  disabled={!canJump}
+                  onClick={() => canJump && setCurrentStep(index)}
+                  className="flex flex-col items-center transition-opacity disabled:opacity-100"
+                >
                   <div
                     className={cn(
                       "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
                       isActive && "bg-primary text-primary-foreground",
-                      isCompleted && "bg-primary/20 text-primary",
+                      isCompleted && "bg-primary/20 text-primary cursor-pointer hover:bg-primary/30",
                       !isActive && !isCompleted && "bg-muted text-muted-foreground"
                     )}
                   >
@@ -266,7 +371,7 @@ export function CreateTenancyWizard({
                   )}>
                     {step.label}
                   </span>
-                </div>
+                </button>
                 {index < STEPS.length - 1 && (
                   <ChevronRight className="h-4 w-4 mx-2 text-muted-foreground flex-shrink-0" />
                 )}
@@ -279,19 +384,33 @@ export function CreateTenancyWizard({
           <form 
             onSubmit={form.handleSubmit(handleSubmit)} 
             onKeyDown={(e) => {
-              // Prevent Enter key from submitting form prematurely (only allow on last step)
-              if (e.key === 'Enter' && currentStep !== STEPS.length - 1) {
-                e.preventDefault();
+              if (e.key === 'Enter') {
+                if (currentStep !== STEPS.length - 1) {
+                  e.preventDefault();
+                  handleNext();
+                }
               }
             }}
             className="space-y-6"
           >
-            {currentStep === 0 && <StepTenantEmail form={form} />}
-            {currentStep === 1 && <StepVerification form={form} canUseGovId={canUseGovId} />}
-            {currentStep === 2 && <StepContractMethod form={form} templates={templates} />}
-            {currentStep === 3 && <StepRentDeposits form={form} />}
-            {currentStep === 4 && <StepUtilities form={form} utilityTypes={utilityTypes} />}
-            {currentStep === 5 && <StepReview form={form} />}
+            {currentStep === 0 && (
+              <div className="space-y-6">
+                <StepTenantEmail form={form} />
+                <StepVerification form={form} canUseGovId={canUseGovId} />
+              </div>
+            )}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                <StepContractMethod form={form} templates={templates} />
+                <StepRentDeposits form={form} />
+              </div>
+            )}
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                <StepUtilities form={form} utilityTypes={utilityTypes} />
+                <StepReview form={form} />
+              </div>
+            )}
 
             {/* Navigation Buttons */}
             <div className="flex justify-between pt-4">
@@ -304,20 +423,47 @@ export function CreateTenancyWizard({
                 {currentStep === 0 ? t('common.cancel') : t('common.back')}
               </Button>
 
-              {currentStep < STEPS.length - 1 ? (
-                <Button type="button" onClick={handleNext}>
-                  {t('common.next')}
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              ) : (
-                <Button 
-                  type="button" 
-                  disabled={isSubmitting || !isReadyToSubmit}
-                  onClick={() => form.handleSubmit(handleSubmit)()}
-                >
-                  {isSubmitting ? t('common.saving') || 'Saving...' : t('common.save') || 'Save Setup'}
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {currentStep < STEPS.length - 1 && form.watch('self_manage_only') && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleQuickSetup}
+                  >
+                    <Rocket className="h-4 w-4 mr-1" />
+                    {t('tenancy.wizard.quickSetup') || 'Quick Setup'}
+                  </Button>
+                )}
+                {currentStep < STEPS.length - 1 ? (
+                  <Button type="button" onClick={handleNext}>
+                    {t('common.next')}
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {onSaveAndStartAnother && mode === 'new' && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isSubmitting}
+                        onClick={() => form.handleSubmit((data) => {
+                          const input = buildSubmitInput(data);
+                          onSaveAndStartAnother(input, mode);
+                        })()}
+                      >
+                        {t('tenancy.wizard.saveAndStartAnother') || 'Save & Start Another'}
+                      </Button>
+                    )}
+                    <Button 
+                      type="button" 
+                      disabled={isSubmitting}
+                      onClick={() => form.handleSubmit(handleSubmit)()}
+                    >
+                      {isSubmitting ? t('common.saving') || 'Saving...' : t('common.save') || 'Save Setup'}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </form>
         </Form>

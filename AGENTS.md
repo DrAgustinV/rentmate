@@ -159,7 +159,7 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
 
 | Table | Key Columns | Notes |
 |-------|-------------|-------|
-| `profiles` | `id`, `email`, `first_name`, `last_name`, `kyc_status` | User profiles, linked to auth.users |
+| `profiles` | `id`, `email`, `first_name`, `last_name`, `kyc_status`, `default_rent_settings` | User profiles, linked to auth.users. `default_rent_settings` stores JSON from `/configuration?tab=defaults` (require_kyc, default_deposit_amount, require_payment_confirmation, require_water_bill, require_electricity_bill) |
 | `properties` | `id`, `title`, `manager_id`, `status`, `country` | `status`: `active`/`inactive`/`ending_tenancy` |
 | `property_tenants` | `id`, `property_id`, `tenant_id`, `tenancy_status`, `started_at`, `planned_ending_date`, `ended_at` | `tenancy_status`: `pending`/`active`/`ending_tenancy`/`historic` |
 | `tenancy_requirements` | `id`, `property_id`, `tenancy_id`, `status`, `rent_amount_cents`, `contract_method` | `status`: `draft`/`sent`/`accepted`/`completed`/`cancelled` |
@@ -177,19 +177,45 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
 ```
 1. Navigate to property → /properties/:id/tenants?tab=contracts
 2. If no tenant → "Set Up Tenancy" button in ContactInfoCard
-3. CreateTenancyWizard (6 steps):
-   Tenant Email → Verification → Contract Method → Rent & Deposits → Utilities → Review
-3a. Cancel setup:
+3. CreateTenancyWizard (3 steps):
+   Tenant & Verification → Contract & Rent → Utilities & Review
+   - Step 1: Tenant email + self-manage toggle + email/KYC verification toggles
+   - Step 2: Contract method + template selector + rent, deposit, currency, payment day, dates
+   - Step 3: Utility checklist (all utilities at once, inline dropdowns) + review summary + Save
+   - Non-linear navigation: click completed step badges to jump back
+   - Keyboard shortcuts: Enter advances step; on review step, Enter/Ctrl+Enter submits
+3a. Quick Setup (self-managed only):
+    ├── "Quick Setup" button (rocket icon) shown when self_manage_only is checked
+    ├── Validates current step fields, then jumps directly to review step
+    └── User reviews & saves from review step
+
+3b. Save & Start Another:
+    ├── "Save & Start Another" outline button on review step (new tenancy mode only)
+    ├── Submits tenancy, then resets wizard for another setup without closing
+    └── Wizard stays open — no need to re-open from scratch
+
+3c. Cancel setup:
     ├── "Cancel Setup" button shown when requirement is in draft/sent
     ├── Confirmation dialog explains what will be deleted
     ├── Deletes the tenancy_requirements record
     └── If self-managed, also deletes orphaned property_tenants (tenant_id IS NULL)
 
-3b. Edit rental terms:
+3d. Configuration defaults pre-fill:
+    ├── Settings from `/configuration?tab=defaults` fetched on wizard open
+    ├── `require_kyc` pre-fills the KYC verification toggle
+    ├── `default_deposit_amount` pre-fills the security deposit field
+    └── Only applies in 'new' mode — edit/invite modes use existing data
+
+3e. Edit rental terms:
     ├── "Edit" button in TenancyOverviewCard (active tenancies)
     ├── Opens wizard in edit mode with existing values pre-filled
     └── Updates tenancy_requirements directly (not property_tenants)
-    
+
+3f. Wizard session persistence:
+    ├── Form state auto-saved to sessionStorage on each step change
+    ├── Restored within 1 hour if wizard is accidentally closed
+    └── Cleared on successful submission
+
 4. On submit, 3 paths:
    ├── Self-manage (no email)
    │   → Creates tenancy_requirements + property_tenants (status='active')
@@ -199,7 +225,7 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
    │   → Also sends invitation to tenant
    └── Standard (not self-manage)
        → Creates tenancy_requirements (status='draft')
-       → Manager clicks "Send Invitation" → invitation sent, status → 'sent'
+       → Manager clicks "Send Invitation" (visible for draft status only) → invitation sent, status → 'sent'
        → Tenant must accept to link profile
 4a. Invite existing self-managed tenancy:
     ├── "Invite Tenant" button shown when active + no tenant_id
@@ -231,7 +257,7 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
     ├── Two-step: ending_tenancy → historic (tenants)
     ├── One-step: immediate → historic (self-managed, no real tenant)
     ├── Separate "Finalize" AlertDialog with consequences listed (read-only, 24h undo, parallel setup)
-    └── 24-hour undo window in historic banner (reverts to ending_tenancy)
+    └── 24-hour undo window in historic banner (reverts to ending_tenancy); banner shows tenant name for context
 
 6b. Delete self-managed tenancy:
     ├── "Delete" button in TenancyOverviewCard
@@ -253,8 +279,8 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
     ├── pending → accepted → tenant linked
     ├── pending → cancelled (manager cancels) → can re-send
     ├── pending → dismissed (manager dismisses) → hidden from UI
-    ├── pending → declined (tenant declines) → visible for 30 days
-    └── pending → expired after 7 days → hidden after 30 days
+    ├── pending → declined (tenant declines) → visible for 30 days with dismiss action
+    └── pending → expired after 7 days → visible for 30 days with resend/dismiss actions
 
 7d. Requirement status progression:
     ├── 'draft' → created by wizard submit
@@ -352,6 +378,8 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
 - **Tenant lifecycle**: pending requirement → (draft → sent) → active → ending_tenancy → historic
 - **Self-managed** path creates `property_tenants` immediately with `status = 'active'` (skips draft/sent)
 - **E-signatures**: multi-provider (YouSign, DocuSeal, Qualified, AutoFirma, OpenAPI)
+- **Configuration defaults**: Saved at `/configuration?tab=defaults` → stored in `profiles.default_rent_settings` → consumed by `CreateTenancyWizard` in 'new' mode to pre-fill KYC toggle and security deposit
+- **Wizard session persistence**: Form state auto-saved to `sessionStorage` on each step change; restored within 1 hour if wizard is accidentally closed
 
 ## Anti-Patterns / What NOT To Do
 

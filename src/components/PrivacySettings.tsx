@@ -101,20 +101,14 @@ export function PrivacySettings() {
 
       await loadConsents();
 
-      showToast.success({
-        title: "Consent Updated",
-        description: `Your ${consentType} consent has been ${granted ? 'granted' : 'withdrawn'}.`,
-      });
+      showToast.success("Consent Updated", `Your ${consentType} consent has been ${granted ? 'granted' : 'withdrawn'}.`);
 
-      // Reload page if analytics consent changed to apply immediately
+      // Changes take effect immediately via localStorage
       if (consentType === 'analytics') {
-        setTimeout(() => window.location.reload(), 1000);
+        showToast.info("Analytics Consent Updated", "Changes have been saved. Reload the page to fully apply tracking changes.");
       }
     } catch (error: any) {
-      showToast.error({
-        title: "Update Failed",
-        description: error.message,
-      });
+      showToast.error("Update Failed", error.message);
       
       // Revert state on error
       if (consentType === 'analytics') {

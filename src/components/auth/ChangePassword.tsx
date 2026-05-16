@@ -1,14 +1,17 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { authService } from "@/services";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { showToast } from "@/lib/toastUtils";
 import { Lock, Loader2 } from "lucide-react";
-import { z } from "zod";
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(8, { message: "Password must be at least 8 characters" }),
@@ -19,27 +22,25 @@ const passwordSchema = z.object({
   path: ["confirmPassword"],
 });
 
+type PasswordFormData = z.infer<typeof passwordSchema>;
+
 export function ChangePassword() {
   const { t } = useLanguage();
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<PasswordFormData>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
 
-    try {
-      passwordSchema.parse({ currentPassword, newPassword, confirmPassword });
-    } catch (error: any) {
-      showToast.error(error.errors[0].message);
-      return;
-    }
-
+  const handleChangePassword = async (data: PasswordFormData) => {
     setLoading(true);
 
     try {
-      // First verify current password by attempting to sign in
       const user = await authService.getCurrentUser();
       
       if (!user?.email) {
@@ -48,27 +49,24 @@ export function ChangePassword() {
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email,
-        password: currentPassword,
+        password: data.currentPassword,
       });
 
       if (signInError) {
         showToast.error(t('auth.invalidCredentials'));
+        setLoading(false);
         return;
       }
 
-      // Update to new password
       const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
+        password: data.newPassword
       });
 
       if (updateError) throw updateError;
 
       showToast.success(t('auth.passwordChanged'));
       
-      // Clear form
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      form.reset();
     } catch (error: any) {
       console.error('Change password error:', error);
       showToast.error(t('auth.passwordChangeFailed'));
@@ -89,61 +87,80 @@ export function ChangePassword() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="currentPassword">{t('auth.currentPassword')}</Label>
-            <Input
-              id="currentPassword"
-              type="password"
-              placeholder={t('placeholders.password')}
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              required
-              minLength={8}
-              disabled={loading}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleChangePassword)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="currentPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('auth.currentPassword')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder={t('placeholders.password')}
+                      disabled={loading}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="newPassword">{t('auth.newPassword')}</Label>
-            <Input
-              id="newPassword"
-              type="password"
-              placeholder={t('placeholders.password')}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              minLength={8}
-              disabled={loading}
+            <FormField
+              control={form.control}
+              name="newPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('auth.newPassword')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder={t('placeholders.password')}
+                      disabled={loading}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">{t('auth.confirmPassword')}</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              placeholder={t('placeholders.password')}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              minLength={8}
-              disabled={loading}
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('auth.confirmPassword')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder={t('placeholders.password')}
+                      disabled={loading}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('common.loading')}
-              </>
-            ) : (
-              t('auth.changePassword')
-            )}
-          </Button>
-        </form>
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t('common.loading')}
+                </>
+              ) : (
+                t('auth.changePassword')
+              )}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );
 }
+
+export default ChangePassword;

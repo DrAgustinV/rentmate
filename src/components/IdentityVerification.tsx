@@ -10,7 +10,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useKYC, KYCProvider, OpenAPIVerificationLevel } from "@/hooks/useKYC";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isKYCExpiringSoon } from "@/lib/validations/kyc.schema";
-import { useToast } from "@/hooks/use-toast";
+import { showToast } from "@/lib/toast";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 
@@ -20,9 +20,12 @@ const maskDocumentId = (id: string | null) => {
   return '****' + id.slice(-4);
 };
 
-export function IdentityVerification() {
+interface IdentityVerificationProps {
+  returnTo?: string;
+}
+
+export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const { canUseGovernmentIdKYC, canUseKiltKYC, isFree, isLoading: subscriptionLoading } = useSubscription();
   const {
@@ -164,6 +167,26 @@ export function IdentityVerification() {
           </Alert>
         )}
 
+        {/* Verified - Success State */}
+        {isVerified && (
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-6 text-center space-y-3">
+            <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
+            <div>
+              <p className="text-lg font-semibold text-green-700 dark:text-green-400">
+                {t('kyc.verifiedSuccess') || 'Identity Verified'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {t('kyc.verifiedSuccessDesc') || 'Your identity has been verified successfully. You can now proceed with your tenancy setup.'}
+              </p>
+            </div>
+            {returnTo && (
+              <Button onClick={() => navigate(decodeURIComponent(returnTo))} className="mt-2">
+                {t('kyc.backToProperty') || 'Continue to Property'}
+              </Button>
+            )}
+          </div>
+        )}
+
         {/* Verified - Show Expiry */}
         {isVerified && kycProfile?.kyc_expires_at && (
           <Alert>
@@ -176,6 +199,15 @@ export function IdentityVerification() {
         {/* Provider Selection - Only show if can initiate */}
         {canInitiate && (
           <div className="space-y-4 pt-4 border-t">
+            {/* Context explanation for KYC */}
+            {!isVerified && !isPending && (
+              <Alert className="bg-blue-500/10 border-blue-500/20">
+                <ShieldCheck className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-sm">
+                  {t('kyc.contextExplanation') || 'This property manager requires identity verification as part of the tenancy setup. Verification typically takes 1-2 minutes using your passport or ID card.'}
+                </AlertDescription>
+              </Alert>
+            )}
             <Label className="text-base font-medium">Choose Verification Method</Label>
             
             <RadioGroup value={selectedProvider} onValueChange={(value) => setSelectedProvider(value as KYCProvider)}>
@@ -340,16 +372,9 @@ export function IdentityVerification() {
                   onClick={async () => {
                     try {
                       await cancelVerification();
-                      toast({
-                        title: "Verification Cancelled",
-                        description: "You can now choose a different method.",
-                      });
+                      showToast.success("Verification Cancelled", "You can now choose a different method.");
                     } catch (error) {
-                      toast({
-                        title: "Error",
-                        description: "Failed to cancel verification. Please try again.",
-                        variant: "destructive",
-                      });
+                      showToast.error("Error", "Failed to cancel verification. Please try again.");
                     }
                   }}
                   className="w-full"
