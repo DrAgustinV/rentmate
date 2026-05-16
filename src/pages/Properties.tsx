@@ -1,17 +1,14 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Building, Archive, Upload, Zap, Ticket, Wrench, ImageIcon, Search } from "lucide-react";
-import { PropertyCard, PropertyStatusIndicators, TenantStatusInfo } from "@/components/PropertyCard";
+import { Plus, Building, Archive, Upload, ImageIcon, Search } from "lucide-react";
+import { PropertyCard } from "@/components/PropertyCard";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useProperties } from "@/hooks/useProperties";
 import { OccupancyBadge, PaymentBadge, TicketCount } from "@/components/ui/status-badges";
 import {
   Table,
@@ -21,134 +18,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { propertyService, authService } from "@/services";
-import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
-import { getCachedSignedUrl } from "@/lib/signedUrlCache";
+import { usePropertyDashboard, MAX_PROPERTIES_LIMIT } from "@/hooks/usePropertyDashboard";
 
 export default function Properties() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    authService.getCurrentUser().then((user) => {
-      setUserId(user?.id || null);
-    });
-  }, []);
-
-  const { data: propertiesData, isLoading } = useProperties({
-    managerId: userId || undefined,
-  });
-  const [propertyView, setPropertyView] = useState<"active" | "ending_tenancy" | "archived">("active");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "createdAt">("createdAt");
-  const [viewMode, setViewMode] = useState<"grid" | "list">(() =>
-    window.innerWidth >= 768 ? "list" : "grid"
-  );
-  const [maxPropertiesLimit] = useState(5);
-  const debouncedSearch = useDebounce(searchTerm, 300);
-  const [propertyPhotoUrls, setPropertyPhotoUrls] = useState<Record<string, string>>({});
-  const [statusIndicators, setStatusIndicators] = useState<Record<string, PropertyStatusIndicators>>({});
-  const [tenantStatusMap, setTenantStatusMap] = useState<Record<string, TenantStatusInfo | null>>({});
 
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchPropertyData = async () => {
-      const propertyList = propertiesData?.properties;
-      if (!propertyList || propertyList.length === 0) return;
-
-      const [urls, indicators, tenantStatuses] = await Promise.all([
-        Promise.all(
-          propertyList
-            .filter(p => p.images?.[0])
-            .map(async (property) => {
-              try {
-                const url = await getCachedSignedUrl(
-                  STORAGE_BUCKETS.PROPERTY_PHOTOS,
-                  property.images![0],
-                  SIGNED_URL_TTL
-                );
-                return [property.id, url];
-              } catch (e) {
-                return [property.id, null];
-              }
-            })
-        ).then(Object.fromEntries),
-        Promise.all(
-          propertyList.map(async (property) => {
-            try {
-              const indicator = await propertyService.getPropertyStatusIndicators(property.id);
-              return [property.id, indicator];
-            } catch (error) {
-              return [property.id, null];
-            }
-          })
-        ).then(Object.fromEntries),
-        Promise.all(
-          propertyList.map(async (property) => {
-            try {
-              const status = await propertyService.getPropertyTenantStatus(property.id);
-              return [property.id, status];
-            } catch (error) {
-              return [property.id, null];
-            }
-          })
-        ).then(Object.fromEntries)
-      ]);
-
-      if (mounted) {
-        setPropertyPhotoUrls(urls as Record<string, string>);
-        setStatusIndicators(indicators as Record<string, PropertyStatusIndicators>);
-        setTenantStatusMap(tenantStatuses as Record<string, TenantStatusInfo | null>);
-      }
-    };
-
-    fetchPropertyData();
-    return () => { mounted = false; };
-  }, [propertiesData]);
-
-  const activeProperties = useMemo(() => {
-    return propertiesData?.properties?.filter(p => p.status === "active") || [];
-  }, [propertiesData]);
-
-  const endingTenancyProperties = useMemo(() => {
-    return propertiesData?.properties?.filter(p => p.status === "ending_tenancy") || [];
-  }, [propertiesData]);
-
-  const archivedProperties = useMemo(() => {
-    return propertiesData?.properties?.filter(p => p.status === "inactive") || [];
-  }, [propertiesData]);
-
-  const filteredAndSortedProperties = useMemo(() => {
-    let properties = activeProperties;
-    
-    if (propertyView === "ending_tenancy") {
-      properties = endingTenancyProperties;
-    } else if (propertyView === "archived") {
-      properties = archivedProperties;
-    }
-
-    if (debouncedSearch) {
-      const lowerSearch = debouncedSearch.toLowerCase();
-      properties = properties.filter(p => 
-        p.title.toLowerCase().includes(lowerSearch) ||
-        p.address?.toLowerCase().includes(lowerSearch) ||
-        p.city?.toLowerCase().includes(lowerSearch)
-      );
-    }
-
-    return properties.sort((a, b) => {
-      if (sortBy === "name") {
-        return a.title.localeCompare(b.title);
-      }
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }, [activeProperties, endingTenancyProperties, archivedProperties, debouncedSearch, sortBy, propertyView]);
+  const {
+    propertiesData,
+    isLoading,
+    propertyPhotoUrls,
+    statusIndicators,
+    tenantStatusMap,
+    propertyView,
+    setPropertyView,
+    viewMode,
+    setViewMode,
+    searchTerm,
+    setSearchTerm,
+    debouncedSearch,
+    sortBy,
+    setSortBy,
+    activeProperties,
+    endingTenancyProperties,
+    archivedProperties,
+    filteredProperties: filteredAndSortedProperties,
+  } = usePropertyDashboard();
 
   if (isLoading) {
     return (
@@ -184,15 +80,15 @@ export default function Properties() {
               <Button
                 variant="default"
                 onClick={() => setIsCreateOpen(true)}
-                disabled={activeProperties.length >= maxPropertiesLimit}
+                disabled={activeProperties.length >= MAX_PROPERTIES_LIMIT}
                 className="gap-2"
               >
                 <Plus className="h-4 w-4" />
                 {t("dashboard.createProperty")}
               </Button>
             </div>
-            {activeProperties.length >= maxPropertiesLimit && (
-              <p className="text-sm text-muted-foreground">Property limit reached ({maxPropertiesLimit} properties)</p>
+            {activeProperties.length >= MAX_PROPERTIES_LIMIT && (
+              <p className="text-sm text-muted-foreground">Property limit reached ({MAX_PROPERTIES_LIMIT} properties)</p>
             )}
           </div>
         </div>

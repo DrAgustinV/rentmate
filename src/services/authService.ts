@@ -1,11 +1,17 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
 
+export function clearSession(): void {
+  Object.keys(localStorage)
+    .filter(key => key.startsWith('sb-'))
+    .forEach(key => localStorage.removeItem(key));
+}
+
 export async function getCurrentUser(): Promise<User | null> {
   const { data, error } = await supabase.auth.getUser();
   if (error) {
     if (error.message?.toLowerCase().includes('session_not_found')) {
-      localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');
+      clearSession();
     }
     return null;
   }
@@ -33,4 +39,5 @@ export const authService = {
   getSession,
   onAuthStateChange,
   signOut,
+  clearSession,
 };

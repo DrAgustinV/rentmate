@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { identityService } from "@/services";
+import { identityService, authService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Loader2, Mail, LogOut, RefreshCw } from "lucide-react";
 import { showToast } from "@/lib/toast";
@@ -189,11 +189,11 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.warn("Sign out error (clearing local state anyway):", error.message);
-        localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');
+        authService.clearSession();
       }
     } catch (err) {
       console.warn("Sign out failed (clearing local state):", err);
-      localStorage.removeItem('sb-jrjwkpjfgsyrqztuokoo-auth-token');
+      authService.clearSession();
     }
     navigate("/auth");
   };
