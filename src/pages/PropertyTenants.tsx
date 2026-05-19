@@ -37,6 +37,24 @@ import { PropertySwitcher } from "@/components/property-hub/PropertySwitcher";
 import { showToast } from "@/lib/toast";
 import { usePropertyTenantsData, Tenant, Invitation } from '@/hooks/usePropertyTenants';
 
+interface WizardFormData {
+  id?: string;
+  rent_amount_cents?: number;
+  currency?: string;
+  security_deposit_cents?: number;
+  payment_day?: number;
+  start_date?: string;
+  end_date?: string;
+  utilities_config?: Record<string, unknown>;
+  self_manage_only?: boolean;
+  tenant_email?: string;
+  contract_method?: string;
+  selected_template_id?: string;
+  require_email_verification?: boolean;
+  require_kyc_verification?: boolean;
+  require_phone_verification?: boolean;
+}
+
 export default function PropertyTenants() {
   const { propertyId } = useParams();
   const navigate = useNavigate();
@@ -61,7 +79,7 @@ export default function PropertyTenants() {
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
   const [dismissingInvitation, setDismissingInvitation] = useState<Invitation | null>(null);
   const [editingInvitation, setEditingInvitation] = useState<Invitation | null>(null);
-  const [wizardInitialData, setWizardInitialData] = useState<any>(null);
+  const [wizardInitialData, setWizardInitialData] = useState<WizardFormData | null>(null);
   const [wizardMode, setWizardMode] = useState<'new' | 'edit' | 'invite' | 'next_tenancy'>('new');
   const [cancelSetupOpen, setCancelSetupOpen] = useState(false);
   const [dateConflictOpen, setDateConflictOpen] = useState(false);
@@ -118,7 +136,7 @@ export default function PropertyTenants() {
     }
   }, [actionParam, canSetupNewTenancy, hasTriggeredAction, propertyLoading, setSearchParams]);
 
-  const handleWizardSubmit = async (data: any, mode: 'new' | 'edit' | 'invite' | 'next_tenancy') => {
+  const handleWizardSubmit = async (data: WizardFormData, mode: 'new' | 'edit' | 'invite' | 'next_tenancy') => {
     try {
       // Case: Invite mode — just send invitation to existing self-managed tenancy
       if (mode === 'invite') {
@@ -152,7 +170,7 @@ export default function PropertyTenants() {
             payment_day: data.payment_day,
             start_date: data.start_date,
             end_date: data.end_date,
-            utilities_config: data.utilities_config as any,
+            utilities_config: data.utilities_config as Record<string, unknown>,
           })
           .eq('id', wizardInitialData.id);
         
@@ -216,12 +234,13 @@ export default function PropertyTenants() {
       setEditingInvitation(null);
       setWizardInitialData(null);
       setWizardMode('new');
-    } catch (error: any) {
-      showToast.error(error.message || t('common.error'));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('common.error');
+      showToast.error(message);
     }
   };
 
-  const handleSaveAndStartAnother = async (data: any, mode: 'new' | 'edit' | 'invite' | 'next_tenancy') => {
+  const handleSaveAndStartAnother = async (data: WizardFormData, mode: 'new' | 'edit' | 'invite' | 'next_tenancy') => {
     await handleWizardSubmit(data, mode);
     // handleWizardSubmit sets showTenancyWizard(false); reopen and reset for another
     setShowTenancyWizard(true);
@@ -239,8 +258,9 @@ export default function PropertyTenants() {
     try {
       await inviteMutation.mutateAsync(email);
       showToast.success(t('tenancy.invitationSent') || 'Invitation sent to tenant');
-    } catch (error: any) {
-      showToast.error(error.message || t('common.error'));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('common.error');
+      showToast.error(message);
     }
   };
 
@@ -269,8 +289,9 @@ export default function PropertyTenants() {
         }
         queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
       }
-    } catch (error: any) {
-      showToast.error(error.message || t('common.error'));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('common.error');
+      showToast.error(message);
     }
   };
 
@@ -288,8 +309,9 @@ export default function PropertyTenants() {
 
       showToast.success(t('tenancy.invitationResent') || 'Invitation resent to tenant');
       refetchInvitations();
-    } catch (error: any) {
-      showToast.error(error.message || t('common.error'));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('common.error');
+      showToast.error(message);
     }
   };
 
@@ -311,7 +333,7 @@ export default function PropertyTenants() {
     });
   };
 
-  const handleWizardSubmitWithResend = async (data: CreateTenancyRequirementInput) => {
+  const handleWizardSubmitWithResend = async (data: WizardFormData) => {
     if (!editingInvitation) return;
     try {
       const { error } = await supabase
@@ -325,13 +347,14 @@ export default function PropertyTenants() {
       if (error) throw error;
 
       await handleWizardSubmit(data, 'edit');
-    } catch (error: any) {
-      showToast.error(error.message || t('common.error'));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('common.error');
+      showToast.error(message);
     }
   };
 
   const handleEditRentalTerms = async (tenant: Tenant) => {
-    let initialData: any = {
+    let initialData: WizardFormData = {
       id: undefined,
       rent_amount_cents: 0,
       currency: 'USD',
@@ -397,8 +420,9 @@ export default function PropertyTenants() {
   const handleDeleteTenancy = async (tenantId: string) => {
     try {
       await deleteTenancyMutation.mutateAsync(tenantId);
-    } catch (error: any) {
-      showToast.error(error.message || t('common.error'));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('common.error');
+      showToast.error(message);
     }
   };
 
