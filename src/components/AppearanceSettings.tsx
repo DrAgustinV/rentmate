@@ -78,7 +78,7 @@ export const AppearanceSettings = () => {
         </div>
         <RadioGroup
           value={currentPrefs.theme_mode}
-          onValueChange={(value) => updateTempPrefs({ theme_mode: value as any })}
+          onValueChange={(value) => updateTempPrefs({ theme_mode: value as 'light' | 'dark' | 'system' })}
           className="grid grid-cols-3 gap-4"
         >
           <Label
@@ -116,7 +116,7 @@ export const AppearanceSettings = () => {
         </div>
         <RadioGroup
           value={currentPrefs.font_size}
-          onValueChange={(value) => updateTempPrefs({ font_size: value as any })}
+          onValueChange={(value) => updateTempPrefs({ font_size: value as 'sm' | 'md' | 'lg' })}
           className="grid grid-cols-3 gap-4"
         >
           <Label
