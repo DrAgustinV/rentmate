@@ -69,18 +69,12 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
       if (error) throw error;
     },
     onSuccess: () => {
-      showToast.success({
-        title: t("tenants.tenantUpdated"),
-        description: t("tenants.tenantUpdatedDesc"),
-      });
+      showToast.success(t("tenants.tenantUpdated"), t("tenants.tenantUpdatedDesc"));
       queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
       onOpenChange(false);
     },
     onError: (error: any) => {
-      showToast.error({
-        title: t("common.error"),
-        description: error.message,
-      });
+      showToast.error(t("common.error"), error.message);
     },
   });
 

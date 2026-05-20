@@ -1,14 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
 import { TENANT_PROPERTIES_QUERY_KEY } from '@/hooks/useTenantProperties';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, CheckCircle, XCircle, Home, MapPin } from "lucide-react";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { showToast } from "@/lib/toastUtils";
 import { formatDate } from "@/lib/dateUtils";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,6 @@ import { tenantService, profileService } from "@/services";
 export default function Invitations() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
   
@@ -79,11 +78,7 @@ export default function Invitations() {
       setInvitations(rawInvitations || []);
     } catch (error) {
       console.error("Error fetching invitations:", error);
-      toast({
-        title: t("invitations.error"),
-        description: t("invitations.errorDesc"),
-        variant: "destructive",
-      });
+      showToast.error(t("invitations.error"), t("invitations.errorDesc"));
     } finally {
       setLoading(false);
     }
@@ -116,20 +111,16 @@ export default function Invitations() {
         if (reqError) console.error("Error updating requirement status:", reqError);
       }
 
-      toast({
-        title: t("invitations.accepted"),
-        description: t("invitations.acceptedDesc"),
-      });
+      showToast.success(
+        t("invitations.accepted").replace("{property}", invitation.properties?.title || ""),
+        t("invitations.acceptedDesc"),
+      );
 
       await queryClient.invalidateQueries({ queryKey: TENANT_PROPERTIES_QUERY_KEY });
       navigate("/dashboard");
     } catch (error) {
       console.error("Error accepting invitation:", error);
-      toast({
-        title: t("invitations.error"),
-        description: t("invitations.errorDesc"),
-        variant: "destructive",
-      });
+      showToast.error(t("invitations.error"), t("invitations.errorDesc"));
     }
   };
 
@@ -147,10 +138,7 @@ export default function Invitations() {
 
       if (error) throw error;
 
-      toast({
-        title: t("invitations.declined"),
-        description: t("invitations.declinedDesc"),
-      });
+      showToast.success(t("invitations.declined"), t("invitations.declinedDesc"));
 
       setDeclineDialogOpen(false);
       setSelectedInvitation(null);
@@ -159,11 +147,7 @@ export default function Invitations() {
       await fetchInvitations();
     } catch (error) {
       console.error("Error declining invitation:", error);
-      toast({
-        title: t("invitations.error"),
-        description: t("invitations.errorDesc"),
-        variant: "destructive",
-      });
+      showToast.error(t("invitations.error"), t("invitations.errorDesc"));
     }
   };
 

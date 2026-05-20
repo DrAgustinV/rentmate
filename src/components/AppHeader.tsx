@@ -32,6 +32,7 @@ export function AppHeader() {
       console.warn("Sign out failed (clearing local state):", err);
       authService.clearSession();
     }
+    sessionStorage.removeItem("rentmate_active_role");
     setUser(null);
     navigate("/auth");
   };

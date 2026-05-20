@@ -169,7 +169,7 @@ export const ContractSignatureManager = ({
     if (tenancyId) {
       loadSignature();
     }
-  }, [tenancyId]);
+  }, [tenancyId, loadSignature]);
 
   const handleInitiateSignature = async () => {
     if (!canCreateSignature) {
@@ -217,11 +217,12 @@ export const ContractSignatureManager = ({
 
       await loadSignature();
       onRefresh?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error initiating signature:', error);
+      const message = error instanceof Error ? error.message : 'Failed to initiate signature';
       toast({
         title: t('common.error'),
-        description: error.message || 'Failed to initiate signature',
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -247,11 +248,12 @@ export const ContractSignatureManager = ({
       
       await loadSignature();
       onRefresh?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error cancelling signature:', error);
+      const message = error instanceof Error ? error.message : 'Failed to cancel signature';
       toast({
         title: t('common.error'),
-        description: error.message || 'Failed to cancel signature',
+        description: message,
         variant: 'destructive',
       });
     }
@@ -280,11 +282,12 @@ export const ContractSignatureManager = ({
 
       // Refresh signature data to update reminder count
       await loadSignature();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending reminder:', error);
+      const message = error instanceof Error ? error.message : t('contractSignature.reminder.error');
       toast({
         title: t('common.error'),
-        description: error.message || t('contractSignature.reminder.error'),
+        description: message,
         variant: "destructive",
       });
     } finally {

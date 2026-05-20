@@ -70,7 +70,7 @@ export function CreateRecurringScheduleDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recurring-schedules"] });
-      showToast.success({ title: "Recurring schedule created" });
+      showToast.success("Recurring schedule created");
       onOpenChange(false);
       setTemplateId("");
       setFrequency("monthly");
@@ -79,14 +79,14 @@ export function CreateRecurringScheduleDialog({
     },
     onError: (error) => {
       console.error("Error creating schedule:", error);
-      showToast.error({ title: "Failed to create schedule" });
+      showToast.error("Failed to create schedule");
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!templateId || !startDate) {
-      showToast.error({ title: "Please select a template and start date" });
+      showToast.error("Please select a template and start date");
       return;
     }
     createScheduleMutation.mutate();

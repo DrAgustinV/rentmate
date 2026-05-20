@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { authService, tenantService, tenancyService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
@@ -14,6 +14,8 @@ import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { useQueryClient } from '@tanstack/react-query';
 import { TENANT_PROPERTIES_QUERY_KEY } from '@/hooks/useTenantProperties';
 import { TenantOnboardingChecklist } from "@/components/property-tenants/TenantOnboardingChecklist";
+import { OnboardingTour } from "@/components/welcome/OnboardingTour";
+import { shouldShowRentalsTour } from "@/services/profileService";
 
 interface TenancyRelationship {
   id: string;
@@ -48,11 +50,18 @@ export default function Rentals() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [processingInvitation, setProcessingInvitation] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<"active" | "ending_tenancy" | "archived">("active");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [runTour, setRunTour] = useState(false);
+  const processedParams = useRef<string | null>(null);
   const navigate = useNavigate();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    const currentParams = searchParams.toString();
+    if (currentParams === processedParams.current) return;
+    processedParams.current = currentParams;
+
     let mounted = true;
 
     const checkUser = async () => {
@@ -64,11 +73,29 @@ export default function Rentals() {
       if (mounted) setUserId(session.user.id);
       const isManagerResult = await checkIfManager(session.user.id, mounted);
       if (mounted) await fetchData(session.user.id, session.user.email || "", isManagerResult, mounted);
+
+      const showTourParam = searchParams.get("tour") === "true";
+      if (showTourParam) {
+        setRunTour(true);
+        searchParams.delete("tour");
+        setSearchParams(searchParams, { replace: true });
+        return;
+      }
+
+      const shouldShowTourOnLoad = await shouldShowRentalsTour(session.user.id);
+      if (shouldShowTourOnLoad) {
+        setRunTour(true);
+        return;
+      }
     };
 
     checkUser();
     return () => { mounted = false; };
-  }, [navigate]);
+  }, [navigate, searchParams, setSearchParams]);
+
+  const handleTourFinish = () => {
+    setRunTour(false);
+  };
 
   const checkIfManager = async (uid: string, mounted: boolean): Promise<boolean> => {
     const { data } = await supabase
@@ -260,7 +287,7 @@ export default function Rentals() {
   return (
     <AppLayout>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+        <h1 className="text-3xl font-bold flex items-center gap-2" data-tour="rentals-header">
           <Handshake className="h-8 w-8 text-primary" />
           {t("rentals.title")}
         </h1>
@@ -268,7 +295,7 @@ export default function Rentals() {
       </div>
 
       {/* Status Tabs */}
-      <div className="mb-6">
+      <div className="mb-6" data-tour="rentals-toggle">
         <ArchiveToggle
           activeCount={activeCount}
           endingTenancyCount={endingCount}
@@ -280,7 +307,7 @@ export default function Rentals() {
 
       {/* Prominent Onboarding Checklist for Active Tenancies */}
       {!isManager && tenancies.filter(t => t.tenancy_status === 'active').length > 0 && (
-        <div className="mb-6 space-y-4">
+        <div className="mb-6 space-y-4" data-tour="rentals-checklist">
           {tenancies
             .filter(t => t.tenancy_status === 'active')
             .map((tenancy) => (
@@ -424,6 +451,14 @@ export default function Rentals() {
             </Card>
           ))}
         </div>
+      )}
+      {userId && (
+        <OnboardingTour
+          userId={userId}
+          run={runTour}
+          onFinish={handleTourFinish}
+          tourType="rentals"
+        />
       )}
     </AppLayout>
   );

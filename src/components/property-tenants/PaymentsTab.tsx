@@ -73,12 +73,10 @@ export function PaymentsTab({ currentTenant, propertyId, userRole }: PaymentsTab
     },
     onSuccess: (_, { enabled }) => {
       queryClient.invalidateQueries({ queryKey: ["rent-agreements", propertyId] });
-      showToast.success({
-        title: enabled ? t("payments.remindersEnabled") : t("payments.remindersDisabled")
-      });
+      showToast.success(enabled ? t("payments.remindersEnabled") : t("payments.remindersDisabled"));
     },
     onError: (error: Error) => {
-      showToast.error({ title: error.message });
+      showToast.error(error.message);
     },
   });
 

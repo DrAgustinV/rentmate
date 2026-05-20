@@ -6,6 +6,7 @@ import { AppLayout } from "@/components/layouts/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FolderOpen, Wrench, FileText, ClipboardList, Settings, Plus } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useRole } from "@/contexts/RoleContext";
 import { StandardTasksSection } from "@/components/StandardTasksSection";
 import { RepairShopsSection } from "@/components/RepairShopsSection";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ export default function Configuration() {
   const [createTemplateOpen, setCreateTemplateOpen] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { activeRole } = useRole();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get("tab") as ConfigTab) || "maintenance";
   const [activeTab, setActiveTab] = useState<ConfigTab>(initialTab);
@@ -41,7 +43,14 @@ export default function Configuration() {
     if (tab && tab !== activeTab) {
       setActiveTab(tab);
     }
-  }, [searchParams, activeTab]);
+
+    const guideHighlight = searchParams.get("guideHighlight");
+    if (guideHighlight === "defaults") {
+      setActiveTab("defaults");
+      searchParams.delete("guideHighlight");
+      setSearchParams(searchParams);
+    }
+  }, [searchParams, activeTab, setSearchParams]);
 
   useEffect(() => {
     let mounted = true;
@@ -65,6 +74,10 @@ export default function Configuration() {
       }
 
       if (mounted) setUserId(session.user.id);
+      if (activeRole !== 'manager') {
+        navigate("/properties");
+        return;
+      }
       await fetchDefaultSettings(session.user.id, mounted);
     };
 

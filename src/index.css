@@ -52,6 +52,12 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
+    /* Role-based accent colors (overridden per role) */
+    --role-accent: 173 77% 32%;
+    --role-accent-light: 173 77% 95%;
+    --role-badge-bg: 173 30% 90%;
+    --role-badge-text: 173 77% 25%;
+
     --gradient-primary: linear-gradient(135deg, hsl(173 77% 32%), hsl(173 58% 45%));
     --gradient-card: linear-gradient(to bottom, hsl(0 0% 100%), hsl(210 40% 98%));
     --gradient-subtle: linear-gradient(180deg, hsl(210 40% 98%), hsl(0 0% 100%));
@@ -194,6 +200,26 @@ All colors MUST be HSL.
     );
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
+  }
+
+  /* Role-based UI differentiation */
+  [data-active-role="manager"] {
+    --role-accent: 173 77% 32%;
+    --role-accent-light: 173 77% 95%;
+    --role-badge-bg: 173 30% 90%;
+    --role-badge-text: 173 77% 25%;
+  }
+
+  [data-active-role="tenant"] {
+    --role-accent: 202 81% 48%;
+    --role-accent-light: 202 81% 95%;
+    --role-badge-bg: 202 40% 90%;
+    --role-badge-text: 202 81% 30%;
+  }
+
+  /* Role switch transition */
+  .role-transition {
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
 
   /* Accessibility: visible focus indicators */

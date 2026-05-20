@@ -59,10 +59,7 @@ export default function Profile() {
       }
       setSelectedLanguage(language);
     } catch (error: any) {
-      showToast.error({
-        title: t('common.error'),
-        description: error.message,
-      });
+      showToast.error(t('common.error'), error.message);
     } finally {
       setLoading(false);
     }
@@ -82,15 +79,9 @@ export default function Profile() {
         await changeLanguage(selectedLanguage);
       }
 
-      showToast.success({
-        title: t('common.success'),
-        description: t('settings.saved'),
-      });
+      showToast.success(t('common.success'), t('settings.saved'));
     } catch (error: any) {
-      showToast.error({
-        title: t('common.error'),
-        description: error.message,
-      });
+      showToast.error(t('common.error'), error.message);
     } finally {
       setSaving(false);
     }

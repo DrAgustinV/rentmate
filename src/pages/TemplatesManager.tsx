@@ -37,11 +37,11 @@ export default function TemplatesManager({ propertyId }: TemplatesManagerProps) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks-with-schedules"] });
-      showToast.success({ title: t("maintenance.taskDeleted") });
+      showToast.success(t("maintenance.taskDeleted"));
     },
     onError: (error) => {
       console.error("Error deleting task:", error);
-      showToast.error({ title: "Failed to delete task" });
+      showToast.error("Failed to delete task");
     },
   });
 
@@ -56,11 +56,11 @@ export default function TemplatesManager({ propertyId }: TemplatesManagerProps) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks-with-schedules"] });
-      showToast.success({ title: t("maintenance.scheduleUpdated") });
+      showToast.success(t("maintenance.scheduleUpdated"));
     },
     onError: (error) => {
       console.error("Error updating schedule:", error);
-      showToast.error({ title: "Failed to update schedule" });
+      showToast.error("Failed to update schedule");
     },
   });
 

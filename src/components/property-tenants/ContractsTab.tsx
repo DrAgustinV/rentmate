@@ -238,11 +238,11 @@ export function ContractsTab({
       await documentService.deleteDocument(docId);
     },
     onSuccess: () => {
-      showToast.success({ title: t("properties.propertyDocuments.deleteSuccess") });
+      showToast.success(t("properties.propertyDocuments.deleteSuccess"));
       refetchDocuments();
     },
     onError: () => {
-      showToast.error({ title: t("properties.propertyDocuments.deleteFailed") });
+      showToast.error(t("properties.propertyDocuments.deleteFailed"));
     },
   });
 
@@ -286,7 +286,7 @@ export function ContractsTab({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      showToast.error({ title: t("common.error") });
+      showToast.error(t("common.error"));
     }
   };
 
@@ -303,7 +303,7 @@ export function ContractsTab({
         if (newWindow) newWindow.location.href = url;
       } catch (error: any) {
         newWindow?.close();
-        showToast.error({ title: t("properties.openError") });
+        showToast.error(t("properties.openError"));
       }
     } else {
       downloadDocument(doc);
@@ -393,7 +393,6 @@ export function ContractsTab({
         <SectionCard
           title={t("propertyTenants.tabs.contracts") || "Tenant & Tenancy"}
           icon={User}
-          description={currentTenant ? getTenantName(currentTenant) : t("tenancy.setupTenancy")}
           defaultOpen={true}
           action={
             pendingRequirement && userRole?.isManager && !isReadOnly ? (

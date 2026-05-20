@@ -146,19 +146,13 @@ export function ScheduleStandardTaskDialog({
       queryClient.invalidateQueries({ queryKey: ["tasks-with-schedules"] });
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
       queryClient.invalidateQueries({ queryKey: ["property-tickets"] });
-      showToast.success({
-        title: t("maintenance.scheduleStandard.success") || "Task scheduled",
-        description: t("maintenance.scheduleStandard.successDescription") || "The maintenance task has been scheduled successfully.",
-      });
+      showToast.success(t("maintenance.scheduleStandard.success") || "Task scheduled", t("maintenance.scheduleStandard.successDescription") || "The maintenance task has been scheduled successfully.");
       onOpenChange(false);
       resetForm();
     },
     onError: (error) => {
       console.error("Error scheduling task:", error);
-      showToast.error({
-        title: t("common.error") || "Error",
-        description: t("maintenance.scheduleStandard.error") || "Failed to schedule task. Please try again.",
-      });
+      showToast.error(t("common.error") || "Error", t("maintenance.scheduleStandard.error") || "Failed to schedule task. Please try again.");
     },
   });
 
@@ -173,10 +167,7 @@ export function ScheduleStandardTaskDialog({
     e.preventDefault();
 
     if (!standardTemplate || !startDate || !frequency) {
-      showToast.error({
-        title: t("common.error") || "Error",
-        description: t("maintenance.scheduleStandard.missingFields") || "Please fill in all required fields.",
-      });
+      showToast.error(t("common.error") || "Error", t("maintenance.scheduleStandard.missingFields") || "Please fill in all required fields.");
       return;
     }
 

@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SEND_EMAIL_HOOK_SECRET = Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "";
 
 interface AuthEmailPayload {
   user: {
@@ -17,11 +19,21 @@ interface AuthEmailPayload {
 
 const handler = async (req: Request): Promise<Response> => {
   try {
-    const payload: AuthEmailPayload = await req.json();
-    
-    console.log("Auth email hook triggered:", payload.email_data.email_action_type);
+    if (!SEND_EMAIL_HOOK_SECRET) {
+      console.error("SEND_EMAIL_HOOK_SECRET is not configured");
+      return new Response(
+        JSON.stringify({ error: "Hook secret not configured" }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
 
-    const { user, email_data } = payload;
+    const wh = new Webhook(SEND_EMAIL_HOOK_SECRET.replace(/^v1,whsec_/, ""));
+    const body = await req.text();
+    const headers = Object.fromEntries(req.headers.entries());
+    const { user, email_data } = wh.verify(body, headers) as AuthEmailPayload;
+
+    console.log("Auth email hook triggered:", email_data.email_action_type);
+
     const actionType = email_data.email_action_type;
     
     // Construct confirmation URL

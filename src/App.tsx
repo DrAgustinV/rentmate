@@ -8,6 +8,7 @@ import { EmailVerificationGate } from "@/components/EmailVerificationGate";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "./lib/queryClient";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
+import { RoleProvider, RoleResolver } from "@/contexts/RoleContext";
 
 // Lazy-loaded pages for code splitting and error isolation
 const Index = lazy(() => import("./pages/Index"));
@@ -85,6 +86,8 @@ const App = () => (
       <BrowserRouter>
         <AnalyticsProvider>
             <EmailVerificationGate>
+              <RoleProvider>
+                <RoleResolver>
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Index /></Suspense></ErrorBoundary>} />
@@ -134,6 +137,8 @@ const App = () => (
               {/* Catch-all */}
               <Route path="*" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><NotFound /></Suspense></ErrorBoundary>} />
             </Routes>
+                </RoleResolver>
+              </RoleProvider>
           </EmailVerificationGate>
         </AnalyticsProvider>
       </BrowserRouter>

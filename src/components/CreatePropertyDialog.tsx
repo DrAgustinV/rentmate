@@ -22,7 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 interface CreatePropertyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess: (propertyId: string) => void;
 }
 
 export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePropertyDialogProps) {
@@ -182,7 +182,7 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
           setDescription("");
           setPhotoFile(null);
           setLoading(false);
-          onSuccess();
+          onSuccess(newProperty.id);
         },
         onError: (error: any) => {
           setLoading(false);

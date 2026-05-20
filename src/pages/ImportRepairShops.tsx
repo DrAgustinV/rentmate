@@ -98,10 +98,7 @@ export default function ImportRepairShops() {
       setParsedRows(rows);
       setStep('preview');
     } catch (error: any) {
-      showToast.error({
-        title: 'Failed to parse file',
-        description: error.message,
-      });
+      showToast.error('Failed to parse file', error.message);
     }
   };
 
@@ -142,10 +139,7 @@ export default function ImportRepairShops() {
       setImportSummary(result.summary);
       setStep('results');
     } catch (error: any) {
-      showToast.error({
-        title: 'Import failed',
-        description: error.message,
-      });
+      showToast.error('Import failed', error.message);
       setStep('preview');
     }
   };

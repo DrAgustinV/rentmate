@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
-import type { LucideIcon } from "lucide-react";
-import { Building, Handshake, ShieldCheck, UserCircle, Settings, LogOut, Menu } from "lucide-react";
+import { UserCircle, Settings, LogOut, Menu, Lightbulb, Building, Handshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,13 +16,8 @@ import { LogoPill } from "@/components/LogoPill";
 import { UserMenu } from "@/components/UserMenu";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { usePendingInvitations } from "@/hooks/usePendingInvitations";
-
-interface NavItem {
-  path: string;
-  label: string;
-  icon: LucideIcon;
-  badge?: number;
-}
+import { GuideDialog } from "@/components/welcome/GuideDialog";
+import { useRole } from "@/contexts/RoleContext";
 
 interface AuthenticatedHeaderProps {
   user: User;
@@ -35,48 +29,42 @@ export function AuthenticatedHeader({ user, onSignOut }: AuthenticatedHeaderProp
   const location = useLocation();
   const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const { isAdmin, isManager } = useUserRoles(user.id);
   const pendingInvitations = usePendingInvitations(user.email);
+  const { activeRole } = useRole();
 
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(path + '/');
 
-  const navLinks: NavItem[] = [
-    { path: "/properties", label: t('properties.title'), icon: Building },
-    { path: "/rentals", label: t('rentals.title'), icon: Handshake, badge: !isManager ? pendingInvitations : undefined },
-  ];
+  const isOnPropertiesPage = location.pathname.startsWith("/properties");
+  const isOnRentalsPage = location.pathname.startsWith("/rentals");
 
-  if (isAdmin) {
-    navLinks.push({ path: "/admin", label: t('header.admin'), icon: ShieldCheck });
-  }
+  const handleStartTour = () => {
+    if (isOnPropertiesPage || isOnRentalsPage) {
+      navigate(`${location.pathname}?tour=true`);
+    } else {
+      navigate(isManager ? "/properties?tour=true" : "/rentals?tour=true");
+    }
+  };
 
   const closeMobile = () => setMobileMenuOpen(false);
 
   return (
     <header className="sticky top-0 z-50 w-full" style={{ backgroundColor: 'hsl(var(--header-background) / var(--header-background-opacity))' }}>
       <div className="container flex h-16 items-center justify-between">
-        <LogoPill linkTo={isManager ? "/properties" : "/dashboard"} />
-
-        <nav className="hidden md:flex items-center gap-6">
-          {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-white/80 ${isActive(link.path) ? "text-white" : "text-white/90"}`}
-            >
-              <link.icon className="h-4 w-4" />
-              {link.label}
-              {link.badge ? (
-                <Badge variant="destructive" className="ml-1">
-                  {link.badge}
-                </Badge>
-              ) : null}
-            </Link>
-          ))}
-        </nav>
+        <div className="flex items-center gap-2">
+          <LogoPill linkTo={activeRole === "manager" ? "/properties" : "/rentals"} />
+          <Badge
+            variant="secondary"
+            className="hidden sm:inline-flex text-[10px] px-2 py-0 h-5"
+          >
+            {activeRole === "manager" ? t('common.manager') || 'Manager' : t('common.tenant') || 'Tenant'}
+          </Badge>
+        </div>
 
         <div className="hidden md:flex items-center gap-2">
-          <UserMenu email={user.email} isManager={isManager} onSignOut={onSignOut} />
+          <UserMenu email={user.email} isManager={isManager} isAdmin={isAdmin} onSignOut={onSignOut} />
         </div>
 
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -93,48 +81,56 @@ export function AuthenticatedHeader({ user, onSignOut }: AuthenticatedHeaderProp
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <UserCircle className="h-4 w-4" />
                 <span className="truncate">{user.email}</span>
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                  {activeRole === "manager" ? t('common.manager') || 'Manager' : t('common.tenant') || 'Tenant'}
+                </Badge>
               </div>
               <div className="flex flex-col gap-2">
-                {navLinks.map((link) => (
+                {activeRole === "manager" && (
                   <Button
-                    key={link.path}
-                    variant={isActive(link.path) ? "default" : "ghost"}
+                    variant={isActive("/properties") ? "default" : "ghost"}
                     className="justify-start gap-2"
-                    onClick={() => {
-                      navigate(link.path);
-                      closeMobile();
-                    }}
+                    onClick={() => { navigate("/properties"); closeMobile(); }}
                   >
-                    <link.icon className="h-4 w-4" />
-                    {link.label}
-                    {link.badge ? (
-                      <Badge variant="destructive" className="ml-auto">
-                        {link.badge}
-                      </Badge>
-                    ) : null}
+                    <Building className="h-4 w-4" />
+                    {t('properties.title')}
                   </Button>
-                ))}
+                )}
+                <Button
+                  variant={isActive("/rentals") ? "default" : "ghost"}
+                  className="justify-start gap-2"
+                  onClick={() => { navigate("/rentals"); closeMobile(); }}
+                >
+                  <Handshake className="h-4 w-4" />
+                  {t('rentals.title')}
+                  {!isManager && pendingInvitations ? (
+                    <Badge variant="destructive" className="ml-auto">{pendingInvitations}</Badge>
+                  ) : null}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="justify-start gap-2"
+                  onClick={() => { setGuideOpen(true); closeMobile(); }}
+                >
+                  <Lightbulb className="h-4 w-4" />
+                  {t('welcome.tips')}
+                </Button>
               </div>
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
                 <Button
                   variant={isActive("/account") ? "default" : "ghost"}
                   className="justify-start gap-2"
-                  onClick={() => {
-                    navigate("/account");
-                    closeMobile();
-                  }}
+                  onClick={() => { navigate("/account"); closeMobile(); }}
                 >
                   <UserCircle className="h-4 w-4" />
                   {t('account.profile')}
                 </Button>
-                {isManager && (
+                {activeRole === "manager" && (
                   <Button
                     variant={isActive("/configuration") ? "default" : "ghost"}
                     className="justify-start gap-2"
-                    onClick={() => {
-                      navigate("/configuration");
-                      closeMobile();
-                    }}
+                    onClick={() => { navigate("/configuration"); closeMobile(); }}
+                    data-tour="nav-configuration"
                   >
                     <Settings className="h-4 w-4" />
                     {t('configuration.title')}
@@ -143,10 +139,7 @@ export function AuthenticatedHeader({ user, onSignOut }: AuthenticatedHeaderProp
                 <Button
                   variant="ghost"
                   className="justify-start gap-2 text-destructive hover:text-destructive"
-                  onClick={() => {
-                    onSignOut();
-                    closeMobile();
-                  }}
+                  onClick={() => { onSignOut(); closeMobile(); }}
                 >
                   <LogOut className="h-4 w-4" />
                   {t('header.signOut')}
@@ -155,6 +148,11 @@ export function AuthenticatedHeader({ user, onSignOut }: AuthenticatedHeaderProp
             </div>
           </SheetContent>
         </Sheet>
+        <GuideDialog
+          open={guideOpen}
+          onOpenChange={setGuideOpen}
+          onStartTour={handleStartTour}
+        />
       </div>
     </header>
   );

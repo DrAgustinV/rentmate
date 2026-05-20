@@ -921,6 +921,7 @@ export type Database = {
           aml_status: string | null
           avatar_url: string | null
           created_at: string
+          default_role: string | null
           default_rent_settings: Json | null
           deletion_requested_at: string | null
           deletion_scheduled_for: string | null
@@ -952,6 +953,7 @@ export type Database = {
           aml_status?: string | null
           avatar_url?: string | null
           created_at?: string
+          default_role?: string | null
           default_rent_settings?: Json | null
           deletion_requested_at?: string | null
           deletion_scheduled_for?: string | null
@@ -983,6 +985,7 @@ export type Database = {
           aml_status?: string | null
           avatar_url?: string | null
           created_at?: string
+          default_role?: string | null
           default_rent_settings?: Json | null
           deletion_requested_at?: string | null
           deletion_scheduled_for?: string | null

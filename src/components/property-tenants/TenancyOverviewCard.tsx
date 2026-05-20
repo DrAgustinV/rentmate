@@ -198,12 +198,12 @@ export function TenancyOverviewCard({
 
   // Utilities breakdown
   const utilityLabels: Record<string, string> = {
-    electricity: t("tenancy.wizard.utilities.electricity"),
-    gas: t("tenancy.wizard.utilities.gas"),
-    water: t("tenancy.wizard.utilities.water"),
-    internet: t("tenancy.wizard.utilities.internet"),
-    heating: t("tenancy.wizard.utilities.heating"),
-    trash: t("tenancy.wizard.utilities.trash"),
+    electricity: t("tenancy.wizard.utilityTypes.electricity"),
+    gas: t("tenancy.wizard.utilityTypes.gas"),
+    water: t("tenancy.wizard.utilityTypes.water"),
+    internet: t("tenancy.wizard.utilityTypes.internet"),
+    heating: t("tenancy.wizard.utilityTypes.heating"),
+    trash: t("tenancy.wizard.utilityTypes.trash"),
   };
 
   const tenantUtilities: string[] = [];

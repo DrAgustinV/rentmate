@@ -51,21 +51,21 @@ export function UtilityProofReview({ payment, open, onOpenChange, onSuccess }: U
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{t("utilities.reviewProof")}</DialogTitle>
+          <DialogTitle>{t("utilityPayments.reviewProof")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <h4 className="font-medium">{t("utilities.paymentDetails")}</h4>
+            <h4 className="font-medium">{t("utilityPayments.paymentDetails")}</h4>
             <div className="text-sm space-y-1">
-              <p><span className="font-medium">{t("utilities.utilityType")}:</span> {t(`utilities.types.${payment.utility_type}`)}</p>
-              <p><span className="font-medium">{t("utilities.amount")}:</span> {(payment.amount_cents / 100).toFixed(2)} {payment.currency.toUpperCase()}</p>
+              <p><span className="font-medium">{t("utilityPayments.utilityType")}:</span> {t(`utilities.types.${payment.utility_type}`)}</p>
+              <p><span className="font-medium">{t("utilityPayments.amount")}:</span> {(payment.amount_cents / 100).toFixed(2)} {payment.currency.toUpperCase()}</p>
             </div>
           </div>
 
           {proofUrl && (
             <div className="space-y-2">
-              <Label>{t("utilities.uploadedProof")}</Label>
+              <Label>{t("utilityPayments.uploadedProof")}</Label>
               <div className="border rounded-lg overflow-hidden bg-muted">
                 {isPdf ? (
                   <iframe
@@ -83,7 +83,7 @@ export function UtilityProofReview({ payment, open, onOpenChange, onSuccess }: U
                     />
                   ) : (
                     <div className="flex items-center justify-center h-96 text-muted-foreground">
-                      {t("utilities.imageLoadError")}
+                      {t("utilityPayments.imageLoadError")}
                     </div>
                   )
                 )}
@@ -92,12 +92,12 @@ export function UtilityProofReview({ payment, open, onOpenChange, onSuccess }: U
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="review-notes">{t("utilities.reviewNotes")} ({t("common.optional")})</Label>
+            <Label htmlFor="review-notes">{t("utilityPayments.reviewNotes")} ({t("common.optional")})</Label>
             <Textarea
               id="review-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder={t("utilities.reviewNotesPlaceholder")}
+              placeholder={t("utilityPayments.reviewNotesPlaceholder")}
               rows={3}
             />
           </div>
@@ -113,14 +113,14 @@ export function UtilityProofReview({ payment, open, onOpenChange, onSuccess }: U
             disabled={reviewProof.isPending}
           >
             <XCircle className="h-4 w-4 mr-2" />
-            {t("utilities.reject")}
+            {t("utilityPayments.reject")}
           </Button>
           <Button
             onClick={() => handleReview('approved')}
             disabled={reviewProof.isPending}
           >
             <CheckCircle className="h-4 w-4 mr-2" />
-            {t("utilities.approve")}
+            {t("utilityPayments.approve")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -69,21 +69,15 @@ export function PaymentProofReview({
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["rent-payments"] });
-      showToast.success({
-        title: t("common.success"),
-        description: variables.status === "approved" 
-          ? t("payments.proofReview.approvedSuccess")
-          : t("payments.proofReview.rejectedSuccess"),
-      });
+      showToast.success(t("common.success"), variables.status === "approved" 
+        ? t("payments.proofReview.approvedSuccess")
+        : t("payments.proofReview.rejectedSuccess"));
       onOpenChange(false);
       setNotes("");
     },
     onError: (error) => {
       console.error("Error reviewing proof:", error);
-      showToast.error({
-        title: t("common.error"),
-        description: t("payments.proofReview.reviewError"),
-      });
+      showToast.error(t("common.error"), t("payments.proofReview.reviewError"));
     },
   });
 
@@ -107,16 +101,10 @@ export function PaymentProofReview({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showToast.success({
-        title: t("common.success"),
-        description: t("payments.proofReview.downloadSuccess"),
-      });
+      showToast.success(t("common.success"), t("payments.proofReview.downloadSuccess"));
     } catch (error) {
       console.error('Error downloading file:', error);
-      showToast.error({
-        title: t("common.error"),
-        description: t("payments.proofReview.downloadError"),
-      });
+      showToast.error(t("common.error"), t("payments.proofReview.downloadError"));
     }
   };
 

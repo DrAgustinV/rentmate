@@ -103,7 +103,7 @@ export const CreatePropertyTemplateDialog = ({
         },
       });
       
-      showToast.success({ title: t('documentTemplates.templateCreated') });
+      showToast.success(t('documentTemplates.templateCreated'));
       queryClient.invalidateQueries({ queryKey: ["property-templates"] });
       setSelectedFile(null);
       setDocumentTitle("");
@@ -113,7 +113,7 @@ export const CreatePropertyTemplateDialog = ({
     },
     onError: (error) => {
       console.error("Upload error:", error);
-      showToast.error({ title: error instanceof Error ? error.message : t('documentTemplates.uploadFailed') });
+      showToast.error(error instanceof Error ? error.message : t('documentTemplates.uploadFailed'));
       setUploadProgress(0);
     },
   });
@@ -124,7 +124,7 @@ export const CreatePropertyTemplateDialog = ({
         file.name.toLowerCase().endsWith(ext)
       );
       if (!hasValidExtension) {
-        showToast.error({ title: t('dialogs.fileTypeNotAllowed') });
+        showToast.error(t('dialogs.fileTypeNotAllowed'));
         return;
       }
     }
@@ -152,11 +152,11 @@ export const CreatePropertyTemplateDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile) {
-      showToast.error({ title: t('dialogs.pleaseSelectFile') });
+      showToast.error(t('dialogs.pleaseSelectFile'));
       return;
     }
     if (!documentTitle.trim()) {
-      showToast.error({ title: t('dialogs.pleaseEnterTitle') });
+      showToast.error(t('dialogs.pleaseEnterTitle'));
       return;
     }
     uploadMutation.mutate(selectedFile);

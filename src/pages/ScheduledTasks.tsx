@@ -168,9 +168,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
     },
     onSuccess: (ticketId) => {
       queryClient.invalidateQueries({ queryKey: ["scheduled-tasks", propertyId] });
-      showToast.success({
-        title: "Task started",
-        description: "You can now track progress and add updates",
+      showToast.success("Task started", "You can now track progress and add updates", {
         action: (
           <Button variant="outline" size="sm" onClick={() => navigate(`/properties/${propertyId}/tickets/${ticketId}`)}>
             View Ticket
@@ -179,10 +177,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
       });
     },
     onError: (error) => {
-      showToast.error({
-        title: "Failed to start task",
-        description: error.message,
-      });
+      showToast.error("Failed to start task", error.message);
     },
   });
 
@@ -213,14 +208,11 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["scheduled-tasks", propertyId] });
-      showToast.success({ title: "Task completed successfully" });
+      showToast.success("Task completed successfully");
       setCompletingTask(null);
     },
     onError: (error) => {
-      showToast.error({
-        title: "Failed to complete task",
-        description: error.message,
-      });
+      showToast.error("Failed to complete task", error.message);
     },
   });
 

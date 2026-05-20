@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Mail, LogOut, RefreshCw } from "lucide-react";
 import { showToast } from "@/lib/toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { WelcomeDialog } from "@/components/welcome/WelcomeDialog";
 
 interface EmailVerificationGateProps {
   children: React.ReactNode;
@@ -75,7 +76,46 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
         if (!mounted) return;
 
         if (!session?.user) {
-          // Not logged in - allow through (auth pages will handle)
+          // Check if URL has Supabase auth callback parameters
+          // (user redirected here after clicking email confirmation link)
+          const params = new URLSearchParams(location.search);
+          const tokenHash = params.get('token_hash');
+          const type = params.get('type');
+          const hasAuthParams = !!(tokenHash || params.has('access_token'));
+
+          if (hasAuthParams) {
+            // Explicitly verify the OTP token instead of relying on
+            // the Supabase client's auto-detection (which can silently fail)
+            try {
+              const { data: otpData, error: otpError } = await supabase.auth.verifyOtp({
+                token_hash: tokenHash!,
+                type: (type as 'signup' | 'email' | 'recovery' | 'invite' | 'magiclink') || 'signup',
+              });
+              if (!mounted) return;
+              if (otpError) throw otpError;
+              if (otpData?.session?.user) {
+                setEmailVerified(true);
+                setUserId(otpData.session.user.id);
+                setUserEmail(otpData.session.user.email || "");
+              }
+            } catch (e) {
+              console.error("Auth callback verification failed:", e);
+              // Clean up URL params and redirect to auth
+              window.history.replaceState({}, '', location.pathname);
+              navigate('/auth');
+            } finally {
+              if (mounted) setLoading(false);
+            }
+            return;
+          }
+
+          // No session and no auth params - redirect non-public routes
+          if (!isPublicRoute) {
+            navigate('/auth');
+            return;
+          }
+
+          // Public route - allow through
           setEmailVerified(true);
           setLoading(false);
           return;
@@ -112,6 +152,7 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
         setTimeout(() => {
           if (mounted) {
             fetchVerificationStatus(session.user.id);
+            setLoading(false);
           }
         }, 0);
       }
@@ -165,20 +206,20 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
       const data = await identityService.sendEmailVerification();
       
       if (data?.rate_limited) {
-        showToast.error({ title: data.error });
+        showToast.error(data.error);
         return;
       }
 
       if (data?.already_verified) {
         setEmailVerified(true);
-        showToast.success({ title: t("auth.emailAlreadyVerified") });
+        showToast.success(t("auth.emailAlreadyVerified"));
         return;
       }
 
-      showToast.success({ title: t("auth.verificationEmailSent") });
+      showToast.success(t("auth.verificationEmailSent"));
     } catch (error: any) {
       console.error("Error resending verification:", error);
-      showToast.error({ title: t("auth.verificationEmailFailed") });
+      showToast.error(t("auth.verificationEmailFailed"));
     } finally {
       setSendingVerification(false);
     }
@@ -211,9 +252,9 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
         
       if (profile?.email_verified) {
         setEmailVerified(true);
-        showToast.success({ title: t("auth.emailVerified") });
+        showToast.success(t("auth.emailVerified"));
       } else {
-        showToast.info({ title: t("auth.emailNotYetVerified") });
+        showToast.info(t("auth.emailNotYetVerified"));
       }
     } catch (error) {
       console.error("Error refreshing status:", error);
@@ -238,7 +279,12 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
 
   // Verified users can proceed
   if (emailVerified === true) {
-    return <>{children}</>;
+    return (
+      <>
+        {userId && <WelcomeDialog userId={userId} />}
+        {children}
+      </>
+    );
   }
 
   // Not verified - show gate

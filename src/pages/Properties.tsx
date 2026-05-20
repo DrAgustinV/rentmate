@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, Building, Archive, Upload, ImageIcon, Search } from "lucide-react";
 import { PropertyCard } from "@/components/PropertyCard";
@@ -19,11 +19,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { usePropertyDashboard, MAX_PROPERTIES_LIMIT } from "@/hooks/usePropertyDashboard";
+import { authService } from "@/services";
+import { ManagerOnboardingChecklist } from "@/components/welcome/ManagerOnboardingChecklist";
+import { OnboardingTour } from "@/components/welcome/OnboardingTour";
+import { shouldShowTour } from "@/services/profileService";
 
 export default function Properties() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [tourTrigger, setTourTrigger] = useState(0);
+  const [runTour, setRunTour] = useState(false);
+  const processedParams = useRef<string | null>(null);
 
   const {
     propertiesData,
@@ -46,6 +55,59 @@ export default function Properties() {
     filteredProperties: filteredAndSortedProperties,
   } = usePropertyDashboard();
 
+  useEffect(() => {
+    const currentParams = searchParams.toString();
+    if (currentParams === processedParams.current) return;
+    processedParams.current = currentParams;
+
+    const processUrlParams = async () => {
+      const user = await authService.getCurrentUser();
+      if (!user) return;
+
+      setUserId(user.id);
+
+      const showTourParam = searchParams.get("tour") === "true";
+      if (showTourParam) {
+        searchParams.delete("tour");
+        setSearchParams(searchParams, { replace: true });
+        setRunTour(true);
+        return;
+      }
+
+      const shouldShowTourOnLoad = await shouldShowTour(user.id);
+      if (shouldShowTourOnLoad) {
+        setRunTour(true);
+        return;
+      }
+
+      const guideHighlight = searchParams.get("guideHighlight");
+      if (guideHighlight === "add-property") {
+        setIsCreateOpen(true);
+        searchParams.delete("guideHighlight");
+        setSearchParams(searchParams, { replace: true });
+        return;
+      }
+      if (guideHighlight === "add-tenant") {
+        if (propertiesData && propertiesData.length > 0) {
+          const firstPropertyId = propertiesData[0].id;
+          navigate(`/properties/${firstPropertyId}/tenants?action=newTenancy`);
+        }
+        searchParams.delete("guideHighlight");
+        setSearchParams(searchParams, { replace: true });
+      }
+    };
+
+    processUrlParams();
+  }, [searchParams, setSearchParams, navigate, propertiesData]);
+
+  const handleTourRequest = () => {
+    setRunTour(true);
+  };
+
+  const handleTourFinish = () => {
+    setRunTour(false);
+  };
+
   if (isLoading) {
     return (
       <AppLayout>
@@ -61,7 +123,7 @@ export default function Properties() {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
+            <h1 className="text-3xl font-bold flex items-center gap-2" data-tour="properties-header">
               <Building className="h-8 w-8 text-primary" />
               {t("properties.title")}
             </h1>
@@ -73,6 +135,7 @@ export default function Properties() {
                 variant="outline"
                 onClick={() => navigate('/import')}
                 className="gap-2"
+                data-tour="bulk-import-btn"
               >
                 <Upload className="h-4 w-4" />
                 Bulk Import
@@ -82,6 +145,7 @@ export default function Properties() {
                 onClick={() => setIsCreateOpen(true)}
                 disabled={activeProperties.length >= MAX_PROPERTIES_LIMIT}
                 className="gap-2"
+                data-tour="add-property-btn"
               >
                 <Plus className="h-4 w-4" />
                 {t("dashboard.createProperty")}
@@ -93,6 +157,13 @@ export default function Properties() {
           </div>
         </div>
       </div>
+
+      {userId && activeProperties.length < 3 && (
+        <ManagerOnboardingChecklist 
+          userId={userId} 
+          onTourRequest={handleTourRequest}
+        />
+      )}
 
       <div className="mb-6 space-y-4">
         <ArchiveToggle
@@ -234,10 +305,15 @@ export default function Properties() {
       <CreatePropertyDialog
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
-        onSuccess={() => {
+        onSuccess={(propertyId) => {
           setIsCreateOpen(false);
+          if (activeProperties.length === 0) {
+            navigate(`/properties/${propertyId}/tenants?action=newTenancy`);
+          }
         }}
       />
+
+      {userId && <OnboardingTour userId={userId} run={runTour} onFinish={handleTourFinish} />}
     </AppLayout>
   );
 }

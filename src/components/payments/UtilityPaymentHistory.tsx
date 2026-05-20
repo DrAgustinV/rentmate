@@ -86,8 +86,8 @@ export function UtilityPaymentHistory({ propertyId, isManager }: UtilityPaymentH
     return (
       <EmptyState
         icon={FileText}
-        title={t("utilities.noPayments")}
-        description={t("utilities.noPaymentsDesc")}
+        title={t("utilityPayments.noPayments")}
+        description={t("utilityPayments.noPaymentsDesc")}
         variant="info"
       />
     );
@@ -99,7 +99,7 @@ export function UtilityPaymentHistory({ propertyId, isManager }: UtilityPaymentH
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t("utilities.utilityType")}</TableHead>
+              <TableHead>{t("utilityPayments.utilityType")}</TableHead>
               <TableHead>{t("common.dueDate")}</TableHead>
               <TableHead>{t("common.amount")}</TableHead>
               <TableHead>{t("common.status")}</TableHead>

@@ -67,10 +67,10 @@ export function RoomInspectionItem({
       }
 
       await onUpdate({ itemId: item.id, updates: { photos: newPhotos } });
-      showToast.success({ title: `${files.length} photo(s) uploaded` });
+      showToast.success(`${files.length} photo(s) uploaded`);
     } catch (error) {
       console.error('Upload error:', error);
-      showToast.error({ title: "Failed to upload photos" });
+      showToast.error("Failed to upload photos");
     } finally {
       setIsUploading(false);
       if (photoInputRef.current) photoInputRef.current.value = '';
@@ -87,7 +87,7 @@ export function RoomInspectionItem({
     try {
       for (const file of Array.from(files)) {
         if (file.size > FILE_SIZE_LIMITS.INSPECTION_MEDIA) {
-          showToast.error({ title: "Video must be under 50MB" });
+          showToast.error("Video must be under 50MB");
           continue;
         }
 
@@ -102,10 +102,10 @@ export function RoomInspectionItem({
       }
 
       await onUpdate({ itemId: item.id, updates: { videos: newVideos } });
-      showToast.success({ title: `${files.length} video(s) uploaded` });
+      showToast.success(`${files.length} video(s) uploaded`);
     } catch (error) {
       console.error('Upload error:', error);
-      showToast.error({ title: "Failed to upload videos" });
+      showToast.error("Failed to upload videos");
     } finally {
       setIsUploading(false);
       if (videoInputRef.current) videoInputRef.current.value = '';

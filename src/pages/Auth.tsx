@@ -4,15 +4,14 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { authService } from "@/services";
+import { authService, profileService } from "@/services";
 import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBrand } from "@/contexts/BrandContext";
 import { useSearchParams } from "react-router-dom";
 import { showToast, getAuthErrorMessage } from "@/lib/toastUtils";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, Building2, Home } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 const authSchema = z.object({
@@ -29,12 +28,35 @@ export default function Auth() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState("");
   const [invitationContext, setInvitationContext] = useState<{ token: string; email: string } | null>(null);
-  const { toast } = useToast();
+  const [selectedRole, setSelectedRole] = useState<'manager' | 'tenant' | null>(null);
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { brandName } = useBrand();
   const [searchParams] = useSearchParams();
+
+  // Derive role from invitation context on mount
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      setSelectedRole('tenant');
+    }
+  }, [searchParams]);
+
+  // Apply session role to profile after sign-in
+  const applySessionRole = async (userId: string) => {
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      const metadataRole = user?.user_metadata?.default_role as string | undefined;
+      if (metadataRole === 'manager' || metadataRole === 'tenant') {
+        await profileService.updateDefaultRole(userId, metadataRole);
+      }
+    } catch (_err: unknown) {
+      // silent — role can be set on next login
+    }
+  };
 
   useEffect(() => {
     const checkAuthAndToken = async () => {
@@ -45,16 +67,13 @@ export default function Auth() {
       const token = searchParams.get('token');
       
       if (mode) {
-        // Respect explicit mode parameter
         setIsSignUp(mode === 'signup');
       }
       
       if (token) {
-        // Store token for later use
         sessionStorage.setItem('invitation_token', token);
         
         try {
-          // Fetch invitation details
           const { data: invitation } = await supabase
             .from('invitations')
             .select('email, properties(title)')
@@ -68,9 +87,10 @@ export default function Auth() {
               email: invitation.email,
             });
             setEmail(invitation.email);
+            setSelectedRole('tenant');
           }
         } catch (error) {
-          // Silent fail - invitation details optional
+          // Silent fail
         }
       }
       
@@ -81,16 +101,16 @@ export default function Auth() {
     
     checkAuthAndToken();
 
-    const subscription = authService.onAuthStateChange((event, session) => {
+    const subscription = authService.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // Handle invitation token if present
+        // Apply default_role to profile from user_metadata
+        await applySessionRole(session.user.id);
+
         const storedToken = sessionStorage.getItem('invitation_token');
         if (storedToken) {
           navigate(`/invitations?token=${storedToken}`);
         } else {
-          // Smart role-based redirect
           setTimeout(async () => {
-            // Check if user manages any properties
             const { data: managedProps } = await supabase
               .from('properties')
               .select('id')
@@ -98,10 +118,8 @@ export default function Auth() {
               .limit(1);
             
             if (managedProps && managedProps.length > 0) {
-              // User is a manager
               navigate("/properties");
             } else {
-              // Check if user has active tenancies
               const { data: tenancies } = await supabase
                 .from('property_tenants')
                 .select('id')
@@ -110,10 +128,8 @@ export default function Auth() {
                 .limit(1);
               
               if (tenancies && tenancies.length > 0) {
-                // User is a tenant-only
                 navigate("/rentals");
               } else {
-                // New user - send to properties to create first property
                 navigate("/properties");
               }
             }
@@ -166,11 +182,8 @@ export default function Auth() {
         }
       });
       if (error) throw error;
-    } catch (error: any) {
-      showToast.error({
-        title: t('auth.signInFailed'),
-        description: getAuthErrorMessage(error),
-      });
+    } catch (error: unknown) {
+      showToast.error(t('auth.signInFailed'), getAuthErrorMessage(error));
       setLoading(false);
     }
   };
@@ -198,15 +211,26 @@ export default function Auth() {
             data: {
               first_name: firstName,
               last_name: lastName,
+              default_role: selectedRole,
             }
           }
         });
 
-        if (error) throw error;
+        if (error) {
+          if (data?.user) {
+            setConfirmationEmail(email);
+            setShowConfirmation(true);
+            return;
+          }
+          throw error;
+        }
         
-        // Auto-confirmed signup - user will be signed in automatically
-        // The EmailVerificationGate will handle showing the verification screen
-        showToast.success(t('auth.signUpSuccess'));
+        if (data?.session) {
+          showToast.success(t('auth.signUpSuccess'));
+        } else {
+          setConfirmationEmail(email);
+          setShowConfirmation(true);
+        }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
@@ -217,22 +241,49 @@ export default function Auth() {
         
         showToast.success(t('auth.signInSuccess'));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
-        showToast.error({
-          title: t('common.validationError'),
-          description: error.errors[0].message,
-        });
+        showToast.error(t('common.validationError'), error.errors[0].message);
       } else {
-        showToast.error({
-          title: isSignUp ? t('auth.signUpFailed') : t('auth.signInFailed'),
-          description: getAuthErrorMessage(error),
-        });
+        showToast.error(
+          isSignUp ? t('auth.signUpFailed') : t('auth.signInFailed'),
+          getAuthErrorMessage(error),
+        );
       }
     } finally {
       setLoading(false);
     }
   };
+
+  if (showConfirmation) {
+    return (
+      <AuthLayout title={t('auth.checkYourEmail')} description="">
+        <div className="text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+              <Mail className="h-10 w-10 text-primary" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-muted-foreground">
+              {t('auth.verificationSentTo')}
+            </p>
+            <p className="font-medium text-foreground">{confirmationEmail}</p>
+          </div>
+          <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground space-y-2">
+            <p>{t('auth.checkInboxAndSpam')}</p>
+            <p>{t('auth.linkExpiresIn24Hours')}</p>
+          </div>
+          <Button
+            onClick={() => { setShowConfirmation(false); setIsSignUp(false); }}
+            className="w-full"
+          >
+            {t('auth.backToSignIn')}
+          </Button>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout
@@ -245,8 +296,8 @@ export default function Auth() {
             <>
               <p className="text-sm text-foreground font-medium">
                 {isSignUp 
-                  ? "🎉 " + t('auth.noAccountDetected')
-                  : "👋 " + t('auth.accountDetected')}
+                  ? t('auth.noAccountDetected')
+                  : t('auth.accountDetected')}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {isSignUp 
@@ -271,6 +322,47 @@ export default function Auth() {
         </div>
       )}
       <form onSubmit={handleAuth} className="space-y-4">
+        {isSignUp && !invitationContext && (
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">{t('auth.roleSelectTitle') || 'I want to...'}</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedRole('manager')}
+                className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 text-center transition-all ${
+                  selectedRole === 'manager'
+                    ? 'border-primary bg-primary/5 shadow-sm'
+                    : 'border-border hover:border-muted-foreground/40'
+                }`}
+              >
+                <Building2 className={`h-6 w-6 ${selectedRole === 'manager' ? 'text-primary' : 'text-muted-foreground'}`} />
+                <span className={`text-sm font-medium ${selectedRole === 'manager' ? 'text-primary' : 'text-foreground'}`}>
+                  {t('auth.manageProperties') || 'Manage properties'}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {t('auth.managePropertiesDesc') || 'List & rent out properties'}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole('tenant')}
+                className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 text-center transition-all ${
+                  selectedRole === 'tenant'
+                    ? 'border-primary bg-primary/5 shadow-sm'
+                    : 'border-border hover:border-muted-foreground/40'
+                }`}
+              >
+                <Home className={`h-6 w-6 ${selectedRole === 'tenant' ? 'text-primary' : 'text-muted-foreground'}`} />
+                <span className={`text-sm font-medium ${selectedRole === 'tenant' ? 'text-primary' : 'text-foreground'}`}>
+                  {t('auth.imATenant') || 'I\'m a tenant'}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {t('auth.imATenantDesc') || 'Rent & manage my tenancy'}
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
         {isSignUp && (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

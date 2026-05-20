@@ -136,6 +136,21 @@ export default function PropertyTenants() {
     }
   }, [actionParam, canSetupNewTenancy, hasTriggeredAction, propertyLoading, setSearchParams]);
 
+  useEffect(() => {
+    const guideHighlight = searchParams.get("guideHighlight");
+    if (guideHighlight) {
+      if (guideHighlight === "contracts") {
+        setSearchParams({ tab: "contracts" });
+      } else if (guideHighlight === "payments") {
+        setSearchParams({ tab: "payments" });
+      } else if (guideHighlight === "rent") {
+        setSearchParams({ tab: "contracts" });
+      }
+      searchParams.delete("guideHighlight");
+      setSearchParams(searchParams);
+    }
+  }, [searchParams, setSearchParams]);
+
   const handleWizardSubmit = async (data: WizardFormData, mode: 'new' | 'edit' | 'invite' | 'next_tenancy') => {
     try {
       // Case: Invite mode — just send invitation to existing self-managed tenancy

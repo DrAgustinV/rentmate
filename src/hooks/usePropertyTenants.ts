@@ -152,7 +152,7 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       return { email };
     },
     onSuccess: async (result) => {
-      showToast.success({ title: t("dialogs.inviteTenant.sent"), description: t("dialogs.inviteTenant.sentDesc") });
+      showToast.success(t("dialogs.inviteTenant.sent"));
       refetchInvitations();
       queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
       queryClient.invalidateQueries({ queryKey: ["tenancy-requirements", propertyId] });
@@ -169,9 +169,9 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
     onError: (error: Error) => {
       const err = error as { errors?: Array<{ message: string }>; message?: string };
       if (err.errors?.[0]?.message) {
-        showToast.error({ title: t("common.validationError"), description: err.errors[0].message });
+        showToast.error(t("common.validationError"));
       } else {
-        showToast.error({ title: t("common.error"), description: err.message || 'Unknown error' });
+        showToast.error(t("common.error"));
       }
     },
   });
@@ -182,11 +182,11 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       if (error) throw error;
     },
     onSuccess: () => {
-      showToast.success({ title: t('invitations.dismissSuccess') });
+      showToast.success(t('invitations.dismissSuccess'));
       refetchInvitations();
     },
     onError: (error: Error) => {
-      showToast.error({ title: error.message || t('common.error') });
+      showToast.error(error.message || t('common.error'));
     },
   });
 
@@ -199,11 +199,11 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       if (error) throw error;
     },
     onSuccess: () => {
-      showToast.success({ title: t("dialogs.manageTenants.tenancyEnding") });
+      showToast.success(t("dialogs.manageTenants.tenancyEnding"));
       queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
     },
     onError: (error: Error) => {
-      showToast.error({ title: t("common.error"), description: error.message });
+      showToast.error(t("common.error"));
     },
   });
 
@@ -216,11 +216,11 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       if (error) throw error;
     },
     onSuccess: () => {
-      showToast.success({ title: t("dialogs.manageTenants.tenancyFinalized") });
+      showToast.success(t("dialogs.manageTenants.tenancyFinalized"));
       queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
     },
     onError: (error: Error) => {
-      showToast.error({ title: t("common.error"), description: error.message });
+      showToast.error(t("common.error"));
     },
   });
 
@@ -245,11 +245,11 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       if (error) throw error;
     },
     onSuccess: () => {
-      showToast.success({ title: t("dialogs.manageTenants.undoFinalizeSuccess") || "Tenancy restored to ending" });
+      showToast.success(t("dialogs.manageTenants.undoFinalizeSuccess") || "Tenancy restored to ending");
       queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
     },
     onError: (error: Error) => {
-      showToast.error({ title: t("common.error"), description: error.message });
+      showToast.error(t("common.error"));
     },
   });
 
@@ -259,11 +259,11 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       if (error) throw error;
     },
     onSuccess: () => {
-      showToast.success({ title: t("dialogs.manageTenants.invitationCancelled") });
+      showToast.success(t("dialogs.manageTenants.invitationCancelled"));
       refetchInvitations();
     },
     onError: (error: Error) => {
-      showToast.error({ title: t("common.error"), description: error.message });
+      showToast.error(t("common.error"));
     },
   });
 
@@ -276,11 +276,11 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
       if (error) throw error;
     },
     onSuccess: () => {
-      showToast.success({ title: t("dialogs.manageTenants.tenancyDeleted") || "Tenancy deleted" });
+      showToast.success(t("dialogs.manageTenants.tenancyDeleted") || "Tenancy deleted");
       queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
     },
     onError: (error: Error) => {
-      showToast.error({ title: t("common.error"), description: error.message });
+      showToast.error(t("common.error"));
     },
   });
 

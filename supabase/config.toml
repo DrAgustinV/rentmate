@@ -1,9 +1,11 @@
 ## project_id = "jrjwkpjfgsyrqztuokoo"
 project_id = "jnfsikjotlkmshufinoy"
 
-## [auth.hook.send_email]
-## enabled = true
+[auth.hook.send_email]
+enabled = true
 ## uri = "https://jnfsikjotlkmshufinoy.supabase.co/functions/v1/send-auth-email"
+uri = "env(SEND_EMAIL_HOOK_URI)"
+secrets = "env(SEND_EMAIL_HOOK_SECRET)"
 
 [functions.send-auth-email]
 verify_jwt = false

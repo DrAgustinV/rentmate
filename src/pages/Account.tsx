@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { UserCircle, ShieldCheck, Crown, Download, Trash2, AlertTriangle, Palette } from "lucide-react";
+import { UserCircle, ShieldCheck, Crown, Download, Trash2, AlertTriangle, Palette, ArrowRightLeft, Building2, Home } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { showToast } from "@/lib/toast";
 import { User } from "@supabase/supabase-js";
@@ -34,6 +34,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { useRole } from "@/contexts/RoleContext";
 
 export default function Account() {
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ export default function Account() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletionScheduled, setDeletionScheduled] = useState<string | null>(null);
   const { t } = useLanguage();
+  const { activeRole } = useRole();
   const defaultTab = searchParams.get("tab") || "profile";
   const returnTo = searchParams.get("returnTo");
 
@@ -242,8 +244,8 @@ export default function Account() {
         {roleData && (
           <Card className="mb-6">
             <CardContent className="py-3 flex items-center gap-3">
-              <Badge variant={roleData.role === 'manager' ? 'default' : 'secondary'}>
-                {roleData.role === 'manager' ? t('common.manager') || 'Manager' : t('common.tenant') || 'Tenant'}
+              <Badge variant={activeRole === 'manager' ? 'default' : 'secondary'}>
+                {activeRole === 'manager' ? t('roles.manager') || 'Manager' : t('roles.tenant') || 'Tenant'}
               </Badge>
               <span className="text-sm text-muted-foreground">
                 {roleData.role === 'manager'
@@ -255,19 +257,25 @@ export default function Account() {
         )}
 
         <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className={`grid w-full ${activeRole === 'manager' ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="profile">
               <UserCircle className="h-4 w-4 mr-2" />
               {t('account.profile')}
+            </TabsTrigger>
+            <TabsTrigger value="roles">
+              <ArrowRightLeft className="h-4 w-4 mr-2" />
+              {t('roles.title') || 'Roles'}
             </TabsTrigger>
             <TabsTrigger value="appearance">
               <Palette className="h-4 w-4 mr-2" />
               {t('settings.appearance')}
             </TabsTrigger>
-            <TabsTrigger value="subscription">
-              <Crown className="h-4 w-4 mr-2" />
-              {t('subscription.title')}
-            </TabsTrigger>
+            {activeRole === 'manager' && (
+              <TabsTrigger value="subscription">
+                <Crown className="h-4 w-4 mr-2" />
+                {t('subscription.title')}
+              </TabsTrigger>
+            )}
             <TabsTrigger value="identity">
               <ShieldCheck className="h-4 w-4 mr-2" />
               {t('account.identity')}
@@ -346,6 +354,108 @@ export default function Account() {
                   <Button onClick={handleSaveProfile} disabled={saving}>
                     {saving ? t('settings.saving') : t('settings.saveChanges')}
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="roles" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ArrowRightLeft className="h-5 w-5" />
+                  {t('roles.title') || 'Roles'}
+                </CardTitle>
+                <CardDescription>
+                  {t('roles.description') || 'Switch between Manager and Tenant views'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Current role indicator */}
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">{t('roles.currentActiveRole') || 'Active Role'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t('roles.currentActiveRoleDesc') || 'Your current view and navigation mode'}
+                    </p>
+                  </div>
+                  <Badge variant={activeRole === 'manager' ? 'default' : 'secondary'}>
+                    {activeRole === 'manager' ? t('roles.manager') || 'Manager' : t('roles.tenant') || 'Tenant'}
+                  </Badge>
+                </div>
+
+                {/* Default role indicator */}
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">{t('roles.defaultRole') || 'Default Role'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t('roles.defaultRoleDesc') || 'The role you land on after signing in'}
+                    </p>
+                  </div>
+                  <Badge variant="outline">
+                    {activeRole === 'manager' ? t('roles.manager') || 'Manager' : t('roles.tenant') || 'Tenant'}
+                  </Badge>
+                </div>
+
+                <Separator />
+
+                {/* Role switcher cards */}
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">{t('roles.switchTo') || 'Switch to...'}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (activeRole !== 'manager') {
+                          navigate('/properties');
+                        }
+                      }}
+                      disabled={activeRole === 'manager'}
+                      className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 text-center transition-all ${
+                        activeRole === 'manager'
+                          ? 'border-primary bg-primary/5 cursor-default opacity-60'
+                          : 'border-border hover:border-primary/50 cursor-pointer'
+                      }`}
+                    >
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                        activeRole === 'manager' ? 'bg-primary/10' : 'bg-muted'
+                      }`}>
+                        <Building2 className={`h-4 w-4 ${
+                          activeRole === 'manager' ? 'text-primary' : 'text-muted-foreground'
+                        }`} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{t('roles.manager') || 'Manager'}</p>
+                        <p className="text-xs text-muted-foreground">{t('roles.managerRoleDesc') || 'Manage properties and tenants'}</p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (activeRole !== 'tenant') {
+                          navigate('/rentals');
+                        }
+                      }}
+                      disabled={activeRole === 'tenant'}
+                      className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 text-center transition-all ${
+                        activeRole === 'tenant'
+                          ? 'border-primary bg-primary/5 cursor-default opacity-60'
+                          : 'border-border hover:border-primary/50 cursor-pointer'
+                      }`}
+                    >
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                        activeRole === 'tenant' ? 'bg-primary/10' : 'bg-muted'
+                      }`}>
+                        <Home className={`h-4 w-4 ${
+                          activeRole === 'tenant' ? 'text-primary' : 'text-muted-foreground'
+                        }`} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{t('roles.tenant') || 'Tenant'}</p>
+                        <p className="text-xs text-muted-foreground">{t('roles.tenantRoleDesc') || 'View rentals and pay rent'}</p>
+                      </div>
+                    </button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

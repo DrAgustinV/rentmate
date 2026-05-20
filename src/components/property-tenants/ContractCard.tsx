@@ -132,11 +132,11 @@ export function ContractCard({
       await documentService.deleteDocument(docId);
     },
     onSuccess: () => {
-      showToast.success({ title: t("properties.propertyDocuments.deleteSuccess") });
+      showToast.success(t("properties.propertyDocuments.deleteSuccess"));
       refetchDocuments();
     },
     onError: () => {
-      showToast.error({ title: t("properties.propertyDocuments.deleteFailed") });
+      showToast.error(t("properties.propertyDocuments.deleteFailed"));
     },
   });
 
@@ -153,7 +153,7 @@ export function ContractCard({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      showToast.error({ title: t("common.error") });
+      showToast.error(t("common.error"));
     }
   };
 
@@ -174,7 +174,7 @@ export function ContractCard({
         }
       } catch (error: any) {
         newWindow?.close();
-        showToast.error({ title: t("properties.openError") });
+        showToast.error(t("properties.openError"));
       }
     } else {
       downloadDocument(doc);

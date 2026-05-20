@@ -1,308 +1,150 @@
-import { useState, useEffect } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUtilityPaymentMutations } from "@/hooks/useUtilityPayments";
-import { useRentPaymentMutations } from "@/hooks/useRentPayments";
-import { useRentAgreements } from "@/hooks/useRentAgreements";
-import { supabase } from "@/integrations/supabase/client";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Loader2 } from "lucide-react";
+import { useCreateUtilityPayment } from "@/hooks/useCreateUtilityPayment";
+import { useCreateRentPayment } from "@/hooks/useCreateRentPayment";
 
 interface CreatePaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   propertyId: string;
-  tenantId?: string;
-  managerId: string;
-  isManager: boolean;
+  tenancyId: string;
+  defaultType?: 'utility' | 'rent';
 }
 
-const utilityTypes = ['electricity', 'gas', 'water', 'internet', 'heating', 'trash', 'other'] as const;
-
-export function CreatePaymentDialog({
-  open,
-  onOpenChange,
-  propertyId,
-  tenantId,
-  managerId,
-  isManager,
-}: CreatePaymentDialogProps) {
+export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId, defaultType = 'utility' }: CreatePaymentDialogProps) => {
   const { t } = useLanguage();
-  const { createPayment: createUtilityPayment } = useUtilityPaymentMutations();
-  const { createPayment: createRentPayment } = useRentPaymentMutations();
-  const { data: rentAgreements } = useRentAgreements(propertyId);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [paymentType, setPaymentType] = useState<'utility' | 'rent'>(defaultType);
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createUtilityPayment = useCreateUtilityPayment();
+  const createRentPayment = useCreateRentPayment();
+
   const createPaymentMutation = useMutation({
-    mutationFn: async (data: { type: 'utility' | 'rent'; payload: any }) => {
+    mutationFn: async (data: { type: 'utility' | 'rent'; payload: unknown }) => {
       if (data.type === 'utility') {
-        return createUtilityPayment.mutateAsync(data.payload);
+        return createUtilityPayment.mutateAsync(data.payload as any);
       }
-      return createRentPayment.mutateAsync(data.payload);
+      return createRentPayment.mutateAsync(data.payload as any);
     },
     onSuccess: () => {
-      toast.success(t("payments.paymentCreated"));
+      toast({
+        title: t('common.success'),
+        description: t('payment.created'),
+      });
+      queryClient.invalidateQueries({ queryKey: ['payments', propertyId, tenancyId] });
+      onOpenChange(false);
+      setAmount("");
+      setDescription("");
     },
-    onError: () => {
-      toast.error(t("payments.paymentFailed"));
+    onError: (error: any) => {
+      toast({
+        title: t('common.error'),
+        description: error.message || t('payment.creationFailed'),
+        variant: "destructive",
+      });
     },
   });
-  const createPayment = createPaymentMutation.mutate;
 
-  const [paymentType, setPaymentType] = useState<'rent' | 'utility'>('utility');
-  const [utilityType, setUtilityType] = useState<typeof utilityTypes[number]>('electricity');
-  const [customName, setCustomName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [billingStart, setBillingStart] = useState("");
-  const [billingEnd, setBillingEnd] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [selectedRentAgreement, setSelectedRentAgreement] = useState("");
-  const [managerIdState, setManagerIdState] = useState(managerId);
-
-  useEffect(() => {
-    if (!managerId) {
-      const fetchManagerId = async () => {
-        const { data } = await supabase
-          .from('properties')
-          .select('manager_id')
-          .eq('id', propertyId)
-          .single();
-        
-        if (data) {
-          setManagerIdState(data.manager_id);
-        }
-      };
-      fetchManagerId();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+      toast({
+        title: t('common.error'),
+        description: t('payment.invalidAmount'),
+        variant: "destructive",
+      });
+      return;
     }
-  }, [propertyId, managerId]);
-
-  const activeRentAgreement = rentAgreements?.find(ra => 
-    (tenantId ? ra.tenant_id === tenantId : true) && ra.is_active
-  );
-
-  useEffect(() => {
-    if (activeRentAgreement && paymentType === 'rent') {
-      setSelectedRentAgreement(activeRentAgreement.id);
-    }
-  }, [activeRentAgreement, paymentType]);
-
-  const resetForm = () => {
-    setPaymentType('utility');
-    setUtilityType('electricity');
-    setCustomName("");
-    setAmount("");
-    setBillingStart("");
-    setBillingEnd("");
-    setDueDate("");
+    setIsSubmitting(true);
+    await createPaymentMutation.mutateAsync({
+      type: paymentType,
+      payload: {
+        property_id: propertyId,
+        tenancy_id: tenancyId,
+        amount: Number(amount),
+        description,
+      },
+    });
+    setIsSubmitting(false);
   };
-
-  const handleSubmit = () => {
-    if (paymentType === 'utility') {
-      createPayment.mutate(
-        {
-          type: 'utility',
-          payload: {
-            property_id: propertyId,
-            tenant_id: tenantId || null,
-            manager_id: managerIdState,
-            utility_type: utilityType,
-            custom_utility_name: utilityType === 'other' ? customName : undefined,
-            amount_cents: Math.round(parseFloat(amount) * 100),
-            currency: 'eur',
-            billing_period_start: billingStart,
-            billing_period_end: billingEnd,
-            payment_due_date: dueDate,
-            status: 'pending',
-          },
-        },
-        {
-          onSuccess: () => {
-            resetForm();
-            onOpenChange(false);
-          },
-        }
-      );
-    } else {
-      if (!selectedRentAgreement) {
-        return;
-      }
-      createPayment.mutate(
-        {
-          type: 'rent',
-          payload: {
-            rent_agreement_id: selectedRentAgreement,
-            property_id: propertyId,
-            tenant_id: tenantId || activeRentAgreement?.tenant_id || null,
-            manager_id: managerIdState,
-            amount_cents: Math.round(parseFloat(amount) * 100),
-            currency: 'eur',
-            payment_due_date: dueDate,
-            status: 'pending',
-            payment_method: 'manual',
-          },
-        },
-        {
-          onSuccess: () => {
-            resetForm();
-            onOpenChange(false);
-          },
-        }
-      );
-    }
-  };
-
-  const canCreateRentPayment = activeRentAgreement || rentAgreements?.length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t("payments.createPayment")}</DialogTitle>
+          <DialogTitle>{t('payment.createPayment')}</DialogTitle>
+          <DialogDescription>
+            {t('payment.createPaymentDesc')}
+          </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-4 py-4">
+        
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>{t("payments.filters.type")}</Label>
-            <Select value={paymentType} onValueChange={(value: 'rent' | 'utility') => setPaymentType(value)}>
+            <Label htmlFor="type">{t('payment.type')}</Label>
+            <Select value={paymentType} onValueChange={(val: 'utility' | 'rent') => setPaymentType(val)}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder={t('payment.selectType')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="utility">{t("payments.filters.utility")}</SelectItem>
-                <SelectItem value="rent" disabled={!canCreateRentPayment}>
-                  {t("payments.filters.rent")}
-                </SelectItem>
+                <SelectItem value="utility">{t('payment.utility')}</SelectItem>
+                <SelectItem value="rent">{t('payment.rent')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
-          {paymentType === 'utility' && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="utility-type">{t("utilities.utilityType")}</Label>
-                <Select value={utilityType} onValueChange={(value: typeof utilityTypes[number]) => setUtilityType(value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {utilityTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {t(`utilities.types.${type}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {utilityType === 'other' && (
-                <div className="space-y-2">
-                  <Label htmlFor="custom-name">{t("utilities.customName")}</Label>
-                  <Input
-                    id="custom-name"
-                    value={customName}
-                    onChange={(e) => setCustomName(e.target.value)}
-                    placeholder={t("utilities.customNamePlaceholder")}
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          {paymentType === 'rent' && rentAgreements && rentAgreements.length > 0 && (
-            <div className="space-y-2">
-              <Label>{t("rentAgreements.title")}</Label>
-              <Select value={selectedRentAgreement} onValueChange={setSelectedRentAgreement}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("rentAgreements.selectAgreement")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {rentAgreements.map((ra) => (
-                    <SelectItem key={ra.id} value={ra.id}>
-                      {ra.monthly_rent_cents 
-                        ? `€${(ra.monthly_rent_cents / 100).toFixed(2)}/month`
-                        : t("rentAgreements.rentAgreement")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
+          
           <div className="space-y-2">
-            <Label htmlFor="amount">{t("common.amount")} (€)</Label>
+            <Label htmlFor="amount">{t('payment.amount')}</Label>
             <Input
               id="amount"
               type="number"
               step="0.01"
+              min="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
+              autoFocus
             />
           </div>
-
-          {paymentType === 'utility' && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="billing-start">{t("utilities.billingPeriodStart")}</Label>
-                <Input
-                  id="billing-start"
-                  type="date"
-                  value={billingStart}
-                  onChange={(e) => setBillingStart(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="billing-end">{t("utilities.billingPeriodEnd")}</Label>
-                <Input
-                  id="billing-end"
-                  type="date"
-                  value={billingEnd}
-                  onChange={(e) => setBillingEnd(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-
+          
           <div className="space-y-2">
-            <Label htmlFor="due-date">{t("utilities.dueDate")}</Label>
+            <Label htmlFor="description">{t('payment.description')}</Label>
             <Input
-              id="due-date"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t('payment.descriptionPlaceholder')}
             />
           </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => {
-            resetForm();
-            onOpenChange(false);
-          }}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={
-              !amount ||
-              !dueDate ||
-              (paymentType === 'utility' && utilityType === 'other' && !customName) ||
-              (paymentType === 'utility' && !billingStart) ||
-              (paymentType === 'utility' && !billingEnd) ||
-              (paymentType === 'rent' && !selectedRentAgreement) ||
-              createPaymentMutation.isPending
-            }
-          >
-            {createPaymentMutation.isPending 
-              ? t("common.creating") 
-              : t("common.create")}
-          </Button>
-        </DialogFooter>
+          
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit" disabled={isSubmitting || !amount}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {t('common.creating')}
+                </>
+              ) : (
+                t('payment.createPayment')
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
-}
-
-export default CreatePaymentDialog;
+};

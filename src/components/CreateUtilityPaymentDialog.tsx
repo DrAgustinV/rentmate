@@ -66,12 +66,12 @@ export function CreateUtilityPaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("utilities.addUtilityBill")}</DialogTitle>
+          <DialogTitle>{t("utilityPayments.addUtilityBill")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="utility-type">{t("utilities.utilityType")}</Label>
+            <Label htmlFor="utility-type">{t("utilityPayments.utilityType")}</Label>
             <Select value={utilityType} onValueChange={(value: any) => setUtilityType(value)}>
               <SelectTrigger>
                 <SelectValue />
@@ -88,18 +88,18 @@ export function CreateUtilityPaymentDialog({
 
           {utilityType === 'other' && (
             <div className="space-y-2">
-              <Label htmlFor="custom-name">{t("utilities.customName")}</Label>
+              <Label htmlFor="custom-name">{t("utilityPayments.customName")}</Label>
               <Input
                 id="custom-name"
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
-                placeholder={t("utilities.customNamePlaceholder")}
+                placeholder={t("utilityPayments.customNamePlaceholder")}
               />
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="amount">{t("utilities.amount")} (€)</Label>
+            <Label htmlFor="amount">{t("utilityPayments.amount")} (€)</Label>
             <Input
               id="amount"
               type="number"
@@ -112,7 +112,7 @@ export function CreateUtilityPaymentDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="billing-start">{t("utilities.billingPeriodStart")}</Label>
+              <Label htmlFor="billing-start">{t("utilityPayments.billingPeriodStart")}</Label>
               <Input
                 id="billing-start"
                 type="date"
@@ -121,7 +121,7 @@ export function CreateUtilityPaymentDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="billing-end">{t("utilities.billingPeriodEnd")}</Label>
+              <Label htmlFor="billing-end">{t("utilityPayments.billingPeriodEnd")}</Label>
               <Input
                 id="billing-end"
                 type="date"
@@ -132,7 +132,7 @@ export function CreateUtilityPaymentDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="due-date">{t("utilities.dueDate")}</Label>
+            <Label htmlFor="due-date">{t("utilityPayments.dueDate")}</Label>
             <Input
               id="due-date"
               type="date"

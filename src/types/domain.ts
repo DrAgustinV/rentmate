@@ -18,6 +18,7 @@ export interface ProfileDomain {
   lastName: string | null;
   avatarStoragePath: string | null;
   phone: string | null;
+  defaultRole: 'manager' | 'tenant' | null;
   emailVerified: boolean | null;
   kycStatus: KYCStatus | null;
   kycVerifiedAt: string | null;

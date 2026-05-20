@@ -60,7 +60,7 @@ export function InspectionDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inspections"] });
-      showToast.success({ title: "Notes saved" });
+      showToast.success("Notes saved");
     },
   });
 
@@ -78,12 +78,12 @@ export function InspectionDialog({
 
   const handleStartInspection = async () => {
     await updateStatusMutation.mutateAsync('in_progress');
-    showToast.success({ title: "Inspection started" });
+    showToast.success("Inspection started");
   };
 
   const handleReadyForSignatures = async () => {
     await updateStatusMutation.mutateAsync('pending_signatures');
-    showToast.success({ title: "Inspection ready for signatures" });
+    showToast.success("Inspection ready for signatures");
   };
 
   const handleSign = async (signatureData: any) => {
