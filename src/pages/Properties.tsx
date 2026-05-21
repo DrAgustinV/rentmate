@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/table";
 import { usePropertyDashboard, MAX_PROPERTIES_LIMIT } from "@/hooks/usePropertyDashboard";
 import { authService } from "@/services";
-import { ManagerOnboardingChecklist } from "@/components/welcome/ManagerOnboardingChecklist";
 import { OnboardingTour } from "@/components/welcome/OnboardingTour";
 import { shouldShowTour } from "@/services/profileService";
 
@@ -100,10 +99,6 @@ export default function Properties() {
     processUrlParams();
   }, [searchParams, setSearchParams, navigate, propertiesData]);
 
-  const handleTourRequest = () => {
-    setRunTour(true);
-  };
-
   const handleTourFinish = () => {
     setRunTour(false);
   };
@@ -157,13 +152,6 @@ export default function Properties() {
           </div>
         </div>
       </div>
-
-      {userId && activeProperties.length < 3 && (
-        <ManagerOnboardingChecklist 
-          userId={userId} 
-          onTourRequest={handleTourRequest}
-        />
-      )}
 
       <div className="mb-6 space-y-4">
         <ArchiveToggle

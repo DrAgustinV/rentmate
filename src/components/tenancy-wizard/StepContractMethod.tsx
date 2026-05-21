@@ -24,12 +24,12 @@ export function StepContractMethod({ form, templates }: StepProps) {
         </CardTitle>
         <CardDescription>{t('tenancy.wizard.contractDesc')}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2">
         <FormField control={form.control} name="contract_method" render={({ field }) => (
-          <RadioGroup value={field.value || ''} onValueChange={field.onChange} className="space-y-3">
+          <RadioGroup value={field.value || ''} onValueChange={field.onChange} className="space-y-2">
             {['digital', 'manual', 'none'].map((method) => (
               <label key={method} className={cn(
-                "flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors",
+                "flex items-start gap-2 p-2 border rounded-lg cursor-pointer transition-colors",
                 field.value === method && "border-primary bg-primary/5"
               )}>
                 <RadioGroupItem value={method} className="mt-1" />

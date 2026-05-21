@@ -13,6 +13,7 @@ import { UserCircle, Settings, LogOut, Building2, Home, ShieldCheck, Lightbulb }
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRole } from "@/contexts/RoleContext";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 import { shouldShowRoleSwitchTour, markRoleSwitchTourSeen } from "@/services/profileService";
 import { useQuery } from "@tanstack/react-query";
 import { GuideDialog } from "@/components/welcome/GuideDialog";
@@ -45,9 +46,8 @@ export function UserMenu({ email, isManager, isAdmin, onSignOut }: UserMenuProps
   const { data: userId } = useQuery({
     queryKey: ["current-user-id"],
     queryFn: async () => {
-      const { default: authService } = await import("@/services/authService");
-      const user = await authService.getCurrentUser();
-      return user?.id ?? null;
+      const { data: { session } } = await supabase.auth.getSession();
+      return session?.user?.id ?? null;
     },
     staleTime: 5 * 60 * 1000,
   });

@@ -26,8 +26,8 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   const { data: userId } = useQuery({
     queryKey: ["current-user-id"],
     queryFn: async () => {
-      const user = await authService.getCurrentUser();
-      return user?.id ?? null;
+      const { data: { session } } = await supabase.auth.getSession();
+      return session?.user?.id ?? null;
     },
     staleTime: 5 * 60 * 1000,
   });

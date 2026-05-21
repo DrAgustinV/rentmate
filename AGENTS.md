@@ -12,6 +12,12 @@
 | `npm run test:coverage` | Coverage report (v8) |
 | `npm run preview` | Preview production build |
 
+## GENERAL INSTRUCTIONS BY DV
+- never create a new code before checking if there is already a code that can be reused
+- never create a new translation key before checking if there is one previously created and that can be reused
+- translation keys are preferrably common. for common buttons: save, cancel, next, back etc... for example do not invent a specific save for each page
+- creating new files: use structured naming: pageComponentWhatitdoes for example so that a human can identify easier
+
 ## Project Setup
 
 ### Prerequisites
@@ -380,6 +386,42 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
 - **E-signatures**: multi-provider (YouSign, DocuSeal, Qualified, AutoFirma, OpenAPI)
 - **Configuration defaults**: Saved at `/configuration?tab=defaults` → stored in `profiles.default_rent_settings` → consumed by `CreateTenancyWizard` in 'new' mode to pre-fill KYC toggle and security deposit
 - **Wizard session persistence**: Form state auto-saved to `sessionStorage` on each step change; restored within 1 hour if wizard is accidentally closed
+
+## Login & Role Switching Flow
+
+### Login → Role Resolution
+1. **Login via Supabase Auth** — user signs in, session established
+2. **RoleProvider mounts** (`src/contexts/RoleContext.tsx:19`) — runs two queries:
+   - `getSession()` → `userId` (instant, localStorage, no token-refresh hang)
+   - `profileService.getDefaultRole(userId)` → checks `profiles.default_role` column in DB
+3. **Fallback inference** — if no `default_role` on profile, checks whether user has rows in `properties` (manager) or `property_tenants` (tenant); defaults to `"manager"`
+4. **Session override** — `sessionStorage.getItem("rentmate_active_role")` takes priority over inferred default, so a manual role switch persists for the browser session
+
+### Role Switching UI (UserMenu dropdown)
+- Badge next to email shows current role label: `t('common.manager')` or `t('common.tenant')`
+- **"Switch to Tenant"** (Home icon, green) — shown when `activeRole !== "tenant"`
+- **"Switch to Manager"** (Building2 icon, blue) — shown only if user is a manager AND currently in tenant role
+- `switchRole(role, targetUrl)` → sets state, persists to sessionStorage, navigates to `/properties` (manager) or `/rentals` (tenant)
+
+### Deep Link Resolution (RoleResolver)
+`RoleResolver` (`src/contexts/RoleContext.tsx:128`) wraps all routes and silently syncs role based on URL path:
+| Path | Auto-switch | Notes |
+|------|-------------|-------|
+| `/rentals` | → `"tenant"` | |
+| `/properties` | → `"manager"` | |
+| `/configuration` | → `"manager"` | |
+| `/properties/:id/*` | ❌ No switch | Shared routes, preserves current role |
+| `/invitations` | ❌ No switch | |
+| `/account` | ❌ No switch | |
+
+### Role Switch Tour
+- First switch to a role appends `?tour=true` to the navigation URL → triggers guided tour
+- `shouldShowRoleSwitchTour()` / `markRoleSwitchTourSeen()` in `profileService` uses localStorage to fire only once per role
+- Tour is invoked via `GuideDialog` → `handleStartTour()` navigates to current page with `?tour=true`
+
+### CSS Theming
+- `RoleThemeSetter` sets `data-active-role="manager"` or `data-active-role="tenant"` on `<html>` element
+- Allows CSS/component-level differentiation between manager and tenant UI
 
 ## Anti-Patterns / What NOT To Do
 

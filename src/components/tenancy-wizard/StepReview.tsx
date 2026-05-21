@@ -10,8 +10,21 @@ interface StepProps {
 
 export function StepReview({ form }: StepProps) {
   const { t } = useLanguage();
-
   const utilitiesConfig = form.watch('utilities_config') || {};
+
+  const contractMethod = form.watch('contract_method');
+  const contractLabel =
+    contractMethod === 'digital' ? (t('tenancy.wizard.digitalSignature') || 'Digital Signature') :
+    contractMethod === 'manual'  ? (t('tenancy.wizard.manualSignature')  || 'Manual / Paper') :
+    contractMethod === 'none'    ? (t('tenancy.wizard.skipContract')      || 'Skipped') :
+    '-';
+
+  const hasEmailVerif = form.watch('require_email_verification');
+  const hasKycVerif   = form.watch('require_kyc_verification');
+  const rentAmount    = form.watch('rent_amount');
+  const currency      = form.watch('currency');
+  const deposit       = form.watch('security_deposit');
+  const hasUtilities  = Object.keys(utilitiesConfig).length > 0;
 
   return (
     <Card>
@@ -24,76 +37,98 @@ export function StepReview({ form }: StepProps) {
           {t('tenancy.wizard.reviewDesc') || 'Review the tenancy setup before sending the invitation'}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="p-3 bg-muted/50 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <Mail className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium text-sm">{t('tenancy.wizard.tenantInfo') || 'Tenant'}</span>
-          </div>
-          <p className="text-sm">{form.watch('tenant_email') || '-'}</p>
-        </div>
+      <CardContent className="divide-y">
 
-        <div className="p-3 bg-muted/50 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <Shield className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium text-sm">{t('tenancy.wizard.verification') || 'Verification'}</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {form.watch('require_email_verification') && (
-              <Badge variant="secondary">{t('tenancy.wizard.emailVerification') || 'Email'}</Badge>
-            )}
-            {form.watch('require_kyc_verification') && (
-              <Badge variant="secondary">{t('tenancy.wizard.kycVerification') || 'KYC'}</Badge>
-            )}
-            {!form.watch('require_email_verification') && !form.watch('require_kyc_verification') && (
-              <span className="text-sm text-muted-foreground">{t('tenancy.wizard.noVerification') || 'No verification required'}</span>
-            )}
-          </div>
-        </div>
-
-        <div className="p-3 bg-muted/50 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <FileSignature className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium text-sm">{t('tenancy.wizard.contract') || 'Contract'}</span>
-          </div>
-          <p className="text-sm capitalize">
-            {form.watch('contract_method') === 'digital' && (t('tenancy.wizard.digitalSignature') || 'Digital Signature')}
-            {form.watch('contract_method') === 'manual' && (t('tenancy.wizard.manualSignature') || 'Manual / Paper')}
-            {form.watch('contract_method') === 'none' && (t('tenancy.wizard.skipContract') || 'Skipped')}
-            {!form.watch('contract_method') && '-'}
-          </p>
-        </div>
-
-        {form.watch('rent_amount') && (
-          <div className="p-3 bg-muted/50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium text-sm">{t('tenancy.wizard.rent') || 'Rent'}</span>
-            </div>
-            <p className="text-sm">
-              {form.watch('rent_amount')} {form.watch('currency')} / {t('common.month') || 'month'}
-              {form.watch('security_deposit') && ` • ${t('rentAgreement.securityDeposit') || 'Deposit'}: ${form.watch('security_deposit')} ${form.watch('currency')}`}
+        {/* Tenant */}
+        <div className="flex items-start gap-3 py-3 first:pt-0">
+          <Mail className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+          <div>
+            <p className="text-xs text-muted-foreground mb-0.5">
+              {t('tenancy.wizard.tenantInfo') || 'Tenant'}
             </p>
+            <p className="text-sm">{form.watch('tenant_email') || '-'}</p>
+          </div>
+        </div>
+
+        {/* Verification */}
+        <div className="flex items-start gap-3 py-3">
+          <Shield className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+          <div>
+            <p className="text-xs text-muted-foreground mb-1.5">
+              {t('tenancy.wizard.verification') || 'Verification'}
+            </p>
+            {hasEmailVerif || hasKycVerif ? (
+              <div className="flex flex-wrap gap-1.5">
+                {hasEmailVerif && (
+                  <Badge variant="secondary">{t('tenancy.wizard.emailVerification') || 'Email'}</Badge>
+                )}
+                {hasKycVerif && (
+                  <Badge variant="secondary">{t('tenancy.wizard.kycVerification') || 'KYC'}</Badge>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {t('tenancy.wizard.noVerification') || 'No verification required'}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Contract */}
+        <div className="flex items-start gap-3 py-3">
+          <FileSignature className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+          <div>
+            <p className="text-xs text-muted-foreground mb-0.5">
+              {t('tenancy.wizard.contract') || 'Contract'}
+            </p>
+            <p className="text-sm capitalize">{contractLabel}</p>
+          </div>
+        </div>
+
+        {/* Rent (conditional) */}
+        {rentAmount && (
+          <div className="flex items-start gap-3 py-3">
+            <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">
+                {t('tenancy.wizard.rent') || 'Rent'}
+              </p>
+              <p className="text-sm">
+                {rentAmount} {currency} / {t('common.month') || 'month'}
+                {deposit && (
+                  <span className="text-muted-foreground">
+                    {' '}·{' '}{t('rentAgreement.securityDeposit') || 'Deposit'}: {deposit} {currency}
+                  </span>
+                )}
+              </p>
+            </div>
           </div>
         )}
 
-        {Object.keys(utilitiesConfig).length > 0 && (
-          <div className="p-3 bg-muted/50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium text-sm">{t('tenancy.wizard.utilities') || 'Utilities'}</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(utilitiesConfig).map(([utility, config]) => (
-                config && (
-                  <Badge key={utility} variant="outline" className="capitalize text-xs">
-                    {utility.replace(/_/g, ' ')}: {config === 'tenant_pays' ? (t('utilities.tenantPaysShort') || 'Tenant') : config === 'manager_pays' ? (t('utilities.managerPaysShort') || 'Manager') : (t('utilities.notApplicableShort') || 'N/A')}
-                  </Badge>
-                )
-              ))}
+        {/* Utilities (conditional) */}
+        {hasUtilities && (
+          <div className="flex items-start gap-3 py-3 last:pb-0">
+            <Zap className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs text-muted-foreground mb-1.5">
+                {t('tenancy.wizard.utilities') || 'Utilities'}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(utilitiesConfig).map(([utility, config]) =>
+                  config ? (
+                    <Badge key={utility} variant="outline" className="capitalize text-xs">
+                      {utility.replace(/_/g, ' ')}:{' '}
+                      {config === 'tenant_pays'  ? (t('utilities.tenantPaysShort')      || 'Tenant')  :
+                       config === 'manager_pays' ? (t('utilities.managerPaysShort')     || 'Manager') :
+                                                   (t('utilities.notApplicableShort')   || 'N/A')}
+                    </Badge>
+                  ) : null
+                )}
+              </div>
             </div>
           </div>
         )}
+
       </CardContent>
     </Card>
   );

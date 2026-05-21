@@ -71,12 +71,6 @@ interface CreateTenancyWizardProps {
   invitationExpiryNotice?: boolean;
 }
 
-const STEPS = [
-  { id: 'tenant', label: 'Tenant & Verification', icon: Mail },
-  { id: 'contract', label: 'Contract & Rent', icon: FileText },
-  { id: 'review', label: 'Utilities & Review', icon: CheckCircle2 },
-] as const;
-
 export function CreateTenancyWizard({
   open,
   onOpenChange,
@@ -91,11 +85,17 @@ export function CreateTenancyWizard({
   invitationExpiryNotice = false,
 }: CreateTenancyWizardProps) {
   const { t } = useLanguage();
+  const STEPS = [
+    { id: 'tenant', label: t('tenancy.wizard.steps.tenant'), icon: Mail },
+    { id: 'verification', label: t('tenancy.wizard.steps.verification'), icon: Shield },
+    { id: 'contract', label: t('tenancy.wizard.steps.contract'), icon: FileSignature },
+    { id: 'rent', label: t('tenancy.wizard.steps.rent'), icon: FileText },
+    { id: 'utilities', label: t('tenancy.wizard.steps.utilities'), icon: Zap },
+    { id: 'review', label: t('tenancy.wizard.steps.confirm'), icon: CheckCircle2 },
+  ] as const;
   const { canUseGovernmentIdKYC, isFree } = useSubscription();
   const { utilityTypes } = useUtilityTypes();
   const [currentStep, setCurrentStep] = useState(0);
-  const [newUtilityType, setNewUtilityType] = useState("");
-  const [newUtilityResponsibility, setNewUtilityResponsibility] = useState("not_applicable");
   
   const canUseGovId = canUseGovernmentIdKYC();
 
@@ -301,9 +301,12 @@ export function CreateTenancyWizard({
 
   const getFieldsForStep = (step: number): (keyof FormData)[] => {
     switch (step) {
-      case 0: return ['tenant_email', 'require_email_verification', 'require_kyc_verification'];
-      case 1: return ['contract_method', 'rent_amount', 'currency', 'security_deposit', 'payment_day', 'start_date'];
-      case 2: return ['utilities_config'];
+      case 0: return ['tenant_email'];
+      case 1: return ['require_email_verification', 'require_kyc_verification'];
+      case 2: return ['contract_method', 'selected_template_id'];
+      case 3: return ['rent_amount', 'currency', 'security_deposit', 'payment_day', 'start_date'];
+      case 4: return ['utilities_config'];
+      case 5: return [];
       default: return [];
     }
   };
@@ -314,14 +317,16 @@ export function CreateTenancyWizard({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-base font-semibold">
             {propertyTitle && (
-              <span className="block text-xs font-normal text-muted-foreground mb-0.5">{propertyTitle}</span>
+              <span className="text-base font-semibold text-muted-foreground mr-2">{propertyTitle}</span>
             )}
-            {mode === 'edit' ? (t('tenancy.wizard.editTitle') || 'Edit Tenancy Setup') :
-             mode === 'invite' ? (t('tenancy.wizard.inviteTitle') || 'Invite Tenant') :
-             mode === 'next_tenancy' ? (t('tenancy.wizard.nextTenancyTitle') || 'Set Up Next Tenancy') :
-             (t('tenancy.wizard.title') || 'New Tenancy Setup')}
+            <span className="text-base font-semibold">
+              {mode === 'edit' ? (t('tenancy.wizard.editTitle') || 'Edit Tenancy Setup') :
+              mode === 'invite' ? (t('tenancy.wizard.inviteTitle') || 'Invite Tenant') :
+              mode === 'next_tenancy' ? (t('tenancy.wizard.nextTenancyTitle') || 'Set Up Next Tenancy') :
+              (t('tenancy.wizard.title') || 'New Tenancy Setup')}
+            </span>
           </DialogTitle>
         </DialogHeader>
 
@@ -335,7 +340,7 @@ export function CreateTenancyWizard({
         )}
 
         {/* Step Indicator */}
-        <div className="flex items-center justify-between mb-6 overflow-x-auto pb-2">
+        <div className="flex items-center justify-between mb-1 overflow-x-auto pb-2">
           {STEPS.map((step, index) => {
             const Icon = step.icon;
             const isActive = index === currentStep;
@@ -391,29 +396,21 @@ export function CreateTenancyWizard({
                 }
               }
             }}
-            className="space-y-6"
-          >
-            {currentStep === 0 && (
-              <div className="space-y-6">
-                <StepTenantEmail form={form} />
-                <StepVerification form={form} canUseGovId={canUseGovId} />
-              </div>
-            )}
-            {currentStep === 1 && (
-              <div className="space-y-6">
-                <StepContractMethod form={form} templates={templates} />
-                <StepRentDeposits form={form} />
-              </div>
-            )}
-            {currentStep === 2 && (
-              <div className="space-y-6">
-                <StepUtilities form={form} utilityTypes={utilityTypes} />
-                <StepReview form={form} />
-              </div>
-            )}
-
+            /* className="space-y-2 h-[500px]" */
+            className="flex flex-col h-[500px]"  
+                      >
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+            {currentStep === 0 && <StepTenantEmail form={form} />}
+            {currentStep === 1 && <StepVerification form={form} canUseGovId={canUseGovId} />}
+            {currentStep === 2 && <StepContractMethod form={form} templates={templates} />}
+            {currentStep === 3 && <StepRentDeposits form={form} />}
+            {currentStep === 4 && <StepUtilities form={form} utilityTypes={utilityTypes} />}
+            {currentStep === 5 && <StepReview form={form} />}
+            </div> 
+            
             {/* Navigation Buttons */}
-            <div className="flex justify-between pt-4">
+            {/* <div className="flex justify-between pt-4"> */}
+            <div className="flex justify-between pt-4 border-t border-border mt-2 shrink-0">
               <Button
                 type="button"
                 variant="outline"
@@ -451,7 +448,7 @@ export function CreateTenancyWizard({
                           onSaveAndStartAnother(input, mode);
                         })()}
                       >
-                        {t('tenancy.wizard.saveAndStartAnother') || 'Save & Start Another'}
+                        {t('common.save') || 'Save & Start Another'}
                       </Button>
                     )}
                     <Button 

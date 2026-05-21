@@ -23,7 +23,7 @@ export function StepVerification({ form, canUseGovId }: StepProps) {
         </CardTitle>
         <CardDescription>{t('tenancy.wizard.verificationDesc')}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2">
         <FormField control={form.control} name="require_email_verification" render={({ field }) => (
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="flex items-center gap-3">
@@ -37,7 +37,7 @@ export function StepVerification({ form, canUseGovId }: StepProps) {
           </div>
         )} />
         <FormField control={form.control} name="require_kyc_verification" render={({ field }) => (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex items-center gap-3">
                 <Shield className="h-5 w-5 text-muted-foreground" />
