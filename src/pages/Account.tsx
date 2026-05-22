@@ -136,6 +136,7 @@ export default function Account() {
       await profileService.updateProfile(user.id, {
         firstName: firstName || null,
         lastName: lastName || null,
+        avatarStoragePath: avatarUrl,
       });
 
       showToast.success(t('common.success'), t('settings.saved'));
@@ -221,7 +222,6 @@ export default function Account() {
 
   return (
     <AppLayout>
-      <div className="max-w-2xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <UserCircle className="h-8 w-8 text-primary" />
@@ -556,7 +556,6 @@ export default function Account() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
     </AppLayout>
   );
 }

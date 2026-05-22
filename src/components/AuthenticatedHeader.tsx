@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
-import { UserCircle, Settings, LogOut, Menu, Lightbulb, Building, Handshake } from "lucide-react";
+import { UserCircle, Settings, LogOut, Menu, Lightbulb, Building, Handshake, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -126,15 +126,25 @@ export function AuthenticatedHeader({ user, onSignOut }: AuthenticatedHeaderProp
                   {t('account.profile')}
                 </Button>
                 {activeRole === "manager" && (
-                  <Button
-                    variant={isActive("/configuration") ? "default" : "ghost"}
-                    className="justify-start gap-2"
-                    onClick={() => { navigate("/configuration"); closeMobile(); }}
-                    data-tour="nav-configuration"
-                  >
-                    <Settings className="h-4 w-4" />
-                    {t('configuration.title')}
-                  </Button>
+                  <>
+                    <Button
+                      variant={isActive("/configuration") ? "default" : "ghost"}
+                      className="justify-start gap-2"
+                      onClick={() => { navigate("/configuration"); closeMobile(); }}
+                      data-tour="nav-configuration"
+                    >
+                      <Settings className="h-4 w-4" />
+                      {t('configuration.title')}
+                    </Button>
+                    <Button
+                      variant={isActive("/workflow") ? "default" : "ghost"}
+                      className="justify-start gap-2"
+                      onClick={() => { navigate("/workflow"); closeMobile(); }}
+                    >
+                      <GitBranch className="h-4 w-4" />
+                      {t('workflow.title')}
+                    </Button>
+                  </>
                 )}
                 <Button
                   variant="ghost"

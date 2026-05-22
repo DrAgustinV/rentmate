@@ -329,9 +329,6 @@ export default function PropertyDocumentUpload({
                 disabled={uploadMutation.isPending}
                 required
               />
-              <p className="text-xs text-muted-foreground">
-                Give this document a descriptive title. All versions will share this title.
-              </p>
             </div>
           )}
 

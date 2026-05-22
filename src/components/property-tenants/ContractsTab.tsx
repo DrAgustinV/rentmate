@@ -27,7 +27,6 @@ import { documentService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 
 import { SectionCard } from "./SectionCard";
-import { InteractiveStepper } from "./InteractiveStepper";
 import { EmptyState } from "@/components/EmptyState";
 import { ContractsTabSkeleton } from "./ContractsTabSkeleton";
 import { StatusBadge } from "./StatusBadge";
@@ -161,19 +160,6 @@ export function ContractsTab({
       }
       return next;
     });
-  };
-
-  const handleStepClick = (step: number) => {
-    const stepToSection: Record<number, string> = {
-      1: 'tenant',
-      2: 'tenant',
-      3: 'historic',
-    };
-    const section = stepToSection[step];
-    if (section && !expandedSections.has(section)) {
-      setExpandedSections(prev => new Set([...prev, section]));
-    }
-    document.getElementById(`section-${section}`)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   // Query tenancy requirements for contract method
@@ -352,25 +338,10 @@ export function ContractsTab({
     return <ContractsTabSkeleton />;
   }
 
-  const getTenancyStep = () => {
-    if (!currentTenant) return 0;
-    if (pendingRequirement) return 1;
-    if (currentTenant.tenancy_status === 'active') return 2;
-    if (currentTenant.tenancy_status === 'ending_tenancy' || currentTenant.tenancy_status === 'historic') return 3;
-    return 1;
-  };
-
-  const tenancyStep = getTenancyStep();
-
   const isSectionOpen = (section: string) => expandedSections.has(section);
 
   return (
     <div className="space-y-6">
-      {/* Interactive Tenancy Progress Stepper - always visible */}
-      <InteractiveStepper 
-        currentStep={tenancyStep}
-        onStepClick={handleStepClick}
-      />
 
       {/* Tenant Onboarding Checklist (tenant only) */}
       {!userRole?.isManager && currentTenant && (

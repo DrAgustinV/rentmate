@@ -103,7 +103,12 @@ export function StepUtilities({ form, utilityTypes }: StepProps) {
                     </Badge>
                     <button
                       type="button"
-                      onClick={() => form.setValue(`utilities_config.${utility}`, '' as any)}
+                      onClick={() => {
+                        const current = form.getValues('utilities_config') || {};
+                        const updated = { ...current };
+                        delete updated[utility];
+                        form.setValue('utilities_config', updated);
+                      }}
                       className="text-muted-foreground hover:text-destructive ml-1"
                       aria-label={`Remove ${utility}`}
                     >

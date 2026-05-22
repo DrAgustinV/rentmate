@@ -289,21 +289,22 @@ export default function PropertyTenants() {
     setCancelSetupOpen(false);
     try {
       await deleteRequirement.mutateAsync(pendingRequirement.id);
-      queryClient.invalidateQueries({ queryKey: ["tenancy-requirements", propertyId] });
-      
-      const { data: orphanedTenants } = await supabase
-        .from("property_tenants")
-        .select("id")
-        .eq("property_id", propertyId)
-        .is("tenant_id", null)
-        .eq("tenancy_status", "active");
-      
-      if (orphanedTenants && orphanedTenants.length > 0) {
-        for (const t of orphanedTenants) {
-          await supabase.from("property_tenants").delete().eq("id", t.id);
-        }
-        queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
-      }
+
+      await Promise.all([
+        supabase
+          .from("invitations")
+          .update({ status: "cancelled" })
+          .eq("property_id", propertyId)
+          .eq("status", "pending"),
+        supabase
+          .from("property_tenants")
+          .delete()
+          .eq("property_id", propertyId)
+          .is("tenant_id", null)
+          .eq("tenancy_status", "active"),
+        queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] }),
+        queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] }),
+      ]);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t('common.error');
       showToast.error(message);

@@ -33,9 +33,9 @@ export function StepReview({ form }: StepProps) {
           <CheckCircle2 className="h-5 w-5" />
           {t('tenancy.wizard.review') || 'Review & Confirm'}
         </CardTitle>
-        <CardDescription>
+        {/* <CardDescription>
           {t('tenancy.wizard.reviewDesc') || 'Review the tenancy setup before sending the invitation'}
-        </CardDescription>
+        </CardDescription> */}
       </CardHeader>
       <CardContent className="divide-y">
 
@@ -118,9 +118,9 @@ export function StepReview({ form }: StepProps) {
                   config ? (
                     <Badge key={utility} variant="outline" className="capitalize text-xs">
                       {utility.replace(/_/g, ' ')}:{' '}
-                      {config === 'tenant_pays'  ? (t('utilities.tenantPaysShort')      || 'Tenant')  :
-                       config === 'manager_pays' ? (t('utilities.managerPaysShort')     || 'Manager') :
-                                                   (t('utilities.notApplicableShort')   || 'N/A')}
+                      {config === 'tenant_pays'  ? (t('tenancy.wizard.tenantPays')      || 'Tenant')  :
+                       config === 'manager_pays' ? (t('tenancy.wizard.managerPays')     || 'Manager') :
+                                                   (t('common.na')   || 'N/A')}
                     </Badge>
                   ) : null
                 )}

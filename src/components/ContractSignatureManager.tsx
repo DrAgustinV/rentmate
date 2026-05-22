@@ -420,12 +420,7 @@ export const ContractSignatureManager = ({
           <h4 className="font-semibold">{methodDisplay.title}</h4>
         </div>
         <p className="text-sm text-muted-foreground mb-3">{methodDisplay.description}</p>
-        <Alert>
-          <Upload className="h-4 w-4" />
-          <AlertDescription>
-            {t('contractSignature.manualInfo') || 'This tenancy uses manual/paper contract signing. Please sign the contract physically and upload the scanned signed copy above.'}
-          </AlertDescription>
-        </Alert>
+
       </>
     );
 

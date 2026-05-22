@@ -196,6 +196,19 @@ export function ContractCard({
     <>
     <Card className="card-shine" id="contract-signature-section">
       <CardContent className="space-y-6">
+        {/* Digital Signature Section */}
+        <ContractSignatureManager
+          tenancyId={currentTenant?.id || ''}
+          propertyId={propertyId}
+          isManager={userRole?.isManager || false}
+          contractMethod={
+            pendingRequirement?.contract_method || 
+            tenancyRequirements?.contract_method as 'digital' | 'manual' | 'none' | null | undefined
+          }
+          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
+          asSection={true}
+        />
+
         {/* Uploaded Documents List */}
         <div className="space-y-4">
           {uploadDocumentOpen && !isReadOnly && !selectedParentDoc && (
@@ -273,20 +286,6 @@ export function ContractCard({
                           onDelete={() => !isReadOnly && !isContractLocked && userRole?.isManager && deleteDocumentMutation.mutate(latestDoc.id)}
                           canEdit={!isReadOnly && !isContractLocked && !!userRole?.isManager}
                         />
-                        {/* {olderVersions.length > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedDocForVersions({ title, versions: docs });
-                              setVersionModalOpen(true);
-                            }}
-                          >
-                            <span className="text-xs text-muted-foreground">
-                              {t("properties.propertyDocuments.history") || "History"}
-                            </span>
-                          </Button>
-                        )} */}
                       </div>
                     </div>
                   </div>
@@ -299,28 +298,9 @@ export function ContractCard({
                 <FileText className="h-8 w-8 text-muted-foreground" />
               </div>
               <p className="text-muted-foreground mb-2">{t("properties.noTenancyDocuments")}</p>
-              {/* {!isReadOnly && userRole?.isManager && (
-                <Button variant="outline" size="sm" className="h-8" onClick={() => setUploadDocumentOpen(true)}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  {t("properties.uploadContract") || "Upload Contract"}
-                </Button>
-              )} */}
             </div>
           )}
         </div>
-
-        {/* Digital Signature Section */}
-        <ContractSignatureManager
-          tenancyId={currentTenant?.id || ''}
-          propertyId={propertyId}
-          isManager={userRole?.isManager || false}
-          contractMethod={
-            pendingRequirement?.contract_method || 
-            tenancyRequirements?.contract_method as 'digital' | 'manual' | 'none' | null | undefined
-          }
-          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["active-tenants", propertyId] })}
-          asSection={true}
-        />
       </CardContent>
     </Card>
 

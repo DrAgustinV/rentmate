@@ -80,6 +80,8 @@ export function ProfilePhotoUpload({
         { upsert: true }
       );
 
+      await profileService.updateAvatarStoragePath(userId, fileName);
+
       onPhotoChange(fileName);
 
       const signedUrl = await getCachedSignedUrl(
@@ -88,9 +90,11 @@ export function ProfilePhotoUpload({
         3600
       );
       setPreviewUrl(signedUrl);
+      showToast.success(t('common.success') || 'Photo uploaded');
     } catch (err) {
       console.error("Error uploading photo:", err);
       setError("Failed to upload photo. Please try again.");
+      showToast.error(t('common.error') || 'Failed to upload photo');
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -166,7 +170,7 @@ export function ProfilePhotoUpload({
               className="gap-2 text-destructive hover:text-destructive border-destructive/50 hover:bg-destructive/10"
             >
               <Trash2 className="h-4 w-4" />
-              {t('common.remove') || 'Remove'}
+              {t('common.delete') || 'Delete'}
             </Button>
           )}
         </div>

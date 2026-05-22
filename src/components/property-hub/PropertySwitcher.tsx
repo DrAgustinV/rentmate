@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Building2 } from "lucide-react";
@@ -24,6 +24,7 @@ interface PropertySwitcherProps {
 
 export function PropertySwitcher({ currentPropertyId }: PropertySwitcherProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
 
   const { data: properties = [] } = useQuery({
@@ -48,7 +49,10 @@ export function PropertySwitcher({ currentPropertyId }: PropertySwitcherProps) {
   return (
     <Select
       value={currentPropertyId}
-      onValueChange={(value) => navigate(`/properties/${value}`)}
+      onValueChange={(value) => {
+        const newPath = location.pathname.replace(/\/properties\/[^/]+/, `/properties/${value}`);
+        navigate(`${newPath}${location.search}`);
+      }}
     >
       <SelectTrigger className="w-full max-w-xs h-10">
         <SelectValue>

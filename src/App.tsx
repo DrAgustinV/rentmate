@@ -34,6 +34,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Rentals = lazy(() => import("./pages/Rentals"));
 const Configuration = lazy(() => import("./pages/Configuration"));
+const Workflow = lazy(() => import("./pages/Workflow"));
 const Account = lazy(() => import("./pages/Account"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const RepairShops = lazy(() => import("./pages/RepairShops"));
@@ -123,6 +124,7 @@ const App = () => (
 
               {/* Settings & account */}
               <Route path="/configuration" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Configuration /></Suspense></ErrorBoundary>} />
+              <Route path="/workflow" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Workflow /></Suspense></ErrorBoundary>} />
               <Route path="/account" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Account /></Suspense></ErrorBoundary>} />
               <Route path="/profile" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Navigate to="/account" replace /></Suspense></ErrorBoundary>} />
               <Route path="/identity" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Navigate to="/account" replace /></Suspense></ErrorBoundary>} />

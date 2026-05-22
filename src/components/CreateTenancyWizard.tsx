@@ -262,13 +262,14 @@ export function CreateTenancyWizard({
     }
   };
 
-  const handleQuickSetup = async () => {
-    const fieldsToValidate = getFieldsForStep(currentStep);
-    const isValid = await form.trigger(fieldsToValidate as any);
-    if (isValid && currentStep < STEPS.length - 1) {
-      setCurrentStep(STEPS.length - 1);
-    }
-  };
+  // QUICK SETUP — DO NOT DELETE: lets self-managed users skip to review step directly
+  // const handleQuickSetup = async () => {
+  //   const fieldsToValidate = getFieldsForStep(currentStep);
+  //   const isValid = await form.trigger(fieldsToValidate as any);
+  //   if (isValid && currentStep < STEPS.length - 1) {
+  //     setCurrentStep(STEPS.length - 1);
+  //   }
+  // };
 
   const buildSubmitInput = (data: FormData): CreateTenancyRequirementInput => ({
     property_id: propertyId,
@@ -421,6 +422,7 @@ export function CreateTenancyWizard({
               </Button>
 
               <div className="flex items-center gap-2">
+                {/* QUICK SETUP — DO NOT DELETE: lets self-managed users skip to review step directly
                 {currentStep < STEPS.length - 1 && form.watch('self_manage_only') && (
                   <Button
                     type="button"
@@ -431,6 +433,7 @@ export function CreateTenancyWizard({
                     {t('tenancy.wizard.quickSetup') || 'Quick Setup'}
                   </Button>
                 )}
+                */}
                 {currentStep < STEPS.length - 1 ? (
                   <Button type="button" onClick={handleNext}>
                     {t('common.next')}
@@ -438,7 +441,7 @@ export function CreateTenancyWizard({
                   </Button>
                 ) : (
                   <div className="flex items-center gap-2">
-                    {onSaveAndStartAnother && mode === 'new' && (
+                    {/* {onSaveAndStartAnother && mode === 'new' && (
                       <Button
                         type="button"
                         variant="outline"
@@ -450,7 +453,7 @@ export function CreateTenancyWizard({
                       >
                         {t('common.save') || 'Save & Start Another'}
                       </Button>
-                    )}
+                    )} */}
                     <Button 
                       type="button" 
                       disabled={isSubmitting}

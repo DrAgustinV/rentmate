@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { UserCircle, Settings, LogOut, Building2, Home, ShieldCheck, Lightbulb } from "lucide-react";
+import { UserCircle, Settings, LogOut, Building2, Home, ShieldCheck, Lightbulb, GitBranch } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRole } from "@/contexts/RoleContext";
 import { Badge } from "@/components/ui/badge";
@@ -114,10 +114,16 @@ export function UserMenu({ email, isManager, isAdmin, onSignOut }: UserMenuProps
           {t('account.profile')}
         </DropdownMenuItem>
         {activeRole === "manager" && (
-          <DropdownMenuItem onClick={() => navigate("/configuration")}>
-            <Settings className="mr-2 h-4 w-4" />
-            {t('configuration.title')}
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem onClick={() => navigate("/configuration")}>
+              <Settings className="mr-2 h-4 w-4" />
+              {t('configuration.title')}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/workflow")}>
+              <GitBranch className="mr-2 h-4 w-4" />
+              {t('workflow.title')}
+            </DropdownMenuItem>
+          </>
         )}
         {isAdmin && (
           <DropdownMenuItem onClick={() => navigate("/admin")}>
