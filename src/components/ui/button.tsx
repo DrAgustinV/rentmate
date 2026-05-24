@@ -5,15 +5,15 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-95",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:shadow-md hover:scale-[1.02]",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-md",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-accent",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        default: "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:shadow-md hover:scale-[1.02] active:scale-95",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-md active:scale-95",
+        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-accent active:scale-95",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm active:scale-95",
+        ghost: "hover:bg-accent hover:text-accent-foreground active:scale-95",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -44,4 +44,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-export { Button, buttonVariants };
+export { Button };
+// eslint-disable-next-line react-refresh/only-export-components
+export { buttonVariants };

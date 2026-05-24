@@ -271,7 +271,7 @@ export function ContractsTab({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast.error(t("common.error"));
     }
   };
@@ -287,7 +287,7 @@ export function ContractsTab({
       try {
         const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
         if (newWindow) newWindow.location.href = url;
-      } catch (error: any) {
+      } catch (error: unknown) {
         newWindow?.close();
         showToast.error(t("properties.openError"));
       }

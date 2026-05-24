@@ -13,7 +13,7 @@ interface OnboardingTourProps {
 
 export function OnboardingTour({ userId, run, onFinish, tourType = "properties" }: OnboardingTourProps) {
   const { t } = useLanguage();
-  const [Joyride, setJoyride] = useState<React.ComponentType<any> | null>(null);
+  const [Joyride, setJoyride] = useState<React.ComponentType<Record<string, unknown>> | null>(null);
 
   useEffect(() => {
     import("react-joyride").then((mod) => {

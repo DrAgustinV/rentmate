@@ -11,13 +11,13 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { ProfileDomain } from '@/types/domain';
 
-export type KYCProvider = 'kilt' | 'openapi' | 'didit';
-export type OpenAPIVerificationLevel = 'basic' | 'advanced' | 'expert';
+export type KYCProvider = 'kilt' | 'didit';
+// BLOCKED: OpenAPI KYC is disabled
+// export type OpenAPIVerificationLevel = 'basic' | 'advanced' | 'expert';
 
 interface UseKYCOptions {
   autoFetch?: boolean;
   provider?: KYCProvider;
-  verificationLevel?: OpenAPIVerificationLevel;
   onVerificationComplete?: (profile: ProfileDomain) => void;
   onVerificationFailed?: (error: Error) => void;
   onCancel?: () => void;
@@ -39,15 +39,16 @@ interface UseKYCReturn {
   
   // Actions
   fetchKYCStatus: () => Promise<void>;
-  initiateVerification: (provider?: KYCProvider, level?: OpenAPIVerificationLevel) => Promise<void>;
+  initiateVerification: (provider?: KYCProvider) => Promise<void>;
   cancelVerification: () => Promise<void>;
   refreshStatus: () => Promise<void>;
   checkDiditStatus: () => Promise<void>;
+  checkKiltStatus: () => Promise<void>;
 }
 
 /**
- * Custom hook for managing KYC verification (KILT Protocol or OpenAPI IDV)
- * 
+ * Custom hook for managing KYC verification (KILT or Didit)
+ *
  * @example
  * ```tsx
  * function MyComponent() {
@@ -62,7 +63,7 @@ interface UseKYCReturn {
  *       ) : (
  *         <>
  *           <Button onClick={() => initiateVerification('kilt')}>KILT Verification</Button>
- *           <Button onClick={() => initiateVerification('openapi', 'basic')}>OpenAPI Basic</Button>
+ *           <Button onClick={() => initiateVerification('didit')}>Didit Verification</Button>
  *         </>
  *       )}
  *     </div>
@@ -74,7 +75,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
   const { 
     autoFetch = true, 
     provider = 'didit', // Default to Didit (free)
-    verificationLevel = 'basic',
     onVerificationComplete, 
     onVerificationFailed,
     onCancel
@@ -135,11 +135,9 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
 
   /**
    * Initiate new KYC verification process
-   * Supports both KILT and OpenAPI providers
    */
   const initiateVerification = useCallback(async (
-    selectedProvider: KYCProvider = provider,
-    level: OpenAPIVerificationLevel = verificationLevel
+    selectedProvider: KYCProvider = provider
   ) => {
     try {
       setInitiating(true);
@@ -153,10 +151,8 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
 
       if (selectedProvider === 'kilt') {
         functionData = await identityService.initiateKiltKYC();
-      } else if (selectedProvider === 'didit') {
-        functionData = await identityService.initiateDiditKYC();
       } else {
-        functionData = await identityService.initiateOpenAPIKYC(level);
+        functionData = await identityService.initiateDiditKYC();
       }
 
       // Validate response
@@ -169,9 +165,7 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
       // Success - show appropriate message
       const providerName = selectedProvider === 'kilt' 
         ? 'KILT Protocol' 
-        : selectedProvider === 'didit'
-        ? 'Didit.me'
-        : `OpenAPI (${level})`;
+        : 'Didit.me';
       toast({
         title: t('kyc.success.initiatedTitle'),
         description: `${providerName}: ${t('kyc.success.initiatedDescription')}`,
@@ -195,7 +189,7 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
     } finally {
       setInitiating(false);
     }
-  }, [kycProfile, provider, verificationLevel, toast, t, fetchKYCStatus, onVerificationFailed]);
+  }, [kycProfile, provider, toast, t, fetchKYCStatus, onVerificationFailed]);
 
   /**
    * Cancel ongoing verification and reset to not_started
@@ -282,6 +276,44 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
     }
   }, [toast, fetchKYCStatus]);
 
+  /**
+   * Check KILT verification status by re-fetching profile from DB
+   * Minimal implementation — no blockchain verification (see note below)
+   * 
+   * Why not real KILT blockchain verification?
+   * - On-chain attestation checking requires KILT node connection, DID resolution,
+   *   and cryptographic proof verification (significant engineering effort)
+   * - Sporran wallet dependency excludes mobile users
+   * - KILT mainnet gas fees add operational cost
+   * - Didit is the strategic primary provider (free, unlimited, no blockchain)
+   * - Full KILT chain verification should be re-evaluated if/when KILT becomes
+   *   a primary verification path
+   */
+  const checkKiltStatus = useCallback(async () => {
+    try {
+      setCheckingStatus(true);
+      setError(null);
+
+      await fetchKYCStatus();
+
+      toast({
+        title: 'Status Checked',
+        description: 'Your verification status has been refreshed.',
+      });
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Unknown error');
+      setError(error);
+
+      toast({
+        title: 'Status Check Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setCheckingStatus(false);
+    }
+  }, [toast, fetchKYCStatus]);
+
   // Auto-fetch on mount if enabled
   useEffect(() => {
     if (autoFetch) {
@@ -294,13 +326,9 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
   const isPending = isKYCPending(kycProfile?.kycStatus);
   const canInitiate = canInitiateKYC(kycProfile?.kycStatus);
   
-  // Extract current provider from kyc_status field (fallback to options if not available)
-  const currentProvider: KYCProvider | null = kycProfile?.kycStatus
-    ? (kycProfile.kycStatus === 'didit' 
-        ? 'didit' 
-        : kycProfile.kycStatus.startsWith('openapi_') 
-        ? 'openapi' 
-        : 'kilt')
+  // If kycProvider is stored, resolve: 'didit' → didit, anything else → kilt
+  const currentProvider: KYCProvider | null = kycProfile?.kycProvider
+    ? (kycProfile.kycProvider === 'didit' ? 'didit' : 'kilt')
     : provider;
 
   return {
@@ -323,5 +351,6 @@ export function useKYC(options: UseKYCOptions = {}): UseKYCReturn {
     cancelVerification,
     refreshStatus,
     checkDiditStatus,
+    checkKiltStatus,
   };
 }

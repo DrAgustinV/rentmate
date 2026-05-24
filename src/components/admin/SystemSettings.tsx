@@ -9,8 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function SystemSettings() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
@@ -70,12 +72,12 @@ export function SystemSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["utility_types"] });
       queryClient.invalidateQueries({ queryKey: ["system-settings"] });
-      toast.success("Utility types updated successfully");
+      toast.success(t("settings.utilityTypesUpdated"));
       setEditingUtilities(false);
       setNewUtilityType("");
     },
     onError: (error) => {
-      toast.error("Failed to update utility types: " + error.message);
+      toast.error(t("settings.utilityTypesFailed") + error.message);
     },
   });
 
@@ -96,12 +98,12 @@ export function SystemSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["system-settings"] });
-      toast.success("Setting updated successfully");
+      toast.success(t("settings.settingUpdated"));
       setEditingKey(null);
       setEditValue("");
     },
     onError: (error) => {
-      toast.error("Failed to update setting: " + error.message);
+      toast.error(t("settings.settingFailed") + error.message);
     },
   });
 
@@ -113,7 +115,7 @@ export function SystemSettings() {
   const handleSave = (key: string) => {
     const numValue = parseInt(editValue);
     if (isNaN(numValue) || numValue < 0) {
-      toast.error("Please enter a valid positive number");
+      toast.error(t("settings.invalidNumber"));
       return;
     }
     updateMutation.mutate({ key, value: numValue });
@@ -122,11 +124,11 @@ export function SystemSettings() {
   const handleAddUtilityType = () => {
     const trimmed = newUtilityType.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
     if (!trimmed) {
-      toast.error("Please enter a valid utility type");
+      toast.error(t("settings.invalidUtilityType"));
       return;
     }
     if (utilityTypes.includes(trimmed)) {
-      toast.error("Utility type already exists");
+      toast.error(t("settings.utilityTypeExists"));
       return;
     }
     updateUtilityTypesMutation.mutate([...utilityTypes, trimmed]);

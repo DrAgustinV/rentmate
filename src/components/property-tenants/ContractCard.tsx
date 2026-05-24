@@ -22,9 +22,9 @@ interface ContractBadgeProps {
 
 const ContractBadge = ({ state, label }: ContractBadgeProps) => {
   const config: Record<string, { className: string }> = {
-    locked: { className: "bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10" },
+    locked: { className: "bg-success/10 text-success border-success/20 hover:bg-success/10" },
     readonly: { className: "bg-muted text-muted-foreground" },
-    version: { className: "bg-blue-500/10 text-blue-600 border-blue-500/20 hover:bg-blue-500/10" },
+    version: { className: "bg-info/10 text-info border-info/20 hover:bg-info/10" },
   };
   const { className } = config[state];
   return (
@@ -152,7 +152,7 @@ export function ContractCard({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast.error(t("common.error"));
     }
   };
@@ -172,7 +172,7 @@ export function ContractCard({
         if (newWindow) {
           newWindow.location.href = url;
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         newWindow?.close();
         showToast.error(t("properties.openError"));
       }

@@ -515,13 +515,13 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error sending invitation email:", error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Failed to send email",
+        error: error instanceof Error ? error.message : "Failed to send email",
         details: error.toString(),
       }),
       {

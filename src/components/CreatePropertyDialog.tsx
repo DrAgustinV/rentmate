@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { supabase } from "@/integrations/supabase/client";
 import { authService, documentService } from "@/services";
 import { STORAGE_BUCKETS, FILE_SIZE_LIMITS } from "@/constants";
-import { propertyBaseSchema } from "@/lib/validations";
 import { usePropertyMutations } from "@/hooks/useProperties";
 import { useSubscription } from "@/hooks/useSubscription";
 import { z } from "zod";
-import { Loader2, Upload, X, Image as ImageIcon, Sparkles, AlertCircle, Crown } from "lucide-react";
+import { Loader2, Upload, X, Image as ImageIcon, AlertCircle, Crown } from "lucide-react";
 import { CountrySelect } from "@/components/ui/country-select";
 import { getUserCountryFromTimezone } from "@/lib/countryUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -25,19 +27,20 @@ interface CreatePropertyDialogProps {
   onSuccess: (propertyId: string) => void;
 }
 
+const formSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(100),
+  address: z.string().trim().min(1, "Address is required").max(200),
+  city: z.string().trim().min(1, "City is required").max(100),
+  stateProvince: z.string().trim().max(100).optional().default(""),
+  postalCode: z.string().trim().min(1, "Postal code is required").max(20),
+  country: z.string().trim().min(1, "Country is required").max(100),
+  description: z.string().trim().max(1000).optional().default(""),
+});
+
 export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePropertyDialogProps) {
-  const [title, setTitle] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [stateProvince, setStateProvince] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [country, setCountry] = useState("");
-  const [description, setDescription] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [generatingDescription, setGeneratingDescription] = useState(false);
-  const [propertyCount, setPropertyCount] = useState<number | null>(null);
   const [limitLoading, setLimitLoading] = useState(false);
+  const [propertyCount, setPropertyCount] = useState<number | null>(null);
   const { trackEvent } = useAnalyticsContext();
   const { createProperty } = usePropertyMutations();
   const { t } = useLanguage();
@@ -46,14 +49,21 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
   const atLimit = propertyCount !== null && propertyCount >= propertyLimit;
   const nearLimit = propertyCount !== null && propertyCount === propertyLimit - 1;
 
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { title: "", address: "", city: "", stateProvince: "", postalCode: "", country: "", description: "" },
+  });
+
   useEffect(() => {
     if (!open) {
       setPropertyCount(null);
+      setPhotoFile(null);
+      form.reset();
       return;
     }
 
     const detected = getUserCountryFromTimezone();
-    if (detected) setCountry(detected);
+    if (detected) form.setValue("country", detected);
 
     const fetchPropertyCount = async () => {
       setLimitLoading(true);
@@ -76,132 +86,65 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
     };
 
     fetchPropertyCount();
-  }, [open]);
+  }, [open, form]);
 
-  const handleGenerateDescription = async () => {
-    if (!title.trim()) {
-      toast.error(t('ai.titleRequired'));
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    const user = await authService.getCurrentUser();
+    if (!user) throw new Error("Not authenticated");
+
+    const { count } = await supabase
+      .from('properties')
+      .select('*', { count: 'exact', head: true })
+      .eq('manager_id', user.id)
+      .eq('status', 'active');
+
+    if (count && count >= propertyLimit) {
+      const planName = isFree ? 'Free' : isPro ? 'Pro' : 'your current';
+      toast.error(`You have reached the maximum limit of ${propertyLimit} active ${propertyLimit === 1 ? 'property' : 'properties'} on the ${planName} plan. Please upgrade to add more properties.`);
       return;
     }
-    
-    setGeneratingDescription(true);
-    try {
-      const data = await identityService.invokeAIAssistant({
-        type: 'property_description',
-        data: { title: data.title, address: data.address, city: data.city, country: data.country }
-      });
-      if (data?.text) {
-        setDescription(data.text);
-        toast.success(t('ai.descriptionGenerated'));
-      }
-    } catch (error: any) {
-      console.error('AI generation error:', error);
-      toast.error(t('ai.generationError'));
-    } finally {
-      setGeneratingDescription(false);
-    }
-  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    createProperty.mutate({
+      title: values.title,
+      address: values.address,
+      city: values.city,
+      state_province: values.stateProvince,
+      postal_code: values.postalCode,
+      country: values.country,
+      description: values.description || null,
+      images: [],
+      manager_id: user.id,
+    }, {
+      onSuccess: async (newProperty) => {
+        if (photoFile && newProperty?.id) {
+          try {
+            const fileExt = photoFile.name.split('.').pop();
+            const fileName = `${newProperty.id}/profile.${fileExt}`;
 
-    try {
-      const data = propertyBaseSchema.parse({ 
-        title, 
-        address, 
-        city,
-        state_province: stateProvince,
-        postal_code: postalCode,
-        country,
-        description 
-      });
-
-      const user = await authService.getCurrentUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Check property limit based on subscription plan
-      const propertyLimit = getPropertyLimit();
-      
-      const { count } = await supabase
-        .from('properties')
-        .select('*', { count: 'exact', head: true })
-        .eq('manager_id', user.id)
-        .eq('status', 'active');
-      
-      if (count && count >= propertyLimit) {
-        const planName = isFree ? 'Free' : isPro ? 'Pro' : 'your current';
-        throw new Error(`You have reached the maximum limit of ${propertyLimit} active ${propertyLimit === 1 ? 'property' : 'properties'} on the ${planName} plan. Please upgrade to add more properties.`);
-      }
-
-      // Create property first without photo
-      createProperty.mutate({
-        title: data.title,
-        address: data.address,
-        city: data.city,
-        state_province: data.state_province,
-        postal_code: data.postal_code,
-        country: data.country,
-        description: data.description || null,
-        images: [],
-        manager_id: user.id,
-      }, {
-        onSuccess: async (newProperty) => {
-          // Upload photo if one was selected
-          if (photoFile && newProperty?.id) {
-            try {
-              const fileExt = photoFile.name.split('.').pop();
-              const fileName = `${newProperty.id}/profile.${fileExt}`;
-
-              await documentService.uploadFile(STORAGE_BUCKETS.PROPERTY_PHOTOS, fileName, photoFile, { upsert: true });
-              await supabase
-                .from('properties')
-                .update({ images: [fileName] })
-                .eq('id', newProperty.id);
-            } catch (photoError) {
-              console.error('Photo upload error:', photoError);
-            }
+            await documentService.uploadFile(STORAGE_BUCKETS.PROPERTY_PHOTOS, fileName, photoFile, { upsert: true });
+            await supabase
+              .from('properties')
+              .update({ images: [fileName] })
+              .eq('id', newProperty.id);
+          } catch (photoError) {
+            console.error('Photo upload error:', photoError);
           }
-
-          // Track property creation event
-          trackEvent({
-            eventName: 'property_created',
-            category: 'property_management',
-            metadata: {
-              property_id: newProperty.id,
-              has_photo: !!photoFile,
-            },
-          });
-
-          setTitle("");
-          setAddress("");
-          setCity("");
-          setStateProvince("");
-          setPostalCode("");
-          setCountry(getUserCountryFromTimezone() ?? "");
-          setDescription("");
-          setPhotoFile(null);
-          setLoading(false);
-          onSuccess(newProperty.id);
-        },
-        onError: (error: any) => {
-          setLoading(false);
-          throw error;
         }
-      });
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        toast.error("Validation Error", {
-          description: error.errors[0].message,
+
+        trackEvent({
+          eventName: 'property_created',
+          category: 'property_management',
+          metadata: {
+            property_id: newProperty.id,
+            has_photo: !!photoFile,
+          },
         });
-      } else {
-        toast.error("Error", {
-          description: error.message,
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
+
+        setPhotoFile(null);
+        form.reset();
+        onSuccess(newProperty.id);
+      },
+    });
   };
 
   return (
@@ -242,188 +185,200 @@ export function CreatePropertyDialog({ open, onOpenChange, onSuccess }: CreatePr
           </Alert>
         ) : null}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Property Photo</Label>
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                {photoFile ? (
-                  <div className="relative">
-                    <img 
-                      src={URL.createObjectURL(photoFile)} 
-                      alt="Property preview" 
-                      className="w-24 h-24 rounded-lg object-cover border-2 border-border"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Property Photo</Label>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  {photoFile ? (
+                    <div className="relative">
+                      <img 
+                        src={URL.createObjectURL(photoFile)} 
+                        alt="Property preview" 
+                        className="w-24 h-24 rounded-lg object-cover border-2 border-border"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30"
+                        onClick={() => setPhotoFile(null)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="w-24 h-24 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/20">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={form.formState.isSubmitting}
+                    onClick={() => document.getElementById('create-photo-upload')?.click()}
+                    className="w-full"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Photo
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Maximum 5MB. JPG, PNG, or WEBP
+                  </p>
+                </div>
+                
+                <input
+                  id="create-photo-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (!file.type.startsWith('image/')) {
+                        toast.error(t("properties.uploadImageFile"));
+                        return;
+                      }
+                      if (file.size > FILE_SIZE_LIMITS.PROPERTY_PHOTO) {
+                        toast.error(t("properties.imageTooLarge"));
+                        return;
+                      }
+                      setPhotoFile(file);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Property Title *</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('placeholders.propertyTitle')} maxLength={100} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Street Address *</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('placeholders.propertyAddress')} maxLength={200} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City *</FormLabel>
+                    <FormControl>
+                      <Input placeholder={t('placeholders.city')} maxLength={100} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="stateProvince"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State/Province</FormLabel>
+                    <FormControl>
+                      <Input placeholder={t('placeholders.stateProvince')} maxLength={100} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="postalCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Postal Code *</FormLabel>
+                    <FormControl>
+                      <Input placeholder={t('placeholders.postalCode')} maxLength={20} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="country"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Country *</FormLabel>
+                    <FormControl>
+                      <CountrySelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder={t('placeholders.selectCountry')}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder={t('placeholders.propertyDescription')}
+                      rows={4}
+                      maxLength={500}
+                      {...field}
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30"
-                      onClick={() => setPhotoFile(null)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="w-24 h-24 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/20">
-                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={loading}
-                  onClick={() => document.getElementById('create-photo-upload')?.click()}
-                  className="w-full"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Photo
-                </Button>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Maximum 5MB. JPG, PNG, or WEBP
-                </p>
-              </div>
-              
-              <input
-                id="create-photo-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    if (!file.type.startsWith('image/')) {
-                      toast.error("Please upload an image file");
-                      return;
-                    }
-                    if (file.size > FILE_SIZE_LIMITS.PROPERTY_PHOTO) {
-                      toast.error("Image must be less than 5MB");
-                      return;
-                    }
-                    setPhotoFile(file);
-                  }
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="title">Property Title *</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={t('placeholders.propertyTitle')}
-              required
-              maxLength={100}
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground text-right">
+                    {field.value?.length ?? 0}/500 characters
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="address">Street Address *</Label>
-            <Input
-              id="address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder={t('placeholders.propertyAddress')}
-              required
-              maxLength={200}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="city">City *</Label>
-              <Input
-                id="city"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder={t('placeholders.city')}
-                required
-                maxLength={100}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="state">State/Province</Label>
-              <Input
-                id="state"
-                value={stateProvince}
-                onChange={(e) => setStateProvince(e.target.value)}
-                placeholder={t('placeholders.stateProvince')}
-                maxLength={100}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="postal">Postal Code *</Label>
-              <Input
-                id="postal"
-                value={postalCode}
-                onChange={(e) => setPostalCode(e.target.value)}
-                placeholder={t('placeholders.postalCode')}
-                required
-                maxLength={20}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="country">Country *</Label>
-              <CountrySelect
-                value={country}
-                onValueChange={setCountry}
-                placeholder={t('placeholders.selectCountry')}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            {/* <div className="flex items-center justify-between">
-              <Label htmlFor="description">Description</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleGenerateDescription}
-                disabled={generatingDescription || !title.trim()}
-                className="h-7 text-xs"
-              >
-                {generatingDescription ? (
-                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                ) : (
-                  <Sparkles className="h-3 w-3 mr-1" />
-                )}
-                {t('ai.generate')}
+            <div className="flex gap-2 justify-end">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
               </Button>
-            </div> */}
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t('placeholders.propertyDescription')}
-              rows={4}
-              maxLength={500}
-            />
-            <p className="text-xs text-muted-foreground text-right">
-              {description.length}/500 characters
-            </p>
-          </div>
-
-          <div className="flex gap-2 justify-end">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading || atLimit}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? "Creating..." : atLimit ? "Limit Reached" : "Create Property"}
-            </Button>
-          </div>
-        </form>
+              <Button type="submit" disabled={form.formState.isSubmitting || atLimit}>
+                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {form.formState.isSubmitting ? "Creating..." : atLimit ? "Limit Reached" : "Create Property"}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

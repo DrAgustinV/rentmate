@@ -76,10 +76,23 @@ OPENAI_API_KEY=...
 ### i18n Translations
 - Use `t("namespace.key")` from `useLanguage()` context — never hardcode user-facing strings
 - Translation keys use dot-notation: `common.save`, `properties.contract`, `tenancy.wizard.title`
-- Default language: English (`src/lib/i18n/translations/en.ts` — 1501 lines, canonical source)
+- Default language: English (`src/lib/i18n/translations/en.ts` — 1761+ lines, canonical source)
 - 12 supported languages: en, es, fr, de, pt, it, nl, pl, sr, ja, zh, ar
 - Fallback chain: current lang → English → raw key
 - **Toast messages must use `t()`** — ESLint rule `no-restricted-syntax` enforces this
+- Parameterized strings use `.replace("{key}", value)` (no ICU / pluralization support in `t()`)
+
+### Navigation Structure
+- **Desktop header nav** (`src/components/AuthenticatedHeader.tsx`): Icon-only buttons between LogoPill and UserMenu, visible on `md+`
+  - Manager nav: **Properties** (`/properties`), **Tenants** (`/tenants`), **Configuration** (`/configuration`), **Workflow** (`/workflow`), **Help** (opens GuideDialog)
+  - Tenant nav: **Rentals** (`/rentals`), **Help** (opens GuideDialog)
+  - Active route highlighted with `bg-white/20` + `aria-current="page"`
+  - Hidden on mobile: the Sheet drawer (hamburger menu) handles mobile navigation
+- **No sidebar** — shadcn/ui `<Sidebar>` is installed (637 lines) but completely unused; reserved for potential Phase 2 migration
+- **Breadcrumbs** rendered below header via `AppLayout`; skip UUID segments, always link to `/properties` as root (not role-aware yet)
+- **PropertySwitcher** dropdown on detail pages allows jumping between properties while staying on same sub-route
+- **TenantSwitcher** for properties with multiple tenancies (active / ending_tenancy / historic)
+- **ManagerProgressGuide** removed — was a setup step-bar below breadcrumbs that acted as a navigation crutch; replaced by the icon nav bar + Workflow page + GuideDialog
 
 ### Styling
 - Use Tailwind utility classes + `cn()` from `@/lib/utils` for conditional classes
@@ -181,7 +194,7 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
 ### Manager Flow
 
 ```
-1. Navigate to property → /properties/:id/tenants?tab=contracts
+1. Navigate via header nav: **Properties** (`/properties`) or **Tenants** (`/tenants`) → click property → /properties/:id/tenants?tab=contracts
 2. If no tenant → "Set Up Tenancy" button in ContactInfoCard
 3. CreateTenancyWizard (3 steps):
    Tenant & Verification → Contract & Rent → Utilities & Review
@@ -386,6 +399,7 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
 - **E-signatures**: multi-provider (YouSign, DocuSeal, Qualified, AutoFirma, OpenAPI)
 - **Configuration defaults**: Saved at `/configuration?tab=defaults` → stored in `profiles.default_rent_settings` → consumed by `CreateTenancyWizard` in 'new' mode to pre-fill KYC toggle and security deposit
 - **Wizard session persistence**: Form state auto-saved to `sessionStorage` on each step change; restored within 1 hour if wizard is accidentally closed
+- **Cross-property views**: `/tenants` route shows all tenancies grouped by property (manager only, uses `tenantService.getTenanciesByManager()` which was dead code before Phase 1 nav rewrite). A cross-property `/tickets` page is planned — the existing route currently redirects to `/properties`
 
 ## Login & Role Switching Flow
 
@@ -409,6 +423,7 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
 |------|-------------|-------|
 | `/rentals` | → `"tenant"` | |
 | `/properties` | → `"manager"` | |
+| `/tenants` | → `"manager"` | Cross-property tenant view |
 | `/configuration` | → `"manager"` | |
 | `/properties/:id/*` | ❌ No switch | Shared routes, preserves current role |
 | `/invitations` | ❌ No switch | |

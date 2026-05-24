@@ -23,6 +23,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CreateStandardMaintenanceDialog } from "@/components/CreateStandardMaintenanceDialog";
 import { toast } from "sonner";
+import { priorityColors, typeColors } from "@/lib/maintenanceColors";
 
 interface StandardTemplate {
   id: string;
@@ -86,21 +87,6 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
       toast.error(t("maintenance.templates.deleteFailed"));
     },
   });
-
-  const priorityColors: Record<string, string> = {
-    low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-    high: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-    urgent: "bg-red-500/10 text-red-500 border-red-500/20",
-  };
-
-  const typeColors: Record<string, string> = {
-    maintenance: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-    repair: "bg-red-500/10 text-red-500 border-red-500/20",
-    inspection: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    cleaning: "bg-green-500/10 text-green-500 border-green-500/20",
-    other: "bg-gray-500/10 text-gray-500 border-gray-500/20",
-  };
 
   const categories = standardTemplates
     ? Array.from(new Set(standardTemplates.map((t) => t.category)))
@@ -294,7 +280,7 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                             onClick={() => setDeletingTemplate(template)}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -347,7 +333,7 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
             <AlertDialogAction
               onClick={() => deletingTemplate && deleteMutation.mutate(deletingTemplate.id)}
               disabled={deleteMutation.isPending}
-              className="bg-red-600 text-white hover:bg-red-700"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/80"
             >
               {deleteMutation.isPending ? (
                 <>

@@ -9,6 +9,7 @@ import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -37,12 +38,12 @@ export default function Dashboard() {
     tenantId: userId || undefined,
   });
 
-  const properties = propertiesData?.properties || [];
-  const tenantProperties = tenantPropertiesData?.properties || [];
+  const properties = useMemo(() => propertiesData?.properties || [], [propertiesData]);
+  const tenantProperties = useMemo(() => tenantPropertiesData?.properties || [], [tenantPropertiesData]);
   const loading = isLoadingProperties || isLoadingTenantProperties;
 
   const filteredAndSortedProperties = useMemo(() => {
-    let filtered = properties.filter(p => {
+    const filtered = properties.filter(p => {
       const matchesStatus = 
         propertyView === "active" ? p.status === "active" :
         propertyView === "ending_tenancy" ? p.status === "ending_tenancy" :
@@ -133,7 +134,7 @@ export default function Dashboard() {
         .maybeSingle();
       
       if (data) {
-        setMaxPropertiesLimit(parseInt((data.setting_value as any).value));
+        setMaxPropertiesLimit(parseInt((data.setting_value as { value: number }).value));
       }
     };
     fetchPropertyLimit();
@@ -142,12 +143,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <AppLayout showBreadcrumbs={false}>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">{t('common.loading')}</p>
-          </div>
-        </div>
+        <LoadingSkeleton preset="page" />
       </AppLayout>
     );
   }

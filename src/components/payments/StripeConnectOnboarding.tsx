@@ -55,7 +55,7 @@ export function StripeConnectOnboarding() {
       }
       setIsConnecting(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error("Stripe Connect error:", error);
       toast.error(t("payments.stripeConnectError"));
       setIsConnecting(false);

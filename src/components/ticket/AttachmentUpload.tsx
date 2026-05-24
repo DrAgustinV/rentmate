@@ -37,7 +37,7 @@ export const AttachmentUpload = ({ ticketId }: AttachmentUploadProps) => {
       if (error) throw error;
       return data.reduce((acc, setting) => {
         const value = typeof setting.setting_value === 'object' && setting.setting_value !== null
-          ? (setting.setting_value as any).value
+          ? (setting.setting_value as Record<string, unknown>).value
           : setting.setting_value;
         acc[setting.setting_key] = Number(value);
         return acc;

@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CHECK-SUBSCRIPTION-STATUS] ${step}${detailsStr}`);
 };
@@ -99,7 +99,7 @@ serve(async (req) => {
             await supabaseClient
               .from("user_subscriptions")
               .update({
-                status: stripeSubscription.status as any,
+                status: stripeSubscription.status as string,
                 current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
                 current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
               })

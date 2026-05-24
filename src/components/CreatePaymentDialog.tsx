@@ -1,15 +1,25 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Loader2 } from "lucide-react";
 import { useCreateUtilityPayment } from "@/hooks/useCreateUtilityPayment";
 import { useCreateRentPayment } from "@/hooks/useCreateRentPayment";
+import type { UtilityType, UtilityPaymentStatus } from "@/types/domain";
+
+const formSchema = z.object({
+  type: z.enum(["utility", "rent"]),
+  amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, { message: "payment.invalidAmount" }),
+  description: z.string().optional(),
+});
 
 interface CreatePaymentDialogProps {
   open: boolean;
@@ -23,20 +33,42 @@ export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId,
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [paymentType, setPaymentType] = useState<'utility' | 'rent'>(defaultType);
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { type: defaultType, amount: "", description: "" },
+  });
+
+  useEffect(() => {
+    if (open) form.reset({ type: defaultType, amount: "", description: "" });
+  }, [open, form, defaultType]);
 
   const createUtilityPayment = useCreateUtilityPayment();
   const createRentPayment = useCreateRentPayment();
 
   const createPaymentMutation = useMutation({
-    mutationFn: async (data: { type: 'utility' | 'rent'; payload: unknown }) => {
-      if (data.type === 'utility') {
-        return createUtilityPayment.mutateAsync(data.payload as any);
+    mutationFn: async ({ type, payload }: { type: 'utility' | 'rent'; payload: { property_id: string; tenancy_id: string; amount: number; description?: string } }) => {
+      if (type === 'utility') {
+        return createUtilityPayment.mutateAsync({
+          property_id: payload.property_id,
+          type: 'electricity' as UtilityType,
+          amount_cents: payload.amount,
+          currency: 'EUR',
+          status: 'pending' as UtilityPaymentStatus,
+          payment_due_date: new Date().toISOString().split('T')[0],
+          provider: 'manual',
+        });
       }
-      return createRentPayment.mutateAsync(data.payload as any);
+      return createRentPayment.mutateAsync({
+        property_id: payload.property_id,
+        tenancy_id: payload.tenancy_id,
+        tenant_id: '',
+        amount_cents: payload.amount,
+        currency: 'EUR',
+        status: 'pending',
+        payment_due_date: new Date().toISOString().split('T')[0],
+        description: payload.description,
+      });
     },
     onSuccess: () => {
       toast({
@@ -45,10 +77,8 @@ export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId,
       });
       queryClient.invalidateQueries({ queryKey: ['payments', propertyId, tenancyId] });
       onOpenChange(false);
-      setAmount("");
-      setDescription("");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: t('common.error'),
         description: error.message || t('payment.creationFailed'),
@@ -57,27 +87,16 @@ export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId,
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      toast({
-        title: t('common.error'),
-        description: t('payment.invalidAmount'),
-        variant: "destructive",
-      });
-      return;
-    }
-    setIsSubmitting(true);
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     await createPaymentMutation.mutateAsync({
-      type: paymentType,
+      type: values.type,
       payload: {
         property_id: propertyId,
         tenancy_id: tenancyId,
-        amount: Number(amount),
-        description,
+        amount: Number(values.amount),
+        description: values.description,
       },
     });
-    setIsSubmitting(false);
   };
 
   return (
@@ -90,60 +109,82 @@ export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId,
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="type">{t('payment.type')}</Label>
-            <Select value={paymentType} onValueChange={(val: 'utility' | 'rent') => setPaymentType(val)}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('payment.selectType')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="utility">{t('payment.utility')}</SelectItem>
-                <SelectItem value="rent">{t('payment.rent')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="amount">{t('payment.amount')}</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              autoFocus
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">{t('payment.description')}</Label>
-            <Input
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t('payment.descriptionPlaceholder')}
-            />
-          </div>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" disabled={isSubmitting || !amount}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {t('common.creating')}
-                </>
-              ) : (
-                t('payment.createPayment')
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('payment.type')}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('payment.selectType')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="utility">{t('payment.utility')}</SelectItem>
+                      <SelectItem value="rent">{t('payment.rent')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )}
-            </Button>
-          </DialogFooter>
-        </form>
+            />
+            
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('payment.amount')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="0.00"
+                      autoFocus
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('payment.description')}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('payment.descriptionPlaceholder')} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={form.formState.isSubmitting}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {t('common.creating')}
+                  </>
+                ) : (
+                  t('payment.createPayment')
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

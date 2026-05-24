@@ -127,10 +127,10 @@ serve(async (req) => {
     }
 
     throw new Error('Invalid action');
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error managing account deletion:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

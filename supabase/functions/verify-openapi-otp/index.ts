@@ -95,7 +95,17 @@ serve(async (req) => {
     // Determine which party is signing
     const isManager = signature.initiated_by === user.id;
     
-    const updates: any = {
+    const updates: {
+      signed_document_url: string;
+      manager_signed_at?: string;
+      manager_signature_method?: string;
+      manager_signature_data?: Record<string, unknown>;
+      tenant_signed_at?: string;
+      tenant_signature_method?: string;
+      tenant_signature_data?: Record<string, unknown>;
+      workflow_status?: string;
+      completed_at?: string;
+    } = {
       signed_document_url: publicUrl,
     };
 
@@ -163,12 +173,12 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error verifying OTP:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error?.message || 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );

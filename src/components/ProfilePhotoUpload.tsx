@@ -109,7 +109,7 @@ export function ProfilePhotoUpload({
       if (currentPhotoPath) {
         await documentService.deleteFile(STORAGE_BUCKETS.PROFILE_PHOTOS, currentPhotoPath);
       }
-      await profileService.updateProfile(userId, { avatarStoragePath: null } as any);
+      await profileService.updateProfile(userId, { avatarStoragePath: null });
       onPhotoChange(null);
       setPreviewUrl(null);
       showToast.success(t('common.success') || 'Photo removed');

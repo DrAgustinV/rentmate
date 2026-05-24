@@ -141,8 +141,8 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
         },
       });
       
-      toast.success("Ticket created", {
-        description: "Your ticket has been created successfully.",
+      toast.success(t("ticket.created"), {
+        description: t("ticket.createdDesc"),
       });
       onOpenChange(false);
       setFormData({
@@ -154,8 +154,8 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
       });
       onSuccess?.();
     },
-    onError: (error: any) => {
-      toast.error("Error", {
+    onError: (error: Error) => {
+      toast.error(t("common.error"), {
         description: error.message,
       });
     },
@@ -175,7 +175,7 @@ export function CreateTicketDialog({ open, onOpenChange, propertyId, onSuccess }
       createMutation.mutate();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast.error("Validation Error", {
+        toast.error(t("common.validationError"), {
           description: error.errors[0].message,
         });
       }

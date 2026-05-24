@@ -41,7 +41,9 @@ export type WeekStartDay = 'monday' | 'sunday';
 export type MandateState = 'pending' | 'pending_signature' | 'active' | 'failed' | 'cancelled';
 
 // ========== KYC ENUMS ==========
-export type KYCProvider = 'kilt' | 'didit' | 'openapi';
+export type KYCProvider = 'kilt' | 'didit';
+// NOTE: OpenAPI KYC is BLOCKED — see supabase/functions/initiate-openapi-kyc/index.ts
+// Previously: export type KYCProvider = 'kilt' | 'didit' | 'openapi';
 
 // ========== INVITATION STATUS ARRAY (for validation) ==========
 export const INVITATION_STATUSES = ['pending', 'accepted', 'expired', 'declined', 'property_inactive', 'already_tenant', 'cancelled'] as const;

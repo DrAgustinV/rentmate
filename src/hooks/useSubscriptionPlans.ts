@@ -13,7 +13,7 @@ export interface SubscriptionPlan {
   trial_days: number;
   grace_period_days: number;
   overage_price_per_signature_cents: number;
-  feature_limits: Record<string, any>;
+  feature_limits: Record<string, unknown>;
   features_display: Record<string, string[]>;
   limitations_display: Record<string, string[]>;
   is_available_for_signup: boolean;
@@ -50,7 +50,7 @@ export function useSubscriptionPlans() {
         ...plan,
         features_display: (plan.features_display as Record<string, string[]>) || {},
         limitations_display: (plan.limitations_display as Record<string, string[]>) || {},
-        feature_limits: (plan.feature_limits as Record<string, any>) || {},
+        feature_limits: (plan.feature_limits as Record<string, unknown>) || {},
       })) as SubscriptionPlan[];
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes

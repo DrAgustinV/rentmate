@@ -102,12 +102,12 @@ serve(async (req) => {
         }
 
         summary.recordsSucceeded++;
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Unexpected error inserting repair shop', err);
         summary.recordsFailed++;
         summary.errors.push({
           record: record.company_name,
-          error: err.message ?? 'Unknown error',
+          error: err instanceof Error ? err.message : String(err),
         });
       }
     }
@@ -126,12 +126,12 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Repair shop import failed', err);
 
     return new Response(
       JSON.stringify({
-        error: err.message ?? 'Unexpected error during import',
+        error: err instanceof Error ? err.message : String(err),
       }),
       {
         status: 500,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -27,17 +27,13 @@ export const QualifiedSignatureFlow = ({
 }: QualifiedSignatureFlowProps) => {
   const { toast } = useToast();
   const [status, setStatus] = useState<'checking' | 'not_installed' | 'ready' | 'initiating' | 'waiting' | 'otp_required'>('checking');
-  const [sessionData, setSessionData] = useState<any>(null);
+  const [sessionData, setSessionData] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showOTPDialog, setShowOTPDialog] = useState(false);
   
   const providerUI = getProviderUI(providerCode);
 
-  useEffect(() => {
-    checkInstallation();
-  }, []);
-
-  const checkInstallation = async () => {
+  const checkInstallation = useCallback(async () => {
     if (!providerUI?.checkInstallation) {
       setStatus('ready');
       return;
@@ -46,11 +42,15 @@ export const QualifiedSignatureFlow = ({
     try {
       const isInstalled = await providerUI.checkInstallation();
       setStatus(isInstalled ? 'ready' : 'not_installed');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Installation check failed:', error);
       setStatus('not_installed');
     }
-  };
+  }, [providerUI]);
+
+  useEffect(() => {
+    checkInstallation();
+  }, [checkInstallation]);
 
   const handleInitiateSignature = async () => {
     setStatus('initiating');
@@ -89,14 +89,14 @@ export const QualifiedSignatureFlow = ({
         });
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error initiating signature:', error);
-      setError(error.message);
+      setError(error instanceof Error ? error.message : String(error));
       setStatus('ready');
       
       toast({
         title: "Error",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }

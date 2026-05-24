@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
+import type { Database } from "@/integrations/supabase/types";
 
 interface StandardTemplate {
   id: string;
@@ -71,8 +72,8 @@ export const CreateStandardMaintenanceDialog = ({
           .update({
             title,
             description,
-            type: type as any,
-            priority: priority as any,
+            type: type as Database["public"]["Enums"]["ticket_type"],
+            priority: priority as Database["public"]["Enums"]["ticket_priority"],
             category,
             suggested_frequency: suggestedFrequency,
           })
@@ -88,8 +89,8 @@ export const CreateStandardMaintenanceDialog = ({
           .insert([{
             title,
             description,
-            type: type as any,
-            priority: priority as any,
+            type: type as Database["public"]["Enums"]["ticket_type"],
+            priority: priority as Database["public"]["Enums"]["ticket_priority"],
             category,
             suggested_frequency: suggestedFrequency,
             is_active: true,

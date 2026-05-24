@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { documentService, paymentService, authService } from '@/services';
 import { STORAGE_BUCKETS } from '@/constants';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
 export interface UtilityPayment {
@@ -43,15 +44,16 @@ export function useUtilityPayments(propertyId?: string) {
 
 export function useUtilityPaymentMutations() {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const createPayment = useMutation({
     mutationFn: async (payment: Parameters<typeof paymentService.createUtilityPayment>[0]) => paymentService.createUtilityPayment(payment),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
-      toast.success('Utility payment created successfully');
+      toast.success(t("utilityPayments.createSuccess"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to create utility payment: ${error.message}`);
+      toast.error(error.message || t("utilityPayments.createFailed"));
     },
   });
 
@@ -59,10 +61,10 @@ export function useUtilityPaymentMutations() {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<UtilityPayment> }) => paymentService.updateUtilityPayment(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
-      toast.success('Utility payment updated successfully');
+      toast.success(t("utilityPayments.updateSuccess"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to update utility payment: ${error.message}`);
+      toast.error(error.message || t("utilityPayments.updateFailed"));
     },
   });
 
@@ -80,10 +82,10 @@ export function useUtilityPaymentMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
-      toast.success('Proof of payment uploaded successfully');
+      toast.success(t("utilityPayments.proofUploaded"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to upload proof: ${error.message}`);
+      toast.error(error.message || t("utilityPayments.proofUploadFailed"));
     },
   });
 
@@ -116,10 +118,10 @@ export function useUtilityPaymentMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
-      toast.success('Proof reviewed successfully');
+      toast.success(t("utilityPayments.proofReviewed"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to review proof: ${error.message}`);
+      toast.error(error.message || t("utilityPayments.proofReviewFailed"));
     },
   });
 
@@ -137,10 +139,10 @@ export function useUtilityPaymentMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
-      toast.success('Utility payment marked as paid');
+      toast.success(t("utilityPayments.markedPaid"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to mark as paid: ${error.message}`);
+      toast.error(error.message || t("utilityPayments.markPaidFailed"));
     },
   });
 

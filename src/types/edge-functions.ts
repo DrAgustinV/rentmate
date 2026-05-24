@@ -4,25 +4,28 @@ export interface KYCKiltResponse {
 }
 
 export interface KYCDiditResponse {
-  sessionId: string;
-  sessionUrl: string;
+  success: boolean;
+  session_id: string;
+  verification_url: string;
+  qr_code_url?: string;
+  kyc_status?: string;
+  message?: string;
+  error?: string;
 }
 
-export interface KYCOpenAPIResponse {
-  sessionId: string;
-  redirectUrl: string;
-}
+// BLOCKED: OpenAPI KYC is disabled — do not uncomment without reviewing the full integration
+// export interface KYCOpenAPIResponse {
+//   sessionId: string;
+//   redirectUrl: string;
+// }
 
 export interface DIDITStatusResponse {
-  status: 'pending' | 'approved' | 'declined' | 'expired';
-  decision?: {
-    status: string;
-    createdAt: string;
-  };
-  documents?: Array<{
-    type: string;
-    status: string;
-  }>;
+  success: boolean;
+  status: string;
+  previous_status?: string;
+  didit_status?: string;
+  updated: boolean;
+  error?: string;
 }
 
 export interface SEPAMandatePDFResponse {

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart3, Users, Globe, Activity, TrendingUp } from 'lucide-react';
+import { BarChart3, Users, Globe, Activity, TrendingUp, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -56,7 +56,7 @@ export function AnalyticsDashboard() {
   const [eventData, setEventData] = useState<EventData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const getDateFilter = () => {
+  const getDateFilter = useCallback(() => {
     const now = new Date();
     switch (dateRange) {
       case '7d':
@@ -68,13 +68,13 @@ export function AnalyticsDashboard() {
       default:
         return '2020-01-01';
     }
-  };
+  }, [dateRange]);
 
   useEffect(() => {
     fetchAnalytics();
-  }, [dateRange]);
+  }, [fetchAnalytics]);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     setLoading(true);
     try {
       const dateFilter = getDateFilter();
@@ -225,12 +225,12 @@ export function AnalyticsDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getDateFilter]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -414,3 +414,5 @@ export function AnalyticsDashboard() {
     </div>
   );
 }
+
+export default AnalyticsDashboard;

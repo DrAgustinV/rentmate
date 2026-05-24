@@ -194,7 +194,7 @@ export function ContactInfoCard({
                 </Avatar>
                 {currentTenant.kyc_status === 'verified' && (
                   <div className="absolute -bottom-0.5 -right-0.5 bg-background rounded-full p-0.5">
-                    <BadgeCheck className="h-4 w-4 text-blue-500" />
+                    <BadgeCheck className="h-4 w-4 text-info" />
                   </div>
                 )}
               </div>
@@ -202,12 +202,12 @@ export function ContactInfoCard({
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-medium">{getTenantName()}</p>
                   {currentTenant.tenancy_status === 'ending_tenancy' && (
-                    <Badge variant="outline" className="border-yellow-500 text-yellow-600 bg-yellow-50 dark:bg-yellow-950/30">
+                    <Badge variant="outline" className="border-warning text-warning bg-warning/10">
                       {t("tenants.endingTenancy")}
                     </Badge>
                   )}
                   {currentTenant.kyc_status === 'verified' && (
-                    <span className="text-xs text-blue-500 font-medium">
+                    <span className="text-xs text-info font-medium">
                       {t("tenants.kycVerified")}
                     </span>
                   )}
@@ -226,7 +226,7 @@ export function ContactInfoCard({
                 variant="outline"
                 size="sm"
                 onClick={() => onEndTenancy?.(currentTenant)}
-                className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950/30 flex-shrink-0"
+                className="border-warning text-warning hover:bg-warning/10 flex-shrink-0"
               >
                 <CalendarX className="h-3 w-3 mr-1" />
                 {t("dialogs.manageTenants.endTenancy")}
@@ -238,7 +238,7 @@ export function ContactInfoCard({
                 variant="outline"
                 size="sm"
                 onClick={onInvite}
-                className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex-shrink-0"
+                className="border-info text-info hover:bg-info/10 flex-shrink-0"
               >
                 <Mail className="h-3 w-3 mr-1" />
                 {t("tenancy.inviteTenant")}

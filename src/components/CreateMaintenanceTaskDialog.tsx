@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,18 +21,29 @@ interface CreateMaintenanceTaskDialogProps {
   tenancyId: string;
 }
 
+const formSchema = z.object({
+  title: z.string().min(1, { message: "maintenanceTask.titleRequired" }),
+  description: z.string().optional(),
+  type: z.enum(["repair", "maintenance", "inspection", "emergency"]),
+  priority: z.enum(["low", "medium", "high", "urgent"]),
+});
+
 export const CreateMaintenanceTaskDialog = ({ open, onOpenChange, propertyId, tenancyId }: CreateMaintenanceTaskDialogProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [type, setType] = useState("repair");
-  const [priority, setPriority] = useState("medium");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { title: "", description: "", type: "repair", priority: "medium" },
+  });
+
+  useEffect(() => {
+    if (open) form.reset({ title: "", description: "", type: "repair", priority: "medium" });
+  }, [open, form]);
 
   const createTaskMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
@@ -38,10 +52,10 @@ export const CreateMaintenanceTaskDialog = ({ open, onOpenChange, propertyId, te
         .insert([{
           property_id: propertyId,
           tenancy_id: tenancyId,
-          title,
-          description,
-          type: type as string,
-          priority: priority as string,
+          title: values.title,
+          description: values.description,
+          type: values.type,
+          priority: values.priority,
           created_by: user.id,
         }])
         .select()
@@ -57,12 +71,8 @@ export const CreateMaintenanceTaskDialog = ({ open, onOpenChange, propertyId, te
       });
       queryClient.invalidateQueries({ queryKey: ['maintenance-tasks', propertyId, tenancyId] });
       onOpenChange(false);
-      setTitle("");
-      setDescription("");
-      setType("repair");
-      setPriority("medium");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: t('common.error'),
         description: error.message || t('maintenanceTask.creationFailed'),
@@ -71,19 +81,8 @@ export const CreateMaintenanceTaskDialog = ({ open, onOpenChange, propertyId, te
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) {
-      toast({
-        title: t('common.error'),
-        description: t('maintenanceTask.titleRequired'),
-        variant: "destructive",
-      });
-      return;
-    }
-    setIsSubmitting(true);
-    await createTaskMutation.mutateAsync();
-    setIsSubmitting(false);
+  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    createTaskMutation.mutate(values);
   };
 
   return (
@@ -96,77 +95,103 @@ export const CreateMaintenanceTaskDialog = ({ open, onOpenChange, propertyId, te
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">{t('maintenanceTask.title')}</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={t('maintenanceTask.titlePlaceholder')}
-              autoFocus
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 py-4">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('maintenanceTask.title')}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('maintenanceTask.titlePlaceholder')} autoFocus {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">{t('maintenanceTask.description')}</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t('maintenanceTask.descriptionPlaceholder')}
-              rows={3}
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('maintenanceTask.description')}</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder={t('maintenanceTask.descriptionPlaceholder')} rows={3} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="type">{t('maintenanceTask.type')}</Label>
-              <Select value={type} onValueChange={setType}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('maintenanceTask.selectType')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="repair">{t('maintenanceTask.repair')}</SelectItem>
-                  <SelectItem value="maintenance">{t('maintenanceTask.maintenance')}</SelectItem>
-                  <SelectItem value="inspection">{t('maintenanceTask.inspection')}</SelectItem>
-                  <SelectItem value="emergency">{t('maintenanceTask.emergency')}</SelectItem>
-                </SelectContent>
-              </Select>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('maintenanceTask.type')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('maintenanceTask.selectType')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="repair">{t('maintenanceTask.repair')}</SelectItem>
+                        <SelectItem value="maintenance">{t('maintenanceTask.maintenance')}</SelectItem>
+                        <SelectItem value="inspection">{t('maintenanceTask.inspection')}</SelectItem>
+                        <SelectItem value="emergency">{t('maintenanceTask.emergency')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('maintenanceTask.priority')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('maintenanceTask.selectPriority')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="low">{t('maintenanceTask.low')}</SelectItem>
+                        <SelectItem value="medium">{t('maintenanceTask.medium')}</SelectItem>
+                        <SelectItem value="high">{t('maintenanceTask.high')}</SelectItem>
+                        <SelectItem value="urgent">{t('maintenanceTask.urgent')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="priority">{t('maintenanceTask.priority')}</Label>
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('maintenanceTask.selectPriority')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">{t('maintenanceTask.low')}</SelectItem>
-                  <SelectItem value="medium">{t('maintenanceTask.medium')}</SelectItem>
-                  <SelectItem value="high">{t('maintenanceTask.high')}</SelectItem>
-                  <SelectItem value="urgent">{t('maintenanceTask.urgent')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" disabled={isSubmitting || !title.trim()}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {t('common.creating')}
-                </>
-              ) : (
-                t('maintenanceTask.createTask')
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={form.formState.isSubmitting}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {t('common.creating')}
+                  </>
+                ) : (
+                  t('maintenanceTask.createTask')
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

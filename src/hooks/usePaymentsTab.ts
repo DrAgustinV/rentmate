@@ -51,8 +51,8 @@ export function usePaymentsTab(payments: RentPayment[], hasData: boolean) {
     label: t('payments.statistics.totalPaid'),
     value: hasData ? formatCurrency(totalPaid) : formatCurrency(0),
     subtext: hasData ? `${totalCompletedPayments} ${t('payments.statistics.payments')}` : t('payments.statistics.noData'),
-    iconColor: 'text-green-500',
-    bgColor: 'bg-green-50 dark:bg-green-950/20'
+    iconColor: 'text-success',
+    bgColor: 'bg-success/10'
   }), [totalPaid, totalCompletedPayments, hasData, t, formatCurrency]);
 
   const nextDueStat = useMemo(() => ({
@@ -60,8 +60,8 @@ export function usePaymentsTab(payments: RentPayment[], hasData: boolean) {
     label: t('payments.statistics.nextDue'),
     value: hasData && nextDuePayment ? formatCurrency(nextDuePayment.amount_cents / 100) : t('common.none'),
     subtext: nextDueInfo.text,
-    iconColor: nextDueInfo.days !== null && nextDueInfo.days <= 3 ? 'text-orange-500' : 'text-blue-500',
-    bgColor: nextDueInfo.days !== null && nextDueInfo.days <= 3 ? 'bg-orange-50 dark:bg-orange-950/20' : 'bg-blue-50 dark:bg-orange-950/20'
+    iconColor: nextDueInfo.days !== null && nextDueInfo.days <= 3 ? 'text-warning' : 'text-info',
+    bgColor: nextDueInfo.days !== null && nextDueInfo.days <= 3 ? 'bg-warning/10' : 'bg-info/10'
   }), [hasData, nextDuePayment, nextDueInfo, t, formatCurrency]);
 
   const onTimeRateStat = useMemo(() => ({
@@ -69,8 +69,8 @@ export function usePaymentsTab(payments: RentPayment[], hasData: boolean) {
     label: t('payments.statistics.onTimeRate'),
     value: onTimeRate !== null ? `${onTimeRate}%` : t('common.na'),
     subtext: hasData ? `${onTimePayments} ${t('common.of')} ${totalCompletedPayments}` : t('payments.statistics.noHistory'),
-    iconColor: onTimeRate && onTimeRate >= 90 ? 'text-green-500' : 'text-yellow-500',
-    bgColor: onTimeRate && onTimeRate >= 90 ? 'bg-green-50 dark:bg-green-950/20' : 'bg-yellow-50 dark:bg-yellow-950/20'
+    iconColor: onTimeRate && onTimeRate >= 90 ? 'text-success' : 'text-warning',
+    bgColor: onTimeRate && onTimeRate >= 90 ? 'bg-success/10' : 'bg-warning/10'
   }), [onTimeRate, onTimePayments, totalCompletedPayments, hasData, t]);
 
   const remindersStat = useMemo(() => ({
@@ -78,8 +78,8 @@ export function usePaymentsTab(payments: RentPayment[], hasData: boolean) {
     label: t('payments.statistics.remindersSent'),
     value: totalReminders.toString(),
     subtext: totalReminders > 0 ? t('payments.statistics.totalReminders') : t('payments.statistics.noneYet'),
-    iconColor: totalReminders > 5 ? 'text-orange-500' : 'text-muted-foreground',
-    bgColor: totalReminders > 5 ? 'bg-orange-50 dark:bg-orange-950/20' : 'bg-muted/50'
+    iconColor: totalReminders > 5 ? 'text-warning' : 'text-muted-foreground',
+    bgColor: totalReminders > 5 ? 'bg-warning/10' : 'bg-muted/50'
   }), [totalReminders, t]);
 
   const stats = useMemo(() => [totalPaidStat, nextDueStat, onTimeRateStat, remindersStat], [totalPaidStat, nextDueStat, onTimeRateStat, remindersStat]);

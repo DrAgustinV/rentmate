@@ -40,12 +40,12 @@ export function parseCSV(csvText: string): ParsedRow[] {
     const values = parseCSVLine(lines[i]);
     if (values.length === 0 || values.every(v => !v.trim())) continue;
 
-    const row: any = { _rowNumber: i + 1, _errors: [], _warnings: [] };
+    const row: Record<string, string | number | string[]> = { _rowNumber: i + 1, _errors: [], _warnings: [] };
     headers.forEach((header, index) => {
       const key = header.trim().toLowerCase();
       row[key] = values[index]?.trim() || '';
     });
-    rows.push(row);
+    rows.push(row as ParsedRow);
   }
 
   return rows;

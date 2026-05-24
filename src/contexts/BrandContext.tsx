@@ -32,6 +32,7 @@ export function BrandContextProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useBrand() {
   const context = useContext(BrandContext);
   if (context === undefined) {

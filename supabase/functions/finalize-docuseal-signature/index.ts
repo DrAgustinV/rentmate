@@ -86,10 +86,10 @@ serve(async (req) => {
     const submissionData = await submissionResponse.json();
     console.log('DocuSeal submission status:', submissionData);
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
     // Check if manager signed
-    const managerSubmitter = submissionData.submitters?.find((s: any) => s.role === 'Manager');
+    const managerSubmitter = submissionData.submitters?.find((s: { role: string; completed_at?: string; ip?: string; document_url?: string }) => s.role === 'Manager');
     if (managerSubmitter?.completed_at && !signature.manager_signed_at) {
       updateData.manager_signed_at = new Date(managerSubmitter.completed_at).toISOString();
       updateData.manager_signature_method = 'docuseal';
@@ -99,7 +99,7 @@ serve(async (req) => {
     }
 
     // Check if tenant signed
-    const tenantSubmitter = submissionData.submitters?.find((s: any) => s.role === 'Tenant');
+    const tenantSubmitter = submissionData.submitters?.find((s: { role: string; completed_at?: string; ip?: string; document_url?: string }) => s.role === 'Tenant');
     if (tenantSubmitter?.completed_at && !signature.tenant_signed_at) {
       updateData.tenant_signed_at = new Date(tenantSubmitter.completed_at).toISOString();
       updateData.tenant_signature_method = 'docuseal';

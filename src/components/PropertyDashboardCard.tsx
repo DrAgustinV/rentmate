@@ -54,7 +54,7 @@ export function PropertyDashboardCard({ property, dashboard, photoUrl }: Propert
           <div className="flex items-center gap-1">
             <span className="text-muted-foreground">Occupancy:</span>
             <div onClick={(e) => { e.stopPropagation(); navigate(`/properties/${property.id}/tenants?tab=contracts`); }}>
-              <OccupancyBadge status={(dashboard?.occupancy_status as any) || 'Vacant'} />
+              <OccupancyBadge status={(dashboard?.occupancy_status as 'Vacant' | 'Active' | 'Ending' | 'Historic') || 'Vacant'} />
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -71,7 +71,7 @@ export function PropertyDashboardCard({ property, dashboard, photoUrl }: Propert
         )}
         
         <div className="flex items-center justify-between">
-          <PaymentBadge status={(dashboard?.payment_status as any) || 'Due'} />
+          <PaymentBadge status={(dashboard?.payment_status as 'Paid' | 'Due' | 'Partial' | 'Overdue' | 'No rent' | 'Closed') || 'Due'} />
           <Button 
             variant="ghost" 
             size="sm" 

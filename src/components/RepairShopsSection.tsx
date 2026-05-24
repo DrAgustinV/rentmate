@@ -19,7 +19,7 @@ import { Database } from "@/integrations/supabase/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Phone, Mail, MapPin, Wrench, LayoutGrid, List, Pencil, Trash2 } from "lucide-react";
+import { Search, Phone, Mail, MapPin, Wrench, LayoutGrid, List, Pencil, Trash2, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -63,7 +63,7 @@ export function RepairShopsSection() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">{t("common.loading")}</p>
         </div>
       </div>

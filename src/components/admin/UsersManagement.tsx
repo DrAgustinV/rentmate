@@ -88,8 +88,8 @@ export function UsersManagement() {
           ...profile,
           roles: userRoles,
           subscription: userSub ? {
-            plan_slug: (userSub.plan as any)?.slug || "free",
-            plan_name: (userSub.plan as any)?.name || "Free",
+            plan_slug: ((userSub.plan as Record<string, unknown>)?.slug as string) || "free",
+            plan_name: ((userSub.plan as Record<string, unknown>)?.name as string) || "Free",
             status: userSub.status,
             subscription_type: userSub.subscription_type,
             current_period_end: userSub.current_period_end,
@@ -127,7 +127,7 @@ export function UsersManagement() {
       toast.success(t('admin.userDeletedSuccess'));
       setDeletingUserId(null);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(t('admin.userDeletedError') + ": " + error.message);
       setDeletingUserId(null);
     },

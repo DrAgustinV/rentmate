@@ -76,10 +76,10 @@ export function EnterpriseContactForm({ open, onOpenChange }: EnterpriseContactF
         onOpenChange(false);
       }, 2000);
 
-      toast.success("Thank you! We'll contact you within 24 hours.");
+      toast.success(t("contact.thankYou"));
     } catch (error) {
       console.error("Error submitting contact form:", error);
-      toast.error("Failed to submit contact request. Please try again.");
+      toast.error(t("contact.submitFailed"));
     } finally {
       setIsSubmitting(false);
     }

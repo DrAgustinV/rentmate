@@ -45,10 +45,10 @@ export default function VerifyEmail() {
         setTimeout(() => {
           navigate("/properties");
         }, 3000);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Verification error:", error);
         setState("error");
-        setErrorMessage(error.message || t("auth.verificationFailed"));
+        setErrorMessage(error instanceof Error ? error.message : String(error));
       }
     };
 
@@ -66,7 +66,7 @@ export default function VerifyEmail() {
       }
 
       showToast.success(t("auth.verificationEmailSent"));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error resending verification:", error);
       showToast.error(t("auth.verificationEmailFailed"));
     } finally {

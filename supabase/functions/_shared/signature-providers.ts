@@ -23,10 +23,10 @@ export interface SignatureProviderConfig {
   /**
    * Validate and parse the callback data from the signature application
    */
-  validateCallback: (payload: any) => {
+  validateCallback: (payload: unknown) => {
     isValid: boolean;
     signedDocument?: string;
-    certificateInfo?: any;
+    certificateInfo?: unknown;
     errorCode?: string;
     errorMessage?: string;
   };

@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type {
   KYCKiltResponse,
   KYCDiditResponse,
-  KYCOpenAPIResponse,
+  // KYCOpenAPIResponse — BLOCKED: OpenAPI KYC is disabled
   DIDITStatusResponse,
   SEPAMandatePDFResponse,
   AIAssistantResponse,
@@ -30,13 +30,14 @@ export async function initiateDiditKYC(): Promise<KYCDiditResponse> {
   return data as KYCDiditResponse;
 }
 
-export async function initiateOpenAPIKYC(level?: string): Promise<KYCOpenAPIResponse> {
-  const { data, error } = await supabase.functions.invoke('initiate-openapi-kyc', {
-    body: { level: level || 'basic' },
-  });
-  if (error) throw error;
-  return data as KYCOpenAPIResponse;
-}
+// BLOCKED: OpenAPI KYC is disabled — kept as reference
+// export async function initiateOpenAPIKYC(level?: string): Promise<KYCOpenAPIResponse> {
+//   const { data, error } = await supabase.functions.invoke('initiate-openapi-kyc', {
+//     body: { level: level || 'basic' },
+//   });
+//   if (error) throw error;
+//   return data as KYCOpenAPIResponse;
+// }
 
 export async function checkDiditKYCStatus(): Promise<DIDITStatusResponse> {
   const { data, error } = await supabase.functions.invoke('check-didit-kyc-status');
@@ -119,7 +120,7 @@ export async function sendPasswordResetEmail(body: Record<string, unknown>): Pro
 export const identityService = {
   initiateKiltKYC,
   initiateDiditKYC,
-  initiateOpenAPIKYC,
+  // initiateOpenAPIKYC — BLOCKED
   checkDiditKYCStatus,
   createSEPAMandate,
   createSEPAMandateSession,

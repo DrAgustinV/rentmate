@@ -12,9 +12,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Save, Check, X, Plus, Trash2, Copy, Languages, AlertCircle, RefreshCw, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguageSettings } from "@/hooks/useLanguageSettings";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { AVAILABLE_LANGUAGES } from "@/lib/i18n/languages.config";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { Database } from "@/integrations/supabase/types";
+
+type PlanRow = Database["public"]["Tables"]["subscription_plans"]["Row"];
+type PlanUpdate = Database["public"]["Tables"]["subscription_plans"]["Update"];
+type FeatureLimits = Record<string, boolean | number>;
+
+interface PlanFormData {
+  name: string;
+  description: string;
+  price_monthly_cents: number;
+  price_annual_cents: number;
+  trial_days: number;
+  grace_period_days: number;
+  overage_price_per_signature_cents: number;
+  overage_price_per_government_id_cents: number;
+  digital_signatures_per_year: number;
+  property_limit: number;
+  government_id_verifications_per_year: number;
+  kilt_kyc_enabled: boolean;
+  government_id_kyc_enabled: boolean;
+  features_display: Record<string, string[]>;
+  limitations_display: Record<string, string[]>;
+  slug: string;
+}
 
 interface FeatureEditorProps {
   features: Record<string, string[]>;
@@ -198,8 +223,9 @@ function FeatureEditor({ features, limitations, enabledLanguages, onChange, plan
 
 export function SubscriptionPlansManagement() {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const [editingPlan, setEditingPlan] = useState<string | null>(null);
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<Partial<PlanFormData>>({});
   const { enabledLanguages, loading: languagesLoading } = useLanguageSettings();
 
   const { data: plans, isLoading } = useQuery({
@@ -216,7 +242,7 @@ export function SubscriptionPlansManagement() {
   });
 
   const updatePlanMutation = useMutation({
-    mutationFn: async ({ planId, updates }: { planId: string; updates: any }) => {
+    mutationFn: async ({ planId, updates }: { planId: string; updates: PlanUpdate }) => {
       const { error } = await supabase
         .from("subscription_plans")
         .update(updates)
@@ -227,12 +253,12 @@ export function SubscriptionPlansManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subscription-plans"] });
       queryClient.invalidateQueries({ queryKey: ["public-subscription-plans"] });
-      toast.success("Plan updated successfully");
+      toast.success(t("admin.planUpdated"));
       setEditingPlan(null);
       setFormData({});
     },
     onError: (error) => {
-      toast.error(`Failed to update plan: ${error.message}`);
+      toast.error(t("admin.planUpdateFailed") + error.message);
     },
   });
 
@@ -241,39 +267,41 @@ export function SubscriptionPlansManagement() {
   const syncToStripeMutation = useMutation({
     mutationFn: async (planId: string) => {
       setSyncingPlanId(planId);
+      const plan = plans?.find(p => p.id === planId);
+      if (!plan) throw new Error("Plan not found");
       const data = await adminService.syncStripePrices({ planSlug: plan.slug });
       if (data.error) throw new Error(data.error);
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["subscription-plans"] });
-      toast.success("Synced to Stripe successfully");
+      toast.success(t("admin.syncedToStripe"));
       setSyncingPlanId(null);
     },
     onError: (error) => {
-      toast.error(`Stripe sync failed: ${error.message}`);
+      toast.error(t("admin.stripeSyncFailed") + error.message);
       setSyncingPlanId(null);
     },
   });
 
-  const handleEdit = (plan: any) => {
-    const featureLimits = typeof plan.feature_limits === 'object' ? plan.feature_limits : {};
+  const handleEdit = (plan: PlanRow) => {
+    const featureLimits = (typeof plan.feature_limits === 'object' && plan.feature_limits ? plan.feature_limits : {}) as FeatureLimits;
     setFormData({
       name: plan.name,
-      description: plan.description,
+      description: plan.description ?? '',
       price_monthly_cents: plan.price_monthly_cents / 100,
       price_annual_cents: plan.price_annual_cents / 100,
       trial_days: plan.trial_days,
       grace_period_days: plan.grace_period_days,
       overage_price_per_signature_cents: plan.overage_price_per_signature_cents / 100,
       overage_price_per_government_id_cents: (plan.overage_price_per_government_id_cents || 100) / 100,
-      digital_signatures_per_year: (featureLimits as any).digital_signatures_per_year || 0,
-      property_limit: (featureLimits as any).property_limit || 1,
-      government_id_verifications_per_year: (featureLimits as any).government_id_verifications_per_year || 0,
-      kilt_kyc_enabled: (featureLimits as any).kilt_kyc_enabled ?? true,
-      government_id_kyc_enabled: (featureLimits as any).government_id_kyc_enabled ?? false,
-      features_display: typeof plan.features_display === 'object' ? plan.features_display : {},
-      limitations_display: typeof plan.limitations_display === 'object' ? plan.limitations_display : {},
+      digital_signatures_per_year: (featureLimits.digital_signatures_per_year as number) || 0,
+      property_limit: (featureLimits.property_limit as number) || 1,
+      government_id_verifications_per_year: (featureLimits.government_id_verifications_per_year as number) || 0,
+      kilt_kyc_enabled: (featureLimits.kilt_kyc_enabled as boolean) ?? true,
+      government_id_kyc_enabled: (featureLimits.government_id_kyc_enabled as boolean) ?? false,
+      features_display: typeof plan.features_display === 'object' && plan.features_display ? plan.features_display as Record<string, string[]> : {},
+      limitations_display: typeof plan.limitations_display === 'object' && plan.limitations_display ? plan.limitations_display as Record<string, string[]> : {},
       slug: plan.slug,
     });
     setEditingPlan(plan.id);
@@ -283,7 +311,7 @@ export function SubscriptionPlansManagement() {
     const currentPlan = plans?.find(p => p.id === planId);
     if (!currentPlan) return;
 
-    const updates: any = {
+    const updates: PlanUpdate = {
       name: formData.name,
       description: formData.description,
       price_monthly_cents: Math.round(formData.price_monthly_cents * 100),
@@ -318,7 +346,7 @@ export function SubscriptionPlansManagement() {
     setFormData({ ...formData, features_display: features, limitations_display: limitations });
   };
 
-  const getTranslationStatus = (plan: any) => {
+  const getTranslationStatus = (plan: PlanRow) => {
     const features = typeof plan.features_display === 'object' ? plan.features_display : {};
     const translated = enabledLanguages.filter(code => features[code] && features[code].length > 0);
     return { translated: translated.length, total: enabledLanguages.length };
@@ -589,7 +617,7 @@ export function SubscriptionPlansManagement() {
                         <p className="text-muted-foreground">Property Limit</p>
                         <p className="font-semibold">
                           {typeof plan.feature_limits === 'object' && plan.feature_limits && 'property_limit' in plan.feature_limits
-                            ? (plan.feature_limits as any).property_limit
+                            ? (plan.feature_limits as FeatureLimits).property_limit
                             : 1}
                         </p>
                       </div>
@@ -597,7 +625,7 @@ export function SubscriptionPlansManagement() {
                         <p className="text-muted-foreground">Signatures/Year</p>
                         <p className="font-semibold">
                           {typeof plan.feature_limits === 'object' && plan.feature_limits && 'digital_signatures_per_year' in plan.feature_limits
-                            ? (plan.feature_limits as any).digital_signatures_per_year
+                            ? (plan.feature_limits as FeatureLimits).digital_signatures_per_year
                             : 0}
                         </p>
                       </div>
@@ -609,23 +637,23 @@ export function SubscriptionPlansManagement() {
                         <p className="text-muted-foreground">Gov ID Verifications/Year</p>
                         <p className="font-semibold">
                           {typeof plan.feature_limits === 'object' && plan.feature_limits && 'government_id_verifications_per_year' in plan.feature_limits
-                            ? (plan.feature_limits as any).government_id_verifications_per_year
+                            ? (plan.feature_limits as FeatureLimits).government_id_verifications_per_year
                             : 0}
                         </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Gov ID Overage (€)</p>
-                        <p className="font-semibold">€{((plan as any).overage_price_per_government_id_cents / 100 || 1).toFixed(2)}</p>
+                        <p className="font-semibold">€{((plan.overage_price_per_government_id_cents ?? 100) / 100).toFixed(2)}</p>
                       </div>
                     </div>
                     <div className="border-t pt-4">
                       <p className="text-sm font-medium mb-2">KYC Provider Access</p>
                       <div className="flex gap-4 text-sm">
-                        <Badge variant={typeof plan.feature_limits === 'object' && (plan.feature_limits as any).kilt_kyc_enabled ? "default" : "secondary"}>
-                          KILT KYC: {typeof plan.feature_limits === 'object' && (plan.feature_limits as any).kilt_kyc_enabled ? "Enabled" : "Disabled"}
+                        <Badge variant={typeof plan.feature_limits === 'object' && (plan.feature_limits as FeatureLimits).kilt_kyc_enabled ? "default" : "secondary"}>
+                          KILT KYC: {typeof plan.feature_limits === 'object' && (plan.feature_limits as FeatureLimits).kilt_kyc_enabled ? "Enabled" : "Disabled"}
                         </Badge>
-                        <Badge variant={typeof plan.feature_limits === 'object' && (plan.feature_limits as any).government_id_kyc_enabled ? "default" : "secondary"}>
-                          Gov ID KYC: {typeof plan.feature_limits === 'object' && (plan.feature_limits as any).government_id_kyc_enabled ? "Enabled" : "Disabled"}
+                        <Badge variant={typeof plan.feature_limits === 'object' && (plan.feature_limits as FeatureLimits).government_id_kyc_enabled ? "default" : "secondary"}>
+                          Gov ID KYC: {typeof plan.feature_limits === 'object' && (plan.feature_limits as FeatureLimits).government_id_kyc_enabled ? "Enabled" : "Disabled"}
                         </Badge>
                       </div>
                     </div>

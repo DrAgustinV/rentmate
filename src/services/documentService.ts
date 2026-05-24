@@ -75,7 +75,7 @@ export async function insertDocument(data: Record<string, unknown>) {
   return result;
 }
 
-export async function uploadDocumentTemplate(body: Record<string, unknown>): Promise<any> {
+export async function uploadDocumentTemplate(body: Record<string, unknown>): Promise<unknown> {
   const { data, error } = await supabase.functions.invoke('upload-document-template', { body });
   if (error) throw error;
   return data;

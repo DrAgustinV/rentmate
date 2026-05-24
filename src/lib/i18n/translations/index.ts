@@ -34,10 +34,11 @@ export const loadTranslation = async (lang: Language): Promise<PartialTranslatio
 
   // Dynamic import for other languages
   switch (lang) {
-    case 'es':
+    case 'es': {
       const esModule = await import('./es');
       translationCache.es = esModule.es;
       return esModule.es;
+    }
     case 'en':
     default:
       return en;

@@ -25,8 +25,8 @@ interface PropertyManagementDialogsProps {
   archiveNotes: string;
   showArchiveDialog: boolean;
   showDeleteDialog: boolean;
-  archiveProperty: any;
-  deleteProperty: any;
+  archiveProperty: { isPending: boolean };
+  deleteProperty: { isPending: boolean };
   onArchiveReasonChange: (reason: "sold" | "no_longer_managing" | "merged_with_other_property" | "other") => void;
   onArchiveNotesChange: (notes: string) => void;
   onArchiveConfirm: () => void;
@@ -84,7 +84,7 @@ export function PropertyManagementDialogs({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>{t("properties.archiveReason")}</Label>
-              <Select value={archiveReason} onValueChange={(v: any) => onArchiveReasonChange(v)}>
+              <Select value={archiveReason} onValueChange={(v: string) => onArchiveReasonChange(v as typeof archiveReason)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

@@ -60,7 +60,7 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
         if (data?.manager_iban) {
           setManagerIban(data.manager_iban);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error fetching manager IBAN:', error);
       } finally {
         setLoadingIban(false);
@@ -84,8 +84,8 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
         currency: agreement.currency,
         paymentDay: agreement.payment_day,
       });
-    } catch (error: any) {
-      toast.error(error.message || t('payments.mandate.creationFailed'));
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t('payments.mandate.creationFailed'));
     } finally {
       setSigning(false);
     }
@@ -94,8 +94,8 @@ export function SEPAMandateSignature({ agreement, creditorName, creditorIban = '
   const handleCancelMandate = async () => {
     try {
       await cancelMandateMutation.mutateAsync();
-    } catch (error: any) {
-      toast.error(error.message || t('payments.mandate.cancelFailed'));
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t('payments.mandate.cancelFailed'));
     }
   };
 

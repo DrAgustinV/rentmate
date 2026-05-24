@@ -42,7 +42,7 @@ serve(async (req) => {
     let totalAffected = 0;
     let totalAnonymized = 0;
     let totalDeleted = 0;
-    const executionDetails: any = {};
+    const executionDetails: Record<string, unknown> = {};
 
     // 1. Anonymize tenant data after tenancy end (3 years)
     const tenancyEndDate = new Date();
@@ -258,10 +258,10 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Data retention enforcement error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }

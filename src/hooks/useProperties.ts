@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { propertyService } from '@/services';
 import { setupOptimisticUpdate, rollbackOptimisticUpdate } from '@/lib/optimisticHelpers';
 import type { CreatePropertyInput, UpdatePropertyInput } from '@/services/propertyService';
@@ -50,6 +51,7 @@ export function useProperty(propertyId: string | undefined) {
 }
 
 export function usePropertyMutations() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const createProperty = useMutation({
@@ -73,11 +75,11 @@ export function usePropertyMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
-      toast.success('Property created successfully');
+      toast.success(t("properties.created"));
     },
     onError: (error: Error, _variables, context) => {
       rollbackOptimisticUpdate(queryClient, [PROPERTIES_QUERY_KEY], context);
-      toast.error(error.message || 'Failed to create property');
+      toast.error(error.message || t("properties.createFailed"));
     },
   });
 
@@ -100,11 +102,11 @@ export function usePropertyMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
-      toast.success('Property updated successfully');
+      toast.success(t("properties.updated"));
     },
     onError: (error: Error, _variables, context) => {
       rollbackOptimisticUpdate(queryClient, [PROPERTIES_QUERY_KEY], context);
-      toast.error(error.message || 'Failed to update property');
+      toast.error(error.message || t("properties.updateFailed"));
     },
   });
 
@@ -112,10 +114,10 @@ export function usePropertyMutations() {
     mutationFn: async (params: { id: string; reason: string; notes?: string }) => propertyService.archiveProperty(params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
-      toast.success('Property archived successfully');
+      toast.success(t("properties.archived"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to archive property');
+      toast.error(error.message || t("properties.archiveFailed"));
     },
   });
 
@@ -123,10 +125,10 @@ export function usePropertyMutations() {
     mutationFn: async (id: string) => propertyService.deleteProperty(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [PROPERTIES_QUERY_KEY] });
-      toast.success('Property deleted successfully');
+      toast.success(t("properties.deleted"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to delete property');
+      toast.error(error.message || t("properties.deleteFailed"));
     },
   });
 

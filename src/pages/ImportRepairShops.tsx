@@ -39,7 +39,7 @@ export default function ImportRepairShops() {
   const [step, setStep] = useState<Step>('upload');
   const [file, setFile] = useState<File | null>(null);
   const [parsedRows, setParsedRows] = useState<RepairShopParsedRow[]>([]);
-  const [importSummary, setImportSummary] = useState<any>(null);
+  const [importSummary, setImportSummary] = useState<Record<string, unknown> | null>(null);
 
   const importMutation = useRepairShopImport();
   const navigate = useNavigate();
@@ -51,21 +51,24 @@ export default function ImportRepairShops() {
       const text = await selectedFile.text();
       const rawRows = parseCSV(text);
 
-      const rows: RepairShopParsedRow[] = rawRows.map((row) => ({
-        ...(row as ParsedRow),
-        company_name: String((row as any).company_name || '').trim(),
-        contact_person: (row as any).contact_person || '',
-        email: (row as any).email || '',
-        phone: String((row as any).phone || '').trim(),
-        address: (row as any).address || '',
-        city: (row as any).city || '',
-        postal_code: (row as any).postal_code || '',
-        specializations: (row as any).specializations || '',
-        license_number: (row as any).license_number || '',
-        notes: (row as any).notes || '',
-        _errors: [],
-        _warnings: [],
-      }));
+      const rows: RepairShopParsedRow[] = rawRows.map((r) => {
+        const row = r as RepairShopParsedRow;
+        return {
+          ...row,
+          company_name: String(row.company_name || '').trim(),
+          contact_person: row.contact_person || '',
+          email: row.email || '',
+          phone: String(row.phone || '').trim(),
+          address: row.address || '',
+          city: row.city || '',
+          postal_code: row.postal_code || '',
+          specializations: row.specializations || '',
+          license_number: row.license_number || '',
+          notes: row.notes || '',
+          _errors: [],
+          _warnings: [],
+        };
+      });
 
       rows.forEach((row) => {
         const specializationsArray = row.specializations
@@ -97,8 +100,8 @@ export default function ImportRepairShops() {
 
       setParsedRows(rows);
       setStep('preview');
-    } catch (error: any) {
-      showToast.error('Failed to parse file', error.message);
+    } catch (error: unknown) {
+      showToast.error('Failed to parse file', error instanceof Error ? error.message : String(error));
     }
   };
 
@@ -138,8 +141,8 @@ export default function ImportRepairShops() {
 
       setImportSummary(result.summary);
       setStep('results');
-    } catch (error: any) {
-      showToast.error('Import failed', error.message);
+    } catch (error: unknown) {
+      showToast.error('Import failed', error instanceof Error ? error.message : String(error));
       setStep('preview');
     }
   };

@@ -8,10 +8,10 @@ const occupancyBadgeVariants = cva(
   {
     variants: {
       variant: {
-        vacant: "border-transparent bg-blue-500 text-white hover:bg-blue-600",
-        active: "border-transparent bg-green-500 text-white hover:bg-green-600",
-        ending: "border-transparent bg-amber-500 text-white hover:bg-amber-600",
-        historic: "border-transparent bg-gray-500 text-white hover:bg-gray-600",
+        vacant: "border-transparent bg-info text-info-foreground hover:bg-info/90",
+        active: "border-transparent bg-success text-success-foreground hover:bg-success/90",
+        ending: "border-transparent bg-warning text-warning-foreground hover:bg-warning/90",
+        historic: "border-transparent bg-muted-foreground text-background hover:bg-muted-foreground/90",
       },
     },
     defaultVariants: {
@@ -40,12 +40,12 @@ const paymentBadgeVariants = cva(
   {
     variants: {
       variant: {
-        paid: "border-transparent bg-green-500 text-white hover:bg-green-600",
-        due: "border-transparent bg-blue-500 text-white hover:bg-blue-600",
-        partial: "border-transparent bg-amber-500 text-white hover:bg-amber-600",
-        overdue: "border-transparent bg-red-500 text-white hover:bg-red-600",
-        "no-rent": "border-transparent bg-gray-400 text-white hover:bg-gray-500",
-        closed: "border-transparent bg-gray-400 text-white hover:bg-gray-500",
+        paid: "border-transparent bg-success text-success-foreground hover:bg-success/90",
+        due: "border-transparent bg-info text-info-foreground hover:bg-info/90",
+        partial: "border-transparent bg-warning text-warning-foreground hover:bg-warning/90",
+        overdue: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        "no-rent": "border-transparent bg-muted-foreground text-background hover:bg-muted-foreground/90",
+        closed: "border-transparent bg-muted-foreground text-background hover:bg-muted-foreground/90",
       },
     },
     defaultVariants: {
@@ -82,7 +82,7 @@ export const TicketCount = memo(function TicketCount({ count, className, ...prop
     );
   }
   return (
-    <span className={cn("font-medium text-amber-600", className)} {...props}>
+    <span className={cn("font-medium text-warning", className)} {...props}>
       {count}
     </span>
   );

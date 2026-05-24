@@ -4,8 +4,8 @@ import { Clock, AlertCircle, Flag, UserCheck } from "lucide-react";
 interface Activity {
   id: string;
   activity_type: string;
-  old_value: any;
-  new_value: any;
+  old_value: Record<string, unknown> | null;
+  new_value: Record<string, unknown> | null;
   created_at: string;
   profiles: {
     first_name: string | null;

@@ -88,8 +88,8 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
           borderTop: `2px solid ${
             property.status === "active"
               ? tenantStatus?.status === "occupied"
-                ? "hsl(142 71% 45%)" // Green for occupied
-                : "hsl(217 91% 60%)" // Blue for free
+                ? "hsl(var(--success))" // Green for occupied
+                : "hsl(var(--info))" // Blue for free
               : property.status === "ending_tenancy"
                 ? "hsl(var(--warning))"
                 : "hsl(var(--muted))"
@@ -106,84 +106,84 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
                 <img
                   src={photoUrl}
                   alt={property.title}
-                  className="w-full h-20 object-cover rounded-t-lg shadow-sm transition-transform duration-300 group-hover/image:scale-[1.02]"
+                  className="w-full h-24 object-cover rounded-t-lg shadow-sm transition-transform duration-300 group-hover/image:scale-[1.02]"
                 />
                 <div className="absolute inset-0 rounded-t-lg bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
               </>
             ) : (
-              <div className="w-full h-20 rounded-t-lg bg-muted/50 flex items-center justify-center border-b border-dashed border-border transition-colors duration-200 hover:border-primary/50">
-                <ImageIcon className="h-8 w-8 text-muted-foreground" />
+              <div className="w-full h-24 rounded-t-lg bg-muted/50 flex items-center justify-center border-b border-dashed border-border transition-colors duration-200 hover:border-primary/50">
+                <ImageIcon className="h-10 w-10 text-muted-foreground" />
               </div>
             )}
           </div>
 
-          {/* Property Details - Compact */}
-          <div className="p-2">
-            <div className="flex items-start justify-between gap-1 mb-1">
+          {/* Property Details */}
+          <div className="p-3">
+            <div className="flex items-start justify-between gap-2 mb-1.5">
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-sm truncate">{property.title}</CardTitle>
+                <CardTitle className="text-base truncate">{property.title}</CardTitle>
                 {property.address && (
-                  <CardDescription className="flex items-center gap-1 text-xs">
-                    <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
+                  <CardDescription className="flex items-center gap-1 text-sm">
+                    <MapPin className="h-3 w-3 flex-shrink-0" />
                     <span className="truncate">{property.address}</span>
                   </CardDescription>
                 )}
               </div>
               {isTenantStatusLoading ? (
-                <Skeleton className="h-5 w-12" />
+                <Skeleton className="h-5 w-14" />
               ) : (
-                <Badge variant={statusBadge.variant} className="text-[10px] px-1.5 py-0">
+                <Badge variant={statusBadge.variant} className="text-xs px-2 py-0.5">
                   {statusBadge.text}
                 </Badge>
               )}
             </div>
 
-            {/* Tenant Status - Compact */}
+            {/* Tenant Status */}
             {!isEndingTenancy && !isArchived && (
-              <div className="mt-1 pt-1 border-t border-border/50">
+              <div className="mt-1.5 pt-1.5 border-t border-border/50">
                 {isTenantStatusLoading ? (
-                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-24" />
                 ) : (
                   tenantStatus && (
                     <>
                       {tenantStatus.status === "occupied" && (
-                        <div className="flex items-center gap-1 text-xs">
-                          <Users className="h-3 w-3 text-green-600" />
-                          <span className="font-medium text-green-600 truncate">
+                        <div className="flex items-center gap-1.5 text-sm">
+                          <Users className="h-3.5 w-3.5 text-success" />
+                          <span className="font-medium text-success truncate">
                             {tenantStatus.tenant_name}
                           </span>
                         </div>
                       )}
 
                       {tenantStatus.status === "invited" && (
-                        <div className="flex items-center gap-1 text-xs">
-                          <Mail className="h-3 w-3 text-orange-600" />
-                          <span className="font-medium text-orange-600">
+                        <div className="flex items-center gap-1.5 text-sm">
+                          <Mail className="h-3.5 w-3.5 text-warning" />
+                          <span className="font-medium text-warning">
                             {tenantStatus.pending_invites} {t("properties.pending")}
                           </span>
                         </div>
                       )}
 
                       {tenantStatus.status === "free" && (
-                        <div className="flex items-center gap-1 text-xs">
-                          <Home className="h-3 w-3 text-blue-600" />
-                          <span className="font-medium text-blue-600">{t("properties.freeToRent")}</span>
+                        <div className="flex items-center gap-1.5 text-sm">
+                          <Home className="h-3.5 w-3.5 text-info" />
+                          <span className="font-medium text-info">{t("properties.freeToRent")}</span>
                         </div>
                       )}
                     </>
                   )
                 )}
 
-                {/* Status Indicators - Compact */}
+                {/* Status Indicators */}
                 {isManager && (
                   <TooltipProvider>
-                    <div className="flex items-center gap-1.5 mt-1">
+                    <div className="flex items-center gap-2 mt-1.5">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Zap className={cn(
-                            "h-3 w-3 cursor-help transition-colors",
+                            "h-3.5 w-3.5 cursor-help transition-colors",
                             !statusIndicators?.utility_has_data ? "text-muted-foreground/40" :
-                            statusIndicators.utility_overdue ? "text-red-500" : "text-green-500"
+                            statusIndicators.utility_overdue ? "text-destructive" : "text-success"
                           )} />
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">
@@ -194,9 +194,9 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Ticket className={cn(
-                            "h-3 w-3 cursor-help transition-colors",
+                            "h-3.5 w-3.5 cursor-help transition-colors",
                             !statusIndicators?.tickets_has_data ? "text-muted-foreground/40" :
-                            statusIndicators.tickets_open ? "text-yellow-500" : "text-green-500"
+                            statusIndicators.tickets_open ? "text-warning" : "text-success"
                           )} />
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">
@@ -207,9 +207,9 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Wrench className={cn(
-                            "h-3 w-3 cursor-help transition-colors",
+                            "h-3.5 w-3.5 cursor-help transition-colors",
                             !statusIndicators?.maintenance_has_data ? "text-muted-foreground/40" :
-                            statusIndicators.maintenance_overdue ? "text-red-500" : "text-green-500"
+                            statusIndicators.maintenance_overdue ? "text-destructive" : "text-success"
                           )} />
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">
@@ -224,21 +224,21 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
           </div>
         </CardHeader>
 
-        {/* Archived Details Only - No Description */}
+        {/* Archived Details Only */}
         {isArchived && property.deletedAt && (
-          <CardContent className="p-2 pt-0">
-            <div className="pt-1 border-t border-border">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Archive className="h-3 w-3" />
+          <CardContent className="p-3 pt-0">
+            <div className="pt-1.5 border-t border-border">
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Archive className="h-3.5 w-3.5" />
                 <span>{formatDate(property.deletedAt)}</span>
               </div>
             </div>
           </CardContent>
         )}
 
-        {/* Tenant Actions - Compact */}
+        {/* Tenant Actions */}
         {(property.status === "active" || property.status === "ending_tenancy") && !isManager && (
-          <CardFooter className="border-t bg-muted/50 p-1.5 flex-col gap-1">
+          <CardFooter className="border-t bg-muted/50 p-2 flex-col gap-1.5">
             <Button
               variant="outline"
               size="sm"
@@ -246,10 +246,10 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
                 e.stopPropagation();
                 navigate(`/properties/${property.id}/tickets`);
               }}
-              className="w-full gap-1 h-7 text-xs"
+              className="w-full gap-1.5 h-8 text-sm"
               aria-label={`${t("properties.myTickets")} ${property.title}`}
             >
-              <Ticket className="h-3 w-3" />
+              <Ticket className="h-3.5 w-3.5" />
               {t("properties.myTickets")}
             </Button>
             <Button
@@ -259,10 +259,10 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
                 e.stopPropagation();
                 navigate(`/properties/${property.id}/maintenance`);
               }}
-              className="w-full gap-1 h-7 text-xs"
+              className="w-full gap-1.5 h-8 text-sm"
               aria-label={`${t("properties.maintenance")} ${property.title}`}
             >
-              <Wrench className="h-3 w-3" />
+              <Wrench className="h-3.5 w-3.5" />
               {t("properties.maintenance")}
             </Button>
           </CardFooter>

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
 const DEFAULT_UTILITY_TYPES = ['electricity', 'water', 'gas', 'internet', 'heating', 'trash'] as const;
@@ -7,6 +8,7 @@ const DEFAULT_UTILITY_TYPES = ['electricity', 'water', 'gas', 'internet', 'heati
 export type UtilityType = string;
 
 export function useUtilityTypes() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const { data: utilityTypes = [], isLoading } = useQuery({
@@ -50,10 +52,10 @@ export function useUtilityTypes() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['utility_types'] });
-      toast.success('Utility types updated successfully');
+      toast.success(t('utilityTypes.updatedSuccess'));
     },
     onError: (error: Error) => {
-      toast.error('Failed to update utility types: ' + (error.message || 'Unknown error'));
+      toast.error(t('utilityTypes.updateFailed') + ': ' + (error.message || t('common.error')));
     },
   });
 

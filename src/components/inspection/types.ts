@@ -13,10 +13,10 @@ export interface Inspection {
   notes: string | null;
   overall_condition: string | null;
   manager_signed_at: string | null;
-  manager_signature_data: any;
+  manager_signature_data: Record<string, unknown> | null;
   manager_id: string | null;
   tenant_signed_at: string | null;
-  tenant_signature_data: any;
+  tenant_signature_data: Record<string, unknown> | null;
   tenant_id: string | null;
   pdf_url: string | null;
   pdf_generated_at: string | null;

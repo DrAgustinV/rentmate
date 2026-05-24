@@ -64,7 +64,7 @@ serve(async (req) => {
       recordsProcessed: 0,
       recordsSucceeded: 0,
       recordsFailed: 0,
-      errors: [] as any[],
+      errors: [] as Array<Record<string, unknown>>,
       createdPropertyIds: [] as string[],
       invitationsSent: 0,
     };
@@ -75,7 +75,7 @@ serve(async (req) => {
 
       try {
         // Create property
-        const propertyData: any = {
+        const propertyData: Record<string, unknown> = {
           title: record.title,
           manager_id: user.id,
           country: record.country,
@@ -170,7 +170,7 @@ serve(async (req) => {
               }
 
               // Create tenancy relationship
-              const tenancyData: any = {
+              const tenancyData: Record<string, unknown> = {
                 property_id: property.id,
                 tenant_id: tenantId,
                 started_at: tenant.started_at,
@@ -215,23 +215,24 @@ serve(async (req) => {
               }
 
               console.log(`Created rent agreement for tenant: ${tenantId}`);
-            } catch (tenantError: any) {
+            } catch (tenantError: unknown) {
               console.error(`Tenant processing failed:`, tenantError);
               results.errors.push({
                 record: `${record.title} - ${tenant.email}`,
                 field: 'tenant',
-                error: tenantError.message,
+                error: tenantError instanceof Error ? tenantError.message : String(tenantError),
               });
             }
           }
         }
 
         results.recordsSucceeded++;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(`Record processing failed:`, error);
+        const errMsg = error instanceof Error ? error.message : String(error);
         results.errors.push({
           record: record.title,
-          error: error.message,
+          error: errMsg,
         });
         results.recordsFailed++;
       }
@@ -257,10 +258,10 @@ serve(async (req) => {
         status: 200,
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Import function error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,

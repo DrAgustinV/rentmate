@@ -100,7 +100,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ success: true }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in send-password-reset-email function:", error);
     // Don't reveal errors to client for security
     return new Response(

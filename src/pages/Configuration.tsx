@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { authService, profileService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FolderOpen, Wrench, FileText, ClipboardList, Settings, Plus } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -83,7 +84,7 @@ export default function Configuration() {
 
     checkUser();
     return () => { mounted = false; };
-  }, [navigate]);
+  }, [navigate, activeRole]);
 
   const fetchDefaultSettings = async (uid: string, mounted: boolean) => {
     if (!mounted) return;
@@ -100,15 +101,15 @@ export default function Configuration() {
       if (error && error.code !== "PGRST116") throw error;
 
       if (mounted && settingsData?.default_rent_settings) {
-        const settings = settingsData.default_rent_settings as any;
+        const settings = settingsData.default_rent_settings as { require_kyc?: boolean; default_deposit_amount?: number; require_payment_confirmation?: boolean; require_water_bill?: boolean; require_electricity_bill?: boolean };
         setDefaultRequireKYC(settings.require_kyc || false);
         setDefaultDeposit((settings.default_deposit_amount || 0).toString());
         setDefaultRequirePaymentConfirmation(settings.require_payment_confirmation !== false);
         setDefaultRequireWaterBill(settings.require_water_bill || false);
         setDefaultRequireElectricityBill(settings.require_electricity_bill || false);
       }
-    } catch (error: any) {
-      if (mounted) toast.error(error.message);
+    } catch (error: unknown) {
+      if (mounted) toast.error(error instanceof Error ? error.message : String(error));
     } finally {
       if (mounted) setLoading(false);
     }
@@ -139,8 +140,8 @@ export default function Configuration() {
       if (error) throw error;
 
       toast.success(t('common.success'));
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : String(error));
     } finally {
       setIsSaving(false);
     }
@@ -161,12 +162,7 @@ export default function Configuration() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">{t("common.loading")}</p>
-          </div>
-        </div>
+        <LoadingSkeleton preset="form" />
       </AppLayout>
     );
   }

@@ -43,10 +43,10 @@ export default function PrivacyRights() {
         title: "Data Export Successful",
         description: "Your personal data has been downloaded as JSON.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Export Failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: "destructive",
       });
     }
@@ -82,10 +82,10 @@ export default function PrivacyRights() {
       // Clear form
       if (requestType === 'objection') setObjectionDetails("");
       if (requestType === 'restriction') setRestrictionDetails("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Submission Failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: "destructive",
       });
     } finally {

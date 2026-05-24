@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService, profileService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,9 +47,9 @@ export default function Profile() {
     };
 
     checkUser();
-  }, [navigate]);
+  }, [navigate, fetchProfile]);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     setLoading(true);
     try {
       const profile = await profileService.getProfile(userId);
@@ -58,12 +59,12 @@ export default function Profile() {
         setLastName(profile.lastName || "");
       }
       setSelectedLanguage(language);
-    } catch (error: any) {
-      showToast.error(t('common.error'), error.message);
+    } catch (error: unknown) {
+      showToast.error(t('common.error'), error instanceof Error ? error.message : String(error));
     } finally {
       setLoading(false);
     }
-  };
+  }, [language, t]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -80,8 +81,8 @@ export default function Profile() {
       }
 
       showToast.success(t('common.success'), t('settings.saved'));
-    } catch (error: any) {
-      showToast.error(t('common.error'), error.message);
+    } catch (error: unknown) {
+      showToast.error(t('common.error'), error instanceof Error ? error.message : String(error));
     } finally {
       setSaving(false);
     }
@@ -90,12 +91,7 @@ export default function Profile() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">{t('settings.loadingSettings')}</p>
-          </div>
-        </div>
+        <LoadingSkeleton preset="form" />
       </AppLayout>
     );
   }

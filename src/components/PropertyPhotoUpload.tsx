@@ -94,8 +94,8 @@ export function PropertyPhotoUpload({
       }
       
       success(t('common.success'), t('properties.photoUploaded'));
-    } catch (err: any) {
-      error(t('common.error'), err.message);
+    } catch (err: unknown) {
+      error(t('common.error'), err instanceof Error ? err.message : String(err));
     } finally {
       setUploading(false);
     }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { paymentService, identityService } from '@/services';
 import { Button } from '@/components/ui/button';
@@ -54,11 +54,7 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewPayment, setReviewPayment] = useState<RentPayment | null>(null);
 
-  useEffect(() => {
-    fetchPayments();
-  }, [propertyId]);
-
-  const fetchPayments = async () => {
+  const fetchPayments = useCallback(async () => {
     setLoading(true);
     try {
       const data = await paymentService.getRentPayments(propertyId);
@@ -74,14 +70,18 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
       if (mappedPayments.length === 0 && rentAgreementId) {
         await ensurePaymentsExist();
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : String(error));
     } finally {
       setLoading(false);
     }
-  };
+  }, [propertyId, rentAgreementId, ensurePaymentsExist]);
 
-  const ensurePaymentsExist = async () => {
+  useEffect(() => {
+    fetchPayments();
+  }, [fetchPayments]);
+
+  const ensurePaymentsExist = useCallback(async () => {
     if (!rentAgreementId) return;
     
     setGenerating(true);
@@ -100,13 +100,13 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
         
         setPayments(mappedPayments);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error ensuring payments:', error);
       // Don't show toast for generation errors - silently fail
     } finally {
       setGenerating(false);
     }
-  };
+  }, [rentAgreementId, propertyId]);
 
   const handleMarkAsPaid = async (paymentId: string) => {
     setMarking(paymentId);
@@ -119,8 +119,8 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
 
       toast.success(t("payments.toasts.markedPaid"));
       fetchPayments();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : String(error));
     } finally {
       setMarking(null);
     }

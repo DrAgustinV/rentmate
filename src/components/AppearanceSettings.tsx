@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Sun, Moon, Monitor, Type, Calendar, Globe } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { Language } from '@/lib/i18n/translations/index';
 import { AVAILABLE_LANGUAGES } from '@/lib/i18n/languages.config';
 import { showToast } from '@/lib/toast';
@@ -36,13 +36,7 @@ export const AppearanceSettings = () => {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   if (loading || !preferences) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-32 w-full" />
-      </div>
-    );
+    return <LoadingSkeleton preset="form" />;
   }
 
   const currentPrefs = tempPrefs || preferences;

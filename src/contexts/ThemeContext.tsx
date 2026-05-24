@@ -43,11 +43,13 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       const updatedPrefs = { ...preferences, ...newPrefs } as UserPreferences;
       applyTheme(updatedPrefs);
 
+      // eslint-disable-next-line no-restricted-syntax
       toast.success('Preferences saved', {
         description: 'Your appearance settings have been updated.',
       });
     } catch (error) {
       console.error('Error updating preferences:', error);
+      // eslint-disable-next-line no-restricted-syntax
       toast.error('Failed to save preferences', {
         description: 'Error updating your preferences.',
       });
@@ -97,6 +99,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (context === undefined) {

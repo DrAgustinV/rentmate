@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { authService, profileService } from "@/services";
@@ -85,20 +85,23 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     setActiveRole(role);
   }, []);
 
+  const value = useMemo(() => ({
+    activeRole,
+    defaultRole: defaultRole ?? "manager",
+    switchRole,
+    setActiveRoleSilently,
+    hasSwitchedThisSession,
+  }), [activeRole, defaultRole, switchRole, setActiveRoleSilently, hasSwitchedThisSession]);
+
   return (
-    <RoleContext.Provider value={{
-      activeRole,
-      defaultRole: defaultRole ?? "manager",
-      switchRole,
-      setActiveRoleSilently,
-      hasSwitchedThisSession,
-    }}>
+    <RoleContext.Provider value={value}>
       <RoleThemeSetter />
       {children}
     </RoleContext.Provider>
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useRole(): RoleContextValue {
   const ctx = useContext(RoleContext);
   if (!ctx) {

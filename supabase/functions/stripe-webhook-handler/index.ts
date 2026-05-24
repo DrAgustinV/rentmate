@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
@@ -59,7 +59,7 @@ serve(async (req) => {
     await supabaseClient.from("stripe_webhook_events").insert({
       stripe_event_id: event.id,
       event_type: event.type,
-      event_data: event.data as any,
+      event_data: event.data as Record<string, unknown>,
       processed: false,
     });
     logStep("Webhook event stored");

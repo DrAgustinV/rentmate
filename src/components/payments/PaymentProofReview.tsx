@@ -40,7 +40,7 @@ export function PaymentProofReview({
 
   const reviewMutation = useMutation({
     mutationFn: async ({ status }: { status: "approved" | "rejected" }) => {
-      const updates: any = {
+      const updates: Record<string, unknown> = {
         manager_reviewed: true,
         manager_reviewed_at: new Date().toISOString(),
         manager_reviewed_by: (await authService.getCurrentUser())?.id,

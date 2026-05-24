@@ -18,6 +18,7 @@ import { PropertyPhotoUpload } from "@/components/PropertyPhotoUpload";
 import { cn } from "@/lib/utils";
 import { usePropertyMutations } from "@/hooks/useProperties";
 import { propertyService, identityService, documentService } from "@/services";
+import type { PropertyDomain } from "@/types/domain";
 import { STORAGE_BUCKETS, SIGNED_URL_TTL } from "@/constants";
 import { propertyBaseSchema } from "@/lib/validations/property.schema";
 import { z } from "zod";
@@ -34,10 +35,10 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface OverviewTabProps {
-  property: any;
+  property: PropertyDomain;
   propertyId: string;
   userRole: { isManager: boolean; userId?: string } | null | undefined;
-  activeTenant: any;
+  activeTenant: Record<string, unknown> | null | undefined;
   templates?: Array<{ id: string; document_title: string }>;
   invitations?: Array<{ id: string; email: string; status: string; expires_at: string }>;
   onInviteTenant?: (email: string) => void;
@@ -82,7 +83,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
         setDescription(data.text);
         toast.success(t('ai.descriptionGenerated'));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('AI generation error:', error);
       toast.error(t('ai.generationError'));
     } finally {
@@ -436,7 +437,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>{t("properties.archiveReason")}</Label>
-              <Select value={archiveReason} onValueChange={(v: any) => setArchiveReason(v)}>
+              <Select value={archiveReason} onValueChange={(v: string) => setArchiveReason(v as typeof archiveReason)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

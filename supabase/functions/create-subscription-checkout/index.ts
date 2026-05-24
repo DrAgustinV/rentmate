@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-SUBSCRIPTION-CHECKOUT] ${step}${detailsStr}`);
 };
@@ -75,7 +75,7 @@ serve(async (req) => {
 
     // Check for existing Stripe customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId = customers.data.length > 0 ? customers.data[0].id : undefined;
+    const customerId = customers.data.length > 0 ? customers.data[0].id : undefined;
     logStep("Stripe customer check", { customerId: customerId || "new" });
 
     // Get the appropriate Stripe price ID

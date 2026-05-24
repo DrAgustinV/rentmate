@@ -9,7 +9,7 @@ import { Zap, Plus, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StepProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn;
   utilityTypes: string[];
 }
 
@@ -67,7 +67,7 @@ export function StepUtilities({ form, utilityTypes }: StepProps) {
             type="button"
             onClick={() => {
               if (newUtilityType && newUtilityResponsibility) {
-                form.setValue(`utilities_config.${newUtilityType}`, newUtilityResponsibility as any);
+                form.setValue(`utilities_config.${newUtilityType}`, newUtilityResponsibility);
                 setNewUtilityType("");
                 setNewUtilityResponsibility("not_applicable");
               }

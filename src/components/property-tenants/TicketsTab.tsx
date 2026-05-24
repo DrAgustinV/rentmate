@@ -8,6 +8,7 @@ import { Plus, Pencil, AlertCircle, Clock, User, Wrench } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTickets } from "@/hooks/useTickets";
+import type { TicketStatus } from "@/types/enums";
 import { useTenancyStarted } from "@/hooks/useTenancyStarted";
 import { CreateTicketDialog } from "@/components/CreateTicketDialog";
 import { StandardTemplatePickerDialog } from "@/components/StandardTemplatePickerDialog";
@@ -31,7 +32,7 @@ export function TicketsTab({ propertyId, tenancyId, isManager }: TicketsTabProps
   
   const { data, isLoading } = useTickets({
     propertyId,
-    status: statusFilter === "all" ? undefined : statusFilter as any,
+    status: statusFilter === "all" ? undefined : statusFilter as TicketStatus,
     hasSourceTemplate: typeFilter === "all" ? undefined : typeFilter === "maintenance",
     pageSize: 20,
   });
@@ -39,10 +40,10 @@ export function TicketsTab({ propertyId, tenancyId, isManager }: TicketsTabProps
   const tickets = data?.tickets || [];
 
   const statusColors: Record<string, string> = {
-    open: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-    in_progress: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-    resolved: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    cancelled: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
+    open: "bg-info/10 text-info",
+    in_progress: "bg-warning/10 text-warning",
+    resolved: "bg-success/10 text-success",
+    cancelled: "bg-muted text-muted-foreground",
   };
 
   if (isLoading || tenancyLoading) {

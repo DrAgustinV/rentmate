@@ -8,7 +8,7 @@ export type UtilityPaymentStatus = 'pending' | 'paid' | 'overdue';
 export type UtilityType = 'electricity' | 'gas' | 'water' | 'internet' | 'heating' | 'trash' | 'other';
 export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'cancelled';
 export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
-export type KYCStatus = 'pending' | 'verified' | 'rejected' | 'expired';
+export type KYCStatus = 'not_started' | 'pending' | 'in_progress' | 'verified' | 'rejected' | 'expired';
 
 // ========== PROFILE DOMAIN ==========
 export interface ProfileDomain {
@@ -21,6 +21,11 @@ export interface ProfileDomain {
   defaultRole: 'manager' | 'tenant' | null;
   emailVerified: boolean | null;
   kycStatus: KYCStatus | null;
+  kycProvider: string | null;
+  kycQrCodeUrl: string | null;
+  kycExpiresAt: string | null;
+  kycWalletDid: string | null;
+  kycCredentialId: string | null;
   kycVerifiedAt: string | null;
   createdAt: string;
   updatedAt: string;

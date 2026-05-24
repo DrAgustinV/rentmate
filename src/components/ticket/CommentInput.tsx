@@ -54,7 +54,7 @@ export const CommentInput = ({ ticketId, isManager, ticketContext }: CommentInpu
         setComment(data.text);
         toast.success(t('ai.responseGenerated'));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('AI generation error:', error);
       toast.error(t('ai.generationError'));
     } finally {
@@ -79,9 +79,9 @@ export const CommentInput = ({ ticketId, isManager, ticketContext }: CommentInpu
       setComment("");
       setIsInternal(false);
     },
-    onError: (error: any) => {
-      toast.error("Error", {
-        description: "Failed to add comment. Please try again.",
+    onError: (error: Error) => {
+      toast.error(t("common.error"), {
+        description: t("tickets.commentAddFailed"),
       });
       console.error("Error adding comment:", error);
     },
@@ -95,7 +95,7 @@ export const CommentInput = ({ ticketId, isManager, ticketContext }: CommentInpu
       addCommentMutation.mutate();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast.error("Validation Error", {
+        toast.error(t("common.validationError"), {
           description: error.errors[0].message,
         });
       }

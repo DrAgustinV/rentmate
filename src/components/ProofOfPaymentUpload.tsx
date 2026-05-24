@@ -33,7 +33,7 @@ export function ProofOfPaymentUpload({
 
   const handleUpload = async () => {
     if (!file) {
-      toast.error("Please select a file to upload");
+      toast.error(t("payments.selectFile"));
       return;
     }
 
@@ -41,12 +41,12 @@ export function ProofOfPaymentUpload({
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/pdf'];
 
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Please upload an image (JPG, PNG, WEBP) or PDF file");
+      toast.error(t("payments.invalidFileType"));
       return;
     }
 
     if (file.size > FILE_SIZE_LIMITS.PAYMENT_PROOF) {
-      toast.error("File size must be less than 10MB");
+      toast.error(t("payments.fileTooLarge"));
       return;
     }
 
@@ -69,12 +69,12 @@ export function ProofOfPaymentUpload({
         updated_at: new Date().toISOString(),
       });
 
-      toast.success("Proof of payment uploaded successfully");
+      toast.success(t("payments.proofUploaded"));
       setFile(null);
       onSuccess();
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t("common.error"));
     } finally {
       setUploading(false);
     }

@@ -67,7 +67,7 @@ export function ChangePassword() {
       showToast.success(t('auth.passwordChanged'));
       
       form.reset();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Change password error:', error);
       showToast.error(t('auth.passwordChangeFailed'));
     } finally {

@@ -47,12 +47,11 @@ export const KYCWalletDIDSchema = z.string()
  * KYC Provider Types
  * Tracks which verification provider was used
  */
+// NOTE: OpenAPI KYC variants (openapi_basic, openapi_advanced, openapi_expert) are BLOCKED
+// See supabase/functions/initiate-openapi-kyc/index.ts for details
 export const KYCProviderEnum = z.enum([
   'kilt',
-  'openapi_basic',
-  'openapi_advanced', 
-  'openapi_expert',
-  'didit'
+  'didit',
 ]);
 
 export type KYCProvider = z.infer<typeof KYCProviderEnum>;

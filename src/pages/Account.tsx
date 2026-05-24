@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { authService, profileService, adminService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -95,12 +96,12 @@ export default function Account() {
 
     checkUser();
     return () => { mounted = false; };
-  }, [navigate]);
+  }, [navigate, fetchProfile]);
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [kycStatus, setKycStatus] = useState<string | null>(null);
 
-  const fetchProfile = async (userId: string, mounted: boolean) => {
+  const fetchProfile = useCallback(async (userId: string, mounted: boolean) => {
     if (!mounted) return;
     setLoading(true);
     try {
@@ -119,14 +120,14 @@ export default function Account() {
         setAvatarUrl(profile.avatarStoragePath);
         setKycStatus(profile.kycStatus);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (mounted) {
-        showToast.error(t('common.error'), error.message);
+        showToast.error(t('common.error'), error instanceof Error ? error.message : String(error));
       }
     } finally {
       if (mounted) setLoading(false);
     }
-  };
+  }, [t]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -140,8 +141,8 @@ export default function Account() {
       });
 
       showToast.success(t('common.success'), t('settings.saved'));
-    } catch (error: any) {
-      showToast.error(t('common.error'), error.message);
+    } catch (error: unknown) {
+      showToast.error(t('common.error'), error instanceof Error ? error.message : String(error));
     } finally {
       setSaving(false);
     }
@@ -164,8 +165,8 @@ export default function Account() {
       URL.revokeObjectURL(url);
 
       showToast.success(t('account.dataExportSuccess') || 'Data Export Complete', t('account.dataExportSuccessDesc') || 'Your data has been downloaded successfully.');
-    } catch (error: any) {
-      showToast.error(t('account.dataExportFailed') || 'Export Failed', error.message);
+    } catch (error: unknown) {
+      showToast.error(t('account.dataExportFailed') || 'Export Failed', error instanceof Error ? error.message : String(error));
     } finally {
       setExporting(false);
     }
@@ -186,8 +187,8 @@ export default function Account() {
       if (user) {
         await fetchProfile(user.id);
       }
-    } catch (error: any) {
-      showToast.error(t('account.deletionFailed') || 'Deletion Request Failed', error.message);
+    } catch (error: unknown) {
+      showToast.error(t('account.deletionFailed') || 'Deletion Request Failed', error instanceof Error ? error.message : String(error));
     }
   };
 
@@ -202,20 +203,15 @@ export default function Account() {
       if (user) {
         await fetchProfile(user.id);
       }
-    } catch (error: any) {
-      showToast.error(t('account.cancellationFailed') || 'Cancellation Failed', error.message);
+    } catch (error: unknown) {
+      showToast.error(t('account.cancellationFailed') || 'Cancellation Failed', error instanceof Error ? error.message : String(error));
     }
   };
 
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">{t('settings.loadingSettings')}</p>
-          </div>
-        </div>
+        <LoadingSkeleton preset="form" />
       </AppLayout>
     );
   }

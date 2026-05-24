@@ -48,7 +48,7 @@ const StatusManager = ({
       const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const updates: any = {};
+      const updates: Record<string, unknown> = {};
       if (data.status) updates.status = data.status;
       if (data.priority) updates.priority = data.priority;
       if (data.status === "resolved") {

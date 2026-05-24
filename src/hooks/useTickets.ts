@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ticketService } from '@/services';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 import type { TicketStatus } from '@/types/enums';
 
@@ -39,15 +40,16 @@ export function useTicket(ticketId: string | undefined) {
 
 export function useTicketMutations() {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const createTicket = useMutation({
     mutationFn: async (ticket: Parameters<typeof ticketService.createTicket>[0]) => ticketService.createTicket(ticket),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TICKETS_QUERY_KEY] });
-      toast.success('Ticket created successfully');
+      toast.success(t("tickets.createdSuccess"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to create ticket');
+      toast.error(error.message || t("tickets.createFailed"));
     },
   });
 
@@ -55,10 +57,10 @@ export function useTicketMutations() {
     mutationFn: async ({ id, updates }: { id: string; updates: Parameters<typeof ticketService.updateTicket>[1] }) => ticketService.updateTicket(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TICKETS_QUERY_KEY] });
-      toast.success('Ticket updated successfully');
+      toast.success(t("tickets.updateSuccess"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update ticket');
+      toast.error(error.message || t("tickets.updateFailed"));
     },
   });
 

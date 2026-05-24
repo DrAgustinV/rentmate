@@ -49,7 +49,7 @@ export function PrivacySettings() {
 
       setAnalyticsConsent(analyticsRecord?.granted || false);
       setMarketingConsent(marketingRecord?.granted || false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading consents:', error);
     } finally {
       setLoading(false);
@@ -107,8 +107,8 @@ export function PrivacySettings() {
       if (consentType === 'analytics') {
         showToast.info("Analytics Consent Updated", "Changes have been saved. Reload the page to fully apply tracking changes.");
       }
-    } catch (error: any) {
-      showToast.error("Update Failed", error.message);
+    } catch (error: unknown) {
+      showToast.error("Update Failed", error instanceof Error ? error.message : String(error));
       
       // Revert state on error
       if (consentType === 'analytics') {

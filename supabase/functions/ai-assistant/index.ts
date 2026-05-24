@@ -41,7 +41,7 @@ Never make promises about specific timelines unless certain. Be polite and profe
 Just return the response text, no quotes or labels.`;
       
       const commentsContext = recentComments && recentComments.length > 0
-        ? `\n\nRecent comments:\n${recentComments.map((c: any) => `- ${c.comment}`).join("\n")}`
+        ? `\n\nRecent comments:\n${(recentComments as Array<{ comment: string }>).map((c) => `- ${c.comment}`).join("\n")}`
         : "";
       
       userPrompt = `Draft a response for this maintenance ticket:

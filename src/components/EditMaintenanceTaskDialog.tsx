@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAnalyticsContext } from '@/contexts/AnalyticsContext';
 import { useStandardMutation } from '@/lib/mutationUtils';
+import type { Database } from "@/integrations/supabase/types";
 
 interface EditMaintenanceTaskDialogProps {
   open: boolean;
@@ -78,8 +79,8 @@ export const EditMaintenanceTaskDialog = ({
         .update({
           title,
           description,
-          type: type as any,
-          priority: priority as any,
+          type: type as Database["public"]["Enums"]["ticket_type"],
+          priority: priority as Database["public"]["Enums"]["ticket_priority"],
         })
         .eq("id", templateId);
 

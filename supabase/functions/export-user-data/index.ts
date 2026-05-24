@@ -85,7 +85,7 @@ serve(async (req) => {
       rent_agreements: rentAgreements.data || [],
       rent_payments: rentPayments.data || [],
       utility_payments: utilityPayments.data || [],
-      documents: (documents.data || []).map((doc: any) => ({
+      documents: (documents.data || []).map((doc: Record<string, unknown>) => ({
         ...doc,
         file_url: `${Deno.env.get('SUPABASE_URL')}/storage/v1/object/public/${doc.file_path}`,
       })),
@@ -109,10 +109,10 @@ serve(async (req) => {
         },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error exporting user data:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

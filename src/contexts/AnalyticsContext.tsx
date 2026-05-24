@@ -71,6 +71,7 @@ interface AnalyticsContextType {
 
 const AnalyticsContext = createContext<AnalyticsContextType | undefined>(undefined);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAnalyticsContext = () => {
   const context = useContext(AnalyticsContext);
   if (!context) {

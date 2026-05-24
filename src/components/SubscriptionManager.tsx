@@ -57,7 +57,7 @@ export function SubscriptionManager() {
         setTimeout(() => refresh(), 5000);
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t("subscription.toasts.checkoutFailed"));
     },
   });
@@ -81,7 +81,7 @@ export function SubscriptionManager() {
         toast.success(t("subscription.toasts.openingPortal"));
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t("subscription.toasts.portalFailed"));
     },
   });

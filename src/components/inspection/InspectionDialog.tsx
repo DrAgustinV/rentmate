@@ -86,7 +86,7 @@ export function InspectionDialog({
     showToast.success("Inspection ready for signatures");
   };
 
-  const handleSign = async (signatureData: any) => {
+  const handleSign = async (signatureData: Record<string, unknown>) => {
     const role = isManager ? 'manager' : 'tenant';
     await signInspection({ role, signatureData });
   };

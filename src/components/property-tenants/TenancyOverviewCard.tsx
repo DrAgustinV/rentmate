@@ -62,10 +62,10 @@ const getContractMethodLabel = (method: string | null | undefined, t: (key: stri
 
 const StatusBadge = ({ status }: { status: string }) => {
   const statusConfig: Record<string, { variant: "default" | "secondary" | "outline"; className: string; label: string }> = {
-    active: { variant: "default", className: "bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10", label: "Active" },
-    ending_tenancy: { variant: "default", className: "bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/10", label: "Ending" },
-    pending: { variant: "default", className: "bg-blue-500/10 text-blue-600 border-blue-500/20 hover:bg-blue-500/10", label: "Pending" },
-    historic: { variant: "secondary", className: "text-gray-600", label: "Historic" },
+    active: { variant: "default", className: "bg-success/10 text-success border-success/20 hover:bg-success/10", label: "Active" },
+    ending_tenancy: { variant: "default", className: "bg-warning/10 text-warning border-warning/20 hover:bg-warning/10", label: "Ending" },
+    pending: { variant: "default", className: "bg-info/10 text-info border-info/20 hover:bg-info/10", label: "Pending" },
+    historic: { variant: "secondary", className: "text-muted-foreground", label: "Historic" },
   };
   const config = statusConfig[status] || statusConfig.pending;
   return (
@@ -84,8 +84,8 @@ interface RequirementBadgeProps {
 const RequirementBadge = ({ type, label }: RequirementBadgeProps) => {
   const config: Record<string, { className: string; icon: React.ReactNode }> = {
     contract: { className: "bg-muted text-muted-foreground border-muted", icon: <FileSignature className="h-3 w-3 mr-1" /> },
-    email: { className: "bg-blue-500/10 text-blue-600 border-blue-500/20 hover:bg-blue-500/10", icon: <CheckCircle className="h-3 w-3 mr-1" /> },
-    kyc: { className: "bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10", icon: <CheckCircle className="h-3 w-3 mr-1" /> },
+    email: { className: "bg-info/10 text-info border-info/20 hover:bg-info/10", icon: <CheckCircle className="h-3 w-3 mr-1" /> },
+    kyc: { className: "bg-success/10 text-success border-success/20 hover:bg-success/10", icon: <CheckCircle className="h-3 w-3 mr-1" /> },
     phone: { className: "bg-purple-500/10 text-purple-600 border-purple-500/20 hover:bg-purple-500/10", icon: <CheckCircle className="h-3 w-3 mr-1" /> },
   };
   const { className, icon } = config[type];
@@ -103,9 +103,9 @@ interface StateBadgeProps {
 
 const StateBadge = ({ state }: StateBadgeProps) => {
   const config: Record<string, { className: string; label: string }> = {
-    draft: { className: "bg-amber-500/10 text-amber-600 border-amber-500/20", label: "Draft" },
-    sent: { className: "bg-blue-500/10 text-blue-600 border-blue-500/20", label: "Sent" },
-    locked: { className: "bg-green-500/10 text-green-600 border-green-500/20", label: "Locked" },
+    draft: { className: "bg-warning/10 text-warning border-warning/20", label: "Draft" },
+    sent: { className: "bg-info/10 text-info border-info/20", label: "Sent" },
+    locked: { className: "bg-success/10 text-success border-success/20", label: "Locked" },
   };
   const { className, label } = config[state];
   return (
@@ -223,8 +223,8 @@ export function TenancyOverviewCard({
   // Card styling based on state
   const getCardStyles = () => {
     if (showPendingSetup) {
-      if (isDraft) return "border-amber-500/50 bg-amber-500/5";
-      if (isSent) return "border-blue-500/50 bg-blue-500/5";
+      if (isDraft) return "border-warning/50 bg-warning/5";
+      if (isSent) return "border-info/50 bg-info/5";
     }
     return "";
   };
@@ -340,19 +340,19 @@ export function TenancyOverviewCard({
 
             {/* Rental Terms Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+              <div className="p-3 bg-info/10 rounded-lg">
                 <span className="text-xs text-muted-foreground block">{t("tenancy.wizard.monthlyRent")}</span>
-                <p className="font-semibold text-blue-600">{formatCurrency(rentAmountCents, currency)}</p>
+                <p className="font-semibold text-info">{formatCurrency(rentAmountCents, currency)}</p>
               </div>
-              <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+              <div className="p-3 bg-success/10 rounded-lg">
                 <span className="text-xs text-muted-foreground block">{t("tenancy.wizard.securityDeposit")}</span>
-                <p className="font-semibold text-green-600">{formatCurrency(depositCents, currency)}</p>
+                <p className="font-semibold text-success">{formatCurrency(depositCents, currency)}</p>
               </div>
-              <div className="p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+              <div className="p-3 bg-muted rounded-lg">
                 <span className="text-xs text-muted-foreground block">{t("tenancy.wizard.paymentDay")}</span>
                 <p className="font-semibold">{paymentDay ? `Day ${paymentDay}` : "—"}</p>
               </div>
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
+              <div className="p-3 bg-warning/10 rounded-lg">
                 <span className="text-xs text-muted-foreground block">{t("tenancy.wizard.leaseDates")}</span>
                 <p className="font-semibold text-sm">
                   {startDate ? formatDate(startDate) : "—"}{" "}
@@ -385,8 +385,8 @@ export function TenancyOverviewCard({
                   <div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg">
                     {tenantUtilities.length > 0 && (
                       <div className="flex items-start gap-2">
-                        <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
-                          <Zap className="h-3.5 w-3.5 text-blue-600" />
+                        <div className="w-7 h-7 rounded-full bg-info/15 flex items-center justify-center flex-shrink-0">
+                          <Zap className="h-3.5 w-3.5 text-info" />
                         </div>
                         <div>
                           <span className="text-xs font-medium text-muted-foreground block">{t("tenancy.wizard.tenantPays")}:</span>
@@ -396,8 +396,8 @@ export function TenancyOverviewCard({
                     )}
                     {managerUtilities.length > 0 && (
                       <div className="flex items-start gap-2">
-                        <div className="w-7 h-7 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0">
-                          <Zap className="h-3.5 w-3.5 text-green-600" />
+                        <div className="w-7 h-7 rounded-full bg-success/15 flex items-center justify-center flex-shrink-0">
+                          <Zap className="h-3.5 w-3.5 text-success" />
                         </div>
                         <div>
                           <span className="text-xs font-medium text-muted-foreground block">{t("tenancy.wizard.managerPays")}:</span>
@@ -425,7 +425,7 @@ export function TenancyOverviewCard({
                 </Button>
               )}
               {onDeleteTenancy && !isReadOnly && currentTenant && !currentTenant.tenant_id && tenancyStatus === 'active' && (
-                <Button variant="outline" size="sm" className="h-8 border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30" onClick={() => onDeleteTenancy(currentTenant.id)}>
+                <Button variant="outline" size="sm" className="h-8 border-destructive text-destructive hover:bg-destructive/10" onClick={() => onDeleteTenancy(currentTenant.id)}>
                   <Trash2 className="h-3.5 w-3.5 mr-1" />
                   {t("tenancy.deleteSelfManaged") || "Remove Tenancy"}
                 </Button>

@@ -16,6 +16,7 @@ import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
 import { SubscriptionPlansManagement } from "@/components/admin/SubscriptionPlansManagement";
 import { EnterpriseContactRequests } from "@/components/admin/EnterpriseContactRequests";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Admin() {
@@ -24,35 +25,33 @@ export default function Admin() {
   const { t } = useLanguage();
 
   useEffect(() => {
+    const checkAdminRole = async () => {
+      const user = await authService.getCurrentUser();
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
+      const { data, error } = await supabase.rpc("has_role", {
+        _user_id: user.id,
+        _role: "admin",
+      });
+
+      if (error || !data) {
+        navigate("/dashboard");
+        return;
+      }
+
+      setIsAdmin(data);
+    };
+
     checkAdminRole();
-  }, []);
-
-  const checkAdminRole = async () => {
-    const user = await authService.getCurrentUser();
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
-    const { data, error } = await supabase.rpc("has_role", {
-      _user_id: user.id,
-      _role: "admin",
-    });
-
-    if (error || !data) {
-      navigate("/dashboard");
-      return;
-    }
-
-    setIsAdmin(data);
-  };
+  }, [navigate]);
 
   if (isAdmin === null) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
+        <LoadingSkeleton preset="page" />
       </AppLayout>
     );
   }

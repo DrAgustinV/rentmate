@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
-import { UserCircle, Settings, LogOut, Menu, Lightbulb, Building, Handshake, GitBranch } from "lucide-react";
+import { UserCircle, Settings, LogOut, Menu, Lightbulb, Building, Handshake, GitBranch, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,6 +18,8 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 import { usePendingInvitations } from "@/hooks/usePendingInvitations";
 import { GuideDialog } from "@/components/welcome/GuideDialog";
 import { useRole } from "@/contexts/RoleContext";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface AuthenticatedHeaderProps {
   user: User;
@@ -62,6 +64,98 @@ export function AuthenticatedHeader({ user, onSignOut }: AuthenticatedHeaderProp
             {activeRole === "manager" ? t('common.manager') || 'Manager' : t('common.tenant') || 'Tenant'}
           </Badge>
         </div>
+
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-1">
+          {activeRole === "manager" ? (
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("text-white hover:text-white hover:bg-white/20", isActive("/properties") && "bg-white/20")}
+                    onClick={() => navigate("/properties")}
+                    aria-current={isActive("/properties") ? "page" : undefined}
+                  >
+                    <Building className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("properties.title")}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("text-white hover:text-white hover:bg-white/20", isActive("/tenants") && "bg-white/20")}
+                    onClick={() => navigate("/tenants")}
+                    aria-current={isActive("/tenants") ? "page" : undefined}
+                  >
+                    <Users className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("tenants.title")}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("text-white hover:text-white hover:bg-white/20", isActive("/configuration") && "bg-white/20")}
+                    onClick={() => navigate("/configuration")}
+                    aria-current={isActive("/configuration") ? "page" : undefined}
+                  >
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("configuration.title")}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("text-white hover:text-white hover:bg-white/20", isActive("/workflow") && "bg-white/20")}
+                    onClick={() => navigate("/workflow")}
+                    aria-current={isActive("/workflow") ? "page" : undefined}
+                  >
+                    <GitBranch className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("workflow.title")}</TooltipContent>
+              </Tooltip>
+            </>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn("text-white hover:text-white hover:bg-white/20", isActive("/rentals") && "bg-white/20")}
+                  onClick={() => navigate("/rentals")}
+                  aria-current={isActive("/rentals") ? "page" : undefined}
+                >
+                  <Handshake className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t("rentals.title")}</TooltipContent>
+            </Tooltip>
+          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:text-white hover:bg-white/20"
+                onClick={() => setGuideOpen(true)}
+              >
+                <Lightbulb className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t("header.help")}</TooltipContent>
+          </Tooltip>
+        </nav>
 
         <div className="hidden md:flex items-center gap-2">
           <UserMenu email={user.email} isManager={isManager} isAdmin={isAdmin} onSignOut={onSignOut} />

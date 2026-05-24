@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[INITIATE-YOUSIGN] ${step}${detailsStr}`);
 };
@@ -455,7 +455,7 @@ serve(async (req) => {
         event_type: 'initiated',
       });
 
-    const response: Record<string, any> = {
+    const response: Record<string, unknown> = {
       success: true,
       signatureId: signature.id,
       yousignRequestId: signatureRequest.id,
@@ -479,12 +479,12 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error initiating YouSign signature:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error?.message || 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     );

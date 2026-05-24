@@ -7,7 +7,7 @@ import { FileText } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StepProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn;
 }
 
 export function StepRentDeposits({ form }: StepProps) {

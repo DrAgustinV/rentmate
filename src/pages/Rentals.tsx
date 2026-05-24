@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { authService, tenantService, tenancyService } from "@/services";
 import { AppLayout } from "@/components/layouts/AppLayout";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -91,7 +92,7 @@ export default function Rentals() {
 
     checkUser();
     return () => { mounted = false; };
-  }, [navigate, searchParams, setSearchParams]);
+  }, [navigate, searchParams, setSearchParams, fetchData]);
 
   const handleTourFinish = () => {
     setRunTour(false);
@@ -109,7 +110,7 @@ export default function Rentals() {
     return isManagerResult;
   };
 
-  const fetchData = async (uid: string, email: string, isManagerParam: boolean, mounted: boolean) => {
+  const fetchData = useCallback(async (uid: string, email: string, isManagerParam: boolean, mounted: boolean) => {
     if (!mounted) return;
     setLoading(true);
     try {
@@ -118,7 +119,7 @@ export default function Rentals() {
     } finally {
       if (mounted) setLoading(false);
     }
-  };
+  }, []);
 
   const fetchTenantTenancies = async (tenantId: string) => {
     // Include archived tenancies
@@ -166,7 +167,7 @@ export default function Rentals() {
       return;
     }
 
-    setInvitations((data || []).map((inv: any) => ({
+    setInvitations((data || []).map((inv: Record<string, unknown>) => ({
       id: inv.id,
       property_id: inv.property_id,
       email: inv.email,
@@ -226,14 +227,14 @@ export default function Rentals() {
         queryKey: [TENANT_PROPERTIES_QUERY_KEY] 
       });
 
-      toast.success("Invitation accepted");
+      toast.success(t("tenancy.invitationAccepted"));
       
       // Refresh data
       if (userId && user.email) {
         await fetchData(userId, user.email, isManager);
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : String(error));
     } finally {
       setProcessingInvitation(null);
     }
@@ -274,12 +275,7 @@ export default function Rentals() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">{t("common.loading")}</p>
-          </div>
-        </div>
+        <LoadingSkeleton preset="card-grid" />
       </AppLayout>
     );
   }

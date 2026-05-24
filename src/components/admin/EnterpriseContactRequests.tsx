@@ -9,19 +9,25 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Loader2, Mail, Phone, Building2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { Database } from "@/integrations/supabase/types";
+
+type ContactRequestRow = Database["public"]["Tables"]["enterprise_contact_requests"]["Row"];
 
 export function EnterpriseContactRequests() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
-  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [selectedRequest, setSelectedRequest] = useState<ContactRequestRow | null>(null);
   const [notes, setNotes] = useState("");
 
   const { data: requests, isLoading } = useQuery({
@@ -41,7 +47,7 @@ export function EnterpriseContactRequests() {
     mutationFn: async ({ id, status, notes }: { id: string; status: string; notes?: string }) => {
       const user = await authService.getCurrentUser();
       
-      const updates: any = {
+      const updates: Database["public"]["Tables"]["enterprise_contact_requests"]["Update"] = {
         status,
         updated_at: new Date().toISOString(),
       };
@@ -64,12 +70,12 @@ export function EnterpriseContactRequests() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["enterprise-contact-requests"] });
-      toast.success("Request updated successfully");
+      toast.success(t("enterprise.requestUpdated"));
       setSelectedRequest(null);
       setNotes("");
     },
-    onError: (error: any) => {
-      toast.error(`Failed to update request: ${error.message}`);
+    onError: (error: Error) => {
+      toast.error(t("enterprise.requestUpdateFailed") + error.message);
     },
   });
 

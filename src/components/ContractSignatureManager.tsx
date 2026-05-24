@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -92,7 +92,7 @@ export const ContractSignatureManager = ({
     enabled: !!tenancyId,
   });
 
-  const loadSignature = async () => {
+  const loadSignature = useCallback(async () => {
     // Guard: don't fetch if tenancyId is empty
     if (!tenancyId) {
       setInitialized(true);
@@ -139,7 +139,7 @@ export const ContractSignatureManager = ({
       setInitialized(true);
       return null;
     }
-  };
+  }, [tenancyId, isManager]);
 
   // Auto-select document when only one exists or when signature has source_document_id
   useEffect(() => {
@@ -497,7 +497,7 @@ export const ContractSignatureManager = ({
               {!canCreateSignature && !isPro && (
                 <Badge 
                   variant="secondary" 
-                  className="absolute -top-2 -right-2 text-xs bg-amber-500/10 text-amber-600 border-amber-500/30"
+                  className="absolute -top-2 -right-2 text-xs bg-warning/10 text-warning border-warning/30"
                 >
                   Pro
                 </Badge>
@@ -571,14 +571,14 @@ export const ContractSignatureManager = ({
             <span className="text-xs text-muted-foreground">{t('contracts.signatureStatus')}:</span>
             <Badge 
               variant={managerSigned ? "default" : "outline"} 
-              className={`text-xs ${managerSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
+              className={`text-xs ${managerSigned ? 'bg-success hover:bg-success' : ''}`}
             >
               {managerSigned ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Clock className="h-3 w-3 mr-1" />}
               {t('contracts.manager')}
             </Badge>
             <Badge 
               variant={tenantSigned ? "default" : "outline"} 
-              className={`text-xs ${tenantSigned ? 'bg-green-600 hover:bg-green-600' : ''}`}
+              className={`text-xs ${tenantSigned ? 'bg-success hover:bg-success' : ''}`}
             >
               {tenantSigned ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Clock className="h-3 w-3 mr-1" />}
               {t('contracts.tenant')}

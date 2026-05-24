@@ -3,7 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useUtilityPayments, useUtilityPaymentMutations } from "@/hooks/useUtilityPayments";
+import { useUtilityPayments, useUtilityPaymentMutations, type UtilityPayment } from "@/hooks/useUtilityPayments";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { CheckCircle2, Clock, Loader2, Upload, Eye, FileText } from "lucide-react";
@@ -22,7 +22,7 @@ export function UtilityPaymentHistory({ propertyId, isManager }: UtilityPaymentH
   const { markAsPaid } = useUtilityPaymentMutations();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [selectedPayment, setSelectedPayment] = useState<UtilityPayment | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
 
   const formatCurrency = (cents: number, currency: string = 'EUR') => {
@@ -54,12 +54,12 @@ export function UtilityPaymentHistory({ propertyId, isManager }: UtilityPaymentH
     );
   };
 
-  const handleUploadClick = (payment: any) => {
+  const handleUploadClick = (payment: UtilityPayment) => {
     setSelectedPayment(payment);
     setUploadDialogOpen(true);
   };
 
-  const handleReviewClick = (payment: any) => {
+  const handleReviewClick = (payment: UtilityPayment) => {
     setSelectedPayment(payment);
     setReviewDialogOpen(true);
   };

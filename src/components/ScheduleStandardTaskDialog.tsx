@@ -16,6 +16,8 @@ import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { showToast } from "@/lib/toast";
+import { priorityColors, typeColors } from "@/lib/maintenanceColors";
+import type { Database } from "@/integrations/supabase/types";
 
 interface StandardTemplate {
   id: string;
@@ -48,21 +50,6 @@ export function ScheduleStandardTaskDialog({
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [isActive, setIsActive] = useState(true);
 
-  const priorityColors = {
-    low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-    high: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-    urgent: "bg-red-500/10 text-red-500 border-red-500/20",
-  };
-
-  const typeColors = {
-    maintenance: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-    repair: "bg-red-500/10 text-red-500 border-red-500/20",
-    inspection: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    cleaning: "bg-green-500/10 text-green-500 border-green-500/20",
-    other: "bg-gray-500/10 text-gray-500 border-gray-500/20",
-  };
-
   // Helper to calculate next run date after creating immediate ticket
   const calculateNextRunDate = (currentDate: Date, freq: string): Date => {
     const nextDate = new Date(currentDate);
@@ -94,8 +81,8 @@ export function ScheduleStandardTaskDialog({
           created_by: user.id,
           title: standardTemplate.title,
           description: standardTemplate.description,
-          type: standardTemplate.type as any,
-          priority: standardTemplate.priority as any,
+          type: standardTemplate.type as Database["public"]["Enums"]["ticket_type"],
+          priority: standardTemplate.priority as Database["public"]["Enums"]["ticket_priority"],
           source_standard_template_id: standardTemplate.id,
         }])
         .select()
@@ -110,8 +97,8 @@ export function ScheduleStandardTaskDialog({
           property_id: propertyId,
           title: standardTemplate.title,
           description: standardTemplate.description,
-          type: standardTemplate.type as any,
-          priority: standardTemplate.priority as any,
+          type: standardTemplate.type as Database["public"]["Enums"]["ticket_type"],
+          priority: standardTemplate.priority as Database["public"]["Enums"]["ticket_priority"],
           status: "open",
           created_by: user.id,
           source_template_id: template.id,

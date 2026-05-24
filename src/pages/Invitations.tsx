@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from '@tanstack/react-query';
@@ -23,14 +23,14 @@ export default function Invitations() {
   const queryClient = useQueryClient();
   const { t } = useLanguage();
   
-  const [invitations, setInvitations] = useState<any[]>([]);
+  const [invitations, setInvitations] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
-  const [selectedInvitation, setSelectedInvitation] = useState<any>(null);
+  const [selectedInvitation, setSelectedInvitation] = useState<Record<string, unknown> | null>(null);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const declineReasonRef = useRef<string>("");
 
-  const fetchInvitations = async () => {
+  const fetchInvitations = useCallback(async () => {
     setLoading(true);
     try {
       const data = await tenantService.getInvitationsByProperty("", { status: "pending" });
@@ -82,11 +82,11 @@ export default function Invitations() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchInvitations();
-  }, []);
+  }, [fetchInvitations]);
 
   const handleAccept = async (invitationId: string) => {
     try {

@@ -4,13 +4,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useUtilityPaymentMutations } from "@/hooks/useUtilityPayments";
+import { useUtilityPaymentMutations, type UtilityPayment } from "@/hooks/useUtilityPayments";
 import { documentService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
 import { CheckCircle, XCircle } from "lucide-react";
 
 interface UtilityProofReviewProps {
-  payment: any;
+  payment: UtilityPayment;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;

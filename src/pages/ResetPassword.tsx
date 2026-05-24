@@ -70,8 +70,8 @@ export default function ResetPassword() {
 
     try {
       emailSchema.parse({ email });
-    } catch (error: any) {
-      showToast.error(error.errors[0].message);
+    } catch (error: unknown) {
+      showToast.error(error instanceof Error ? error.message : String(error));
       return;
     }
 
@@ -84,7 +84,7 @@ export default function ResetPassword() {
       setEmailSent(true);
       setRateLimitRemaining(prev => prev - 1);
       showToast.success(t('auth.resetLinkSent'));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Reset password error:', error);
       // Don't reveal if email exists for security - still show success
       setEmailSent(true);
@@ -99,8 +99,8 @@ export default function ResetPassword() {
 
     try {
       passwordSchema.parse({ password, confirmPassword });
-    } catch (error: any) {
-      showToast.error(error.errors[0].message);
+    } catch (error: unknown) {
+      showToast.error(error instanceof Error ? error.message : String(error));
       return;
     }
 
@@ -119,14 +119,15 @@ export default function ResetPassword() {
       setTimeout(() => {
         navigate('/dashboard');
       }, 1500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Set new password error:', error);
+      const message = error instanceof Error ? error.message : String(error);
       
-      if (error.message.includes('expired') || error.message.includes('invalid')) {
+      if (message.includes('expired') || message.includes('invalid')) {
         showToast.error(t('auth.resetTokenExpired'));
         navigate('/auth');
       } else {
-        showToast.error(error.message);
+        showToast.error(message);
       }
     } finally {
       setLoading(false);

@@ -1,4 +1,19 @@
 /**
+ * BLOCKED: OpenAPI KYC is disabled.
+ * This client is preserved for reference but NOT used at runtime.
+ * The initiate-openapi-kyc edge function now returns a 410 Gone response.
+ * 
+ * To re-enable:
+ * 1. Uncomment config.toml [functions.initiate-openapi-kyc] entry
+ * 2. Restore initiate-openapi-kyc/index.ts body
+ * 3. Create verify-openapi-kyc webhook edge function
+ * 4. Unblock 'openapi' in src/types/enums.ts KYCProvider type
+ * 5. Unblock openapi_* variants in kyc.schema.ts KYCProviderEnum
+ * 6. Restore and wire OpenAPI option in IdentityVerification.tsx UI
+ * 7. Re-add initiateOpenAPIKYC to identityService.ts
+ */
+
+/**
  * OpenAPI Identity Verification (IDV) Client
  * Handles AI-powered identity verification with different levels:
  * - basic: ID document scan (~3 mins, AI verified)

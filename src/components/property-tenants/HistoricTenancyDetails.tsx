@@ -245,17 +245,17 @@ export function HistoricTenancyDetails({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground flex items-center gap-1">
-                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <CheckCircle className="h-3 w-3 text-success" />
                         {t("historicTenancies.details.resolved")}
                       </span>
-                      <span className="text-sm font-medium text-green-600">{ticketSummary.resolved}</span>
+                      <span className="text-sm font-medium text-success">{ticketSummary.resolved}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-amber-500" />
+                        <Clock className="h-3 w-3 text-warning" />
                         {t("historicTenancies.details.open")}
                       </span>
-                      <span className="text-sm font-medium text-amber-600">{ticketSummary.open}</span>
+                      <span className="text-sm font-medium text-warning">{ticketSummary.open}</span>
                     </div>
                   </div>
                 </CardContent>

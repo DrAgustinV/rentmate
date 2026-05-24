@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, Building, Archive, Upload, ImageIcon, Search } from "lucide-react";
 import { PropertyCard } from "@/components/PropertyCard";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
@@ -106,9 +107,7 @@ export default function Properties() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-        </div>
+        <LoadingSkeleton preset="card-grid" />
       </AppLayout>
     );
   }

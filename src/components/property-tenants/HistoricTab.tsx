@@ -60,7 +60,7 @@ export function HistoricTab({ propertyId, isManager }: HistoricTabProps) {
       const tenantIds = [...new Set(historicTenants.map(t => t.tenantId).filter(Boolean))];
       
       // Fetch tenant details (email, name)
-      let tenantDetails: Record<string, { email: string; first_name: string | null; last_name: string | null }> = {};
+      const tenantDetails: Record<string, { email: string; first_name: string | null; last_name: string | null }> = {};
       
       if (tenantIds.length > 0) {
         const { data: profiles } = await supabase

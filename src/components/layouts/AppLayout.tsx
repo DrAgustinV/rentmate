@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { AppFooter } from "@/components/AppFooter";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { ManagerProgressGuide } from "@/components/welcome/ManagerProgressGuide";
+
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -14,7 +14,6 @@ export function AppLayout({ children, showBreadcrumbs = true }: AppLayoutProps) 
     <div className="min-h-screen flex flex-col w-full">
       <AppHeader />
       {showBreadcrumbs && <Breadcrumbs />}
-      <ManagerProgressGuide />
       <main className="flex-1 container mx-auto px-4 py-6">
         {children}
       </main>

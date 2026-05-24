@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode } from 'react';
 import { authService } from '@/services';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -40,6 +40,7 @@ const getCachedPreferences = (): UserPreferences => {
   return getDefaultPreferences();
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
 
 export const UserPreferencesProvider = ({ children }: { children: ReactNode }) => {
@@ -108,13 +109,16 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
     loadPreferencesFromDB();
   }, []);
 
+  const value = useMemo(() => ({ preferences, loading, updatePreferences }), [preferences, loading, updatePreferences]);
+
   return (
-    <UserPreferencesContext.Provider value={{ preferences, loading, updatePreferences }}>
+    <UserPreferencesContext.Provider value={value}>
       {children}
     </UserPreferencesContext.Provider>
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useUserPreferences = () => {
   const context = useContext(UserPreferencesContext);
   if (context === undefined) {

@@ -23,6 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Filter, Calendar, Wrench } from "lucide-react";
 import { ScheduleStandardTaskDialog } from "./ScheduleStandardTaskDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { priorityColors, typeColors } from "@/lib/maintenanceColors";
 
 interface StandardTemplate {
   id: string;
@@ -66,21 +67,6 @@ export function StandardTemplatePickerDialog({
     },
     enabled: open,
   });
-
-  const priorityColors = {
-    low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-    high: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-    urgent: "bg-red-500/10 text-red-500 border-red-500/20",
-  };
-
-  const typeColors = {
-    maintenance: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-    repair: "bg-red-500/10 text-red-500 border-red-500/20",
-    inspection: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    cleaning: "bg-green-500/10 text-green-500 border-green-500/20",
-    other: "bg-gray-500/10 text-gray-500 border-gray-500/20",
-  };
 
   const categories = standardTemplates
     ? Array.from(new Set(standardTemplates.map((t) => t.category)))

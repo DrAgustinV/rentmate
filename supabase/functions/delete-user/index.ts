@@ -186,20 +186,21 @@ serve(async (req) => {
       }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in delete-user function:', error);
+    const errMsg = error instanceof Error ? error.message : String(error);
     
     let status = 500;
-    if (error.message.includes('Unauthorized')) {
+    if (errMsg.includes('Unauthorized')) {
       status = 401;
-    } else if (error.message.includes('Forbidden')) {
+    } else if (errMsg.includes('Forbidden')) {
       status = 403;
-    } else if (error.message.includes('Bad Request')) {
+    } else if (errMsg.includes('Bad Request')) {
       status = 400;
     }
 
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errMsg }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status 

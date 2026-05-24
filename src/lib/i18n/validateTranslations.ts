@@ -7,7 +7,7 @@ import { AVAILABLE_LANGUAGES } from './languages.config.ts';
 type TranslationPath = string;
 
 // Recursively get all translation keys from a nested object
-function getAllKeys(obj: any, prefix: string = ''): TranslationPath[] {
+function getAllKeys(obj: Record<string, unknown>, prefix: string = ''): TranslationPath[] {
   const keys: TranslationPath[] = [];
   
   for (const key in obj) {

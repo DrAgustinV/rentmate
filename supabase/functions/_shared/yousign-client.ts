@@ -90,7 +90,7 @@ export class YouSignClient {
   private async request<T>(
     method: string,
     endpoint: string,
-    body?: any,
+    body?: unknown,
     contentType: string = 'application/json'
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;

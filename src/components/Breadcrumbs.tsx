@@ -8,6 +8,8 @@ import {
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
 import { Home } from "lucide-react";
+import { useRole } from "@/contexts/RoleContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BreadcrumbSegment {
   label: string;
@@ -17,21 +19,26 @@ interface BreadcrumbSegment {
 
 export function Breadcrumbs() {
   const location = useLocation();
-  
-  const breadcrumbMap: Record<string, string> = {
-    'properties': 'Properties',
-    'rentals': 'Rentals',
-    'configuration': 'Configuration',
-    'profile': 'Profile',
-    'identity': 'Identity Verification',
-    'settings': 'Settings',
-    'admin': 'Admin',
-    'tickets': 'Tickets',
-    'maintenance': 'Maintenance',
-    'tenants': 'Tenants',
-    'details': 'Details',
-    'documents': 'Documents',
+  const { activeRole } = useRole();
+  const { t } = useLanguage();
+
+  const breadcrumbKeys: Record<string, string> = {
+    'properties': "breadcrumbs.properties",
+    'rentals': "breadcrumbs.rentals",
+    'configuration': "breadcrumbs.configuration",
+    'profile': "breadcrumbs.profile",
+    'identity': "breadcrumbs.identity",
+    'settings': "breadcrumbs.settings",
+    'admin': "breadcrumbs.admin",
+    'tickets': "breadcrumbs.tickets",
+    'maintenance': "breadcrumbs.maintenance",
+    'tenants': "breadcrumbs.tenants",
+    'details': "breadcrumbs.details",
+    'documents': "breadcrumbs.documents",
   };
+
+  const rootPath = activeRole === "tenant" ? "/rentals" : "/properties";
+  const rootLabelKey = activeRole === "tenant" ? "breadcrumbs.rentals" : "breadcrumbs.properties";
 
   const generateBreadcrumbs = (): BreadcrumbSegment[] => {
     const pathSegments = location.pathname.split("/").filter(Boolean);
@@ -41,7 +48,6 @@ export function Breadcrumbs() {
     pathSegments.forEach((segment, index) => {
       const isLast = index === pathSegments.length - 1;
 
-      // Skip UUID segments
       if (segment.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
         currentPath += `/${segment}`;
         return;
@@ -49,11 +55,12 @@ export function Breadcrumbs() {
 
       currentPath += `/${segment}`;
 
-      // Use breadcrumbMap or generate human-readable labels
-      const label = breadcrumbMap[segment] || segment
-        .split("-")
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+      const label = breadcrumbKeys[segment]
+        ? t(breadcrumbKeys[segment])
+        : segment
+          .split("-")
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
 
       breadcrumbs.push({
         label,
@@ -94,9 +101,9 @@ export function Breadcrumbs() {
         >
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/properties" className="flex items-center gap-1">
+              <Link to={rootPath} className="flex items-center gap-1">
                 <Home className="h-3.5 w-3.5" />
-                <span>Properties</span>
+                <span>{t(rootLabelKey)}</span>
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>

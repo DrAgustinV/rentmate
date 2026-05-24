@@ -8,7 +8,7 @@ import { Mail, Shield, Info, Lock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StepProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn;
   canUseGovId: boolean;
 }
 

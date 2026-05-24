@@ -301,9 +301,9 @@ serve(async (req) => {
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('OpenAPI error:', error);
-        throw new Error(`OpenAPI signature failed: ${error.message}`);
+        throw new Error(`OpenAPI signature failed: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
@@ -329,12 +329,12 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error initiating qualified signature:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error?.message || 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     );

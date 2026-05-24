@@ -13,6 +13,11 @@ function mapProfile(row: Profile): ProfileDomain {
     defaultRole: (row as Record<string, unknown>).default_role as 'manager' | 'tenant' | null,
     emailVerified: row.email_verified,
     kycStatus: row.kyc_status,
+    kycProvider: row.kyc_provider,
+    kycQrCodeUrl: row.kyc_qr_code_url,
+    kycExpiresAt: row.kyc_expires_at,
+    kycWalletDid: row.kyc_wallet_did,
+    kycCredentialId: row.kyc_credential_id,
     kycVerifiedAt: row.kyc_verified_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -55,7 +60,7 @@ export async function updateProfile(userId: string, data: {
   email?: string;
   defaultRole?: 'manager' | 'tenant' | null;
 }): Promise<ProfileDomain> {
-  const updateData: Record<string, any> = {};
+  const updateData: Record<string, unknown> = {};
   if (data.firstName !== undefined) updateData.first_name = data.firstName;
   if (data.lastName !== undefined) updateData.last_name = data.lastName;
   if (data.avatarStoragePath !== undefined) updateData.avatar_url = data.avatarStoragePath;
@@ -116,7 +121,7 @@ export async function updateKycData(userId: string, data: {
   kycProvider?: string;
   kycVerifiedAt?: string;
 }): Promise<void> {
-  const updateData: Record<string, any> = {
+  const updateData: Record<string, unknown> = {
     kyc_status: data.kycStatus,
     updated_at: new Date().toISOString(),
   };

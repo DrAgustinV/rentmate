@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StepProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn;
   templates: Array<{ id: string; document_title: string }>;
 }
 

@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[STRIPE-SUBSCRIPTION-WEBHOOK] ${step}${detailsStr}`);
 };
@@ -144,7 +144,7 @@ serve(async (req) => {
             return await supabaseClient
               .from("user_subscriptions")
               .update({
-                status: subscription.status as any,
+                status: subscription.status as string,
                 current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
                 current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
                 cancel_at_period_end: subscription.cancel_at_period_end,

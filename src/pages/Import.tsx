@@ -27,7 +27,7 @@ export default function Import() {
   const [importType, setImportType] = useState<'properties' | 'properties_and_tenants' | 'tenants_only'>('properties_and_tenants');
   const [file, setFile] = useState<File | null>(null);
   const [parsedRows, setParsedRows] = useState<ParsedRow[]>([]);
-  const [importSummary, setImportSummary] = useState<any>(null);
+  const [importSummary, setImportSummary] = useState<Record<string, unknown> | null>(null);
   
   const { toast } = useToast();
   const importMutation = useImportMutation();
@@ -46,10 +46,10 @@ export default function Import() {
       validateImport(rows, detectedType);
       setParsedRows(rows);
       setStep('preview');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Failed to parse file',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
     }
@@ -60,7 +60,7 @@ export default function Import() {
 
     try {
       // Transform rows based on import type
-      let transformedData: any[] = [];
+      const transformedData: Array<Record<string, unknown>> = [];
 
       if (importType === 'properties_and_tenants') {
         // Group by property and include tenants
@@ -68,7 +68,7 @@ export default function Import() {
         
         grouped.forEach((rows, propertyTitle) => {
           const firstRow = rows[0];
-          const propertyData: any = {
+          const propertyData: Record<string, unknown> = {
             title: firstRow.title || propertyTitle,
             country: firstRow.country,
           };
@@ -144,10 +144,10 @@ export default function Import() {
 
       setImportSummary(result.summary);
       setStep('results');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Import failed',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
       setStep('preview');

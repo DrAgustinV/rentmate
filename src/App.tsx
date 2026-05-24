@@ -1,6 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { Loader2 } from "lucide-react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CookieConsent } from "@/components/CookieConsent";
@@ -34,6 +35,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Rentals = lazy(() => import("./pages/Rentals"));
 const Configuration = lazy(() => import("./pages/Configuration"));
+const Tenants = lazy(() => import("./pages/Tenants"));
 const Workflow = lazy(() => import("./pages/Workflow"));
 const Account = lazy(() => import("./pages/Account"));
 const Pricing = lazy(() => import("./pages/Pricing"));
@@ -46,13 +48,13 @@ const PropertyOverview = lazy(() => import("./pages/PropertyOverview"));
 function PageLoader() {
   return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   );
 }
 
 // Helper to wrap page with error boundary + lazy loading
-function withErrorBoundary(page: React.LazyExoticComponent<React.ComponentType<any>>) {
+function withErrorBoundary(page: React.LazyExoticComponent<React.ComponentType<object>>) {
   return (
     <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
@@ -111,7 +113,8 @@ const App = () => (
               <Route path="/repair-shops/import" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><ImportRepairShops /></Suspense></ErrorBoundary>} />
               <Route path="/rentals" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Rentals /></Suspense></ErrorBoundary>} />
               <Route path="/renting" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Navigate to="/rentals" replace /></Suspense></ErrorBoundary>} />
-              <Route path="/tickets" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Navigate to="/dashboard" replace /></Suspense></ErrorBoundary>} />
+              <Route path="/tenants" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Tenants /></Suspense></ErrorBoundary>} />
+              <Route path="/tickets" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Navigate to="/properties" replace /></Suspense></ErrorBoundary>} />
 
               {/* Property hub routes */}
               <Route path="/properties/:propertyId/tenants" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyTenants /></Suspense></ErrorBoundary>} />

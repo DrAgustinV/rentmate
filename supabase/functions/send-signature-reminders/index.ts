@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
 });
 
 async function updateCronJobHealth(
-  supabase: any,
+  supabase: ReturnType<typeof createClient>,
   startTime: number,
   processed: number,
   sent: number,

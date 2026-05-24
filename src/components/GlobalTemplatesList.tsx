@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, Trash2, FileText, Search, LayoutGrid, List } from "lucide-react";
+import { Download, Trash2, FileText, Search, LayoutGrid, List, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import {
   AlertDialog,
@@ -121,7 +121,7 @@ export const GlobalTemplatesList = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

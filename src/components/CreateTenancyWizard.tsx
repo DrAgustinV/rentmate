@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -250,7 +250,7 @@ export function CreateTenancyWizard({
 
   const handleNext = async () => {
     const fieldsToValidate = getFieldsForStep(currentStep);
-    const isValid = await form.trigger(fieldsToValidate as any);
+    const isValid = await form.trigger(fieldsToValidate as FieldPath<FormData>[]);
     if (isValid && currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     }

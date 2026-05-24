@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { authService, documentService } from "@/services";
 import { STORAGE_BUCKETS, FILE_SIZE_LIMITS } from "@/constants";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Palette } from "lucide-react";
+import { Upload, Palette, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CarouselItemsManager } from "./CarouselItemsManager";
 import { Separator } from "@/components/ui/separator";
@@ -33,10 +33,10 @@ interface BrandSettings {
 function parseCarouselItems(data: Json | null): CarouselItem[] {
   if (!data || !Array.isArray(data)) return [];
   try {
-    return data.map((item: any) => ({
-      image_url: item.image_url || "",
-      title: item.title || {},
-      description: item.description || {},
+    return data.map((item: Record<string, unknown>) => ({
+      image_url: (item.image_url as string) || "",
+      title: (item.title as Record<string, string>) || {},
+      description: (item.description as Record<string, string>) || {},
     }));
   } catch {
     return [];
@@ -59,11 +59,7 @@ export function BrandSettings() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
-    fetchBrandSettings();
-  }, []);
-
-  const fetchBrandSettings = async () => {
+  const fetchBrandSettings = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("brand_settings")
@@ -108,7 +104,11 @@ export function BrandSettings() {
       setCarouselItems(parsedCarousel);
     }
     setLoading(false);
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchBrandSettings();
+  }, [fetchBrandSettings]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -145,10 +145,10 @@ export function BrandSettings() {
       });
 
       return await documentService.getPublicUrl(STORAGE_BUCKETS.BRAND_LOGOS, filePath);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Upload failed",
-        description: error.message,
+        title: t("brand.uploadFailed"),
+        description: error instanceof Error ? error.message : t("common.error"),
         variant: "destructive",
       });
       return null;
@@ -160,8 +160,8 @@ export function BrandSettings() {
   const handleSave = async () => {
     if (!settings?.id) {
       toast({
-        title: "Error",
-        description: "Brand settings not loaded. Please refresh the page.",
+        title: t("common.error"),
+        description: t("brand.settingsNotLoaded"),
         variant: "destructive",
       });
       return;
@@ -169,8 +169,8 @@ export function BrandSettings() {
 
     if (!brandName.trim()) {
       toast({
-        title: "Validation error",
-        description: "Brand name is required",
+        title: t("common.validationError"),
+        description: t("brand.nameRequired"),
         variant: "destructive",
       });
       return;
@@ -179,8 +179,8 @@ export function BrandSettings() {
     const hslRegex = /^\d{1,3}\s+\d{1,3}%\s+\d{1,3}%$/;
     if (!hslRegex.test(primaryColor) || !hslRegex.test(accentColor) || !hslRegex.test(headerBackgroundColor)) {
       toast({
-        title: "Invalid color format",
-        description: "Colors must be in HSL format (e.g., '221 83% 53%')",
+        title: t("brand.invalidColorFormat"),
+        description: t("brand.colorFormatHint"),
         variant: "destructive",
       });
       return;
@@ -224,15 +224,15 @@ export function BrandSettings() {
       }
 
       toast({
-        title: "Brand settings updated",
-        description: "Changes applied successfully! The brand name, logo, and colors are now updated system-wide.",
+        title: t("brand.settingsUpdated"),
+        description: t("brand.settingsUpdatedDesc"),
       });
 
       await fetchBrandSettings();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Error saving settings",
-        description: error.message || "An unexpected error occurred",
+        title: t("brand.saveError"),
+        description: error instanceof Error ? error.message : t("common.error"),
         variant: "destructive",
       });
     } finally {
@@ -376,7 +376,7 @@ export function BrandSettings() {
       >
         {loading || uploading ? (
           <>
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
             {uploading ? "Uploading..." : "Saving..."}
           </>
         ) : (

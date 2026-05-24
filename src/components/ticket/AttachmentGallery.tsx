@@ -131,7 +131,14 @@ export const AttachmentGallery = ({ attachments, ticketId, canDelete }: Attachme
   );
 };
 
-const AttachmentCard = ({ attachment, getFileUrl, onImageClick, onDelete }: any) => {
+interface AttachmentCardProps {
+  attachment: Attachment;
+  getFileUrl: (filePath: string, fileType: string) => Promise<string | null>;
+  onImageClick: (url: string) => void;
+  onDelete?: () => void;
+}
+
+const AttachmentCard = ({ attachment, getFileUrl, onImageClick, onDelete }: AttachmentCardProps) => {
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -172,7 +179,13 @@ const AttachmentCard = ({ attachment, getFileUrl, onImageClick, onDelete }: any)
   );
 };
 
-const VideoCard = ({ attachment, getFileUrl, onDelete }: any) => {
+interface VideoCardProps {
+  attachment: Attachment;
+  getFileUrl: (filePath: string, fileType: string) => Promise<string | null>;
+  onDelete?: () => void;
+}
+
+const VideoCard = ({ attachment, getFileUrl, onDelete }: VideoCardProps) => {
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {

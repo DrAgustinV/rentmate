@@ -14,7 +14,7 @@ interface ChargeOverageRequest {
   quantity?: number;
 }
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CHARGE-OVERAGE] ${step}${detailsStr}`);
 };
@@ -201,7 +201,7 @@ serve(async (req) => {
 
     if (existingUsage) {
       // Update existing record
-      const updateData: Record<string, any> = {
+      const updateData: Record<string, unknown> = {
         updated_at: new Date().toISOString(),
       };
 
@@ -247,7 +247,7 @@ serve(async (req) => {
       }
     } else {
       // Create new usage record
-      const insertData: Record<string, any> = {
+      const insertData: Record<string, unknown> = {
         user_id: user.id,
         year: currentYear,
         reset_at: new Date(`${currentYear + 1}-01-01T00:00:00Z`).toISOString(),
@@ -285,8 +285,8 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
-    logStep('ERROR', { message: error.message, stack: error.stack });
+  } catch (error: unknown) {
+    logStep('ERROR', { message: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
     
     return new Response(
       JSON.stringify({

@@ -119,7 +119,7 @@ export function GrantAccessDialog({
       toast.success(`${planLabel} access granted for ${duration} days`);
       resetAndClose();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(`Failed to grant access: ${error.message}`);
     },
   });
@@ -178,7 +178,7 @@ export function GrantAccessDialog({
       toast.success(`${planLabel} access extended by ${duration} days`);
       resetAndClose();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(`Failed to extend access: ${error.message}`);
     },
   });
@@ -235,7 +235,7 @@ export function GrantAccessDialog({
       toast.success(`${planLabel} access revoked - user downgraded to Free`);
       resetAndClose();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(`Failed to revoke access: ${error.message}`);
     },
   });

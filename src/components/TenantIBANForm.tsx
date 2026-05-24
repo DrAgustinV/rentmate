@@ -80,27 +80,25 @@ export function TenantIBANForm({ agreement }: TenantIBANFormProps) {
       });
 
       // 2. Generate SEPA mandate PDF
-      let pdfData;
       try {
-        pdfData = await identityService.generateSEPAMandatePDF({ agreement_id: agreement.id });
-      } catch (pdfError: any) {
+        await identityService.generateSEPAMandatePDF({ agreement_id: agreement.id });
+        toast.success(t('rentAgreements.ibanSaved'));
+      } catch (pdfError: unknown) {
         console.error('PDF generation error:', pdfError);
-        // Check if error is due to missing manager SEPA settings
-        if (pdfError.message?.includes('SEPA settings not configured')) {
-          toast.error('Manager has not configured SEPA payment details yet. Please contact your landlord.');
+        const message = pdfError instanceof Error ? pdfError.message : String(pdfError);
+        if (message.includes('SEPA settings not configured')) {
+          toast.error(t('rentAgreements.ibanSaveSepaNotConfigured'));
         } else {
-          toast.warning('IBAN saved, but mandate generation is pending');
+          toast.warning(t('rentAgreements.ibanSaveMandatePending'));
         }
-      } else {
-        toast.success('IBAN saved and mandate generated!');
       }
       
       setIsEditing(false);
       
       // Trigger payment generation happens automatically via database trigger
       window.location.reload(); // Refresh to show new payment records
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : String(error));
     } finally {
       setSaving(false);
     }

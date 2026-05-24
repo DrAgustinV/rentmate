@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2, Gift, ExternalLink, RefreshCw, Lock } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { useKYC, KYCProvider, OpenAPIVerificationLevel } from "@/hooks/useKYC";
+import { useKYC, KYCProvider } from "@/hooks/useKYC";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { isKYCExpiringSoon } from "@/lib/validations/kyc.schema";
 import { showToast } from "@/lib/toast";
@@ -40,6 +40,7 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
     initiateVerification,
     cancelVerification,
     checkDiditStatus,
+    checkKiltStatus,
   } = useKYC();
 
   const canUseGovId = canUseGovernmentIdKYC();
@@ -47,7 +48,6 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
 
   // Default to KILT for FREE users, Government ID for PRO+
   const [selectedProvider, setSelectedProvider] = useState<KYCProvider>(canUseGovId ? 'didit' : 'kilt');
-  const [selectedLevel, setSelectedLevel] = useState<OpenAPIVerificationLevel>('basic');
 
   // Update default selection when subscription loads
   useEffect(() => {
@@ -58,16 +58,14 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
 
   const getStatusBadge = (status: string, provider?: string) => {
     // Show provider in badge for verified status - use "Government ID" for didit
-    const providerLabel = provider === 'didit' 
-      ? 'Government ID'
-      : provider?.startsWith('openapi_') 
+    const providerLabel = provider === 'didit'
       ? 'Government ID'
       : provider === 'kilt' ? 'KILT' : '';
 
     switch (status) {
       case "verified":
         return (
-          <Badge className="bg-green-500">
+          <Badge className="bg-success">
             <CheckCircle2 className="w-3 h-3 mr-1" />
             {t('kyc.status.verified')} {providerLabel && `(${providerLabel})`}
           </Badge>
@@ -100,7 +98,7 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
   };
 
   const handleInitiate = async () => {
-    await initiateVerification(selectedProvider, selectedLevel);
+    await initiateVerification(selectedProvider);
   };
 
   // Dynamic subtitle based on verification status
@@ -129,8 +127,8 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
   }
 
   const showExpiryWarning = isVerified && 
-    kycProfile?.kyc_expires_at && 
-    isKYCExpiringSoon(kycProfile.kyc_expires_at);
+    kycProfile?.kycExpiresAt && 
+    isKYCExpiringSoon(kycProfile.kycExpiresAt);
 
   return (
     <Card>
@@ -149,12 +147,12 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
           <div className="space-y-1">
             <p className="text-sm font-medium">{t('kyc.statusLabel')}</p>
             <p className="text-xs text-muted-foreground">
-              {isVerified && kycProfile?.kyc_verified_at
-                ? `${t('kyc.verifiedOn')} ${new Date(kycProfile.kyc_verified_at).toLocaleDateString()}`
+              {isVerified && kycProfile?.kycVerifiedAt
+                ? `${t('kyc.verifiedOn')} ${new Date(kycProfile.kycVerifiedAt).toLocaleDateString()}`
                 : t('kyc.notVerified')}
             </p>
           </div>
-          {kycProfile && getStatusBadge(kycProfile.kyc_status, kycProfile.kyc_provider)}
+          {kycProfile && getStatusBadge(kycProfile.kycStatus, kycProfile.kycProvider)}
         </div>
 
         {/* Expiry Alert */}
@@ -169,10 +167,10 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
 
         {/* Verified - Success State */}
         {isVerified && (
-          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-6 text-center space-y-3">
-            <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
+          <div className="bg-success/10 border border-success/30 rounded-lg p-6 text-center space-y-3">
+            <CheckCircle2 className="h-12 w-12 text-success mx-auto" />
             <div>
-              <p className="text-lg font-semibold text-green-700 dark:text-green-400">
+              <p className="text-lg font-semibold text-success">
                 {t('kyc.verifiedSuccess') || 'Identity Verified'}
               </p>
               <p className="text-sm text-muted-foreground">
@@ -188,10 +186,10 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
         )}
 
         {/* Verified - Show Expiry */}
-        {isVerified && kycProfile?.kyc_expires_at && (
+        {isVerified && kycProfile?.kycExpiresAt && (
           <Alert>
             <AlertDescription>
-              {t('kyc.expiresOn')} {new Date(kycProfile.kyc_expires_at).toLocaleDateString()}
+              {t('kyc.expiresOn')} {new Date(kycProfile.kycExpiresAt).toLocaleDateString()}
             </AlertDescription>
           </Alert>
         )}
@@ -201,8 +199,8 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
           <div className="space-y-4 pt-4 border-t">
             {/* Context explanation for KYC */}
             {!isVerified && !isPending && (
-              <Alert className="bg-blue-500/10 border-blue-500/20">
-                <ShieldCheck className="h-4 w-4 text-blue-600" />
+              <Alert className="bg-info/10 border-info/20">
+                <ShieldCheck className="h-4 w-4 text-info" />
                 <AlertDescription className="text-sm">
                   {t('kyc.contextExplanation') || 'This property manager requires identity verification as part of the tenancy setup. Verification typically takes 1-2 minutes using your passport or ID card.'}
                 </AlertDescription>
@@ -221,11 +219,11 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
                 <div className="flex-1 space-y-2">
                   <Label htmlFor="didit" className={canUseGovId ? "cursor-pointer" : "cursor-not-allowed"}>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Gift className="w-4 h-4 text-green-600" />
+                      <Gift className="w-4 h-4 text-success" />
                       <span className="font-medium">Full Identity Verification</span>
                       {canUseGovId ? (
                         <>
-                          <Badge className="bg-green-500 text-white text-xs">Get Your Verified Badge</Badge>
+                          <Badge className="bg-success text-success-foreground text-xs">Get Your Verified Badge</Badge>
                           <Badge variant="outline" className="text-xs">Recommended</Badge>
                         </>
                       ) : (
@@ -293,23 +291,19 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
                 Verification in progress via {
                   currentProvider === 'kilt' 
                     ? 'KILT Protocol' 
-                    : currentProvider === 'didit'
-                    ? 'Government ID verification'
-                    : `Government ID verification (${kycProfile?.kyc_provider?.replace('openapi_', '')})`
+                    : 'Government ID verification'
                 }
               </AlertDescription>
             </Alert>
 
-            {kycProfile?.kyc_qr_code_url && (
+            {kycProfile?.kycQrCodeUrl && (
               <div className="space-y-4">
                 <Alert>
                   <QrCode className="w-4 h-4" />
                   <AlertDescription>
                     {currentProvider === 'kilt' 
                       ? t('kyc.scanQRCode')
-                      : currentProvider === 'didit'
-                      ? 'Click the button below or scan the QR code to verify your identity'
-                      : 'Scan the QR code with your smartphone to complete verification'}
+                      : 'Click the button below or scan the QR code to verify your identity'}
                   </AlertDescription>
                 </Alert>
                 
@@ -317,7 +311,7 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
                 {currentProvider === 'didit' && (
                   <Button 
                     className="w-full" 
-                    onClick={() => window.open(kycProfile.kyc_qr_code_url!, '_blank')}
+                    onClick={() => window.open(kycProfile.kycQrCodeUrl!, '_blank')}
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Open Verification Page
@@ -326,7 +320,7 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
                 
                 <div className="flex justify-center p-4 bg-white rounded-lg">
                   <QRCodeSVG 
-                    value={kycProfile.kyc_qr_code_url} 
+                    value={kycProfile.kycQrCodeUrl} 
                     size={192}
                     level="H"
                     includeMargin={true}
@@ -335,9 +329,7 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
                 <p className="text-xs text-center text-muted-foreground">
                   {currentProvider === 'kilt' 
                     ? t('kyc.downloadSporran')
-                    : currentProvider === 'didit'
-                    ? 'Or scan with your phone camera to verify on mobile'
-                    : 'Open the link on your mobile device to start the verification process'}
+                    : 'Or scan with your phone camera to verify on mobile'}
                 </p>
               </div>
             )}
@@ -347,6 +339,28 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
               <Button
                 variant="outline"
                 onClick={checkDiditStatus}
+                disabled={checkingStatus}
+                className="w-full"
+              >
+                {checkingStatus ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Checking Status...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Check Verification Status
+                  </>
+                )}
+              </Button>
+            )}
+
+            {/* Check Status Button for KILT verification */}
+            {currentProvider === 'kilt' && (
+              <Button
+                variant="outline"
+                onClick={checkKiltStatus}
                 disabled={checkingStatus}
                 className="w-full"
               >
@@ -387,7 +401,7 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
         )}
 
         {/* Rejected Alert */}
-        {kycProfile?.kyc_status === "rejected" && (
+        {kycProfile?.kycStatus === "rejected" && (
           <Alert variant="destructive">
             <AlertCircle className="w-4 h-4" />
             <AlertDescription>
@@ -397,7 +411,7 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
         )}
 
         {/* Expired Alert */}
-        {kycProfile?.kyc_status === "expired" && (
+        {kycProfile?.kycStatus === "expired" && (
           <Alert variant="destructive">
             <AlertCircle className="w-4 h-4" />
             <AlertDescription>
@@ -414,18 +428,18 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
             className="w-full"
           >
             {initiating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {kycProfile?.kyc_status === "expired" 
+            {kycProfile?.kycStatus === "expired" 
               ? t('kyc.actions.renewVerification')
               : t('kyc.actions.startVerification')}
           </Button>
         )}
 
         {/* Document ID Display - Masked for security */}
-        {kycProfile?.kyc_wallet_did && (
+        {kycProfile?.kycWalletDid && (
           <div className="pt-4 border-t">
             <p className="text-xs text-muted-foreground">
               {currentProvider === 'kilt' ? t('kyc.walletDID') : 'Document ID'}: 
-              <code className="text-xs ml-1">{maskDocumentId(kycProfile.kyc_wallet_did)}</code>
+              <code className="text-xs ml-1">{maskDocumentId(kycProfile.kycWalletDid)}</code>
             </p>
           </div>
         )}

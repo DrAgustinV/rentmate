@@ -1,5 +1,6 @@
 import { format as dateFnsFormat } from 'date-fns';
 import { es } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
 
 let userDateFormat = 'PPP'; // Default
 let userLocale = 'en'; // Default
@@ -24,7 +25,7 @@ export const formatDate = (date: Date | string, formatOverride?: string) => {
     'yyyy-MM-dd': 'yyyy-MM-dd', // 2023-04-29
   };
   
-  const localeMap: Record<string, any> = {
+  const localeMap: Record<string, Locale> = {
     'es': es,
   };
   
@@ -44,7 +45,7 @@ export const formatDateTime = (date: Date | string, formatOverride?: string) => 
     'yyyy-MM-dd': 'yyyy-MM-dd HH:mm', // 2023-04-29 09:30
   };
   
-  const localeMap: Record<string, any> = {
+  const localeMap: Record<string, Locale> = {
     'es': es,
   };
   

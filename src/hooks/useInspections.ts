@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Inspection, InspectionItem, InspectionType, DEFAULT_ROOMS } from "@/components/inspection/types";
 
 export function useInspections(tenancyId: string | undefined, propertyId: string) {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const inspectionsQuery = useQuery({
@@ -69,10 +71,10 @@ export function useInspections(tenancyId: string | undefined, propertyId: string
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inspections"] });
-      toast.success("Inspection created");
+      toast.success(t("inspections.created"));
     },
     onError: (error) => {
-      toast.error("Failed to create inspection");
+      toast.error(t("inspections.createFailed"));
       console.error(error);
     },
   });
@@ -91,10 +93,10 @@ export function useInspections(tenancyId: string | undefined, propertyId: string
       queryClient.invalidateQueries({ queryKey: ["inspections"] });
       queryClient.invalidateQueries({ queryKey: ["inspection-items"] });
       queryClient.invalidateQueries({ queryKey: ["inspection-detail"] });
-      toast.success("Inspection deleted");
+      toast.success(t("inspections.deleted"));
     },
     onError: (error) => {
-      toast.error("Failed to delete inspection");
+      toast.error(t("inspections.deleteFailed"));
     },
   });
 
@@ -109,6 +111,7 @@ export function useInspections(tenancyId: string | undefined, propertyId: string
 }
 
 export function useInspectionItems(inspectionId: string | undefined) {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const itemsQuery = useQuery({
@@ -147,7 +150,7 @@ export function useInspectionItems(inspectionId: string | undefined) {
       queryClient.invalidateQueries({ queryKey: ["inspection-items", inspectionId] });
     },
     onError: (error) => {
-      toast.error("Failed to update room");
+      toast.error(t("inspections.updateRoomFailed"));
       console.error(error);
     },
   });
@@ -168,10 +171,10 @@ export function useInspectionItems(inspectionId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inspection-items", inspectionId] });
-      toast.success("Room added");
+      toast.success(t("inspections.roomAdded"));
     },
     onError: (error) => {
-      toast.error("Failed to add room");
+      toast.error(t("inspections.addRoomFailed"));
       console.error(error);
     },
   });
@@ -187,10 +190,10 @@ export function useInspectionItems(inspectionId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inspection-items", inspectionId] });
-      toast.success("Room removed");
+      toast.success(t("inspections.roomRemoved"));
     },
     onError: (error) => {
-      toast.error("Failed to remove room");
+      toast.error(t("inspections.removeRoomFailed"));
       console.error(error);
     },
   });
@@ -206,6 +209,7 @@ export function useInspectionItems(inspectionId: string | undefined) {
 }
 
 export function useInspectionSignatures(inspectionId: string | undefined) {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const signMutation = useMutation({
@@ -258,10 +262,10 @@ export function useInspectionSignatures(inspectionId: string | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inspections"] });
       queryClient.invalidateQueries({ queryKey: ["inspection-detail", inspectionId] });
-      toast.success("Inspection signed");
+      toast.success(t("inspections.signed"));
     },
     onError: (error) => {
-      toast.error("Failed to sign inspection");
+      toast.error(t("inspections.signFailed"));
       console.error(error);
     },
   });
@@ -273,6 +277,7 @@ export function useInspectionSignatures(inspectionId: string | undefined) {
 }
 
 export function useUpdateInspectionStatus(inspectionId: string | undefined) {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -291,7 +296,7 @@ export function useUpdateInspectionStatus(inspectionId: string | undefined) {
       queryClient.invalidateQueries({ queryKey: ["inspection-detail", inspectionId] });
     },
     onError: (error) => {
-      toast.error("Failed to update inspection status");
+      toast.error(t("inspections.updateStatusFailed"));
       console.error(error);
     },
   });

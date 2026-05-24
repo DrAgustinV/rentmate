@@ -79,9 +79,9 @@ verify_jwt = false  # Cron job - no user context available
 [functions.send-payment-reminders]
 verify_jwt = false  # Cron job - no user context available
 
-# OpenAPI Identity Verification (IDV) Functions
-[functions.initiate-openapi-kyc]
-verify_jwt = true  # User initiates KYC verification
+# OpenAPI Identity Verification (IDV) Functions — BLOCKED
+# [functions.initiate-openapi-kyc]
+# verify_jwt = true  # User initiates KYC verification
 
 # Didit.me Identity Verification Functions
 [functions.initiate-didit-kyc]

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { tenancyService, authService, identityService } from '@/services';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
@@ -33,6 +34,7 @@ interface RealtimePayload {
 }
 
 export function useRentAgreements(propertyId?: string) {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -56,9 +58,9 @@ export function useRentAgreements(propertyId?: string) {
             queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY, propertyId] });
 
             if (newStatus === 'active') {
-              toast.success('SEPA mandate verified and activated!');
+              toast.success(t("rentAgreements.mandateActivated"));
             } else if (newStatus === 'failed') {
-              toast.error('Mandate verification failed. Please check your IBAN and try again.');
+              toast.error(t("rentAgreements.mandateVerificationFailed"));
             }
           }
         }
@@ -68,7 +70,7 @@ export function useRentAgreements(propertyId?: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [propertyId, queryClient]);
+  }, [propertyId, queryClient, t]);
 
   return useQuery({
     queryKey: [RENT_AGREEMENTS_QUERY_KEY, propertyId],
@@ -96,6 +98,7 @@ export function useRentAgreements(propertyId?: string) {
 }
 
 export function useRentAgreementMutations() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const createAgreement = useMutation({
@@ -132,11 +135,11 @@ export function useRentAgreementMutations() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY, variables.property_id] });
-      toast.success('Rent agreement created successfully');
+      toast.success(t("rentAgreements.createSuccess"));
     },
     onError: (error: Error) => {
       console.error('Create rent agreement error:', error);
-      toast.error('Failed to create rent agreement');
+      toast.error(t("rentAgreements.createFailed"));
     },
   });
 
@@ -169,14 +172,14 @@ export function useRentAgreementMutations() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY, data.property_id] });
-      toast.success('Rent agreement updated successfully');
+      toast.success(t("rentAgreements.updateSuccess"));
     },
     onError: (error: Error) => {
       console.error('Update rent agreement error:', error);
       if (error.message?.includes('contract signing is in progress')) {
-        toast.error('Cannot edit while contract signing is in progress');
+        toast.error(t("rentAgreements.editBlockedBySignature"));
       } else {
-        toast.error('Failed to update rent agreement');
+        toast.error(t("rentAgreements.updateFailed"));
       }
     },
   });
@@ -190,11 +193,11 @@ export function useRentAgreementMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_AGREEMENTS_QUERY_KEY] });
-      toast.success('IBAN saved and mandate creation initiated');
+      toast.success(t("rentAgreements.ibanSaved"));
     },
     onError: (error: Error) => {
       console.error('Update IBAN error:', error);
-      toast.error('Failed to create SEPA mandate. Please try again.');
+      toast.error(t("rentAgreements.mandateCreationFailed"));
     },
   });
 

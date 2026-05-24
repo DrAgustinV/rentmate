@@ -20,7 +20,7 @@ export const repairShopBaseSchema = z.object({
     .trim()
     .min(7, "Phone number must be at least 7 characters")
     .max(20, "Phone number must be less than 20 characters")
-    .regex(/^[\d\s\-\+\(\)]+$/, "Invalid phone number format"),
+    .regex(/^[\d\s\-+()]+$/, "Invalid phone number format"),
   address: z.string()
     .trim()
     .max(200, "Address must be less than 200 characters")

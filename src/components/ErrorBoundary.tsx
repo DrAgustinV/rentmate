@@ -151,7 +151,7 @@ interface UseErrorBoundaryOptions {
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
-export function useErrorBoundary(options: UseErrorBoundaryOptions = {}) {
+function useErrorBoundary(options: UseErrorBoundaryOptions = {}) {
   const [error, setError] = useState<Error | null>(null);
 
   const resetError = useCallback(() => {

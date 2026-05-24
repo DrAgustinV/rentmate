@@ -34,43 +34,43 @@ const statusConfig: Record<StatusType, {
 }> = {
   active: { 
     variant: "default", 
-    className: "bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10", 
+    className: "bg-success/10 text-success border-success/20 hover:bg-success/10", 
     icon: CheckCircle2,
     defaultLabel: "Active"
   },
   pending: { 
     variant: "default", 
-    className: "bg-blue-500/10 text-blue-600 border-blue-500/20 hover:bg-blue-500/10", 
+    className: "bg-info/10 text-info border-info/20 hover:bg-info/10", 
     icon: Clock,
     defaultLabel: "Pending"
   },
   ending_tenancy: { 
     variant: "default", 
-    className: "bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/10", 
+    className: "bg-warning/10 text-warning border-warning/20 hover:bg-warning/10", 
     icon: Clock,
     defaultLabel: "Ending"
   },
   historic: { 
     variant: "secondary", 
-    className: "text-gray-600 border-gray-200", 
+    className: "text-muted-foreground border-border", 
     icon: History,
     defaultLabel: "Historic"
   },
   draft: { 
     variant: "default", 
-    className: "bg-amber-500/10 text-amber-600 border-amber-500/20", 
+    className: "bg-warning/10 text-warning border-warning/20", 
     icon: FileText,
     defaultLabel: "Draft"
   },
   sent: { 
     variant: "default", 
-    className: "bg-blue-500/10 text-blue-600 border-blue-500/20", 
+    className: "bg-info/10 text-info border-info/20", 
     icon: Send,
     defaultLabel: "Sent"
   },
   locked: { 
     variant: "default", 
-    className: "bg-green-500/10 text-green-600 border-green-500/20", 
+    className: "bg-success/10 text-success border-success/20", 
     icon: CheckCircle2,
     defaultLabel: "Locked"
   },
@@ -82,37 +82,37 @@ const statusConfig: Record<StatusType, {
   },
   version: { 
     variant: "default", 
-    className: "bg-blue-500/10 text-blue-600 border-blue-500/20", 
+    className: "bg-info/10 text-info border-info/20", 
     icon: FileText,
     defaultLabel: "Version"
   },
   completed: { 
     variant: "default", 
-    className: "bg-green-600 hover:bg-green-700", 
+    className: "bg-success hover:bg-success/80", 
     icon: CheckCircle2,
     defaultLabel: "Completed"
   },
   in_progress: { 
     variant: "outline", 
-    className: "text-blue-600 border-blue-300", 
+    className: "text-info border-info/30", 
     icon: Clock,
     defaultLabel: "In Progress"
   },
   pending_signatures: { 
     variant: "outline", 
-    className: "text-yellow-600 border-yellow-300", 
+    className: "text-warning border-warning/30", 
     icon: Clock,
     defaultLabel: "Pending Signatures"
   },
   open: { 
     variant: "default", 
-    className: "bg-blue-500 hover:bg-blue-600", 
+    className: "bg-info hover:bg-info/80", 
     icon: AlertCircle,
     defaultLabel: "Open"
   },
   resolved: { 
     variant: "default", 
-    className: "bg-green-500 hover:bg-green-600", 
+    className: "bg-success hover:bg-success/80", 
     icon: CheckCircle2,
     defaultLabel: "Resolved"
   },

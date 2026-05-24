@@ -12,7 +12,7 @@ interface InspectionSignatureProps {
   canSign: boolean;
   managerSigned: boolean;
   tenantSigned: boolean;
-  onSign: (signatureData: any) => Promise<void>;
+  onSign: (signatureData: Record<string, unknown>) => Promise<void>;
   isSigning: boolean;
 }
 

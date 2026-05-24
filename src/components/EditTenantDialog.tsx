@@ -73,7 +73,7 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
       queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
       onOpenChange(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       showToast.error(t("common.error"), error.message);
     },
   });

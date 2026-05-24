@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Upload, GripVertical, Image } from "lucide-react";
+import { Plus, Trash2, Upload, GripVertical, Image, Loader2 } from "lucide-react";
 import { useLanguageSettings } from "@/hooks/useLanguageSettings";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Json } from "@/integrations/supabase/types";
 
 interface CarouselItem {
@@ -42,6 +43,7 @@ const languageNames: Record<string, string> = {
 
 export function CarouselItemsManager({ items, onUpdate, settingsId }: CarouselItemsManagerProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { enabledLanguages } = useLanguageSettings();
   const [uploading, setUploading] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -100,11 +102,11 @@ export function CarouselItemsManager({ items, onUpdate, settingsId }: CarouselIt
       const publicUrl = await documentService.getPublicUrl(STORAGE_BUCKETS.BRAND_LOGOS, fileName);
 
       handleItemChange(index, "image_url", publicUrl);
-      toast({ title: "Image uploaded", description: "Carousel image uploaded successfully" });
-    } catch (error: any) {
+      toast({ title: t("carousel.imageUploaded"), description: t("carousel.imageUploadedDesc") });
+    } catch (error: unknown) {
       toast({
         title: "Upload failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : t("common.error"),
         variant: "destructive",
       });
     } finally {
@@ -128,11 +130,11 @@ export function CarouselItemsManager({ items, onUpdate, settingsId }: CarouselIt
 
       if (error) throw error;
 
-      toast({ title: "Carousel saved", description: "Carousel items updated successfully" });
-    } catch (error: any) {
+      toast({ title: t("carousel.saved"), description: t("carousel.savedDesc") });
+    } catch (error: unknown) {
       toast({
         title: "Error saving carousel",
-        description: error.message,
+        description: error instanceof Error ? error.message : t("common.error"),
         variant: "destructive",
       });
     } finally {
@@ -270,7 +272,7 @@ export function CarouselItemsManager({ items, onUpdate, settingsId }: CarouselIt
         <Button onClick={handleSave} disabled={saving} className="w-full">
           {saving ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
               Saving...
             </>
           ) : (

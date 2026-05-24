@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { repairShopBaseSchema, type RepairShopBase } from "@/lib/validations/repair-shop.schema";
 import { useRepairShops } from "@/hooks/useRepairShops";
+import type { Database } from "@/integrations/supabase/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -66,7 +67,7 @@ export function CreateRepairShopDialog({ open, onOpenChange }: CreateRepairShopD
   });
 
   const onSubmit = (data: RepairShopBase) => {
-    createRepairShop(data as any, {
+    createRepairShop(data as Database["public"]["Tables"]["repair_shops"]["Insert"], {
       onSuccess: () => {
         onOpenChange(false);
         form.reset();

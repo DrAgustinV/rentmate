@@ -190,8 +190,8 @@ export function RentalTermsCard({
   // Card styling based on state
   const getCardStyles = () => {
     if (showPendingSetup) {
-      if (isDraft) return "border-amber-500/50 bg-amber-500/5";
-      if (isSent) return "border-blue-500/50 bg-blue-500/5";
+      if (isDraft) return "border-warning/50 bg-warning/5";
+      if (isSent) return "border-info/50 bg-info/5";
     }
     return "";
   };
@@ -223,8 +223,8 @@ export function RentalTermsCard({
           <div className="flex items-center gap-2">
             {showPendingSetup && (
               <Badge variant={isDraft ? "outline" : "secondary"} className={
-                isDraft ? "border-amber-500 text-amber-600 bg-amber-50 dark:bg-amber-950/30" :
-                isSent ? "border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950/30" : ""
+                isDraft ? "border-warning text-warning bg-warning/10" :
+                isSent ? "border-info text-info bg-info/10" : ""
               }>
                 {isDraft ? t("common.draft") : t("common.sent")}
               </Badge>

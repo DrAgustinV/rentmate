@@ -25,6 +25,14 @@ interface Inspection {
   completed_at: string | null;
 }
 
+interface InspectionData extends Inspection {
+  property?: { title?: string; address?: string; city?: string };
+  manager?: { first_name?: string; last_name?: string; email?: string };
+  tenant?: { first_name?: string; last_name?: string; email?: string };
+  tenant_name?: string;
+  tenant_email?: string;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -97,7 +105,7 @@ serve(async (req) => {
   }
 });
 
-function generateInspectionPdfHtml(inspection: any, items: InspectionItem[]): string {
+function generateInspectionPdfHtml(inspection: InspectionData, items: InspectionItem[]): string {
   const inspectionType = inspection.inspection_type === 'move_in' ? 'Move-In' : 'Move-Out';
   const propertyTitle = inspection.property?.title || 'Unknown Property';
   const propertyAddress = [

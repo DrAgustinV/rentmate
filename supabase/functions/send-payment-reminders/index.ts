@@ -271,10 +271,10 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in send-payment-reminders function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -284,7 +284,7 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 async function sendUpcomingReminder(
-  supabase: any,
+  supabase: ReturnType<typeof createClient>,
   payment: RentPayment
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -444,7 +444,8 @@ async function sendUpcomingReminder(
     });
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : String(error);
     console.error("Error sending upcoming reminder:", error);
     
     // Log failed reminder
@@ -454,15 +455,15 @@ async function sendUpcomingReminder(
       email_to: "unknown",
       email_subject: "Failed to send",
       email_status: "failed",
-      error_message: error.message,
+      error_message: errMsg,
     });
 
-    return { success: false, error: error.message };
+    return { success: false, error: errMsg };
   }
 }
 
 async function sendOverdueReminder(
-  supabase: any,
+  supabase: ReturnType<typeof createClient>,
   payment: RentPayment
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -642,7 +643,8 @@ async function sendOverdueReminder(
     });
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : String(error);
     console.error("Error sending overdue reminder:", error);
     
     // Log failed reminder
@@ -652,10 +654,10 @@ async function sendOverdueReminder(
       email_to: "unknown",
       email_subject: "Failed to send",
       email_status: "failed",
-      error_message: error.message,
+      error_message: errMsg,
     });
 
-    return { success: false, error: error.message };
+    return { success: false, error: errMsg };
   }
 }
 

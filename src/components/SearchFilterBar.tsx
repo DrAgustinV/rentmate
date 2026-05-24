@@ -43,7 +43,7 @@ export function SearchFilterBar({
         />
       </div>
       <div className="flex gap-2">
-        <Select value={sortBy} onValueChange={(value: any) => onSortChange(value)}>
+        <Select value={sortBy} onValueChange={(value: string) => onSortChange(value)}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder={t('search.sortBy')} />
           </SelectTrigger>

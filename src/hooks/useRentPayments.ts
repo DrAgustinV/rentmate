@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { documentService, paymentService, authService } from '@/services';
 import { STORAGE_BUCKETS } from '@/constants';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
 export interface RentPayment {
@@ -43,15 +44,16 @@ export function useRentPayments(propertyId?: string) {
 
 export function useRentPaymentMutations() {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const createPayment = useMutation({
     mutationFn: async (payment: Parameters<typeof paymentService.createRentPayment>[0]) => paymentService.createRentPayment(payment),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
-      toast.success('Rent payment created successfully');
+      toast.success(t("rentPayments.createSuccess"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to create rent payment: ${error.message}`);
+      toast.error(error.message || t("rentPayments.createFailed"));
     },
   });
 
@@ -59,10 +61,10 @@ export function useRentPaymentMutations() {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<RentPayment> }) => paymentService.updateRentPayment(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
-      toast.success('Rent payment updated successfully');
+      toast.success(t("rentPayments.updateSuccess"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to update rent payment: ${error.message}`);
+      toast.error(error.message || t("rentPayments.updateFailed"));
     },
   });
 
@@ -80,10 +82,10 @@ export function useRentPaymentMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
-      toast.success('Proof of payment uploaded successfully');
+      toast.success(t("payments.proofUploaded"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to upload proof: ${error.message}`);
+      toast.error(error.message || t("rentPayments.proofUploadFailed"));
     },
   });
 
@@ -95,10 +97,10 @@ export function useRentPaymentMutations() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
-      toast.success('Payment marked as paid');
+      toast.success(t("payments.toasts.markedPaid"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to mark as paid: ${error.message}`);
+      toast.error(error.message || t("rentPayments.markPaidFailed"));
     },
   });
 
@@ -131,10 +133,10 @@ export function useRentPaymentMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
-      toast.success('Proof reviewed successfully');
+      toast.success(t("payments.proofReview.approvedSuccess"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to review proof: ${error.message}`);
+      toast.error(error.message || t("rentPayments.proofReviewFailed"));
     },
   });
 

@@ -23,17 +23,17 @@ const StatusManager = lazy(() =>
 );
 
 const statusColors = {
-  open: "bg-blue-500",
-  in_progress: "bg-yellow-500",
-  resolved: "bg-green-500",
-  cancelled: "bg-gray-500",
+  open: "bg-info",
+  in_progress: "bg-warning",
+  resolved: "bg-success",
+  cancelled: "bg-muted-foreground",
 };
 
 const priorityColors = {
-  low: "bg-gray-500",
-  medium: "bg-blue-500",
-  high: "bg-orange-500",
-  urgent: "bg-red-500",
+  low: "bg-muted-foreground",
+  medium: "bg-info",
+  high: "bg-warning",
+  urgent: "bg-destructive",
 };
 
 const TicketDetail = () => {
@@ -278,7 +278,7 @@ const TicketDetail = () => {
                   type: ticket.type,
                   priority: ticket.priority,
                   description: ticket.description,
-                  recentComments: comments.map((c: any) => ({ comment: c.comment }))
+                  recentComments: comments.map((c: { comment: string }) => ({ comment: c.comment }))
                 }}
               />
             )}

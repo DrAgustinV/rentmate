@@ -194,7 +194,7 @@ export default function PropertyDocumentUpload({
         },
       });
       
-      toast.success("Document uploaded successfully");
+      toast.success(t("documents.uploaded"));
       setSelectedFile(null);
       setDescription("");
       setDocumentTitle("");
@@ -203,7 +203,7 @@ export default function PropertyDocumentUpload({
     },
     onError: (error) => {
       console.error("Upload error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to upload document");
+      toast.error(error instanceof Error ? error.message : t("documents.uploadFailed"));
       setUploadProgress(0);
     },
   });
@@ -214,7 +214,7 @@ export default function PropertyDocumentUpload({
         file.name.toLowerCase().endsWith(ext)
       );
       if (!hasValidExtension) {
-        toast.error("File type not allowed. Please upload a document or image file.");
+        toast.error(t("documents.invalidFileType"));
         return;
       }
     }

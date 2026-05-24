@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -28,12 +28,13 @@ export function OpenAPIOTPDialog({
   onSuccess,
   onCancel,
 }: OpenAPIOTPDialogProps) {
+  const { t } = useLanguage();
   const [otp, setOtp] = useState("");
   const [verifying, setVerifying] = useState(false);
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
-      toast.error("Please enter a 6-digit code");
+      toast.error(t("signature.otp.enterSixDigitCode"));
       return;
     }
 
@@ -42,14 +43,14 @@ export function OpenAPIOTPDialog({
       const data = await identityService.verifyOpenAPIOTP({ otp, sessionId });
 
       if (data.success) {
-        toast.success("Signature completed successfully");
+        toast.success(t("signature.otp.verificationSuccess"));
         onSuccess();
       } else {
-        toast.error(data.error || "Invalid verification code");
+        toast.error(data.error || t("signature.otp.invalidCode"));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("OTP verification error:", error);
-      toast.error(error.message || "Failed to verify code");
+      toast.error(error instanceof Error ? error.message : t("signature.otp.verificationFailed"));
     } finally {
       setVerifying(false);
     }

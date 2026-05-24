@@ -47,13 +47,13 @@ export function TenantSwitcher({ tenants, selectedTenantId, onSelectTenant, onVi
           className={cn(
             "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all",
             selectedTenantId === departingTenant.id
-              ? "border-amber-500 bg-amber-500/10 shadow-sm"
-              : "border-border hover:border-amber-500/50 hover:bg-amber-500/5"
+              ? "border-warning bg-warning/10 shadow-sm"
+              : "border-border hover:border-warning/50 hover:bg-warning/5"
           )}
         >
-          <LogOut className="h-4 w-4 text-amber-600" />
+          <LogOut className="h-4 w-4 text-warning" />
           <span className="text-sm font-medium">{getTenantName(departingTenant)}</span>
-          <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">
+          <Badge variant="outline" className="text-xs border-warning text-warning">
             {t('tenancy.departing')}
           </Badge>
           {departingTenant.planned_ending_date && (
@@ -70,13 +70,13 @@ export function TenantSwitcher({ tenants, selectedTenantId, onSelectTenant, onVi
           className={cn(
             "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all",
             selectedTenantId === incomingTenant.id
-              ? "border-green-500 bg-green-500/10 shadow-sm"
-              : "border-border hover:border-green-500/50 hover:bg-green-500/5"
+              ? "border-success bg-success/10 shadow-sm"
+              : "border-border hover:border-success/50 hover:bg-success/5"
           )}
         >
-          <LogIn className="h-4 w-4 text-green-600" />
+          <LogIn className="h-4 w-4 text-success" />
           <span className="text-sm font-medium">{getTenantName(incomingTenant)}</span>
-          <Badge variant="outline" className="text-xs border-green-500 text-green-600">
+          <Badge variant="outline" className="text-xs border-success text-success">
             {t('tenancy.incoming')}
           </Badge>
         </button>

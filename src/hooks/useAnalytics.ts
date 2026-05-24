@@ -40,7 +40,7 @@ export const useAnalytics = () => {
     event_name, 
     event_category, 
     event_metadata 
-  }: { event_name: string; event_category?: string; event_metadata?: Record<string, any> }) => {
+  }: { event_name: string; event_category?: string; event_metadata?: Record<string, unknown> }) => {
     try {
       const user = await authService.getCurrentUser();
 

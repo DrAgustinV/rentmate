@@ -12,6 +12,7 @@ import { formatDate } from "@/lib/dateUtils";
 import { AlertCircle, Clock, Play, CheckCircle } from "lucide-react";
 import { CompleteTaskDialog } from "@/components/maintenance/CompleteTaskDialog";
 import { showToast } from "@/lib/toastUtils";
+import { priorityColors, typeColors } from "@/lib/maintenanceColors";
 
 interface ScheduledTasksProps {
   propertyId: string;
@@ -90,7 +91,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
       // Fetch associated tickets for each schedule
       const schedulesWithTickets = await Promise.all(
         (schedules || []).map(async (schedule) => {
-          const template = schedule.ticket_templates as any;
+          const template = schedule.ticket_templates as unknown as { id: string; title: string; description: string; type: string; priority: string };
           const cycleDates = getScheduleCycleDates(schedule.next_run_date, schedule.frequency);
           
           const { data: ticket } = await supabase
@@ -114,7 +115,7 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
   });
 
   const startTaskMutation = useMutation({
-    mutationFn: async ({ schedule, template }: { schedule: any; template: any }) => {
+    mutationFn: async ({ schedule, template }: { schedule: { id: string; ticket: { id: string; status: string; resolved_at: string | null } | null; ticket_templates: { id: string; title: string; description: string; type: string; priority: string } | null }; template: { id: string; title: string; description: string; type: string; priority: string } }) => {
       const user = await authService.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
@@ -216,12 +217,12 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
     },
   });
 
-  const handleStartTask = (schedule: any) => {
+  const handleStartTask = (schedule: { id: string; ticket: { id: string; status: string; resolved_at: string | null } | null; ticket_templates: { id: string; title: string; description: string; type: string; priority: string } | null }) => {
     const template = schedule.ticket_templates;
     startTaskMutation.mutate({ schedule, template });
   };
 
-  const handleCompleteTask = (schedule: any, ticket: any) => {
+  const handleCompleteTask = (schedule: { id: string; ticket_templates: { id: string; title: string; description: string; type: string; priority: string } | null }, ticket: { id: string; status: string }) => {
     const template = schedule.ticket_templates;
     setCompletingTask({
       scheduleId: schedule.id,
@@ -245,21 +246,6 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
   const formatStatus = (status: string | null) => {
     if (!status) return "Not Started";
     return status.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase());
-  };
-
-  const priorityColors = {
-    low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-    high: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-    urgent: "bg-red-500/10 text-red-500 border-red-500/20",
-  };
-
-  const typeColors = {
-    maintenance: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-    repair: "bg-red-500/10 text-red-500 border-red-500/20",
-    inspection: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    cleaning: "bg-green-500/10 text-green-500 border-green-500/20",
-    other: "bg-gray-500/10 text-gray-500 border-gray-500/20",
   };
 
   if (isLoading) {
@@ -288,19 +274,19 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
     <>
       <div className="space-y-3">
         {scheduledTasks.map((schedule) => {
-          const template = schedule.ticket_templates as any;
-          const ticket = schedule.ticket;
+          const template = schedule.ticket_templates as unknown as { id: string; title: string; description: string; type: string; priority: string };
+          const ticket = schedule.ticket as { id: string; status: string; resolved_at: string | null } | null;
           const nextRunDate = parseISO(schedule.next_run_date);
           const isOverdue = isPast(nextRunDate) && ticket?.status !== "resolved";
 
           return (
-            <Card key={schedule.id} className={isOverdue ? "border-orange-500/50" : ""}>
+            <Card key={schedule.id} className={isOverdue ? "border-warning/50" : ""}>
               <CardContent className="py-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       {isOverdue && (
-                        <AlertCircle className="h-4 w-4 text-orange-500" />
+                        <AlertCircle className="h-4 w-4 text-warning" />
                       )}
                       <h3 className="font-semibold">{template?.title}</h3>
                     </div>
@@ -317,11 +303,11 @@ const ScheduledTasks = ({ propertyId }: ScheduledTasksProps) => {
                     </div>
                   </div>
                   <div className="text-right ml-4">
-                    <p className={`text-sm font-medium ${isOverdue ? "text-orange-500" : "text-muted-foreground"}`}>
+                    <p className={`text-sm font-medium ${isOverdue ? "text-warning" : "text-muted-foreground"}`}>
                       {format(nextRunDate, "dd MMMM yyyy")}
                     </p>
                     {isOverdue && (
-                      <p className="text-xs text-orange-500">Overdue</p>
+                      <p className="text-xs text-warning">Overdue</p>
                     )}
                   </div>
                 </div>

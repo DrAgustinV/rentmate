@@ -162,7 +162,7 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [fetchVerificationStatus]);
+  }, [fetchVerificationStatus, isPublicRoute, location.pathname, location.search, navigate]);
 
   useEffect(() => {
     if (loading || isPublicRoute || emailVerified !== false || !userId || verificationSent) return;
@@ -217,7 +217,7 @@ export function EmailVerificationGate({ children }: EmailVerificationGateProps) 
       }
 
       showToast.success(t("auth.verificationEmailSent"));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error resending verification:", error);
       showToast.error(t("auth.verificationEmailFailed"));
     } finally {

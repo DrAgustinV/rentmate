@@ -15,14 +15,11 @@ export default function KiltSetup() {
   const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
-  const [credentials, setCredentials] = useState<any>(null);
+  const [credentials, setCredentials] = useState<Record<string, string> | null>(null);
   const [copied, setCopied] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
-    checkAdminRole();
-  }, []);
-
-  const checkAdminRole = async () => {
+    const checkAdminRole = async () => {
     const user = await authService.getCurrentUser();
     
     if (!user) {
@@ -42,7 +39,10 @@ export default function KiltSetup() {
     }
     
     setIsAdmin(data);
-  };
+    };
+
+    checkAdminRole();
+  }, [navigate]);
 
   const generateCredentials = async () => {
     try {

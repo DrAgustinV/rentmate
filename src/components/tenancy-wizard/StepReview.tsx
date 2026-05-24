@@ -5,7 +5,7 @@ import { CheckCircle2, Mail, Shield, FileSignature, FileText, Zap } from "lucide
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StepProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn;
 }
 
 export function StepReview({ form }: StepProps) {
