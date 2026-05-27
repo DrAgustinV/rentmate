@@ -33,6 +33,7 @@ interface ContactInfoCardProps {
   isReadOnly: boolean;
   onEditTenant?: (tenant: Tenant) => void;
   onEndTenancy?: (tenant: Tenant) => void;
+  onFinalizeTenancy?: (tenant: Tenant) => void;
   onInvite?: () => void;
   invitationStatus?: 'none' | 'draft' | 'pending' | 'accepted' | 'declined' | 'expired';
 }
@@ -44,6 +45,7 @@ export function ContactInfoCard({
   isReadOnly,
   onEditTenant,
   onEndTenancy,
+  onFinalizeTenancy,
   onInvite,
   invitationStatus = 'none',
 }: ContactInfoCardProps) {
@@ -177,7 +179,7 @@ export function ContactInfoCard({
             {!isReadOnly && onEditTenant && (
               <Button variant="outline" size="sm" onClick={() => onEditTenant(currentTenant)}>
                 <Pencil className="h-3 w-3 mr-1" />
-                {t("common.edit")}
+                {t("tenancy.editContact")}
               </Button>
             )}
           </div>
@@ -221,7 +223,7 @@ export function ContactInfoCard({
                 )}
               </div>
             </div>
-            {!isReadOnly && (currentTenant.tenancy_status === 'active' || currentTenant.tenancy_status === 'ending_tenancy') && (
+            {!isReadOnly && currentTenant.tenancy_status === 'active' && (
               <Button
                 variant="outline"
                 size="sm"
@@ -230,6 +232,17 @@ export function ContactInfoCard({
               >
                 <CalendarX className="h-3 w-3 mr-1" />
                 {t("dialogs.manageTenants.endTenancy")}
+              </Button>
+            )}
+            {!isReadOnly && currentTenant.tenancy_status === 'ending_tenancy' && onFinalizeTenancy && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onFinalizeTenancy(currentTenant)}
+                className="border-destructive text-destructive hover:bg-destructive/10 flex-shrink-0"
+              >
+                <CalendarX className="h-3 w-3 mr-1" />
+                {t("dialogs.manageTenants.finalize")}
               </Button>
             )}
             {/* Invite Tenant button for self-managed active tenancies */}

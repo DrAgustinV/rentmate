@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
-import { UserCircle, Settings, LogOut, Menu, Lightbulb, Building, Handshake, GitBranch, Users } from "lucide-react";
+import { UserCircle, Settings, LogOut, Menu, Lightbulb, Building, Handshake, GitBranch, Users, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -56,7 +56,7 @@ export function AuthenticatedHeader({ user, onSignOut }: AuthenticatedHeaderProp
     <header className="sticky top-0 z-50 w-full" style={{ backgroundColor: 'hsl(var(--header-background) / var(--header-background-opacity))' }}>
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <LogoPill linkTo={activeRole === "manager" ? "/properties" : "/rentals"} />
+          <LogoPill linkTo="/dashboard" />
           <Badge
             variant="secondary"
             className="hidden sm:inline-flex text-[10px] px-2 py-0 h-5"
@@ -69,6 +69,20 @@ export function AuthenticatedHeader({ user, onSignOut }: AuthenticatedHeaderProp
         <nav className="hidden md:flex items-center gap-1">
           {activeRole === "manager" ? (
             <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("text-white hover:text-white hover:bg-white/20", isActive("/dashboard") && "bg-white/20")}
+                    onClick={() => navigate("/dashboard")}
+                    aria-current={isActive("/dashboard") ? "page" : undefined}
+                  >
+                    <LayoutDashboard className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("header.dashboard")}</TooltipContent>
+              </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -127,20 +141,36 @@ export function AuthenticatedHeader({ user, onSignOut }: AuthenticatedHeaderProp
               </Tooltip>
             </>
           ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn("text-white hover:text-white hover:bg-white/20", isActive("/rentals") && "bg-white/20")}
-                  onClick={() => navigate("/rentals")}
-                  aria-current={isActive("/rentals") ? "page" : undefined}
-                >
-                  <Handshake className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{t("rentals.title")}</TooltipContent>
-            </Tooltip>
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("text-white hover:text-white hover:bg-white/20", isActive("/dashboard") && "bg-white/20")}
+                    onClick={() => navigate("/dashboard")}
+                    aria-current={isActive("/dashboard") ? "page" : undefined}
+                  >
+                    <LayoutDashboard className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("header.dashboard")}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("text-white hover:text-white hover:bg-white/20", isActive("/rentals") && "bg-white/20")}
+                    onClick={() => navigate("/rentals")}
+                    aria-current={isActive("/rentals") ? "page" : undefined}
+                  >
+                    <Handshake className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("rentals.title")}</TooltipContent>
+              </Tooltip>
+            </>
           )}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -180,6 +210,14 @@ export function AuthenticatedHeader({ user, onSignOut }: AuthenticatedHeaderProp
                 </Badge>
               </div>
               <div className="flex flex-col gap-2">
+                <Button
+                  variant={isActive("/dashboard") ? "default" : "ghost"}
+                  className="justify-start gap-2"
+                  onClick={() => { navigate("/dashboard"); closeMobile(); }}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  {t('header.dashboard')}
+                </Button>
                 {activeRole === "manager" && (
                   <Button
                     variant={isActive("/properties") ? "default" : "ghost"}

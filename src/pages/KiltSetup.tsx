@@ -34,7 +34,7 @@ export default function KiltSetup() {
     
     if (error || !data) {
       console.error('Role check error:', error);
-      navigate('/dashboard');
+      navigate('/properties');
       return;
     }
     

@@ -28,6 +28,9 @@ function mapToTenancyDomain(row: PropertyTenantJoined): TenancyDomain {
     endReason: row.end_reason || null,
     notes: row.notes || null,
     createdAt: row.created_at,
+    managerTenantName: row.manager_tenant_name || null,
+    managerTenantSurname: row.manager_tenant_surname || null,
+    managerTenantPhone: row.manager_tenant_phone || null,
   };
 }
 

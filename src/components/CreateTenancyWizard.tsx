@@ -27,6 +27,9 @@ import { StepTenantEmail, StepVerification, StepContractMethod, StepRentDeposits
 
 const formSchema = z.object({
   tenant_email: z.string().email("Valid email required").or(z.literal("")).optional(),
+  manager_tenant_name: z.string().optional(),
+  manager_tenant_surname: z.string().optional(),
+  manager_tenant_phone: z.string().optional(),
   require_email_verification: z.boolean().default(true),
   require_kyc_verification: z.boolean().default(false),
   require_phone_verification: z.boolean().default(false),
@@ -65,6 +68,11 @@ interface CreateTenancyWizardProps {
     contract_method?: string | null;
     require_email_verification?: boolean | null;
     require_kyc_verification?: boolean | null;
+    require_phone_verification?: boolean | null;
+    selected_template_id?: string | null;
+    manager_tenant_name?: string;
+    manager_tenant_surname?: string;
+    manager_tenant_phone?: string;
     utilities_config?: UtilitiesConfig | Record<string, unknown> | null;
   } | null;
   mode?: 'new' | 'edit' | 'invite' | 'next_tenancy';
@@ -135,10 +143,13 @@ export function CreateTenancyWizard({
     resolver: zodResolver(formSchema),
     defaultValues: {
       tenant_email: initialData?.tenant_email || '',
+      manager_tenant_name: '',
+      manager_tenant_surname: '',
+      manager_tenant_phone: '',
       require_email_verification: initialData?.require_email_verification ?? true,
       require_kyc_verification: initialData?.require_kyc_verification ?? defaultSettings?.require_kyc ?? false,
       require_phone_verification: false,
-      self_manage_only: false,
+      self_manage_only: initialData?.self_manage_only ?? false,
       contract_method: (initialData?.contract_method as 'digital' | 'manual' | 'none') || 'manual',
       selected_template_id: null,
       rent_amount: initialData?.rent_amount_cents ? (initialData.rent_amount_cents / 100).toString() : '',
@@ -167,12 +178,15 @@ export function CreateTenancyWizard({
     if (open && initialData) {
       form.reset({
         tenant_email: initialData.tenant_email || '',
+        manager_tenant_name: initialData.manager_tenant_name || '',
+        manager_tenant_surname: initialData.manager_tenant_surname || '',
+        manager_tenant_phone: initialData.manager_tenant_phone || '',
         require_email_verification: initialData.require_email_verification ?? true,
         require_kyc_verification: initialData.require_kyc_verification ?? defaultSettings?.require_kyc ?? false,
-        require_phone_verification: false,
-        self_manage_only: false,
+        require_phone_verification: initialData.require_phone_verification ?? false,
+        self_manage_only: initialData.self_manage_only ?? false,
         contract_method: (initialData.contract_method as 'digital' | 'manual' | 'none') || 'manual',
-        selected_template_id: null,
+        selected_template_id: initialData.selected_template_id ?? null,
         rent_amount: initialData.rent_amount_cents ? (initialData.rent_amount_cents / 100).toString() : '',
         currency: initialData.currency || 'EUR',
         security_deposit: initialData.security_deposit_cents
@@ -274,6 +288,9 @@ export function CreateTenancyWizard({
   const buildSubmitInput = (data: FormData): CreateTenancyRequirementInput => ({
     property_id: propertyId,
     tenant_email: data.tenant_email || null,
+    manager_tenant_name: data.manager_tenant_name || null,
+    manager_tenant_surname: data.manager_tenant_surname || null,
+    manager_tenant_phone: data.manager_tenant_phone || null,
     require_email_verification: data.self_manage_only ? false : data.require_email_verification,
     require_kyc_verification: data.require_kyc_verification,
     require_phone_verification: data.require_phone_verification,

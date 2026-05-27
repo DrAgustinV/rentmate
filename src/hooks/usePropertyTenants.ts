@@ -19,6 +19,9 @@ export interface Tenant {
   notes: string | null;
   avatar_url?: string | null;
   kyc_status?: string | null;
+  manager_tenant_name?: string | null;
+  manager_tenant_surname?: string | null;
+  manager_tenant_phone?: string | null;
   profiles?: {
     first_name: string | null;
     last_name: string | null;
@@ -63,12 +66,21 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
     queryFn: async () => {
       const tenancies = await tenantService.getTenanciesByProperty(propertyId!);
       return tenancies.map(t => ({
-        ...t,
+        id: t.id,
+        tenant_id: t.tenantId,
+        tenancy_status: t.status,
+        started_at: t.startDate,
+        ended_at: t.endedAt,
+        planned_ending_date: t.plannedEndDate,
         email: t.tenantEmail,
         first_name: t.tenantFirstName,
         last_name: t.tenantLastName,
+        notes: t.notes || null,
         avatar_url: null,
         kyc_status: null,
+        manager_tenant_name: t.managerTenantName ?? null,
+        manager_tenant_surname: t.managerTenantSurname ?? null,
+        manager_tenant_phone: t.managerTenantPhone ?? null,
       })) as Tenant[];
     },
     enabled: !!propertyId,
@@ -224,35 +236,6 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
     },
   });
 
-  const undoFinalizeTenancyMutation = useMutation({
-    mutationFn: async (tenantId: string) => {
-      const { data: tenant } = await supabase
-        .from("property_tenants")
-        .select("ended_at")
-        .eq("id", tenantId)
-        .single();
-
-      if (!tenant?.ended_at) throw new Error("Cannot undo: tenancy was not finalized");
-
-      const endedAt = new Date(tenant.ended_at);
-      const hoursSinceEnd = (Date.now() - endedAt.getTime()) / (1000 * 60 * 60);
-      if (hoursSinceEnd > 24) throw new Error(t("dialogs.manageTenants.undoExpired") || "Undo window has expired (24 hours)");
-
-      const { error } = await supabase
-        .from("property_tenants")
-        .update({ tenancy_status: "ending_tenancy", ended_at: null })
-        .eq("id", tenantId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      showToast.success(t("dialogs.manageTenants.undoFinalizeSuccess") || "Tenancy restored to ending");
-      queryClient.invalidateQueries({ queryKey: ["all-tenants-basic", propertyId] });
-    },
-    onError: (error: Error) => {
-      showToast.error(t("common.error"));
-    },
-  });
-
   const cancelInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
       const { error } = await supabase.from("invitations").update({ status: "cancelled" }).eq("id", invitationId);
@@ -296,7 +279,6 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
     dismissInvitationMutation,
     endTenancyMutation,
     finalizeTenancyMutation,
-    undoFinalizeTenancyMutation,
     cancelInvitationMutation,
     deleteTenancyMutation,
   };

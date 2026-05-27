@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { paymentService } from "@/services";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { User, Calendar, DollarSign, CreditCard, Ticket, CheckCircle, Clock } from "lucide-react";
 
 interface HistoricTenancyDetailsProps {

@@ -117,7 +117,7 @@ export default function Invitations() {
       );
 
       await queryClient.invalidateQueries({ queryKey: TENANT_PROPERTIES_QUERY_KEY });
-      navigate("/dashboard");
+      navigate("/rentals");
     } catch (error) {
       console.error("Error accepting invitation:", error);
       showToast.error(t("invitations.error"), t("invitations.errorDesc"));

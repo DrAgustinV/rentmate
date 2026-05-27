@@ -70,7 +70,7 @@ export default function Configuration() {
         .limit(1);
 
       if (!properties || properties.length === 0) {
-        navigate("/dashboard");
+        navigate("/properties");
         return;
       }
 

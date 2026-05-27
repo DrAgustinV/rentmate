@@ -148,7 +148,7 @@ export function RoleResolver({ children }: { children: ReactNode }) {
         setActiveRoleSilently("manager");
       }
     }
-    // Shared routes (/properties/:id/*, /invitations, /account) — no auto-switch
+    // Shared routes (/properties/:id/*, /invitations, /account, /dashboard) — no auto-switch
   }, [location.pathname, activeRole, setActiveRoleSilently]);
 
   return <>{children}</>;

@@ -79,13 +79,16 @@ export function HistoricTab({ propertyId, isManager }: HistoricTabProps) {
         }
       }
 
-      // Merge data
       return historicTenants.map(t => ({
-        ...t,
-        email: t.tenantId ? tenantDetails[t.tenantId]?.email || '' : '',
-        first_name: t.tenantId ? tenantDetails[t.tenantId]?.first_name : null,
-        last_name: t.tenantId ? tenantDetails[t.tenantId]?.last_name : null,
-      })) as HistoricTenancy[];
+        id: t.id,
+        tenant_id: t.tenantId || '',
+        email: t.tenantId ? (tenantDetails[t.tenantId]?.email || t.tenantEmail || '') : (t.tenantEmail || ''),
+        first_name: t.tenantId ? (tenantDetails[t.tenantId]?.first_name || t.tenantFirstName) : t.tenantFirstName,
+        last_name: t.tenantId ? (tenantDetails[t.tenantId]?.last_name || t.tenantLastName) : t.tenantLastName,
+        started_at: t.startDate,
+        ended_at: t.endedAt,
+        tenancy_status: t.status,
+      }));
     },
   });
 

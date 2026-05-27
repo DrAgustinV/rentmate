@@ -117,7 +117,7 @@ export default function ResetPassword() {
       
       // Wait a moment then redirect to dashboard
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/properties');
       }, 1500);
     } catch (error: unknown) {
       console.error('Set new password error:', error);

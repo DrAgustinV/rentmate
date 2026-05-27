@@ -38,7 +38,7 @@ export default function Admin() {
       });
 
       if (error || !data) {
-        navigate("/dashboard");
+        navigate("/properties");
         return;
       }
 

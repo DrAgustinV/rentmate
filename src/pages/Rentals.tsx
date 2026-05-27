@@ -58,6 +58,33 @@ export default function Rentals() {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
+  const checkIfManager = async (uid: string, mounted: boolean): Promise<boolean> => {
+    const { data } = await supabase
+      .from("properties")
+      .select("id")
+      .eq("manager_id", uid)
+      .limit(1);
+
+    const isManagerResult = data && data.length > 0;
+    if (mounted) setIsManager(isManagerResult);
+    return isManagerResult;
+  };
+
+  const fetchData = useCallback(async (uid: string, email: string, isManagerParam: boolean, mounted: boolean) => {
+    if (!mounted) return;
+    setLoading(true);
+    try {
+      await fetchTenantTenancies(uid);
+      await fetchTenantInvitations(email);
+    } finally {
+      if (mounted) setLoading(false);
+    }
+  }, []);
+
+  const handleTourFinish = () => {
+    setRunTour(false);
+  };
+
   useEffect(() => {
     const currentParams = searchParams.toString();
     if (currentParams === processedParams.current) return;
@@ -78,48 +105,21 @@ export default function Rentals() {
       const showTourParam = searchParams.get("tour") === "true";
       if (showTourParam) {
         setRunTour(true);
-        searchParams.delete("tour");
-        setSearchParams(searchParams, { replace: true });
-        return;
+      } else if (session.user.email) {
+        const shouldShow = await shouldShowRentalsTour(session.user.id);
+        if (shouldShow) {
+          setRunTour(true);
+        }
       }
-
-      const shouldShowTourOnLoad = await shouldShowRentalsTour(session.user.id);
-      if (shouldShowTourOnLoad) {
-        setRunTour(true);
-        return;
-      }
+      if (mounted) setLoading(false);
     };
 
     checkUser();
-    return () => { mounted = false; };
+
+    return () => {
+      mounted = false;
+    };
   }, [navigate, searchParams, setSearchParams, fetchData]);
-
-  const handleTourFinish = () => {
-    setRunTour(false);
-  };
-
-  const checkIfManager = async (uid: string, mounted: boolean): Promise<boolean> => {
-    const { data } = await supabase
-      .from("properties")
-      .select("id")
-      .eq("manager_id", uid)
-      .limit(1);
-    
-    const isManagerResult = data && data.length > 0;
-    if (mounted) setIsManager(isManagerResult);
-    return isManagerResult;
-  };
-
-  const fetchData = useCallback(async (uid: string, email: string, isManagerParam: boolean, mounted: boolean) => {
-    if (!mounted) return;
-    setLoading(true);
-    try {
-      await fetchTenantTenancies(uid);
-      await fetchTenantInvitations(email);
-    } finally {
-      if (mounted) setLoading(false);
-    }
-  }, []);
 
   const fetchTenantTenancies = async (tenantId: string) => {
     // Include archived tenancies

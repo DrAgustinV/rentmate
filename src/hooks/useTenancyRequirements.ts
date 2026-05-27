@@ -46,6 +46,9 @@ export interface TenancyRequirement {
 export interface CreateTenancyRequirementInput {
   property_id: string;
   tenant_email?: string | null;
+  manager_tenant_name?: string | null;
+  manager_tenant_surname?: string | null;
+  manager_tenant_phone?: string | null;
   require_email_verification?: boolean;
   require_kyc_verification?: boolean;
   require_phone_verification?: boolean;

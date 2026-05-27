@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { profileService, tenancyService } from "@/services";
 import { formatDate } from "@/lib/dateUtils";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
 import { 
-  User, Mail, FileSignature, CheckCircle, Zap, Pencil, Send, FileText, Settings, Trash2
+  User, Mail, FileSignature, CheckCircle, Zap, Pencil, Send, FileText, Settings, Phone, Eye, EyeOff, CalendarX
 } from "lucide-react";
 
 interface Tenant {
@@ -42,7 +42,8 @@ interface TenancyOverviewCardProps {
   onStartSetup?: () => void;
   onSendInvitation?: () => void;
   onEdit?: () => void;
-  onDeleteTenancy?: (tenantId: string) => void;
+  onEndTenancy?: (tenant: Tenant) => void;
+  onFinalizeTenancy?: (tenant: Tenant) => void;
 }
 
 const formatCurrency = (cents: number | null | undefined, currency: string = 'EUR') => {
@@ -127,7 +128,8 @@ export function TenancyOverviewCard({
   onStartSetup,
   onSendInvitation,
   onEdit,
-  onDeleteTenancy,
+  onEndTenancy,
+  onFinalizeTenancy,
 }: TenancyOverviewCardProps) {
   const { t } = useLanguage();
   const isManager = userRole?.isManager;
@@ -180,6 +182,37 @@ export function TenancyOverviewCard({
     },
     enabled: !!tenancyId,
   });
+
+  const [showProfileData, setShowProfileData] = useState(false);
+
+  // Fetch manager-entered contact info from property_tenants
+  const { data: managerContact } = useQuery({
+    queryKey: ["manager-tenant-contact", currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return null;
+      const { data, error } = await supabase
+        .from("property_tenants")
+        .select("manager_tenant_name, manager_tenant_surname, manager_tenant_phone")
+        .eq("id", currentTenant.id)
+        .single();
+      if (error) throw error;
+      return data as { manager_tenant_name: string | null; manager_tenant_surname: string | null; manager_tenant_phone: string | null; } | null;
+    },
+    enabled: !!currentTenant?.id,
+  });
+
+  const hasManagerData = !!(managerContact?.manager_tenant_name || managerContact?.manager_tenant_surname);
+  const displayName = showProfileData
+    ? (currentTenant?.first_name && currentTenant?.last_name
+        ? `${currentTenant.first_name} ${currentTenant.last_name}`
+        : currentTenant?.first_name || currentTenant?.email || "—")
+    : (managerContact?.manager_tenant_name || managerContact?.manager_tenant_surname
+        ? `${managerContact.manager_tenant_name || ""} ${managerContact.manager_tenant_surname || ""}`.trim()
+        : currentTenant?.first_name && currentTenant?.last_name
+            ? `${currentTenant.first_name} ${currentTenant.last_name}`
+            : currentTenant?.first_name || currentTenant?.email || "—");
+
+  const displayPhone = !showProfileData && managerContact?.manager_tenant_phone;
 
   const hasRentalData = !!rentAgreement || !!tenancyRequirements;
 
@@ -303,7 +336,7 @@ export function TenancyOverviewCard({
       )}
 
       {/* RENTAL TERMS VIEW - Combined into single card */}
-      {!showPendingSetup && hasRentalData && (
+      {!showPendingSetup && (hasRentalData || currentTenant) && (
         <Card className="card-shine">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -312,6 +345,11 @@ export function TenancyOverviewCard({
                 {t("propertyTenants.tenantInfo") || "Tenancy Overview"}
               </CardTitle>
               {currentTenant && <StatusBadge status={currentTenant.tenancy_status} />}
+              {currentTenant && !currentTenant.tenant_id && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-muted-foreground border-muted-foreground/30">
+                  {t("tenancy.selfManaged")}
+                </Badge>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -324,11 +362,42 @@ export function TenancyOverviewCard({
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <p className="font-semibold">{tenantName}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-semibold">{displayName}</p>
+                  {isManager && hasManagerData && !showProfileData && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-muted-foreground border-muted-foreground/30">
+                      {t("tenants.managerData")}
+                    </Badge>
+                  )}
+                  {isManager && showProfileData && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-info border-info/30">
+                      {t("tenants.tenantProfileData")}
+                    </Badge>
+                  )}
+                </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Mail className="h-3.5 w-3.5" />
                   {currentTenant?.email || "—"}
                 </div>
+                {displayPhone && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
+                    <Phone className="h-3.5 w-3.5" />
+                    {displayPhone}
+                  </div>
+                )}
+                {isManager && hasManagerData && (
+                  <button
+                    type="button"
+                    onClick={() => setShowProfileData(!showProfileData)}
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-1"
+                  >
+                    {showProfileData ? (
+                      <><EyeOff className="h-3 w-3" /> {t("tenants.hideProfileData")}</>
+                    ) : (
+                      <><Eye className="h-3 w-3" /> {t("tenants.showProfileData")}</>
+                    )}
+                  </button>
+                )}
               </div>
               {!isManager && managerInfo && (
                 <div className="text-right">
@@ -410,12 +479,24 @@ export function TenancyOverviewCard({
               </div>
             )}
 
-            {/* Edit / Delete Buttons */}
-            <div className="flex justify-end gap-2 pt-2">
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2 pt-2 flex-wrap">
+              {onEndTenancy && !isReadOnly && tenancyStatus === 'active' && (
+                <Button variant="outline" size="sm" className="h-8 border-warning text-warning hover:bg-warning/10" onClick={() => onEndTenancy(currentTenant!)}>
+                  <CalendarX className="h-3.5 w-3.5 mr-1" />
+                  {t("dialogs.manageTenants.endTenancy")}
+                </Button>
+              )}
+              {onFinalizeTenancy && !isReadOnly && tenancyStatus === 'ending_tenancy' && (
+                <Button variant="outline" size="sm" className="h-8 border-destructive text-destructive hover:bg-destructive/10" onClick={() => onFinalizeTenancy(currentTenant!)}>
+                  <CalendarX className="h-3.5 w-3.5 mr-1" />
+                  {t("dialogs.manageTenants.finalize")}
+                </Button>
+              )}
               {onEdit && !isReadOnly && tenancyStatus === 'active' && (
                 <Button variant="outline" size="sm" className="h-8" onClick={onEdit}>
                   <Pencil className="h-3.5 w-3.5 mr-1" />
-                  {t("common.edit")}
+                  {t("tenancy.editTerms")}
                 </Button>
               )}
               {onEdit && !isReadOnly && tenancyStatus === 'ending_tenancy' && (
@@ -424,19 +505,13 @@ export function TenancyOverviewCard({
                   {t("tenancy.setUpNextTenancy")}
                 </Button>
               )}
-              {onDeleteTenancy && !isReadOnly && currentTenant && !currentTenant.tenant_id && tenancyStatus === 'active' && (
-                <Button variant="outline" size="sm" className="h-8 border-destructive text-destructive hover:bg-destructive/10" onClick={() => onDeleteTenancy(currentTenant.id)}>
-                  <Trash2 className="h-3.5 w-3.5 mr-1" />
-                  {t("tenancy.deleteSelfManaged") || "Remove Tenancy"}
-                </Button>
-              )}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* No data state */}
-      {!showPendingSetup && !hasRentalData && !showSetupButton && (
+      {/* No data state - only when no tenant exists */}
+      {!showPendingSetup && !hasRentalData && !showSetupButton && !currentTenant && (
         <Card className="card-shine">
           <CardContent className="py-12 text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">

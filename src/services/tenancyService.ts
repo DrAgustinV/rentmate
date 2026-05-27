@@ -32,6 +32,9 @@ interface RentAgreementUpdates {
 
 interface PropertyTenantUpdates {
   tenancy_status?: TenancyStatus;
+  manager_tenant_name?: string | null;
+  manager_tenant_surname?: string | null;
+  manager_tenant_phone?: string | null;
 }
 
 interface MandateInfo {
@@ -194,6 +197,18 @@ export async function updatePropertyTenantStatus(id: string, updates: PropertyTe
   if (error) throw error;
 }
 
+export async function updatePropertyTenantContactInfo(id: string, data: {
+  manager_tenant_name?: string | null;
+  manager_tenant_surname?: string | null;
+  manager_tenant_phone?: string | null;
+}): Promise<void> {
+  const { error } = await supabase
+    .from('property_tenants')
+    .update(data)
+    .eq('id', id);
+  if (error) throw error;
+}
+
 export async function updateRentAgreementSimple(id: string, updates: RentAgreementUpdates): Promise<void> {
   const { error } = await supabase
     .from('rent_agreements')
@@ -284,6 +299,7 @@ export const tenancyService = {
   getTenantPropertiesForUser,
   checkActiveTenancy,
   updatePropertyTenantStatus,
+  updatePropertyTenantContactInfo,
   updateRentAgreementSimple,
   getTenantPropertyIds,
   getTenancyStartDate,

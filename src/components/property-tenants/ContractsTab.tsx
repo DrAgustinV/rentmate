@@ -13,7 +13,7 @@ import {
   Plus,
   Pencil,
   Send,
-  X,
+  Trash2,
   Mail,
 } from "lucide-react";
 import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
@@ -101,7 +101,6 @@ interface ContractsTabCallbacks {
   onBulkDismissDeclined?: (invitations: Invitation[]) => void;
   onEditRentalTerms?: () => void;
   onInviteInSelfManaged?: () => void;
-  onDeleteTenancy?: (tenantId: string) => void;
 }
 
 interface ContractsTabProps {
@@ -137,7 +136,6 @@ export function ContractsTab({
     onBulkDismissDeclined,
     onEditRentalTerms,
     onInviteInSelfManaged,
-    onDeleteTenancy,
   } = callbacks;
   const { t } = useLanguage();
   const queryClient = useQueryClient();
@@ -373,7 +371,7 @@ export function ContractsTab({
                 {isPendingDraft && onStartSetup && (
                   <Button variant="outline" size="sm" className="h-8" onClick={onStartSetup}>
                     <Pencil className="h-3.5 w-3.5 mr-1" />
-                    {t("common.edit")}
+                    {t("tenancy.editSetup")}
                   </Button>
                 )}
                 {isPendingDraft && onSendInvitation && (
@@ -384,8 +382,8 @@ export function ContractsTab({
                 )}
                 {onCancelSetup && (
                   <Button variant="ghost" size="sm" className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={onCancelSetup} disabled={isDeleting}>
-                    <X className="h-3.5 w-3.5 mr-1" />
-                    {t("common.cancel")}
+                    <Trash2 className="h-3.5 w-3.5 mr-1" />
+                    {t("tenancy.deleteDraftSetup") || "Delete Draft"}
                   </Button>
                 )}
               </div>
@@ -414,7 +412,8 @@ export function ContractsTab({
             onStartSetup={onStartSetup}
             onSendInvitation={onSendInvitation}
             onEdit={onEditRentalTerms}
-            onDeleteTenancy={onDeleteTenancy}
+            onEndTenancy={onEndTenancy}
+            onFinalizeTenancy={onFinalizeTenancy}
           />
 
           {/* Invitations List */}

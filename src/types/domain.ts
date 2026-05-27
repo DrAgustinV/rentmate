@@ -48,6 +48,9 @@ export interface TenancyDomain {
   endReason: string | null;
   notes: string | null;
   createdAt: string;
+  managerTenantName?: string | null;
+  managerTenantSurname?: string | null;
+  managerTenantPhone?: string | null;
 }
 
 // ========== INVITATION DOMAIN ==========

@@ -10,12 +10,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, AlertTriangle, Lock, Mail } from "lucide-react";
+import { CalendarIcon, AlertTriangle, Lock, Mail, Phone, User } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -32,6 +33,9 @@ interface Tenant {
   first_name: string | null;
   last_name: string | null;
   notes: string | null;
+  manager_tenant_name?: string | null;
+  manager_tenant_surname?: string | null;
+  manager_tenant_phone?: string | null;
 }
 
 interface EditTenantDialogProps {
@@ -53,6 +57,9 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
     tenant?.tenancy_status || "active"
   );
   const [notes, setNotes] = useState(tenant?.notes || "");
+  const [managerName, setManagerName] = useState(tenant?.manager_tenant_name || "");
+  const [managerSurname, setManagerSurname] = useState(tenant?.manager_tenant_surname || "");
+  const [managerPhone, setManagerPhone] = useState(tenant?.manager_tenant_phone || "");
 
   const updateMutation = useMutation({
     mutationFn: async () => {
@@ -64,6 +71,9 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
           started_at: startDate.toISOString(),
           tenancy_status: tenancyStatus,
           notes,
+          manager_tenant_name: managerName || null,
+          manager_tenant_surname: managerSurname || null,
+          manager_tenant_phone: managerPhone || null,
         })
         .eq("id", tenant.id);
       if (error) throw error;
@@ -104,6 +114,40 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
           <div className="space-y-2">
             <Label className="text-muted-foreground">{t("auth.email")}</Label>
             <div className="text-sm font-medium">{tenant.email}</div>
+          </div>
+
+          {/* Manager's tenant contact info */}
+          <div className="space-y-3 p-3 bg-muted/30 rounded-lg border">
+            <p className="text-xs font-medium text-muted-foreground">{t("tenants.managerData")}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>{t("tenants.managerTenantName")}</Label>
+                <Input
+                  value={managerName}
+                  onChange={(e) => setManagerName(e.target.value)}
+                  placeholder={t("tenants.managerTenantName")}
+                  disabled={readOnly}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("tenants.managerTenantSurname")}</Label>
+                <Input
+                  value={managerSurname}
+                  onChange={(e) => setManagerSurname(e.target.value)}
+                  placeholder={t("tenants.managerTenantSurname")}
+                  disabled={readOnly}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("tenants.managerTenantPhone")}</Label>
+              <Input
+                value={managerPhone}
+                onChange={(e) => setManagerPhone(e.target.value)}
+                placeholder={t("tenants.managerTenantPhone")}
+                disabled={readOnly}
+              />
+            </div>
           </div>
 
           {/* Start Date */}

@@ -81,6 +81,37 @@ export default function Account() {
     enabled: !!user,
   });
 
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [kycStatus, setKycStatus] = useState<string | null>(null);
+
+  const fetchProfile = useCallback(async (userId: string, mounted: boolean) => {
+    if (!mounted) return;
+    setLoading(true);
+    try {
+      const profile = await profileService.getProfile(userId);
+
+      const { data: deletionData } = await supabase
+        .from("profiles")
+        .select("deletion_scheduled_for")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (mounted && profile) {
+        setFirstName(profile.firstName || "");
+        setLastName(profile.lastName || "");
+        setDeletionScheduled(deletionData?.deletion_scheduled_for || null);
+        setAvatarUrl(profile.avatarStoragePath);
+        setKycStatus(profile.kycStatus);
+      }
+    } catch (error: any) {
+      if (mounted) {
+        showToast.error(t('common.error'), error.message);
+      }
+    } finally {
+      if (mounted) setLoading(false);
+    }
+  }, [t]);
+
   useEffect(() => {
     let mounted = true;
 
@@ -97,37 +128,6 @@ export default function Account() {
     checkUser();
     return () => { mounted = false; };
   }, [navigate, fetchProfile]);
-
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [kycStatus, setKycStatus] = useState<string | null>(null);
-
-  const fetchProfile = useCallback(async (userId: string, mounted: boolean) => {
-    if (!mounted) return;
-    setLoading(true);
-    try {
-      const profile = await profileService.getProfile(userId);
-      
-      const { data: deletionData } = await supabase
-        .from("profiles")
-        .select("deletion_scheduled_for")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (mounted && profile) {
-        setFirstName(profile.firstName || "");
-        setLastName(profile.lastName || "");
-        setDeletionScheduled(deletionData?.deletion_scheduled_for || null);
-        setAvatarUrl(profile.avatarStoragePath);
-        setKycStatus(profile.kycStatus);
-      }
-    } catch (error: unknown) {
-      if (mounted) {
-        showToast.error(t('common.error'), error instanceof Error ? error.message : String(error));
-      }
-    } finally {
-      if (mounted) setLoading(false);
-    }
-  }, [t]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
