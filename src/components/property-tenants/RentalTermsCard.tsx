@@ -237,12 +237,12 @@ export function RentalTermsCard({
               </Button>
             )}
             {/* Next Tenancy button for ending tenancies */}
-            {!showPendingSetup && hasRentalData && onEdit && !isReadOnly && tenancyStatus === 'ending_tenancy' && (
+            {/* {!showPendingSetup && hasRentalData && onEdit && !isReadOnly && tenancyStatus === 'ending_tenancy' && (
               <Button variant="outline" size="sm" onClick={onEdit}>
                 <Pencil className="h-3 w-3 mr-1" />
                 {t("tenancy.setUpNextTenancy") || "Set Up Next Tenancy"}
               </Button>
-            )}
+            )} */}
           </div>
         </div>
         {/* Subtitle showing current tenant status for managers */}

@@ -1,49 +1,25 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
-import { showToast } from "@/lib/toast";
-import {
-  Upload,
-  FileText,
-  ClipboardCheck,
-  User,
-  Plus,
-  Pencil,
-  Send,
-  Trash2,
-  Mail,
-} from "lucide-react";
-import PropertyDocumentUpload from "@/components/PropertyDocumentUpload";
-import { ContractSignatureManager } from "@/components/ContractSignatureManager";
-import { TenantOnboardingChecklist } from "./TenantOnboardingChecklist";
-import { TenancyOverviewCard } from "./TenancyOverviewCard";
-import { ContractCard } from "./ContractCard";
-import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
-import { InspectionCard } from "@/components/inspection";
-import { documentService } from "@/services";
-import { STORAGE_BUCKETS } from "@/constants";
-
-import { SectionCard } from "./SectionCard";
-import { EmptyState } from "@/components/EmptyState";
-import { ContractsTabSkeleton } from "./ContractsTabSkeleton";
-import { StatusBadge } from "./StatusBadge";
+import { CalendarX, CalendarCheck } from "lucide-react";
+import { TenancyOverviewCard } from "@/components/property-tenants/TenancyOverviewCard";
+import { formatDate } from "@/lib/dateUtils";
 
 interface Tenant {
   id: string;
-  tenant_id: string;
-  tenancy_status: 'active' | 'ending_tenancy' | 'historic' | 'pending';
-  started_at: string;
-  ended_at: string | null;
+  tenant_id?: string;
+  tenancy_status: "active" | "ending_tenancy" | "historic" | "pending";
+  started_at?: string;
+  ended_at?: string | null;
   planned_ending_date?: string | null;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  notes: string | null;
+  email?: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  notes?: string | null;
   avatar_url?: string | null;
   kyc_status?: string | null;
+  manager_tenant_name?: string | null;
+  manager_tenant_surname?: string | null;
+  manager_tenant_phone?: string | null;
 }
 
 interface Invitation {
@@ -57,554 +33,325 @@ interface Invitation {
   tenancy_requirements_id?: string | null;
 }
 
-interface TenancyDocument {
+interface PendingRequirement {
   id: string;
-  document_title: string;
-  file_name: string;
-  file_path: string;
-  file_size_bytes: number;
-  created_at: string;
-  uploaded_by: string;
-  description: string | null;
-  version: number;
-  is_latest_version: boolean;
-  parent_document_id: string | null;
-}
-
-interface TenantContext {
-  currentTenant: Tenant | null;
-  propertyId: string;
-  userRole: { isManager: boolean } | undefined;
-  isReadOnly: boolean;
-}
-
-interface TenancySetupState {
-  pendingRequirement?: TenancyRequirement | null;
-  canSetupNewTenancy?: boolean;
-  hasEndingTenancy?: boolean;
-  isDeleting?: boolean;
-  isResending?: boolean;
-  isDismissing?: boolean;
-}
-
-interface ContractsTabCallbacks {
-  onStartSetup?: () => void;
-  onSendInvitation?: () => void;
-  onCancelSetup?: () => void;
-  onResendInvitation?: (req: TenancyRequirement) => void;
-  onEditTenant?: (tenant: Tenant) => void;
-  onEndTenancy?: (tenant: Tenant) => void;
-  onFinalizeTenancy?: (tenant: Tenant) => void;
-  setCancellingInvitation?: (invitation: Invitation | null) => void;
-  onEditAndResend?: (invitation: Invitation) => void;
-  onDismissInvitation?: (invitation: Invitation) => void;
-  onBulkDismissDeclined?: (invitations: Invitation[]) => void;
-  onEditRentalTerms?: () => void;
-  onInviteInSelfManaged?: () => void;
+  status: string;
+  tenant_email?: string;
+  tenancy_id?: string;
+  rent_amount_cents?: number;
+  security_deposit_cents?: number;
+  currency?: string;
+  payment_day?: number;
 }
 
 interface ContractsTabProps {
-  tenant: TenantContext;
-  setupState?: TenancySetupState;
-  callbacks?: ContractsTabCallbacks;
+  allTenants: Tenant[];
+  tenant: {
+    currentTenant: (Tenant & { id: string; email: string }) | null;
+    propertyId: string;
+    userRole: { isManager?: boolean; isTenant?: boolean } | null;
+    isReadOnly: boolean;
+  };
+  setupState?: {
+    pendingRequirement?: PendingRequirement | null;
+    canSetupNewTenancy?: boolean;
+    hasEndingTenancy?: boolean;
+    isDeleting?: boolean;
+    isResending?: boolean;
+    isDismissing?: boolean;
+  };
+  callbacks?: {
+    onStartSetup?: () => void;
+    onSendInvitation?: () => void;
+    onCancelSetup?: () => void;
+    onResendInvitation?: (id: string) => void;
+    onEditTenant?: (tenant: Tenant) => void;
+    onEndTenancy?: (tenant: Tenant) => void;
+    onFinalizeTenancy?: (tenant: Tenant) => void;
+    setCancellingInvitation?: (inv: Invitation | null) => void;
+    onEditAndResend?: (inv: Invitation) => void;
+    onDismissInvitation?: (inv: Invitation) => void;
+    onBulkDismissDeclined?: (invs: Invitation[]) => void;
+    onEditRentalTerms?: () => void;
+    onInviteInSelfManaged?: () => void;
+  };
+}
+
+function TenancyColumnHeader({
+  status,
+  tenantName,
+  dateLabel,
+  date,
+}: {
+  status: "ending" | "incoming";
+  tenantName: string;
+  dateLabel: string;
+  date?: string;
+}) {
+  const cfg =
+    status === "ending"
+      ? {
+          Icon: CalendarX,
+          label: "Ending tenancy",
+          bg: "bg-amber-50 dark:bg-amber-950/30",
+          border: "border-amber-200 dark:border-amber-800",
+          iconCls: "text-amber-600 dark:text-amber-400",
+          textCls: "text-amber-700 dark:text-amber-300",
+        }
+      : {
+          Icon: CalendarCheck,
+          label: "Incoming tenancy",
+          bg: "bg-blue-50 dark:bg-blue-950/30",
+          border: "border-blue-200 dark:border-blue-800",
+          iconCls: "text-blue-600 dark:text-blue-400",
+          textCls: "text-blue-700 dark:text-blue-300",
+        };
+
+  return (
+    <div className={`flex items-center gap-2 px-4 py-3 ${cfg.bg} border-b ${cfg.border}`}>
+      <cfg.Icon className={`h-4 w-4 flex-shrink-0 ${cfg.iconCls}`} />
+      <div className="flex flex-col min-w-0">
+        <span className={`font-semibold text-sm ${cfg.textCls}`}>{cfg.label}</span>
+        <span className="text-xs text-muted-foreground truncate">{tenantName}</span>
+      </div>
+      {date && (
+        <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
+          {dateLabel}: {formatDate(date)}
+        </span>
+      )}
+    </div>
+  );
 }
 
 export function ContractsTab({
-  tenant: { currentTenant, propertyId, userRole, isReadOnly },
+  allTenants,
+  tenant,
   setupState = {},
   callbacks = {},
 }: ContractsTabProps) {
+  const { t } = useLanguage();
+  const [mobileFocusedId, setMobileFocusedId] = useState<string | null>(null);
+
+  const { propertyId, userRole } = tenant;
   const {
     pendingRequirement,
     canSetupNewTenancy,
-    hasEndingTenancy,
+    isDeleting = false,
+    isResending = false,
+    isDismissing = false,
+  } = setupState;
+
+  const endingTenant =
+    allTenants.find((t) => t.tenancy_status === "ending_tenancy") ?? null;
+
+  const incomingTenant =
+    allTenants.find(
+      (t) =>
+        t.tenancy_status === "pending" ||
+        (t.tenancy_status === "active" && t.id !== endingTenant?.id)
+    ) ?? null;
+
+  const activeSoloTenant = !endingTenant
+    ? (allTenants.find((t) => t.tenancy_status === "active") ?? null)
+    : null;
+
+  const isTransition = !!endingTenant;
+
+  const mobileTenants = [endingTenant, incomingTenant].filter(Boolean) as Tenant[];
+  const mobileFocused =
+    mobileTenants.find((t) => t.id === mobileFocusedId) ?? mobileTenants[0] ?? null;
+
+  const getDisplayName = (t: Tenant | null) => {
+    if (!t) return "—";
+    if (t.tenancy_status === "pending") return t.email || t.manager_tenant_name || "Pending";
+    return (
+      `${t.first_name || t.manager_tenant_name || ""} ${
+        t.last_name || t.manager_tenant_surname || ""
+      }`.trim() || t.email || "—"
+    );
+  };
+
+  const toSafe = (t: Tenant) => ({
+    ...t,
+    id: t.id || "",
+    email: t.email || "Pending",
+    first_name: t.first_name ?? null,
+    last_name: t.last_name ?? null,
+  });
+
+  const makeCardProps = (focusTenant: Tenant) => ({
+    currentTenant: toSafe(focusTenant),
+    propertyId,
+    userRole,
+    isReadOnly: false,
+    tenancyId: focusTenant.id,
+    tenancyStatus: focusTenant.tenancy_status,
+    pendingRequirement:
+      focusTenant.tenancy_status === "pending" ||
+      focusTenant.tenancy_status === "ending_tenancy"
+        ? pendingRequirement
+        : null,
+    canSetupNewTenancy:
+      !focusTenant || ["pending", "ending_tenancy"].includes(focusTenant.tenancy_status),
+    hasEndingTenancy: focusTenant.tenancy_status === "ending_tenancy",
     isDeleting,
     isResending,
     isDismissing,
-  } = setupState;
-  const {
-    onStartSetup,
-    onSendInvitation,
-    onCancelSetup,
-    onResendInvitation,
-    onEditTenant,
-    onEndTenancy,
-    onFinalizeTenancy,
-    setCancellingInvitation,
-    onEditAndResend,
-    onDismissInvitation,
-    onBulkDismissDeclined,
-    onEditRentalTerms,
-    onInviteInSelfManaged,
-  } = callbacks;
-  const { t } = useLanguage();
-  const queryClient = useQueryClient();
-  
-  const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
-  const [selectedParentDoc, setSelectedParentDoc] = useState<{ id: string; title: string } | null>(null);
-  const [tenancyDocsMap] = useState<Record<string, TenancyDocument[]>>({});
-  const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['tenant']) // Default: tenant section open
-  );
-
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => {
-      const next = new Set(prev);
-      if (next.has(section)) {
-        next.delete(section);
-      } else {
-        next.add(section);
-      }
-      return next;
-    });
-  };
-
-  // Query tenancy requirements for contract method
-  const { data: tenancyRequirements } = useQuery({
-    queryKey: ["tenancy-requirements-for-contract", currentTenant?.id],
-    queryFn: async () => {
-      if (!currentTenant) return null;
-      const { data, error } = await supabase
-        .from("tenancy_requirements")
-        .select("contract_method")
-        .eq("tenancy_id", currentTenant.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!currentTenant?.id,
+    hideHeader: true,
+    ...callbacks,
   });
 
-  // Lazy-loaded query for tenancy documents
-  const { data: tenancyDocuments, isLoading: docsLoading, refetch: refetchDocuments } = useQuery({
-    queryKey: ["tenancy-documents", currentTenant?.id],
-    queryFn: async () => {
-      if (!currentTenant) return [];
-      const { data, error } = await supabase
-        .from("property_documents")
-        .select("*")
-        .eq("tenancy_id", currentTenant.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as TenancyDocument[];
-    },
-    enabled: !!currentTenant,
-  });
-
-  // Invitations query (manager only) — includes pending, expired, and declined
-  const { data: invitations } = useQuery({
-    queryKey: ["invitations", propertyId],
-    queryFn: async () => {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
-      const { data, error } = await supabase
-        .from("invitations")
-        .select("id, email, status, expires_at, created_at, decline_reason, declined_at, tenancy_requirements_id")
-        .eq("property_id", propertyId)
-        .in("status", ["pending", "declined", "expired"])
-        .or(`expires_at.gt.${new Date().toISOString()},declined_at.gt.${thirtyDaysAgo.toISOString()},status.eq.expired,created_at.gt.${thirtyDaysAgo.toISOString()}`)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as Invitation[];
-    },
-    enabled: !!propertyId && userRole?.isManager,
-  });
-
-  const now = new Date();
-  const pendingInvitations = invitations?.filter(inv => inv.status === 'pending' && new Date(inv.expires_at) > now) || [];
-  const expiredInvitations = invitations?.filter(inv => inv.status === 'expired' || (inv.status === 'pending' && new Date(inv.expires_at) <= now)) || [];
-  const declinedInvitations = invitations?.filter(inv => inv.status === 'declined') || [];
-
-  const deleteDocumentMutation = useMutation({
-    mutationFn: async (docId: string) => {
-      await documentService.deleteDocument(docId);
-    },
-    onSuccess: () => {
-      showToast.success(t("properties.propertyDocuments.deleteSuccess"));
-      refetchDocuments();
-    },
-    onError: () => {
-      showToast.error(t("properties.propertyDocuments.deleteFailed"));
-    },
-  });
-
-  const loadTenancyDocuments = async (tenancyId: string) => {
-    if (tenancyDocsMap[tenancyId]) return;
-    const { data, error } = await supabase
-      .from("property_documents")
-      .select("*")
-      .eq("tenancy_id", tenancyId)
-      .order("created_at", { ascending: false });
-    if (!error && data) {
-      // Note: This would need a setter in a real implementation
-    }
-  };
-
-  const formatFileSize = (bytes: number) => `${(bytes / 1024).toFixed(2)} KB`;
-
-  const getUploaderName = (doc: TenancyDocument) => doc.uploaded_by ? "User" : "Unknown";
-
-  const toggleDocumentExpansion = (docTitle: string) => {
-    setExpandedDocuments((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(docTitle)) {
-        newSet.delete(docTitle);
-      } else {
-        newSet.add(docTitle);
-      }
-      return newSet;
-    });
-  };
-
-  const downloadDocument = async (doc: TenancyDocument) => {
-    try {
-      const data = await documentService.downloadFile(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = doc.file_name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error: unknown) {
-      showToast.error(t("common.error"));
-    }
-  };
-
-  const VIEWABLE_EXTENSIONS = ['.pdf', '.txt', '.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'];
-
-  const openDocument = async (doc: TenancyDocument) => {
-    const extension = doc.file_name.toLowerCase().substring(doc.file_name.lastIndexOf('.'));
-    const isViewable = VIEWABLE_EXTENSIONS.includes(extension);
-    
-    if (isViewable) {
-      const newWindow = window.open('', '_blank');
-      try {
-        const url = await documentService.getSignedUrl(STORAGE_BUCKETS.PROPERTY_DOCUMENTS, doc.file_path);
-        if (newWindow) newWindow.location.href = url;
-      } catch (error: unknown) {
-        newWindow?.close();
-        showToast.error(t("properties.openError"));
-      }
-    } else {
-      downloadDocument(doc);
-    }
-  };
-
-  const getTenantName = (tenant: Tenant) => {
-    if (tenant.first_name && tenant.last_name) return `${tenant.first_name} ${tenant.last_name}`;
-    if (tenant.first_name) return tenant.first_name;
-    return tenant.email;
-  };
-
-  const groupedDocuments = tenancyDocuments?.reduce((acc, doc) => {
-    if (!acc[doc.document_title]) acc[doc.document_title] = [];
-    acc[doc.document_title].push(doc);
-    return acc;
-  }, {} as Record<string, TenancyDocument[]>);
-
-  const currentTenantName = currentTenant 
-    ? (currentTenant.first_name && currentTenant.last_name 
-        ? `${currentTenant.first_name} ${currentTenant.last_name}` 
-        : currentTenant.email)
-    : undefined;
-
-  const { data: contractSignature } = useQuery({
-    queryKey: ["contract-signature-status", currentTenant?.id],
-    queryFn: async () => {
-      if (!currentTenant) return null;
-      const { data } = await supabase
-        .from("contract_signatures")
-        .select("workflow_status")
-        .eq("tenancy_id", currentTenant.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!currentTenant?.id,
-  });
-
-  const isContractLocked = !!contractSignature?.workflow_status;
-  const isPendingDraft = pendingRequirement?.status === 'draft';
-  const isPendingSent = pendingRequirement?.status === 'sent';
-
-  if (docsLoading && currentTenant) {
-    return <ContractsTabSkeleton />;
+  if (!endingTenant && !activeSoloTenant && !incomingTenant) {
+    return (
+      <TenancyOverviewCard
+        currentTenant={null}
+        propertyId={propertyId}
+        userRole={userRole}
+        isReadOnly={false}
+        tenancyId={undefined}
+        tenancyStatus={undefined}
+        pendingRequirement={pendingRequirement ?? null}
+        canSetupNewTenancy={canSetupNewTenancy ?? true}
+        hasEndingTenancy={false}
+        isDeleting={isDeleting}
+        isResending={isResending}
+        isDismissing={isDismissing}
+        hideHeader={false}
+        {...callbacks}
+      />
+    );
   }
 
-  const isSectionOpen = (section: string) => expandedSections.has(section);
+  if (!isTransition && activeSoloTenant) {
+    return (
+      <TenancyOverviewCard
+        currentTenant={toSafe(activeSoloTenant)}
+        propertyId={propertyId}
+        userRole={userRole}
+        isReadOnly={false}
+        tenancyId={activeSoloTenant.id}
+        tenancyStatus={activeSoloTenant.tenancy_status}
+        pendingRequirement={pendingRequirement ?? null}
+        canSetupNewTenancy={canSetupNewTenancy ?? false}
+        hasEndingTenancy={false}
+        isDeleting={isDeleting}
+        isResending={isResending}
+        isDismissing={isDismissing}
+        hideHeader={false}
+        {...callbacks}
+      />
+    );
+  }
 
   return (
-    <div className="space-y-6">
-
-      {/* Tenant Onboarding Checklist (tenant only) */}
-      {!userRole?.isManager && currentTenant && (
-        <TenantOnboardingChecklist
-          tenancyId={currentTenant.id}
-          propertyId={propertyId}
-          onScrollToContract={() => {
-            setExpandedSections(prev => new Set([...prev, 'contract']));
-            document.getElementById("section-contract")?.scrollIntoView({ behavior: "smooth" });
-          }}
-          onSwitchToPayments={() => {
-            const paymentsTab = document.querySelector('[data-value="payments"]');
-            if (paymentsTab instanceof HTMLElement) paymentsTab.click();
-          }}
-        />
-      )}
-
-      {/* Section 1: Tenant Overview */}
-      <div id="section-tenant">
-        <SectionCard
-          title={t("propertyTenants.tabs.contracts") || "Tenant & Tenancy"}
-          icon={User}
-          defaultOpen={true}
-          action={
-            pendingRequirement && userRole?.isManager && !isReadOnly ? (
-              <div className="flex items-center gap-2">
-                {isPendingDraft && <StatusBadge status="draft" />}
-                {isPendingSent && <StatusBadge status="sent" />}
-                {isPendingDraft && onStartSetup && (
-                  <Button variant="outline" size="sm" className="h-8" onClick={onStartSetup}>
-                    <Pencil className="h-3.5 w-3.5 mr-1" />
-                    {t("tenancy.editSetup")}
-                  </Button>
+    <div className="space-y-4">
+      {mobileTenants.length > 0 && (
+        <div className="flex md:hidden gap-2 p-1 bg-muted rounded-lg">
+          {mobileTenants.map((t) => {
+            const isEnding = t.tenancy_status === "ending_tenancy";
+            const isFocused = mobileFocused?.id === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setMobileFocusedId(t.id)}
+                className={[
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm font-medium transition-all",
+                  isFocused
+                    ? isEnding
+                      ? "bg-white dark:bg-background text-amber-700 dark:text-amber-300 shadow-sm"
+                      : "bg-white dark:bg-background text-blue-700 dark:text-blue-300 shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                ].join(" ")}
+              >
+                {isEnding ? (
+                  <CalendarX className="h-3.5 w-3.5 flex-shrink-0" />
+                ) : (
+                  <CalendarCheck className="h-3.5 w-3.5 flex-shrink-0" />
                 )}
-                {isPendingDraft && onSendInvitation && (
-                  <Button variant="outline" size="sm" className="h-8" onClick={onSendInvitation}>
-                    <Send className="h-3.5 w-3.5 mr-1" />
-                    {t("tenancy.sendInvitation")}
-                  </Button>
-                )}
-                {onCancelSetup && (
-                  <Button variant="ghost" size="sm" className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={onCancelSetup} disabled={isDeleting}>
-                    <Trash2 className="h-3.5 w-3.5 mr-1" />
-                    {t("tenancy.deleteDraftSetup") || "Delete Draft"}
-                  </Button>
-                )}
-              </div>
-            ) : currentTenant && currentTenant.tenancy_status === 'active' && !currentTenant.tenant_id && onInviteInSelfManaged && userRole?.isManager && !isReadOnly ? (
-              <Button size="sm" onClick={onInviteInSelfManaged}>
-                <Mail className="h-4 w-4 mr-1" />
-                {t("tenancy.inviteTenant")}
-              </Button>
-            ) : !isReadOnly && canSetupNewTenancy && !currentTenant && onStartSetup ? (
-              <Button size="sm" onClick={onStartSetup}>
-                <Plus className="h-4 w-4 mr-1" />
-                {t("tenancy.setupTenancy")}
-              </Button>
-            ) : undefined
-          }
-        >
-          <TenancyOverviewCard
-            propertyId={propertyId}
-            currentTenant={currentTenant}
-            userRole={userRole}
-            isReadOnly={isReadOnly}
-            tenancyId={currentTenant?.id}
-            tenancyStatus={currentTenant?.tenancy_status}
-            pendingRequirement={pendingRequirement || null}
-            canSetupNewTenancy={canSetupNewTenancy || false}
-            onStartSetup={onStartSetup}
-            onSendInvitation={onSendInvitation}
-            onEdit={onEditRentalTerms}
-            onEndTenancy={onEndTenancy}
-            onFinalizeTenancy={onFinalizeTenancy}
-          />
-
-          {/* Invitations List */}
-          {userRole?.isManager && !isReadOnly && (pendingInvitations.length > 0 || expiredInvitations.length > 0 || declinedInvitations.length > 0) && (
-            <div className="mt-6 space-y-3 border-t pt-4">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                {t("tenancy.invitations") || "Invitations"}
-              </h4>
-              {pendingInvitations.map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between gap-4 p-3 bg-muted/50 rounded-lg">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{inv.email}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("tenancy.expires") || "Expires"}: {new Date(inv.expires_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {onEditAndResend && (
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onEditAndResend(inv)}>
-                        <Pencil className="h-3 w-3 mr-1" />
-                        {t("tenancy.editAndResend") || "Edit & Resend"}
-                      </Button>
-                    )}
-                    {setCancellingInvitation && (
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setCancellingInvitation(inv)}>
-                        {t("common.cancel")}
-                      </Button>
-                    )}
-                    {onDismissInvitation && (
-                      <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => onDismissInvitation(inv)}>
-                        {t("common.dismiss") || "Dismiss"}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {expiredInvitations.length > 0 && (
-                <>
-                  <h5 className="text-xs font-medium text-muted-foreground mt-4">
-                    {t("tenancy.expiredInvitations") || "Expired"}
-                  </h5>
-                  {expiredInvitations.map((inv) => (
-                    <div key={inv.id} className="flex items-center justify-between gap-4 p-3 bg-muted/30 rounded-lg">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{inv.email}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("tenancy.expiredOn") || "Expired"}: {new Date(inv.expires_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {onEditAndResend && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onEditAndResend(inv)}>
-                            <Pencil className="h-3 w-3 mr-1" />
-                            {t("tenancy.editAndResend") || "Edit & Resend"}
-                          </Button>
-                        )}
-                        {onDismissInvitation && (
-                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => onDismissInvitation(inv)}>
-                            {t("common.dismiss") || "Dismiss"}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </>
-              )}
-              {declinedInvitations.length > 0 && (
-                <>
-                  <div className="flex items-center justify-between mt-4">
-                    <h5 className="text-xs font-medium text-muted-foreground">
-                      {t("tenancy.declinedInvitations") || "Declined"}
-                    </h5>
-                    {onBulkDismissDeclined && declinedInvitations.length > 1 && (
-                      <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => onBulkDismissDeclined(declinedInvitations)}>
-                        {t("tenancy.dismissAll") || "Dismiss All"}
-                      </Button>
-                    )}
-                  </div>
-                  {declinedInvitations.map((inv) => (
-                    <div key={inv.id} className="flex items-center justify-between gap-4 p-3 bg-muted/30 rounded-lg">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{inv.email}</p>
-                        {inv.decline_reason && (
-                          <p className="text-xs text-muted-foreground">
-                            {t("tenancy.declineReason") || "Reason"}: {inv.decline_reason}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {onDismissInvitation && (
-                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => onDismissInvitation(inv)}>
-                            {t("common.dismiss") || "Dismiss"}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
+                <span className="truncate max-w-[130px]">{getDisplayName(t)}</span>
+              </button>
+            );
+          })}
+          {!incomingTenant && canSetupNewTenancy && (
+            <button
+              onClick={callbacks.onStartSetup}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 border border-dashed border-blue-300 dark:border-blue-700"
+            >
+              <CalendarCheck className="h-3.5 w-3.5 flex-shrink-0" />
+              <span>+ Incoming</span>
+            </button>
           )}
-        </SectionCard>
-      </div>
-
-
-
-
-      {/* Section 2: Contract & Documents */}
-      {currentTenant && (
-        <div id="section-contract">
-          <SectionCard
-            title={t("properties.contract") || "Contract & Documents"}
-            icon={FileText}
-            description={t("propertyTenants.contract.description") || "Manage contract and uploads"}
-            defaultOpen={false}
-            action={
-              !isReadOnly && !isContractLocked && !uploadDocumentOpen && !selectedParentDoc && userRole?.isManager && (
-                <Button variant="outline" size="sm" className="h-8" onClick={() => setUploadDocumentOpen(true)}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  {t("properties.uploadContract") || "Upload Contract"}
-                </Button>
-              )
-            }
-          >
-            <ContractCard
-              currentTenant={currentTenant}
-              propertyId={propertyId}
-              userRole={userRole}
-              isReadOnly={isReadOnly}
-              pendingRequirement={pendingRequirement || null}
-              tenancyRequirements={tenancyRequirements}
-              uploadDocumentOpen={uploadDocumentOpen}
-              selectedParentDoc={selectedParentDoc}
-              onSetUploadDocumentOpen={setUploadDocumentOpen}
-              onSetSelectedParentDoc={setSelectedParentDoc}
-            />
-          </SectionCard>
         </div>
       )}
 
-
-
-
-      {/* Section 3: Property Inspections */}
-{/* Section 3: Property Inspections */}
-{currentTenant && (
-  <div id="section-inspections">
-    <SectionCard
-      title={t("inspections.title") || "Property Inspections"}
-      icon={ClipboardCheck}
-      description={
-        currentTenant 
-          ? (t("inspections.description") || "Move-in and move-out reports")
-          : (t("inspections.afterTenancyStart") || "Available after tenancy starts")
-      }
-      defaultOpen={false}
-      action={
-        userRole?.isManager && !isReadOnly && currentTenant ? (
-          <Button size="sm" variant="outline">
-            <Plus className="h-4 w-4 mr-1" />
-            {t("inspections.newInspection")}
-          </Button>
-        ) : undefined
-      }
-    >
-      {currentTenant ? (
-        <InspectionCard
-          tenancyId={currentTenant.id}
-          propertyId={propertyId}
-          isManager={userRole?.isManager || false}
-          isReadOnly={isReadOnly}
-          tenancyStatus={currentTenant.tenancy_status}
-          isSelfManaged={!currentTenant.tenant_id}
-        />
-      ) : (
-        <EmptyState
-          icon={ClipboardCheck}
-          title={t("inspections.noInspections") || "No inspections yet"}
-          description={t("inspections.availableAfterTenancy") || "Inspections will appear after a tenancy is set up"}
-          action={
-            userRole?.isManager && !isReadOnly && canSetupNewTenancy && onStartSetup ? (
-              <Button onClick={onStartSetup}>
-                <Plus className="h-4 w-4 mr-2" />
-                {t("tenancy.setupTenancy")}
-              </Button>
-            ) : undefined
-          }
-        />
+      {mobileFocused && (
+        <div
+          className={`md:hidden rounded-lg overflow-hidden border-2 ${
+            mobileFocused.tenancy_status === "ending_tenancy"
+              ? "border-amber-200 dark:border-amber-800"
+              : "border-blue-200 dark:border-blue-800"
+          }`}
+        >
+          <TenancyColumnHeader
+            status={mobileFocused.tenancy_status === "ending_tenancy" ? "ending" : "incoming"}
+            tenantName={getDisplayName(mobileFocused)}
+            dateLabel={mobileFocused.tenancy_status === "ending_tenancy" ? "Ends" : "Starts"}
+            date={
+              mobileFocused.tenancy_status === "ending_tenancy"
+                ? mobileFocused.planned_ending_date || mobileFocused.ended_at || undefined
+                : mobileFocused.started_at || undefined
+            }
+          />
+          <TenancyOverviewCard {...makeCardProps(mobileFocused)} />
+        </div>
       )}
-    </SectionCard>
-  </div>
-)}    </div>
+
+      <div className="hidden md:grid md:grid-cols-2 gap-4">
+        {endingTenant && (
+          <div className="rounded-lg overflow-hidden border-2 border-amber-200 dark:border-amber-800">
+            <TenancyColumnHeader
+              status="ending"
+              tenantName={getDisplayName(endingTenant)}
+              dateLabel="Ends"
+              date={endingTenant.planned_ending_date || endingTenant.ended_at || undefined}
+            />
+            <TenancyOverviewCard {...makeCardProps(endingTenant)} />
+          </div>
+        )}
+
+        {incomingTenant ? (
+          <div className="rounded-lg overflow-hidden border-2 border-blue-200 dark:border-blue-800">
+            <TenancyColumnHeader
+              status="incoming"
+              tenantName={getDisplayName(incomingTenant)}
+              dateLabel="Starts"
+              date={incomingTenant.started_at || undefined}
+            />
+            <TenancyOverviewCard {...makeCardProps(incomingTenant)} />
+          </div>
+        ) : canSetupNewTenancy ? (
+          <div className="rounded-lg border-2 border-dashed border-blue-200 dark:border-blue-800 p-8 flex flex-col items-center justify-center gap-4 text-center min-h-[200px]">
+            <div className="h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center">
+              <CalendarCheck className="h-6 w-6 text-blue-500" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm">
+                {t("tenancy.noIncomingTenancy") || "No incoming tenancy yet"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 max-w-[220px]">
+                {t("tenancy.prepareNextHint") ||
+                  "Prepare the next tenant while the current one is finishing."}
+              </p>
+            </div>
+            <button
+              onClick={callbacks.onStartSetup}
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+            >
+              + {t("tenancy.prepareNextTenancy") || "Prepare next tenancy"}
+            </button>
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 }

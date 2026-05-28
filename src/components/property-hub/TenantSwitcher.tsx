@@ -41,7 +41,7 @@ export function TenantSwitcher({ tenants, selectedTenantId, onSelectTenant, onVi
 
   return (
     <div className="flex flex-wrap gap-2 mb-4">
-      {departingTenant && (
+      {/* {departingTenant && (
         <button
           onClick={() => onSelectTenant(departingTenant.id)}
           className={cn(
@@ -62,7 +62,7 @@ export function TenantSwitcher({ tenants, selectedTenantId, onSelectTenant, onVi
             </span>
           )}
         </button>
-      )}
+      )} */}
 
       {incomingTenant && (
         <button
@@ -82,7 +82,7 @@ export function TenantSwitcher({ tenants, selectedTenantId, onSelectTenant, onVi
         </button>
       )}
 
-      {historicTenants.length > 0 && (
+      {/* {historicTenants.length > 0 && (
         <Button
           variant="outline"
           size="sm"
@@ -94,7 +94,7 @@ export function TenantSwitcher({ tenants, selectedTenantId, onSelectTenant, onVi
             {t("propertyTenants.tabs.historic")} ({historicTenants.length})
           </span>
         </Button>
-      )}
+      )} */}
     </div>
   );
 }

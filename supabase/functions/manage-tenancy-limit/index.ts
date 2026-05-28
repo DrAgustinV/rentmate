@@ -37,7 +37,7 @@ serve(async (req) => {
 
     // If more than 5 tenancies, delete the oldest inactive one
     if (tenancies && tenancies.length > 5) {
-      const inactiveTenancies = tenancies.filter(t => t.tenancy_status === 'inactive');
+      const inactiveTenancies = tenancies.filter(t => t.tenancy_status === 'historic');
       
       if (inactiveTenancies.length > 0) {
         const oldestInactive = inactiveTenancies[0];

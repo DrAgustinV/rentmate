@@ -37,6 +37,7 @@ interface UnifiedPaymentHistoryProps {
   totalPages: number;
   currentPage: number;
   onPageChange: (page: number) => void;
+  hasTenant: boolean;
   hasPayments: boolean;
   noAgreements: boolean;
 }
@@ -48,6 +49,7 @@ export function UnifiedPaymentHistory({
   totalPages,
   currentPage,
   onPageChange,
+  hasTenant,
   hasPayments,
   noAgreements,
 }: UnifiedPaymentHistoryProps) {
@@ -131,6 +133,17 @@ export function UnifiedPaymentHistory({
     setSelectedPayment(payment);
     setReviewDialogOpen(true);
   };
+
+  if (!hasTenant) {
+    return (
+      <EmptyState
+        icon={FileText}
+        title={t("payments.emptyStates.noHistory")}
+        description={t("payments.emptyStates.noTenancy")}
+        variant="info"
+      />
+    );
+  }
 
   if (!hasPayments) {
     return (

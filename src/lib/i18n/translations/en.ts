@@ -769,6 +769,7 @@ export const en = {
       markedPaid: "Payment marked as paid",
     },
     emptyStates: {
+      noTenancy: "Set up a tenancy to start tracking payments",
       noHistory: "No Payment History",
       noPaymentsDesc: "Payments will appear here once the rent schedule is generated",
       waitingForAgreement: "Create a rent agreement to start tracking payments",

@@ -1,0 +1,63 @@
+Property Info -- Tenants -- Payments -- Tickets
+
+Tenants -- Payments -- Tickets have each these switch pills:
+Current (Default, status: active) -- Next (status: pending) -- Historic
+
+Tenants -----
+Tenant Status (Current - Pending - Ended. Current is default)
+Tenants records in current and pending status will have edit button, which will open full tenant personal data for editing (name, contact detailes rental agreement etc. The legally binding data are in the contract, not in the app itself. THe reason to enable editing is to give flexibility: if tenant ask to pay on 6th insteaad of 5th, that's ok and no need to change the contract -- friendly agreement between the parties.
+
+Payments ----
+Type (All default) - Payment Status (All default)  - Tenant Status (current default)
+
+Tickets -----
+Type (All default) - TIcket Status (open default)  - Tenant Status (current default)
+Tickets can be created only for pending and active tenancies.
+
+Current - All
+
+
+
+Key Fields	Purpose			Notes
+─────────────────────────────────────────────────────────────────────────────
+start_date	Contractual start	Legal possession date, rarely changes
+end_date	Contractual end		Notice given date, can be earlier than vacate
+possession_date	Actual keys handover	Should be start_date normally. If > start_date, unit was unavailable → flag as issue
+vacate_date	Actual keys return	Should match end_date ideally. If > end_date, tenant overstayed → ticket created
+grace_days 	Handover period		Period during which any remaining issues can be resolved: return of deposit, remaining payments etc. 
+
+
+
+
+
+
+Status              Condition
+─────────────────────────────────────────────────────────────────────────────
+pending             startDate > today
+
+active (occupying)  startDate ≤ today 
+                    AND vacate_date IS NULL
+                    AND (endDate IS NULL OR endDate > today)
+
+active (leaving)    vacate_date IS NOT NULL 
+                    AND vacate_date + grace_days ≥ today
+
+ended               vacate_date IS NOT NULL 
+                    AND vacate_date + grace_days < today
+    
+Use badges inside the UI to show sub-state    
+🔵 Pending
+🟢 Active (occupying) — vacate_date IS NULL
+🟡 Active (grace period) — vacate_date NOT NULL AND vacate_date + grace_days ≥ today
+⚫ Ended      
+
+
+                    
+FUTURE 
+Background check:
+	mora da navede gde je stanovao, komentari yelp, agencije credit scoring itd.
+	credit carma in USA
+Leavinng tenant: Final leave report + Check-out report, digitally signed
+
+
+

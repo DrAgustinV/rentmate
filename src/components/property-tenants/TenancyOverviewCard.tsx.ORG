@@ -43,9 +43,7 @@ interface TenancyOverviewCardProps {
   onSendInvitation?: () => void;
   onEdit?: () => void;
   onEndTenancy?: (tenant: Tenant) => void;
-  // onFinalizeTenancy?: (tenant: Tenant) => void;
   onFinalizeTenancy?: (tenant: Tenant) => void;
-  hideHeader?: boolean;
 }
 
 const formatCurrency = (cents: number | null | undefined, currency: string = 'EUR') => {
@@ -132,7 +130,6 @@ export function TenancyOverviewCard({
   onEdit,
   onEndTenancy,
   onFinalizeTenancy,
-  hideHeader = false,
 }: TenancyOverviewCardProps) {
   const { t } = useLanguage();
   const isManager = userRole?.isManager;

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Plus, Clock, Bell, BellOff, Coins } from "lucide-react";
+import { Plus, Clock, Bell, BellOff } from "lucide-react";
 import { UnifiedPaymentHistory, UnifiedPayment } from "@/components/payments/UnifiedPaymentHistory";
 import { CreatePaymentDialog } from "@/components/CreatePaymentDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -159,16 +159,6 @@ export function PaymentsTab({ currentTenant, propertyId, userRole }: PaymentsTab
     (ra: AgreementRow) => ra.tenancy_id === currentTenant?.id && ra.is_active
   );
 
-  if (!currentTenant) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <Coins className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p className="text-lg font-medium">{t("payments.noPayments")}</p>
-        <p className="text-sm">{t("payments.noPaymentsDesc")}</p>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -279,13 +269,14 @@ export function PaymentsTab({ currentTenant, propertyId, userRole }: PaymentsTab
             totalPages={totalPages}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
+            hasTenant={!!currentTenant}
             hasPayments={allPayments.length > 0}
             noAgreements={!rentAgreements || rentAgreements.length === 0}
           />
         </CardContent>
       </Card>
 
-      {managerId && (
+      {managerId && currentTenant && (
         <CreatePaymentDialog
           open={createDialogOpen}
           onOpenChange={setCreateDialogOpen}

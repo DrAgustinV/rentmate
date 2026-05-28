@@ -51,7 +51,7 @@ serve(async (req) => {
     const { data: expiredTenancies } = await supabaseAdmin
       .from('property_tenants')
       .select('tenant_id')
-      .eq('tenancy_status', 'ended')
+      .eq('tenancy_status', 'historic')
       .lt('ended_at', tenancyEndDate.toISOString());
 
     if (expiredTenancies && expiredTenancies.length > 0) {

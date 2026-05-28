@@ -105,7 +105,25 @@ OPENAI_API_KEY=...
 - Props interfaces defined above the component
 - **All hooks must be called before any early returns** (React rules of hooks)
 - Use `useQuery` / `useMutation` from `@tanstack/react-query` for async data
-- Mutation callbacks: `onSuccess` → `showToast.success()` + `queryClient.invalidateQueries()`
+- Mutation callbacks: `onSuccess` → `showToast.success()` + `queryClient.invalidateQueries()
+
+### Empty States
+Every tab must have empty states for all zero-data scenarios. Never use early returns that hide the full UI chrome (filters, buttons, layout) — follow the TicketsTab pattern instead:
+- Always render the full layout (filter bars, action buttons, card wrappers)
+- Show the empty state inside the content area only (inside a Card or table area)
+- Use the shared `<EmptyState>` component from `@/components/EmptyState` consistently
+- Handle all scenarios in child components via props (e.g., `hasTenant`, `hasPayments`, `noAgreements`)
+- Never hardcode empty-state text — always use `t()` with dedicated translation keys
+
+PaymentsTab two-layer architecture (INTENTIONAL — do not flatten or remove):
+- Parent (`PaymentsTab`) renders full UI chrome always — no early return for missing tenant
+- Child (`UnifiedPaymentHistory`) shows `<EmptyState>` for: no tenant, no payment data, no rent agreement
+- Each layer serves a distinct purpose; removing either breaks the UI
+
+TicketsTab pattern (reference):
+- Receives `tenancyId?: string` (optional)
+- No early return — always renders
+- Empty state at `tickets.length === 0` with context-aware message (filtered vs unfiltered)
 
 ### Adding a New Page/Route
 1. Create `src/pages/MyPage.tsx` with a **default export**
@@ -330,7 +348,7 @@ accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button,
    ├── Verify email → click → /account
    ├── Complete KYC (if required) → click → /account
    └── Sign contract (digital method) → click → scroll to contract section
-5. Payments tab (/tenants?tab=payments):
+5. Payments tab (/properties/:id/tenants?tab=payments):
    ├── View rent amount, due date, payment history
    ├── Upload payment proof
    └── SEPA mandate setup

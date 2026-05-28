@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { TenancyDomain, InvitationDomain, RentAgreementDomain } from '@/types/domain';
 import type { PropertyTenant, Invitation, RentAgreement, Property, Profile } from '@/types';
+import { computeTenancyStatus } from '@/lib/tenancyStatus';
 
 type PropertyTenantJoined = PropertyTenant & {
   properties: Pick<Property, 'title' | 'address'> | null;
@@ -21,7 +22,7 @@ function mapToTenancyDomain(row: PropertyTenantJoined): TenancyDomain {
     tenantFirstName: row.profiles?.first_name || null,
     tenantLastName: row.profiles?.last_name || null,
     tenantEmail: row.profiles?.email || '',
-    status: row.tenancy_status,
+    status: computeTenancyStatus(row),
     startDate: row.started_at,
     plannedEndDate: row.planned_ending_date || null,
     endedAt: row.ended_at || null,
