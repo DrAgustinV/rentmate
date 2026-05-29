@@ -1,23 +1,36 @@
-import { differenceInDays } from "date-fns";
 import type { TenancyStatus } from "@/types/domain";
 
-const ENDING_WINDOW_DAYS = 60;
-
 export function computeTenancyStatus(tenancy: {
-  tenancy_status: string | null;
-  planned_ending_date: string | null;
+  started_at: string | null;
+  vacate_date: string | null;
+  grace_days: number | null;
 }): TenancyStatus {
-  if (!tenancy.tenancy_status) return null;
-  if (tenancy.tenancy_status === "historic") return "historic";
-  if (tenancy.tenancy_status === "pending") return "pending";
+  if (!tenancy.started_at) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(tenancy.started_at);
+  start.setHours(0, 0, 0, 0);
 
-  if (tenancy.tenancy_status === "active" && tenancy.planned_ending_date) {
-    const daysUntilEnd = differenceInDays(
-      new Date(tenancy.planned_ending_date),
-      new Date(),
-    );
-    if (daysUntilEnd <= ENDING_WINDOW_DAYS) return "ending_tenancy";
+  if (start > today) return "pending";
+
+  if (tenancy.vacate_date) {
+    const vacate = new Date(tenancy.vacate_date);
+    vacate.setHours(0, 0, 0, 0);
+    const graceEnd = new Date(vacate);
+    graceEnd.setDate(graceEnd.getDate() + (tenancy.grace_days ?? 60));
+    graceEnd.setHours(0, 0, 0, 0);
+    if (graceEnd < today) return "historic";
+    return "ending_tenancy";
   }
 
-  return tenancy.tenancy_status;
+  return "active";
+}
+
+export function getTenancyDisplayLabel(status: TenancyStatus, vacateDate: string | null): string {
+  if (!status) return "";
+  if (status === "active") return vacateDate ? "Active (leaving)" : "Active";
+  if (status === "ending_tenancy") return "Active (leaving)";
+  if (status === "pending") return "Pending";
+  if (status === "historic") return "Ended";
+  return status;
 }

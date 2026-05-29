@@ -43,6 +43,7 @@ const RepairShops = lazy(() => import("./pages/RepairShops"));
 const Import = lazy(() => import("./pages/Import"));
 const ImportRepairShops = lazy(() => import("./pages/ImportRepairShops"));
 const PropertyOverview = lazy(() => import("./pages/PropertyOverview"));
+const PropertyHub = lazy(() => import("./pages/PropertyHub"));
 
 // Page loading fallback
 function PageLoader() {
@@ -75,10 +76,15 @@ function withErrorBoundaryInline(element: React.ReactNode) {
   );
 }
 
-// Redirect component for legacy route
+// Redirect components for legacy routes
 function PropertyDetailsRedirect() {
   const { propertyId } = useParams();
   return <Navigate to={`/properties/${propertyId}/tenants`} replace />;
+}
+
+function PropertyToHubRedirect({ tab }: { tab: string }) {
+  const { propertyId } = useParams();
+  return <Navigate to={`/properties/${propertyId}?tab=${tab}`} replace />;
 }
 
 const App = () => (
@@ -117,12 +123,13 @@ const App = () => (
               <Route path="/tickets" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><Navigate to="/properties" replace /></Suspense></ErrorBoundary>} />
 
               {/* Property hub routes */}
-              <Route path="/properties/:propertyId/tenants" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyTenants /></Suspense></ErrorBoundary>} />
-              <Route path="/properties/:propertyId/details" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyDetailsRedirect /></Suspense></ErrorBoundary>} />
+              <Route path="/properties/:propertyId" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyHub /></Suspense></ErrorBoundary>} />
+              <Route path="/properties/:propertyId/tenants" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyToHubRedirect tab="tenants" /></Suspense></ErrorBoundary>} />
+              <Route path="/properties/:propertyId/overview" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyToHubRedirect tab="info" /></Suspense></ErrorBoundary>} />
+              <Route path="/properties/:propertyId/details" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyToHubRedirect tab="info" /></Suspense></ErrorBoundary>} />
               <Route path="/properties/:propertyId/tickets" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyTickets /></Suspense></ErrorBoundary>} />
               <Route path="/properties/:propertyId/maintenance" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyMaintenance /></Suspense></ErrorBoundary>} />
               <Route path="/properties/:propertyId/tickets/:ticketId" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><TicketDetail /></Suspense></ErrorBoundary>} />
-              <Route path="/properties/:propertyId/overview" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><PropertyOverview /></Suspense></ErrorBoundary>} />
               <Route path="/maintenance-calendar/:propertyId" element={<ErrorBoundary><Suspense fallback={<PageLoader />}><MaintenanceCalendar /></Suspense></ErrorBoundary>} />
 
               {/* Settings & account */}

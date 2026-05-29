@@ -36,9 +36,9 @@ BIG PICTURE REDESIGN:
 - move /tenants tabs inside the /properties
 - the new tab structure will be: overview - Tenants -- Payments -- Tickets 
 - ../overview tab shoes property definition (no change)
-- --/tenants tab shows /tenants?tab=contracts (change of navigation, no change within the the tab features nor UI)
-- --/payments tab shows /tenants?tab=payments (change of navigation, no change within the the tab features nor UI)
-- --/tickets tab shows /tenants?tab=tickets (change of navigation, no change within the the tab features nor UI)
+- /properties/:propertyId/tenants tab shows /tenants?tab=contracts (change of navigation, no change within the the tab features nor UI)
+- /properties/:propertyId/payments tab shows /tenants?tab=payments (change of navigation, no change within the the tab features nor UI)
+- /properties/:propertyId/tickets tab shows /tenants?tab=tickets (change of navigation, no change within the the tab features nor UI)
 
 ## /properties tabs
 
@@ -51,6 +51,7 @@ BIG PICTURE REDESIGN:
 - **Edit button** only for `pending` and `active (occupying)` statuses
 - Editable fields: name, contact details, rental agreement notes
 - Legal binding data remains in contract (app is for friendly agreements only)
+## - Filters: Type (All default) | Tenant Status (Active default)
 
 ### Payments
 - Filters: Type (All default) | Payment Status (All default) | Tenant Status (Current default)

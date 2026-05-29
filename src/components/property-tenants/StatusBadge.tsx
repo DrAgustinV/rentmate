@@ -33,28 +33,28 @@ const statusConfig: Record<StatusType, {
   defaultLabel: string;
 }> = {
   active: { 
-    variant: "default", 
-    className: "bg-success/10 text-success border-success/20 hover:bg-success/10", 
+    variant: "outline", 
+    className: "text-muted-foreground", 
     icon: CheckCircle2,
     defaultLabel: "Active"
   },
   pending: { 
-    variant: "default", 
-    className: "bg-info/10 text-info border-info/20 hover:bg-info/10", 
+    variant: "outline", 
+    className: "text-muted-foreground", 
     icon: Clock,
     defaultLabel: "Pending"
   },
   ending_tenancy: { 
-    variant: "default", 
-    className: "bg-warning/10 text-warning border-warning/20 hover:bg-warning/10", 
+    variant: "outline", 
+    className: "text-muted-foreground", 
     icon: Clock,
-    defaultLabel: "Ending"
+    defaultLabel: "Active (leaving)"
   },
   historic: { 
-    variant: "secondary", 
-    className: "text-muted-foreground border-border", 
+    variant: "outline", 
+    className: "text-muted-foreground", 
     icon: History,
-    defaultLabel: "Historic"
+    defaultLabel: "Ended"
   },
   draft: { 
     variant: "default", 

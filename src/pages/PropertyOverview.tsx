@@ -15,7 +15,7 @@ interface Tenant {
   tenancy_status: 'active' | 'ending_tenancy' | 'historic' | 'pending';
   started_at: string;
   ended_at: string | null;
-  planned_ending_date?: string | null;
+  end_date?: string | null;
   email: string;
   first_name: string | null;
   last_name: string | null;
@@ -90,7 +90,7 @@ export default function PropertyOverview() {
           tenancy_status: tenancy.status as Tenant['tenancy_status'],
           started_at: tenancy.startDate,
           ended_at: tenancy.endedAt,
-          planned_ending_date: tenancy.plannedEndDate,
+          end_date: tenancy.endDate,
           email,
           first_name: tenancy.tenantFirstName,
           last_name: tenancy.tenantLastName,

@@ -43,7 +43,10 @@ export interface TenancyDomain {
   tenantEmail: string;
   status: TenancyStatus;
   startDate: string;
-  plannedEndDate: string | null;
+  endDate: string | null;
+  possessionDate: string | null;
+  vacateDate: string | null;
+  graceDays: number;
   endedAt: string | null;
   endReason: string | null;
   notes: string | null;

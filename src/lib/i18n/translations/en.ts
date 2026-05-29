@@ -209,6 +209,18 @@ export const en = {
     rentPayments: "Rent Payments",
     utilityPayments: "Utility Payments",
     propertyManager: "Property Manager",
+    tabs: {
+      info: "Property Info",
+      tenants: "Tenants",
+      payments: "Payments",
+      tickets: "Tickets",
+    },
+    filter: {
+      current: "Current",
+      next: "Next",
+      historic: "Historic",
+      all: "All",
+    },
   },
   footer: {
     about: "About",

@@ -12,7 +12,10 @@ export interface Tenant {
   tenancy_status: 'active' | 'ending_tenancy' | 'historic' | 'pending';
   started_at: string;
   ended_at: string | null;
-  planned_ending_date?: string | null;
+  end_date?: string | null;
+  possession_date?: string | null;
+  vacate_date?: string | null;
+  grace_days?: number;
   email: string;
   first_name: string | null;
   last_name: string | null;
@@ -71,7 +74,10 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
         tenancy_status: t.status,
         started_at: t.startDate,
         ended_at: t.endedAt,
-        planned_ending_date: t.plannedEndDate,
+        end_date: t.endDate,
+        possession_date: t.possessionDate,
+        vacate_date: t.vacateDate,
+        grace_days: t.graceDays,
         email: t.tenantEmail,
         first_name: t.tenantFirstName,
         last_name: t.tenantLastName,
@@ -88,7 +94,7 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
 
   const activeTenantWithProfile = useMemo(() => {
     if (!allTenants) return null;
-    return allTenants.find(t => t.tenancy_status === 'active') || null;
+    return allTenants.find(t => t.tenancy_status === 'active' || t.tenancy_status === 'ending_tenancy') || null;
   }, [allTenants]);
 
   const { data: invitations, refetch: refetchInvitations } = useQuery({
@@ -203,10 +209,10 @@ export function usePropertyTenantsData(propertyId: string | undefined, t: (key: 
   });
 
   const endTenancyMutation = useMutation({
-    mutationFn: async ({ tenantId, plannedEndDate }: { tenantId: string; plannedEndDate: string }) => {
+    mutationFn: async ({ tenantId, endDate }: { tenantId: string; endDate: string }) => {
       const { error } = await supabase
         .from("property_tenants")
-        .update({ tenancy_status: "ending_tenancy", planned_ending_date: plannedEndDate })
+        .update({ end_date: endDate })
         .eq("id", tenantId);
       if (error) throw error;
     },
