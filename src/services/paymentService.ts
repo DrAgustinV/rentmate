@@ -11,7 +11,7 @@ interface RentPaymentInput {
   status: PaymentStatus;
   payment_due_date: string;
   payment_received_date?: string;
-  description?: string;
+  notes?: string;
   proof_path?: string;
 }
 
@@ -19,7 +19,7 @@ interface RentPaymentUpdates {
   status?: PaymentStatus;
   payment_received_date?: string;
   proof_path?: string;
-  description?: string;
+  notes?: string;
 }
 
 interface UtilityPaymentInput {
@@ -38,6 +38,20 @@ interface UtilityPaymentUpdates {
   status?: UtilityPaymentStatus;
   payment_received_date?: string;
   proof_path?: string;
+}
+
+export interface BackfillPaymentInput {
+  rent_agreement_id?: string;
+  tenancy_id: string;
+  property_id: string;
+  tenant_id: string;
+  manager_id: string;
+  amount_cents: number;
+  currency: string;
+  payment_due_date: string;
+  payment_received_date: string;
+  status: 'paid';
+  notes?: string;
 }
 
 // ========== RENT PAYMENTS ==========
@@ -136,6 +150,15 @@ export async function getRentPaymentSummary(tenantId: string, propertyId: string
   return data || [];
 }
 
+export async function backfillRentPayments(payments: BackfillPaymentInput[]) {
+  const { data, error } = await supabase
+    .from('rent_payments')
+    .insert(payments)
+    .select();
+  if (error) throw error;
+  return data || [];
+}
+
 export const paymentService = {
   getRentPayments,
   createRentPayment,
@@ -146,4 +169,5 @@ export const paymentService = {
   updateUtilityPayment,
   updateUtilityPaymentSimple,
   getRentPaymentSummary,
+  backfillRentPayments,
 };

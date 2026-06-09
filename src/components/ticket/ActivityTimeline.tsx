@@ -1,5 +1,7 @@
 import { formatDateTime } from "@/lib/dateUtils";
-import { Clock, AlertCircle, Flag, UserCheck } from "lucide-react";
+import { Clock, AlertCircle, Flag, UserCheck, Activity } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Activity {
   id: string;
@@ -18,11 +20,14 @@ interface ActivityTimelineProps {
 }
 
 export const ActivityTimeline = ({ activities }: ActivityTimelineProps) => {
+  const { t } = useLanguage();
   if (activities.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        No activity yet
-      </div>
+      <EmptyState
+        icon={Activity}
+        title={t("tickets.activityEmpty")}
+        size="compact"
+      />
     );
   }
 

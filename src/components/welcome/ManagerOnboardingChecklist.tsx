@@ -64,7 +64,7 @@ export function ManagerOnboardingChecklist({ userId, onTourRequest }: ManagerOnb
             action: () => {
               const propertyId = propertiesResult.data?.[0]?.id;
               if (propertyId) {
-                navigate(`/properties/${propertyId}/tenants?action=newTenancy`);
+                navigate(`/properties/${propertyId}?tab=tenants&action=newTenancy`);
               }
             },
             actionLabel: t("welcome.checklist.setupTenancy"),

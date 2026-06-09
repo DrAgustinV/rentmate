@@ -233,7 +233,7 @@ export function UsersManagement() {
               {filteredUsers?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    No users found
+                    {t("admin.noUsersFound")}
                   </TableCell>
                 </TableRow>
               ) : (

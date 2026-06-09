@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,12 +13,13 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Loader2 } from "lucide-react";
 import { useCreateUtilityPayment } from "@/hooks/useCreateUtilityPayment";
 import { useCreateRentPayment } from "@/hooks/useCreateRentPayment";
+import { useRentAgreements } from "@/hooks/useRentAgreements";
 import type { UtilityType, UtilityPaymentStatus } from "@/types/domain";
 
 const formSchema = z.object({
   type: z.enum(["utility", "rent"]),
   amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, { message: "payment.invalidAmount" }),
-  description: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 interface CreatePaymentDialogProps {
@@ -27,27 +28,34 @@ interface CreatePaymentDialogProps {
   propertyId: string;
   tenancyId: string;
   defaultType?: 'utility' | 'rent';
+  defaultAmount?: string;
+  fallbackAmountCents?: number | null;
 }
 
-export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId, defaultType = 'utility' }: CreatePaymentDialogProps) => {
+export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId, defaultType = 'rent', defaultAmount, fallbackAmountCents }: CreatePaymentDialogProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { data: rentAgreements } = useRentAgreements(propertyId);
+
+  const effectiveAmount = useMemo(() => {
+    if (defaultAmount) return defaultAmount;
+    const agreement = rentAgreements?.find(ra => ra.tenancy_id === tenancyId && ra.is_active);
+    if (agreement?.rent_amount_cents) return (agreement.rent_amount_cents / 100).toFixed(2);
+    if (fallbackAmountCents) return (fallbackAmountCents / 100).toFixed(2);
+    return "";
+  }, [defaultAmount, rentAgreements, tenancyId, fallbackAmountCents]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { type: defaultType, amount: "", description: "" },
+    values: { type: defaultType, amount: effectiveAmount, notes: "" },
   });
-
-  useEffect(() => {
-    if (open) form.reset({ type: defaultType, amount: "", description: "" });
-  }, [open, form, defaultType]);
 
   const createUtilityPayment = useCreateUtilityPayment();
   const createRentPayment = useCreateRentPayment();
 
   const createPaymentMutation = useMutation({
-    mutationFn: async ({ type, payload }: { type: 'utility' | 'rent'; payload: { property_id: string; tenancy_id: string; amount: number; description?: string } }) => {
+    mutationFn: async ({ type, payload }: { type: 'utility' | 'rent'; payload: { property_id: string; tenancy_id: string; amount: number; notes?: string } }) => {
       if (type === 'utility') {
         return createUtilityPayment.mutateAsync({
           property_id: payload.property_id,
@@ -67,7 +75,7 @@ export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId,
         currency: 'EUR',
         status: 'pending',
         payment_due_date: new Date().toISOString().split('T')[0],
-        description: payload.description,
+        notes: payload.notes,
       });
     },
     onSuccess: () => {
@@ -94,7 +102,7 @@ export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId,
         property_id: propertyId,
         tenancy_id: tenancyId,
         amount: Number(values.amount),
-        description: values.description,
+        notes: values.notes,
       },
     });
   };
@@ -156,12 +164,12 @@ export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId,
             
             <FormField
               control={form.control}
-              name="description"
+              name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('payment.description')}</FormLabel>
+                  <FormLabel>{t('payment.notes')}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('payment.descriptionPlaceholder')} {...field} />
+                    <Input placeholder={t('payment.notesPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -115,7 +115,7 @@ export function PropertyPhotoUpload({
               <img 
                 src={previewUrl} 
                 alt="Property" 
-                className="w-64 h-64 rounded-lg object-cover border-2 border-border"
+                className="w-full h-64 rounded-lg object-cover border-2 border-border"
               />
               {!disabled && (
                 <Button
@@ -130,7 +130,7 @@ export function PropertyPhotoUpload({
               )}
             </div>
           ) : (
-            <div className="w-64 h-64 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/20">
+            <div className="w-full h-64 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/20">
               <ImageIcon className="h-8 w-8 text-muted-foreground" />
             </div>
           )}

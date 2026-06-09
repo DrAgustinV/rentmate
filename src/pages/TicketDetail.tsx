@@ -17,24 +17,11 @@ import { RotateCw, FileX } from "lucide-react";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ticketStatusColors, ticketPriorityColors } from "@/lib/statusColors";
 
 const StatusManager = lazy(() => 
   import("@/components/ticket/StatusManager").then(m => ({ default: m.StatusManager }))
 );
-
-const statusColors = {
-  open: "bg-info",
-  in_progress: "bg-warning",
-  resolved: "bg-success",
-  cancelled: "bg-muted-foreground",
-};
-
-const priorityColors = {
-  low: "bg-muted-foreground",
-  medium: "bg-info",
-  high: "bg-warning",
-  urgent: "bg-destructive",
-};
 
 const TicketDetail = () => {
   const { ticketId } = useParams<{ propertyId: string; ticketId: string }>();
@@ -169,10 +156,10 @@ const TicketDetail = () => {
               </div>
               <div className="flex flex-col gap-3">
                 <div className="flex gap-2">
-                  <Badge className={statusColors[ticket.status as keyof typeof statusColors]}>
+                  <Badge className={ticketStatusColors[ticket.status as keyof typeof ticketStatusColors] || ""}>
                     {ticket.status.replace("_", " ")}
                   </Badge>
-                  <Badge className={priorityColors[ticket.priority as keyof typeof priorityColors]}>
+                  <Badge className={ticketPriorityColors[ticket.priority as keyof typeof ticketPriorityColors] || ""}>
                     {ticket.priority}
                   </Badge>
                 </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,22 +13,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, AlertTriangle, Lock, Mail, Phone, User } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { showToast } from "@/lib/toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { StatusBadge } from "@/components/property-tenants/StatusBadge";
+import { getTenancyDisplayLabel } from "@/lib/tenancyStatus";
 
 interface Tenant {
   id: string;
   tenant_id: string;
-  tenancy_status: 'active' | 'ending_tenancy' | 'historic';
+  tenancy_status: 'active' | 'ending_tenancy' | 'historic' | 'pending';
   started_at: string;
   ended_at: string | null;
+  end_date?: string | null;
+  possession_date?: string | null;
+  vacate_date?: string | null;
+  grace_days?: number | null;
   email: string;
   first_name: string | null;
   last_name: string | null;
@@ -53,13 +54,34 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
   const [startDate, setStartDate] = useState<Date | undefined>(
     tenant ? new Date(tenant.started_at) : undefined
   );
-  const [tenancyStatus, setTenancyStatus] = useState<'active' | 'ending_tenancy' | 'historic'>(
-    tenant?.tenancy_status || "active"
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    tenant?.end_date ? new Date(tenant.end_date + "T00:00:00") : undefined
   );
+  const [possessionDate, setPossessionDate] = useState<Date | undefined>(
+    tenant?.possession_date ? new Date(tenant.possession_date + "T00:00:00") : undefined
+  );
+  const [vacateDate, setVacateDate] = useState<Date | undefined>(
+    tenant?.vacate_date ? new Date(tenant.vacate_date + "T00:00:00") : undefined
+  );
+  const [graceDays, setGraceDays] = useState<number>(tenant?.grace_days ?? 60);
   const [notes, setNotes] = useState(tenant?.notes || "");
   const [managerName, setManagerName] = useState(tenant?.manager_tenant_name || "");
   const [managerSurname, setManagerSurname] = useState(tenant?.manager_tenant_surname || "");
   const [managerPhone, setManagerPhone] = useState(tenant?.manager_tenant_phone || "");
+
+  useEffect(() => {
+    if (tenant) {
+      setStartDate(new Date(tenant.started_at));
+      setEndDate(tenant.end_date ? new Date(tenant.end_date + "T00:00:00") : undefined);
+      setPossessionDate(tenant.possession_date ? new Date(tenant.possession_date + "T00:00:00") : undefined);
+      setVacateDate(tenant.vacate_date ? new Date(tenant.vacate_date + "T00:00:00") : undefined);
+      setGraceDays(tenant.grace_days ?? 60);
+      setNotes(tenant.notes || "");
+      setManagerName(tenant.manager_tenant_name || "");
+      setManagerSurname(tenant.manager_tenant_surname || "");
+      setManagerPhone(tenant.manager_tenant_phone || "");
+    }
+  }, [tenant]);
 
   const updateMutation = useMutation({
     mutationFn: async () => {
@@ -69,7 +91,10 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
         .from("property_tenants")
         .update({
           started_at: startDate.toISOString(),
-          tenancy_status: tenancyStatus,
+          end_date: endDate ? endDate.toISOString().split("T")[0] : null,
+          possession_date: possessionDate ? possessionDate.toISOString().split("T")[0] : null,
+          vacate_date: vacateDate ? vacateDate.toISOString().split("T")[0] : null,
+          grace_days: graceDays,
           notes,
           manager_tenant_name: managerName || null,
           manager_tenant_surname: managerSurname || null,
@@ -153,46 +178,87 @@ export function EditTenantDialog({ tenant, open, onOpenChange, propertyId, readO
           {/* Start Date */}
           <div className="space-y-2">
             <Label>{t("tenants.tenantStartDate")}</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  disabled={readOnly}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !startDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate ? format(startDate, "PPP") : <span>{t("maintenance.createTask.pickDate")}</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={setStartDate}
-                  disabled={(date) => date > new Date()}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
+            <Input
+              type="date"
+              value={startDate ? startDate.toLocaleDateString("en-CA") : ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                setStartDate(val ? new Date(val + "T00:00:00") : undefined);
+              }}
+              max={new Date().toLocaleDateString("en-CA")}
+              disabled={readOnly}
+            />
           </div>
 
-          {/* Tenancy Status */}
+          {/* Planned End Date + Possession Date */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>{t("tenants.tenantEndDate")}</Label>
+              <Input
+                type="date"
+                value={endDate ? endDate.toLocaleDateString("en-CA") : ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setEndDate(val ? new Date(val + "T00:00:00") : undefined);
+                }}
+                min={startDate?.toLocaleDateString("en-CA")}
+                disabled={readOnly}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("tenants.possessionDate")}</Label>
+              <Input
+                type="date"
+                value={possessionDate ? possessionDate.toLocaleDateString("en-CA") : ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setPossessionDate(val ? new Date(val + "T00:00:00") : undefined);
+                }}
+                disabled={readOnly}
+              />
+            </div>
+          </div>
+
+          {/* Vacate Date + Grace Days */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>{t("tenants.vacateDate")}</Label>
+              <Input
+                type="date"
+                value={vacateDate ? vacateDate.toLocaleDateString("en-CA") : ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setVacateDate(val ? new Date(val + "T00:00:00") : undefined);
+                }}
+                min={startDate?.toLocaleDateString("en-CA")}
+                disabled={readOnly}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("tenants.graceDays")}</Label>
+              <Input
+                type="number"
+                min={0}
+                max={365}
+                value={graceDays}
+                onChange={(e) => setGraceDays(Number(e.target.value))}
+                disabled={readOnly}
+              />
+            </div>
+          </div>
+
+          {/* Tenancy Status — read-only, derived from dates */}
           <div className="space-y-2">
             <Label>{t("tenants.tenancyStatus")}</Label>
-              <Select value={tenancyStatus} onValueChange={(val) => setTenancyStatus(val as 'active' | 'ending_tenancy' | 'historic')} disabled={readOnly}>
-                <SelectTrigger disabled={readOnly}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">{t("tenants.statusActive")}</SelectItem>
-                  <SelectItem value="ending_tenancy">{t("tenants.statusEndingTenancy")}</SelectItem>
-                  <SelectItem value="historic">{t("tenants.statusHistoric")}</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-2">
+              <StatusBadge
+                status={tenant.tenancy_status}
+                label={getTenancyDisplayLabel(tenant.tenancy_status, tenant.vacate_date ?? null)}
+              />
+              <span className="text-xs text-muted-foreground">
+                {t("tenants.statusDerivedFromDates")}
+              </span>
+            </div>
           </div>
 
           {/* Notes */}

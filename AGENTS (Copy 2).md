@@ -10,30 +10,13 @@
 | `npm test` | Run Vitest tests |
 | `npm run test:watch` | Watch mode |
 | `npm run test:coverage` | Coverage report (v8) |
-| `npm install` | Install dependencies |
-| `cp .env.example .env` | Set up environment variables |
 | `npm run preview` | Preview production build |
-> **UX design guidance** → see `.opencode/skills/rental-saas-ux/SKILL.md`
 
 ## GENERAL INSTRUCTIONS BY DV
 - never create a new code before checking if there is already a code that can be reused
 - never create a new translation key before checking if there is one previously created and that can be reused
 - translation keys are preferrably common. for common buttons: save, cancel, next, back etc... for example do not invent a specific save for each page
-- creating new files: use structured naming based on type (see table below)
-
-### cd ./check
-### npm run check 
-
-### File Naming Convention
-
-| Type | Convention | Examples |
-|------|-----------|---------|
-| Pages | `PascalCase.tsx` | `PropertyHub.tsx`, `Tenants.tsx` |
-| Components | `PascalCase.tsx` | `TenantStatusPills.tsx` (exceptions: `src/components/ui/` = kebab-case, shadcn convention) |
-| Hooks | `useCamelCase.ts` | `usePropertyTenants.ts` |
-| Services | `camelCaseService.ts` | `tenantService.ts` (no dot) |
-| Types | `camelCase.ts` | `domain.ts` (no `.types.ts` suffix) |
-| Utils | `camelCase.ts` | `tenantFilterUtils.ts` |
+- creating new files: use structured naming: pageComponentWhatitdoes for example so that a human can identify easier
 
 ### Property Page Architecture
 - All property-level features go as tabs in `PropertyHub` (`src/pages/PropertyHub.tsx`, route `/properties/:propertyId`), not as separate pages
@@ -66,6 +49,27 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 VITE_APP_ENV=development
 ```
 
+### Feature Flags (`src/config/env.ts`)
+Toggle features via these env vars — accessed via `env.features.enableKYC`, etc.:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `VITE_ENABLE_KYC` | `true` | KYC verification (KILT, Didit, OpenAPI) |
+| `VITE_ENABLE_STRIPE_CONNECT` | `true` | Stripe Connect payments |
+| `VITE_ENABLE_YOUSIGN` | `true` | YouSign e-signatures |
+| `VITE_ENABLE_DOCUSEAL` | `false` | DocuSeal e-signatures |
+| `VITE_ENABLE_QUALIFIED_SIGNATURE` | `false` | Qualified e-signatures (EU) |
+| `VITE_ENABLE_OPENAI` | `false` | AI assistant features |
+| `VITE_ENABLE_DEBUG` | `true` in dev | Debug mode |
+
+### API Config (server-side only, never in `.env`)
+```
+SUPABASE_SERVICE_ROLE_KEY=...
+STRIPE_SECRET_KEY=...
+RESEND_API_KEY=...
+OPENAI_API_KEY=...
+```
+
 ## Project Stack
 
 - **Vite 5** + **React 18** + **TypeScript** (SWC compiler)
@@ -76,14 +80,6 @@ VITE_APP_ENV=development
 - **Supabase** (auth, database, storage, edge functions)
 - **react-hook-form** + **zod** (forms + validation)
 - **Vitest** + **@testing-library/react** (testing)
-
-## Quick Rules (AI must follow)
-
-1. **Never hardcode user-facing strings** — always use `t("key")`; only add keys to `en.ts`
-2. **Never skip empty states on tabs/lists** — use `<EmptyState>` from `@/components/EmptyState`
-3. **Never call Supabase from components** — use hooks/services layer
-4. **Never create translation keys before searching `en.ts`** — prefer existing `common.*` keys
-5. **Never use `useState` for async data** — use `useQuery` / `useMutation`
 
 ## Code Conventions
 
@@ -154,11 +150,22 @@ TicketsTab pattern (reference):
 ### Toast API (`@/lib/toast`)
 ```ts
 import { showToast } from "@/lib/toast";
-showToast.success(t("..."), description?, options?);
-showToast.error(t("..."), description?, options?);
-showToast.info(t("..."), description?, options?);
+
+showToast.success(title, description?, options?);
+showToast.error(title, description?, options?);
+showToast.info(title, description?, options?);
+showToast.warning(title, description?, options?);
+showToast.neutral(title, description?, options?);
+showToast.silent(title, description?, options?);
 // Options: { duration?: number } — defaults to 4000ms
 ```
+
+| Method | When to use |
+|--------|-------------|
+| `showToast.success(t("..."))` | Mutation completed successfully |
+| `showToast.error(t("..."))` | Mutation or fetch failed |
+| `showToast.info(t("..."))` | Neutral background feedback |
+
 - Never toast validation errors — show them inline via `react-hook-form`
 - Never toast on every query refetch — only on user-triggered mutations
 
@@ -171,7 +178,23 @@ showToast.info(t("..."), description?, options?);
 - No `error` state variable pattern — let React Query's `error` prop handle it
 
 ### shadcn/ui — Components Already Installed
-All 52 are in `src/components/ui/`. Do NOT re-install with `npx shadcn add`.
+All 52 are in `src/components/ui/`. Do NOT re-install with `npx shadcn add`:
+
+| | | | |
+|---|---|---|---|
+| accordion | collapsible | navigation-menu | skeleton |
+| alert | command | pagination | slider |
+| alert-dialog | context-menu | popover | sonner |
+| aspect-ratio | country-select | progress | status-badges |
+| avatar | dialog | radio-group | switch |
+| badge | drawer | resizable | table |
+| breadcrumb | dropdown-menu | scroll-area | tabs |
+| button | form | select | textarea |
+| calendar | hover-card | separator | toast |
+| card | input | sheet | toaster |
+| carousel | input-otp | sidebar | toggle |
+| chart | label | slider | toggle-group |
+| checkbox | menubar | skeleton | tooltip-button |
 
 ### Testing
 - Co-locate tests next to source files: `*.test.ts`, `*.test.tsx`
@@ -226,29 +249,114 @@ All 52 are in `src/components/ui/`. Do NOT re-install with `npx shadcn add`.
    - Step 3: Utility checklist (all utilities at once, inline dropdowns) + review summary + Save
    - Non-linear navigation: click completed step badges to jump back
    - Keyboard shortcuts: Enter advances step; on review step, Enter/Ctrl+Enter submits
- 3a. Quick Setup (self-managed): validates current step, jumps to review
- 3b. Save & Start Another: submits tenancy, resets wizard without closing
- 3c. Cancel setup: deletes tenancy_requirements (and orphaned property_tenants if self-managed)
- 3d. Configuration defaults pre-fill: from /configuration?tab=defaults → only in 'new' mode
- 3e. Edit rental terms: opens wizard in edit mode, updates tenancy_requirements
- 3f. Wizard session persistence: auto-saved to sessionStorage, restored within 1h
+3a. Quick Setup (self-managed only):
+    ├── "Quick Setup" button (rocket icon) shown when self_manage_only is checked
+    ├── Validates current step fields, then jumps directly to review step
+    └── User reviews & saves from review step
+
+3b. Save & Start Another:
+    ├── "Save & Start Another" outline button on review step (new tenancy mode only)
+    ├── Submits tenancy, then resets wizard for another setup without closing
+    └── Wizard stays open — no need to re-open from scratch
+
+3c. Cancel setup:
+    ├── "Cancel Setup" button shown when requirement is in draft/sent
+    ├── Confirmation dialog explains what will be deleted
+    ├── Deletes the tenancy_requirements record
+    └── If self-managed, also deletes orphaned property_tenants (tenant_id IS NULL)
+
+3d. Configuration defaults pre-fill:
+    ├── Settings from `/configuration?tab=defaults` fetched on wizard open
+    ├── `require_kyc` pre-fills the KYC verification toggle
+    ├── `default_deposit_amount` pre-fills the security deposit field
+    └── Only applies in 'new' mode — edit/invite modes use existing data
+
+3e. Edit rental terms:
+    ├── "Edit" button in TenancyOverviewCard (active tenancies)
+    ├── Opens wizard in edit mode with existing values pre-filled
+    └── Updates tenancy_requirements directly (not property_tenants)
+
+3f. Wizard session persistence:
+    ├── Form state auto-saved to sessionStorage on each step change
+    ├── Restored within 1 hour if wizard is accidentally closed
+    └── Cleared on successful submission
+
 4. On submit, 3 paths:
-   ├── Self-manage (no email) → creates tenancy_requirements + property_tenants (active), ready immediately
-   ├── Self-manage (with email) → same, plus sends invitation
-   └── Standard → creates tenancy_requirements (draft) → manager sends invitation → status sent → tenant accepts
- 4a. Invite existing self-managed: sends invitation to link tenant to active tenancy (no tenant_id)
- 4b. Edit-and-resend: resets invitation timer to 7 days, saves updated terms
-5. Contract & Documents: upload → PropertyDocumentUpload; new version → parent_document_id; e-signature → ContractSignatureManager
- 5a. E-signature: YouSign/AutoFirma/OpenAPI; DocuSeal blocked; 1h cooldown, max 3 reminders; cancel ends workflow
-6. End tenancy: EndTenancyDialog sets end_date → ending_tenancy (trigger-derived); "End Immediately" → historic
- 6a. Finalize: two-step (ending_tenancy→historic) or one-step (immediate→historic); 24h undo banner
- 6b. Delete self-managed: hard-deletes property_tenants (no linked tenant)
+   ├── Self-manage (no email)
+   │   → Creates tenancy_requirements + property_tenants (status='active')
+   │   → Ready immediately (no tenant attached)
+   ├── Self-manage (with email)
+   │   → Creates tenancy_requirements + property_tenants (status='active')
+   │   → Also sends invitation to tenant
+   └── Standard (not self-manage)
+       → Creates tenancy_requirements (status='draft')
+       → Manager clicks "Send Invitation" (visible for draft status only) → invitation sent, status → 'sent'
+       → Tenant must accept to link profile
+4a. Invite existing self-managed tenancy:
+    ├── "Invite Tenant" button shown when active + no tenant_id
+    ├── Opens wizard in invite mode (skips creating a new requirement)
+    └── Sends invitation directly → tenant must accept to link profile
+
+4b. Edit-and-resend invitation:
+    ├── Opens wizard pre-filled with existing values
+    ├── Shows warning: "Saving updated terms will reset the invitation timer to 7 days"
+    ├── Resets invitation to 'pending' status + extends expiry
+    └── Saves updated terms on submit       
+       
+5. Contract & Documents (Section 2):
+   ├── Upload contract files → PropertyDocumentUpload
+   ├── Upload new version → version tracking via parent_document_id
+   └── Initialize e-signature → ContractSignatureManager (YouSign/DocuSeal/Qualified)
+5a. E-signature workflow:
+    ├── YouSign (digital), AutoFirma (QES Spain), OpenAPI (QES EU)
+    ├── DocuSeal/AES blocked (DOCUSEAL_BLOCKED = true)
+    ├── Pro badge on initiate button for free users (no interruptive upgrade dialog)
+    ├── Send reminder (1-hour cooldown, max 3 reminders)
+    └── Cancel signature → workflow ends
+    
+6. End tenancy:
+   ├── Button in ContactInfoCard (active/ending_tenancy status)
+   ├── EndTenancyDialog: pick end date → status → 'ending_tenancy' (trigger derives from vacate_date + grace_days)
+   └── Or "End Immediately" (no real tenant) → status → 'historic'
+6a. Finalize tenancy:
+    ├── Two-step: ending_tenancy → historic (tenants)
+    ├── One-step: immediate → historic (self-managed, no real tenant)
+    ├── Separate "Finalize" AlertDialog with consequences listed (read-only, 24h undo, parallel setup)
+    └── 24-hour undo window in historic banner (reverts to ending_tenancy); banner shows tenant name for context
+
+6b. Delete self-managed tenancy:
+    ├── "Delete" button in TenancyOverviewCard
+    ├── Only shown for active tenancies with no linked tenant
+    ├── Hard-deletes property_tenants record
+    └── Clears the way for a fresh tenancy setup   
 7. When ending/ended → can set up next tenancy in parallel
- 7a. Date conflict detection: warns on overlapping active/ending_tenancy
- 7b. TenantSwitcher: filters non-historic by default; "View Historic" button
- 7c. Invitation lifecycle: pending→accepted/cancelled/dismissed/declined(30d)/expired(30d)
- 7d. Requirement status: draft→sent→accepted; any status hard-deleted via Cancel Setup
- 7e. Auto-open wizard: /properties/:id/tenants?action=newTenancy
+7a. Date conflict detection:
+    ├── Warning dialog shown if new tenancy overlaps existing active/ending_tenancy
+    ├── User can cancel or proceed anyway
+    └── Only triggers when "Set Up Tenancy" is clicked with active/ending status
+
+7b. TenantSwitcher navigation:
+    ├── Shown when property has multiple tenancies
+    ├── Filters to non-historic by default
+    └── "View Historic" button to see ended tenancies
+
+7c. Invitation lifecycle:
+    ├── pending → accepted → tenant linked
+    ├── pending → cancelled (manager cancels) → can re-send
+    ├── pending → dismissed (manager dismisses) → hidden from UI
+    ├── pending → declined (tenant declines) → visible for 30 days with dismiss action
+    └── pending → expired after 7 days → visible for 30 days with resend/dismiss actions
+
+7d. Requirement status progression:
+    ├── 'draft' → created by wizard submit
+    ├── 'draft' → 'sent' → when invitation is sent
+    ├── 'sent' → 'accepted' → when tenant accepts
+    └── Any status → hard delete when "Cancel Setup" is clicked
+
+7e. Auto-open wizard via URL:
+    ├── /properties/:id/tenants?action=newTenancy
+    ├── Only triggers if canSetupNewTenancy is true
+    └── Clears the action param after trigger
 ```
 
     
@@ -264,7 +372,7 @@ All 52 are in `src/components/ui/`. Do NOT re-install with `npx shadcn add`.
    ├── Lists all active/archived tenancies
    ├── ArchiveToggle: active | ending_tenancy | archived
    └── Click property → /properties/:id/tenants → redirects to PropertyHub
-4. Onboarding Checklist (tenant-only, Contracts tab in PropertyHub):
+4. Onboarding Checklist (tenant-only, ContractsTab):
    ├── Verify email → click → /account
    ├── Complete KYC (if required) → click → /account
    └── Sign contract (digital method) → click → scroll to contract section
@@ -277,7 +385,53 @@ All 52 are in `src/components/ui/`. Do NOT re-install with `npx shadcn add`.
 7. When tenancy ends → status → 'historic' → read-only view
 ```
 
+### Lifecycle Diagram
 
+```
+                    ┌──────────────┐
+                    │  No Tenant   │
+                    └──────┬───────┘
+                           │ Set Up Tenancy
+                           ▼
+              ┌────────────────────────┐
+              │ tenancy_requirements   │
+              │ (status: 'draft')     │
+              └──────┬────────────────┘
+                     │ Send Invitation
+                     ▼
+              ┌────────────────────────┐
+              │ tenancy_requirements   │
+              │ (status: 'sent')      │
+              └──────┬────────────────┘
+                     │ Tenant Accepts
+                     ▼
+              ┌────────────────────────┐
+              │  property_tenants      │
+              │ (status: 'active')    │
+              │  + profile linked      │
+              └──────┬────────────────┘
+                     │ End Tenancy
+                     ▼
+              ┌───────────────────────────────────┐
+              │  property_tenants                │
+              │ (status: 'ending_tenancy')       │
+              │  + end_date (set by manager)     │
+              └──────┬──────────────────────────┘
+                     │ Finalize
+                     ▼
+              ┌────────────────────────┐
+              │  property_tenants      │
+              │ (status: 'historic')  │
+              │  + ended_at            │
+              └────────────────────────┘
+
+  Self-managed shortcut:
+    draft ──────────────────► active (skips sent + accept)
+                              (tenant_id = null)
+
+  Historic property_tenants:
+    active ───────────────► historic (via "End Immediately")
+```
 
 ## Key Architecture Notes
 
@@ -287,7 +441,10 @@ All 52 are in `src/components/ui/`. Do NOT re-install with `npx shadcn add`.
 - **Theme** — `ThemeContext` manages dark/light/system + font size
 - **Provider chain** (in `main.tsx`): `ErrorBoundary` → `UserPreferencesProvider` → `ThemeProvider` → `LanguageProvider` → `BrandProvider` → `App`
 - **Tenant lifecycle**: pending requirement → (draft → sent) → active → ending_tenancy → historic
+- **Self-managed** path creates `property_tenants` immediately with `status = 'active'` (skips draft/sent)
 - **E-signatures**: multi-provider (YouSign, DocuSeal, Qualified, AutoFirma, OpenAPI)
+- **Configuration defaults**: Saved at `/configuration?tab=defaults` → stored in `profiles.default_rent_settings` → consumed by `CreateTenancyWizard` in 'new' mode to pre-fill KYC toggle and security deposit
+- **Wizard session persistence**: Form state auto-saved to `sessionStorage` on each step change; restored within 1 hour if wizard is accidentally closed
 - **Cross-property views**: `/tenants` route shows all tenancies grouped by property (manager only). A cross-property `/tickets` page is planned — the existing route currently redirects to `/properties`
 - **Human labels**: `getTenancyDisplayLabel()` in `src/lib/tenancyStatus.ts` converts status + vacateDate to display strings: Active / Active (leaving) / Pending / Ended
 - **Client-side status derivation**: `computeTenancyStatus()` mirrors the trigger logic for optimistic UI; enforces the same rules as the trigger
@@ -333,10 +490,5 @@ All 52 are in `src/components/ui/`. Do NOT re-install with `npx shadcn add`.
 
 - ❌ **Don't query Supabase directly in components** — use hooks/services layer
 - ❌ **Don't hardcode user-facing strings** — always use `t("key")`; only add translation keys to `en.ts`
-- ❌ **Don't use `any` types** — prefer proper interfaces or `unknown` with type guards
-- ❌ **Don't re-install shadcn/ui components** — check `src/components/ui/` first, they're already there
-- ❌ **Don't put server secrets in `.env`** — service keys stay in Supabase dashboard
-- ❌ **Don't use React Query's `onSuccess` for side effects that change other state** — use `useEffect` watching query data instead
-- ❌ **Don't use `useState` for async data** — use `useQuery` / `useMutation` from React Query
 - ❌ **Don't export components + utility functions from the same file** — split into separate files to avoid `react-refresh/only-export-components` warnings
 - ❌ **Don't add `node_modules` or `dist` to version control** — they're already in `.gitignore`

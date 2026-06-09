@@ -103,9 +103,9 @@ export default function Account() {
         setAvatarUrl(profile.avatarStoragePath);
         setKycStatus(profile.kycStatus);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (mounted) {
-        showToast.error(t('common.error'), error.message);
+        showToast.error(t('common.error'), error instanceof Error ? error.message : t('common.error'));
       }
     } finally {
       if (mounted) setLoading(false);

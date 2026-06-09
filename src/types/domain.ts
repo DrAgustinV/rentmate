@@ -126,7 +126,7 @@ export interface PaymentDomain {
   status: PaymentStatus;
   paymentDate: string;
   dueDate: string;
-  description: string | null;
+  notes: string | null;
   proofPath: string | null;
   createdAt: string;
   updatedAt: string;

@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { tenantService } from "@/services";
 import { format, isWithinInterval, subYears, startOfYear, endOfYear } from "date-fns";
 import { Search, History, Eye } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { HistoricTenancyDetails } from "./HistoricTenancyDetails";
 
 interface HistoricTabProps {
@@ -232,11 +233,12 @@ export function HistoricTab({ propertyId, isManager }: HistoricTabProps) {
 
       {/* Table */}
       {filteredTenancies.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg">
-          <History className="h-12 w-12 mx-auto text-muted-foreground mb-3 opacity-50" />
-          <p className="text-muted-foreground">{t("historicTenancies.noHistoricTenancies")}</p>
-          <p className="text-sm text-muted-foreground mt-1">{t("historicTenancies.noHistoricTenanciesDesc")}</p>
-        </div>
+        <EmptyState
+          icon={History}
+          title={t("historicTenancies.noHistoricTenancies")}
+          description={t("historicTenancies.noHistoricTenanciesDesc")}
+          size="compact"
+        />
       ) : (
         <>
           <div className="border rounded-lg">

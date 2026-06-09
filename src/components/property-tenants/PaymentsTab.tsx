@@ -6,14 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Plus, Clock, Bell, BellOff } from "lucide-react";
+import { Plus, Clock, Bell, BellOff, History, X } from "lucide-react";
 import { UnifiedPaymentHistory, UnifiedPayment } from "@/components/payments/UnifiedPaymentHistory";
 import { CreatePaymentDialog } from "@/components/CreatePaymentDialog";
+import { BackfillPaymentsWizard } from "@/components/payments/BackfillPaymentsWizard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRentAgreements } from "@/hooks/useRentAgreements";
 import { useTenancyStarted } from "@/hooks/useTenancyStarted";
 import { useRentPayments } from "@/hooks/useRentPayments";
 import { useUtilityPayments } from "@/hooks/useUtilityPayments";
+import { useBackfillPayments } from "@/hooks/useBackfillPayments";
 import { tenancyService } from "@/services";
 import { showToast } from "@/lib/toast";
 import { isWithinInterval, subMonths, startOfMonth, endOfMonth } from "date-fns";
@@ -23,6 +25,7 @@ interface AgreementRow {
   tenancy_id: string;
   is_active: boolean;
   auto_reminders_enabled: boolean | null;
+  rent_amount_cents: number;
 }
 
 interface PaymentsTabProps {
@@ -33,9 +36,11 @@ interface PaymentsTabProps {
     first_name: string | null;
     last_name: string | null;
     tenancy_status: string;
+    started_at?: string;
   } | null;
   propertyId: string;
   userRole: { isManager: boolean } | undefined;
+  requirementsRentAmountCents?: number | null;
 }
 
 type TypeFilter = "all" | "rent" | "utility";
@@ -44,11 +49,13 @@ type PeriodFilter = "this_month" | "last_month" | "last_3_months" | "last_6_mont
 
 const ITEMS_PER_PAGE = 10;
 
-export function PaymentsTab({ currentTenant, propertyId, userRole }: PaymentsTabProps) {
+export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsRentAmountCents }: PaymentsTabProps) {
   const { t } = useLanguage();
   const isManager = userRole?.isManager || false;
   const queryClient = useQueryClient();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [backfillDialogOpen, setBackfillDialogOpen] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [managerId, setManagerId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -56,6 +63,10 @@ export function PaymentsTab({ currentTenant, propertyId, userRole }: PaymentsTab
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("all_time");
 
   const { isStarted, formattedStartDate } = useTenancyStarted(propertyId, currentTenant?.id);
+  const { gapAnalysis } = useBackfillPayments(propertyId, currentTenant?.id ?? "", {
+    fallbackStartDate: currentTenant?.started_at ? new Date(currentTenant.started_at) : null,
+    fallbackRentAmountCents: requirementsRentAmountCents,
+  });
 
   const { data: rentPayments, isLoading: rentLoading } = useRentPayments(propertyId);
   const { data: utilityPayments, isLoading: utilityLoading } = useUtilityPayments(propertyId);
@@ -184,6 +195,20 @@ export function PaymentsTab({ currentTenant, propertyId, userRole }: PaymentsTab
         </div>
       )}
 
+      {isManager && !bannerDismissed && gapAnalysis?.hasGap && (
+        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg text-sm">
+          <span>{t("payments.backfill.banner").replace("{count}", String(gapAnalysis.totalCount))}</span>
+          <div className="flex items-center gap-2">
+            <Button variant="link" size="sm" onClick={() => setBackfillDialogOpen(true)} className="h-auto p-0">
+              {t("payments.backfill.button")}
+            </Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setBannerDismissed(true)}>
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={typeFilter} onValueChange={(v: TypeFilter) => setTypeFilter(v)}>
@@ -223,10 +248,16 @@ export function PaymentsTab({ currentTenant, propertyId, userRole }: PaymentsTab
           </Select>
         </div>
 
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t("payments.createPayment")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setBackfillDialogOpen(true)} disabled={!gapAnalysis?.hasGap}>
+            <History className="h-4 w-4 mr-2" />
+            {t("payments.backfill.button")}
+          </Button>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t("payments.createPayment")}
+          </Button>
+        </div>
       </div>
 
       {isManager && currentAgreement && (
@@ -281,9 +312,17 @@ export function PaymentsTab({ currentTenant, propertyId, userRole }: PaymentsTab
           open={createDialogOpen}
           onOpenChange={setCreateDialogOpen}
           propertyId={propertyId}
-          tenantId={currentTenant.tenant_id}
-          managerId={managerId}
-          isManager={isManager}
+          tenancyId={currentTenant.id}
+          fallbackAmountCents={requirementsRentAmountCents}
+        />
+      )}
+
+      {managerId && currentTenant && (
+        <BackfillPaymentsWizard
+          open={backfillDialogOpen}
+          onOpenChange={setBackfillDialogOpen}
+          propertyId={propertyId}
+          tenancyId={currentTenant.id}
         />
       )}
     </div>

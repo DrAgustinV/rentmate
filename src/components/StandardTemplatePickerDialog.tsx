@@ -24,6 +24,7 @@ import { Search, Filter, Calendar, Wrench } from "lucide-react";
 import { ScheduleStandardTaskDialog } from "./ScheduleStandardTaskDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { priorityColors, typeColors } from "@/lib/maintenanceColors";
+import { EmptyState } from "@/components/EmptyState";
 
 interface StandardTemplate {
   id: string;
@@ -196,9 +197,11 @@ export function StandardTemplatePickerDialog({
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>{t("maintenance.standardTask.noTemplates")}</p>
-              </div>
+              <EmptyState
+                icon={Wrench}
+                title={t("maintenance.standardTask.noTemplates")}
+                size="compact"
+              />
             )}
           </ScrollArea>
         </DialogContent>

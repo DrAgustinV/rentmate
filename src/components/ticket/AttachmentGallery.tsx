@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { documentService, ticketService } from "@/services";
 import { STORAGE_BUCKETS } from "@/constants";
-import { Image, Video, Download, X } from "lucide-react";
+import { Image, Video, Download, X, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { formatDateTime } from "@/lib/dateUtils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { getCachedSignedUrl } from "@/lib/signedUrlCache";
+import { EmptyState } from "@/components/EmptyState";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Attachment {
   id: string;
@@ -33,6 +35,7 @@ export const AttachmentGallery = ({ attachments, ticketId, canDelete }: Attachme
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [fileUrls, setFileUrls] = useState<Record<string, string>>({});
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const photos = attachments.filter((a) => a.file_type === "photo");
   const videos = attachments.filter((a) => a.file_type === "video");
@@ -73,9 +76,11 @@ export const AttachmentGallery = ({ attachments, ticketId, canDelete }: Attachme
 
   if (attachments.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        No attachments yet
-      </div>
+      <EmptyState
+        icon={Paperclip}
+        title={t("tickets.attachmentsEmpty")}
+        size="compact"
+      />
     );
   }
 

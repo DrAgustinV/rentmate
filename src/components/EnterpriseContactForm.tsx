@@ -95,9 +95,9 @@ export function EnterpriseContactForm({ open, onOpenChange }: EnterpriseContactF
                 <CheckCircle2 className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold mb-2">Request Submitted!</h3>
+            <h3 className="text-2xl font-bold mb-2">{t("contact.successTitle")}</h3>
             <p className="text-muted-foreground">
-              Thank you for your interest. Our sales team will contact you within 24 hours.
+              {t("contact.successDesc")}
             </p>
           </div>
         ) : (

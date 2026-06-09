@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -18,7 +18,6 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Properties = lazy(() => import("./pages/Properties"));
-const PropertyTenants = lazy(() => import("./pages/PropertyTenants"));
 const PropertyTickets = lazy(() => import("./pages/PropertyTickets"));
 const PropertyMaintenance = lazy(() => import("./pages/PropertyMaintenance"));
 const MaintenanceCalendar = lazy(() => import("./pages/MaintenanceCalendar"));
@@ -42,7 +41,6 @@ const Pricing = lazy(() => import("./pages/Pricing"));
 const RepairShops = lazy(() => import("./pages/RepairShops"));
 const Import = lazy(() => import("./pages/Import"));
 const ImportRepairShops = lazy(() => import("./pages/ImportRepairShops"));
-const PropertyOverview = lazy(() => import("./pages/PropertyOverview"));
 const PropertyHub = lazy(() => import("./pages/PropertyHub"));
 
 // Page loading fallback
@@ -77,14 +75,12 @@ function withErrorBoundaryInline(element: React.ReactNode) {
 }
 
 // Redirect components for legacy routes
-function PropertyDetailsRedirect() {
-  const { propertyId } = useParams();
-  return <Navigate to={`/properties/${propertyId}/tenants`} replace />;
-}
-
 function PropertyToHubRedirect({ tab }: { tab: string }) {
   const { propertyId } = useParams();
-  return <Navigate to={`/properties/${propertyId}?tab=${tab}`} replace />;
+  const [searchParams] = useSearchParams();
+  const params = new URLSearchParams(searchParams);
+  params.set("tab", tab);
+  return <Navigate to={`/properties/${propertyId}?${params}`} replace />;
 }
 
 const App = () => (

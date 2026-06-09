@@ -148,17 +148,17 @@ export function CarouselItemsManager({ items, onUpdate, settingsId }: CarouselIt
         <h3 className="text-lg font-semibold">Landing Page Carousel</h3>
         <Button variant="outline" size="sm" onClick={handleAddItem}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Slide
+          {t("common.add")}
         </Button>
       </div>
 
       {items.length === 0 && (
         <div className="text-center py-8 border border-dashed rounded-lg">
           <Image className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-          <p className="text-muted-foreground">No carousel items yet</p>
+          <p className="text-muted-foreground">{t("carousel.empty")}</p>
           <Button variant="outline" size="sm" className="mt-4" onClick={handleAddItem}>
             <Plus className="h-4 w-4 mr-2" />
-            Add First Slide
+            {t("common.add")}
           </Button>
         </div>
       )}

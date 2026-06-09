@@ -10,7 +10,32 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -921,8 +946,8 @@ export type Database = {
           aml_status: string | null
           avatar_url: string | null
           created_at: string
-          default_role: string | null
           default_rent_settings: Json | null
+          default_role: string | null
           deletion_requested_at: string | null
           deletion_scheduled_for: string | null
           email: string
@@ -945,6 +970,7 @@ export type Database = {
           last_name: string | null
           legal_name: string | null
           manager_iban: string | null
+          onboarding_progress: Json | null
           phone: string | null
           sepa_creditor_identifier: string | null
           updated_at: string
@@ -953,8 +979,8 @@ export type Database = {
           aml_status?: string | null
           avatar_url?: string | null
           created_at?: string
-          default_role?: string | null
           default_rent_settings?: Json | null
+          default_role?: string | null
           deletion_requested_at?: string | null
           deletion_scheduled_for?: string | null
           email: string
@@ -977,6 +1003,7 @@ export type Database = {
           last_name?: string | null
           legal_name?: string | null
           manager_iban?: string | null
+          onboarding_progress?: Json | null
           phone?: string | null
           sepa_creditor_identifier?: string | null
           updated_at?: string
@@ -985,8 +1012,8 @@ export type Database = {
           aml_status?: string | null
           avatar_url?: string | null
           created_at?: string
-          default_role?: string | null
           default_rent_settings?: Json | null
+          default_role?: string | null
           deletion_requested_at?: string | null
           deletion_scheduled_for?: string | null
           email?: string
@@ -1009,6 +1036,7 @@ export type Database = {
           last_name?: string | null
           legal_name?: string | null
           manager_iban?: string | null
+          onboarding_progress?: Json | null
           phone?: string | null
           sepa_creditor_identifier?: string | null
           updated_at?: string
@@ -1086,7 +1114,7 @@ export type Database = {
           property_id: string | null
           tenancy_id: string | null
           updated_at: string | null
-          uploaded_by: string
+          uploaded_by: string | null
           version: number
         }
         Insert: {
@@ -1105,7 +1133,7 @@ export type Database = {
           property_id?: string | null
           tenancy_id?: string | null
           updated_at?: string | null
-          uploaded_by: string
+          uploaded_by?: string | null
           version?: number
         }
         Update: {
@@ -1124,7 +1152,7 @@ export type Database = {
           property_id?: string | null
           tenancy_id?: string | null
           updated_at?: string | null
-          uploaded_by?: string
+          uploaded_by?: string | null
           version?: number
         }
         Relationships: [
@@ -1149,86 +1177,67 @@ export type Database = {
             referencedRelation: "property_tenants"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "property_documents_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "property_documents_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       property_tenants: {
         Row: {
           created_at: string
+          end_date: string | null
           end_reason: string | null
           ended_at: string | null
-          id: string
-          notes: string | null
-          end_date: string | null
-          possession_date: string | null
-          vacate_date: string | null
           grace_days: number
+          id: string
+          manager_tenant_name: string | null
+          manager_tenant_phone: string | null
+          manager_tenant_surname: string | null
+          notes: string | null
+          possession_date: string | null
           property_id: string
           started_at: string
           tenancy_status: string | null
-          tenant_id: string
+          tenant_id: string | null
+          vacate_date: string | null
           videos: string[] | null
         }
         Insert: {
           created_at?: string
+          end_date?: string | null
           end_reason?: string | null
           ended_at?: string | null
-          id?: string
-          notes?: string | null
-          end_date?: string | null
-          possession_date?: string | null
-          vacate_date?: string | null
           grace_days?: number
+          id?: string
+          manager_tenant_name?: string | null
+          manager_tenant_phone?: string | null
+          manager_tenant_surname?: string | null
+          notes?: string | null
+          possession_date?: string | null
           property_id: string
           started_at?: string
           tenancy_status?: string | null
-          tenant_id: string
+          tenant_id?: string | null
+          vacate_date?: string | null
           videos?: string[] | null
         }
         Update: {
           created_at?: string
+          end_date?: string | null
           end_reason?: string | null
           ended_at?: string | null
-          id?: string
-          notes?: string | null
-          end_date?: string | null
-          possession_date?: string | null
-          vacate_date?: string | null
           grace_days?: number
+          id?: string
+          manager_tenant_name?: string | null
+          manager_tenant_phone?: string | null
+          manager_tenant_surname?: string | null
+          notes?: string | null
+          possession_date?: string | null
           property_id?: string
           started_at?: string
           tenancy_status?: string | null
-          tenant_id?: string
+          tenant_id?: string | null
+          vacate_date?: string | null
           videos?: string[] | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_property_tenants_profiles"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_property_tenants_profiles"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "property_tenants_property_id_fkey"
             columns: ["property_id"]
@@ -1721,7 +1730,22 @@ export type Database = {
           specializations?: string[] | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "repair_shops_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_shops_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       signature_events: {
         Row: {
@@ -2247,7 +2271,7 @@ export type Database = {
           start_date: string | null
           status: string | null
           tenancy_id: string | null
-          tenant_email: string
+          tenant_email: string | null
           updated_at: string | null
           utilities_config: Json | null
         }
@@ -2272,7 +2296,7 @@ export type Database = {
           start_date?: string | null
           status?: string | null
           tenancy_id?: string | null
-          tenant_email: string
+          tenant_email?: string | null
           updated_at?: string | null
           utilities_config?: Json | null
         }
@@ -2297,7 +2321,7 @@ export type Database = {
           start_date?: string | null
           status?: string | null
           tenancy_id?: string | null
-          tenant_email?: string
+          tenant_email?: string | null
           updated_at?: string | null
           utilities_config?: Json | null
         }
@@ -2924,7 +2948,7 @@ export type Database = {
           proof_review_status: string | null
           property_id: string
           status: string
-          tenant_id: string
+          tenant_id: string | null
           updated_at: string
           utility_type: string
         }
@@ -2947,7 +2971,7 @@ export type Database = {
           proof_review_status?: string | null
           property_id: string
           status?: string
-          tenant_id: string
+          tenant_id?: string | null
           updated_at?: string
           utility_type: string
         }
@@ -2970,11 +2994,47 @@ export type Database = {
           proof_review_status?: string | null
           property_id?: string
           status?: string
-          tenant_id?: string
+          tenant_id?: string | null
           updated_at?: string
           utility_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "utility_payments_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "utility_payments_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "utility_payments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "utility_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "utility_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -3091,6 +3151,16 @@ export type Database = {
         Returns: number
       }
       get_auth_user_email: { Args: never; Returns: string }
+      get_properties_dashboard: {
+        Args: { p_property_ids: string[] }
+        Returns: {
+          occupancy_status: string
+          open_tickets_count: number
+          payment_status: string
+          property_id: string
+          tenant_name: string
+        }[]
+      }
       get_properties_status_indicators: {
         Args: { p_property_ids: string[] }
         Returns: {
@@ -3137,6 +3207,24 @@ export type Database = {
       increment_signatures_used: {
         Args: { p_amount?: number; p_user_id: string; p_year: number }
         Returns: undefined
+      }
+      insert_property_document: {
+        Args: {
+          p_description: string
+          p_document_category: string
+          p_document_title: string
+          p_file_name: string
+          p_file_path: string
+          p_file_size_bytes: number
+          p_file_type: string
+          p_is_latest_version: boolean
+          p_mime_type: string
+          p_property_id: string
+          p_tenancy_id: string
+          p_uploaded_by: string
+          p_version: number
+        }
+        Returns: string
       }
       is_property_manager: {
         Args: { _property_id: string; _user_id: string }
@@ -3314,6 +3402,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "user"],

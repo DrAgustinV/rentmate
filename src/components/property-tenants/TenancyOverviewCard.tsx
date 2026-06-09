@@ -11,9 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { profileService, tenancyService } from "@/services";
 import { formatDate } from "@/lib/dateUtils";
 import { TenancyRequirement } from "@/hooks/useTenancyRequirements";
-import { 
+import {
   User, Mail, FileSignature, CheckCircle, Zap, Pencil, Send, FileText, Settings, Phone, Eye, EyeOff, CalendarX
 } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Tenant {
   id: string;
@@ -515,14 +516,11 @@ export function TenancyOverviewCard({
 
       {/* No data state - only when no tenant exists */}
       {!showPendingSetup && !hasRentalData && !showSetupButton && !currentTenant && (
-        <Card className="card-shine">
-          <CardContent className="py-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-              <FileText className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <p className="text-muted-foreground">{t("rentAgreements.noAgreements")}</p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={FileText}
+          title={t("rentAgreements.noAgreements")}
+          size="compact"
+        />
       )}
     </div>
   );

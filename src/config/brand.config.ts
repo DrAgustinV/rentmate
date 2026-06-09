@@ -21,8 +21,8 @@ export const BRAND_CONFIG = {
   
   // Contact information
   contact: {
-    email: "support@rentmate.app",
-    supportEmail: "support@rentmate.app",
+    email: "support@rentmate.me",
+    supportEmail: "support@rentmate.me",
   },
   
   // SEO & Meta

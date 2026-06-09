@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Calendar, Search, Filter, LayoutGrid, List, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CreateStandardMaintenanceDialog } from "@/components/CreateStandardMaintenanceDialog";
@@ -293,13 +294,13 @@ export function StandardTasksSection({ propertyId }: StandardTasksSectionProps) 
               </Table>
             </div>
           )
-        ) : (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              <p>{t("maintenance.standardTask.noTemplates")}</p>
-            </CardContent>
-          </Card>
-        )}
+          ) : (
+            <EmptyState
+              icon={FileText}
+              title={t("maintenance.standardTask.noTemplates")}
+              size="compact"
+            />
+          )}
       </div>
 
       {/* Create/Edit Dialog */}

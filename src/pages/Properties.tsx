@@ -90,7 +90,7 @@ export default function Properties() {
       if (guideHighlight === "add-tenant") {
         if (propertiesData && propertiesData.length > 0) {
           const firstPropertyId = propertiesData[0].id;
-          navigate(`/properties/${firstPropertyId}/tenants?action=newTenancy`);
+            navigate(`/properties/${firstPropertyId}?tab=tenants&action=newTenancy`);
         }
         searchParams.delete("guideHighlight");
         setSearchParams(searchParams, { replace: true });
@@ -132,7 +132,7 @@ export default function Properties() {
                 data-tour="bulk-import-btn"
               >
                 <Upload className="h-4 w-4" />
-                Bulk Import
+                {t("common.bulkImport")}
               </Button>
               <Button
                 variant="default"
@@ -194,8 +194,8 @@ export default function Properties() {
         ) : propertyView === "ending_tenancy" ? (
           <EmptyState
             icon={Archive}
-            title="No properties ending tenancy"
-            description="No properties are currently ending tenancy"
+            title={t("properties.endingTenancy.emptyTitle")}
+            description={t("properties.endingTenancy.emptyDesc")}
           />
         ) : (
           <EmptyState
@@ -295,7 +295,7 @@ export default function Properties() {
         onSuccess={(propertyId) => {
           setIsCreateOpen(false);
           if (activeProperties.length === 0) {
-            navigate(`/properties/${propertyId}/tenants?action=newTenancy`);
+            navigate(`/properties/${propertyId}?tab=tenants&action=newTenancy`);
           }
         }}
       />

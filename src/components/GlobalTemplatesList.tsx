@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Download, Trash2, FileText, Search, LayoutGrid, List, Loader2 } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { format } from "date-fns";
 import {
   AlertDialog,
@@ -164,18 +165,20 @@ export const GlobalTemplatesList = () => {
 
       {/* Empty State */}
       {!hasTemplates && (
-        <div className="text-center py-8 text-muted-foreground">
-          <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>{t('configuration.documentTemplates.noTemplates')}</p>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title={t('configuration.documentTemplates.noTemplates')}
+          size="compact"
+        />
       )}
 
       {/* No Results */}
       {hasTemplates && !hasFilteredResults && (
-        <div className="text-center py-8 text-muted-foreground">
-          <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>{t('common.noResults') || "No templates match your search."}</p>
-        </div>
+        <EmptyState
+          icon={Search}
+          title={t('common.noResults') || "No templates match your search."}
+          size="compact"
+        />
       )}
 
       {/* Templates Display */}

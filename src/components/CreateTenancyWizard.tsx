@@ -32,7 +32,6 @@ const formSchema = z.object({
   manager_tenant_phone: z.string().optional(),
   require_email_verification: z.boolean().default(true),
   require_kyc_verification: z.boolean().default(false),
-  require_phone_verification: z.boolean().default(false),
   self_manage_only: z.boolean().default(false),
   contract_method: z.enum(['digital', 'manual', 'none']),
   selected_template_id: z.string().nullable(),
@@ -68,7 +67,6 @@ interface CreateTenancyWizardProps {
     contract_method?: string | null;
     require_email_verification?: boolean | null;
     require_kyc_verification?: boolean | null;
-    require_phone_verification?: boolean | null;
     selected_template_id?: string | null;
     manager_tenant_name?: string;
     manager_tenant_surname?: string;
@@ -148,7 +146,6 @@ export function CreateTenancyWizard({
       manager_tenant_phone: '',
       require_email_verification: initialData?.require_email_verification ?? true,
       require_kyc_verification: initialData?.require_kyc_verification ?? defaultSettings?.require_kyc ?? false,
-      require_phone_verification: false,
       self_manage_only: initialData?.self_manage_only ?? false,
       contract_method: (initialData?.contract_method as 'digital' | 'manual' | 'none') || 'manual',
       selected_template_id: null,
@@ -183,7 +180,6 @@ export function CreateTenancyWizard({
         manager_tenant_phone: initialData.manager_tenant_phone || '',
         require_email_verification: initialData.require_email_verification ?? true,
         require_kyc_verification: initialData.require_kyc_verification ?? defaultSettings?.require_kyc ?? false,
-        require_phone_verification: initialData.require_phone_verification ?? false,
         self_manage_only: initialData.self_manage_only ?? false,
         contract_method: (initialData.contract_method as 'digital' | 'manual' | 'none') || 'manual',
         selected_template_id: initialData.selected_template_id ?? null,
@@ -293,7 +289,6 @@ export function CreateTenancyWizard({
     manager_tenant_phone: data.manager_tenant_phone || null,
     require_email_verification: data.self_manage_only ? false : data.require_email_verification,
     require_kyc_verification: data.require_kyc_verification,
-    require_phone_verification: data.require_phone_verification,
     self_manage_only: data.self_manage_only,
     contract_method: data.contract_method,
     selected_template_id: data.selected_template_id,
@@ -310,11 +305,15 @@ export function CreateTenancyWizard({
     if (currentStep !== STEPS.length - 1) return;
     
     const input = buildSubmitInput(data);
-    await onSubmit(input, mode);
-    clearSession();
-    // Don't close dialog here - let parent control closing after successful save
-    form.reset();
-    setCurrentStep(0);
+    try {
+      await onSubmit(input, mode);
+      clearSession();
+      // Don't close dialog here - let parent control closing after successful save
+      form.reset();
+      setCurrentStep(0);
+    } catch {
+      // Error handled by parent (toast + rollback) — keep form values for retry
+    }
   };
 
   const getFieldsForStep = (step: number): (keyof FormData)[] => {
@@ -369,7 +368,7 @@ export function CreateTenancyWizard({
               <div key={step.id} className="flex items-center">
                 <button
                   type="button"
-                  disabled={!canJump}
+                  disabled={!canJump || isSubmitting}
                   onClick={() => canJump && setCurrentStep(index)}
                   className="flex flex-col items-center transition-opacity disabled:opacity-100"
                 >
@@ -408,9 +407,11 @@ export function CreateTenancyWizard({
             onSubmit={form.handleSubmit(handleSubmit)} 
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
+                e.preventDefault();
                 if (currentStep !== STEPS.length - 1) {
-                  e.preventDefault();
                   handleNext();
+                } else if (!isSubmitting) {
+                  form.handleSubmit(handleSubmit)();
                 }
               }
             }}
@@ -432,6 +433,7 @@ export function CreateTenancyWizard({
               <Button
                 type="button"
                 variant="outline"
+                disabled={isSubmitting}
                 onClick={currentStep === 0 ? () => onOpenChange(false) : handleBack}
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
@@ -452,7 +454,7 @@ export function CreateTenancyWizard({
                 )}
                 */}
                 {currentStep < STEPS.length - 1 ? (
-                  <Button type="button" onClick={handleNext}>
+                  <Button type="button" disabled={isSubmitting} onClick={handleNext}>
                     {t('common.next')}
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>

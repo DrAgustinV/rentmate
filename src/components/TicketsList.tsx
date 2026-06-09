@@ -6,6 +6,7 @@ import { formatDate } from "@/lib/dateUtils";
 import { RotateCw, Calendar, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { EmptyState } from "@/components/EmptyState";
+import { ticketStatusColors, ticketPriorityColors } from "@/lib/statusColors";
 
 interface Ticket {
   id: string;
@@ -28,20 +29,6 @@ interface TicketsListProps {
   isLoading: boolean;
   showRecurringBadge?: boolean;
 }
-
-const statusColors = {
-  open: "bg-info",
-  in_progress: "bg-warning",
-  resolved: "bg-success",
-  cancelled: "bg-muted-foreground",
-};
-
-const priorityColors = {
-  low: "bg-muted-foreground",
-  medium: "bg-info",
-  high: "bg-warning",
-  urgent: "bg-destructive",
-};
 
 export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: TicketsListProps) {
   const navigate = useNavigate();
@@ -114,12 +101,12 @@ export function TicketsList({ tickets, isLoading, showRecurringBadge = false }: 
               </TableCell>
               <TableCell className="capitalize">{ticket.type}</TableCell>
               <TableCell>
-                <Badge className={statusColors[ticket.status as keyof typeof statusColors]}>
+                <Badge className={ticketStatusColors[ticket.status as keyof typeof ticketStatusColors] || ""}>
                   {ticket.status.replace("_", " ")}
                 </Badge>
               </TableCell>
               <TableCell>
-                <Badge className={priorityColors[ticket.priority as keyof typeof priorityColors]}>
+                <Badge className={ticketPriorityColors[ticket.priority as keyof typeof ticketPriorityColors] || ""}>
                   {ticket.priority}
                 </Badge>
               </TableCell>

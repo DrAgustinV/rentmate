@@ -10,7 +10,6 @@ import { ProofOfPaymentUpload } from "@/components/ProofOfPaymentUpload";
 import { PaymentProofReview } from "./PaymentProofReview";
 import { UtilityProofUpload } from "./UtilityProofUpload";
 import { UtilityProofReview } from "./UtilityProofReview";
-import { EmptyState } from "@/components/EmptyState";
 import { FileText, CheckCircle2, Clock, Upload, Eye, Loader2, DollarSign, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { RentPayment } from "@/hooks/useRentPayments";
@@ -136,23 +135,21 @@ export function UnifiedPaymentHistory({
 
   if (!hasTenant) {
     return (
-      <EmptyState
-        icon={FileText}
-        title={t("payments.emptyStates.noHistory")}
-        description={t("payments.emptyStates.noTenancy")}
-        variant="info"
-      />
+      <div className="text-center py-12 animate-fade-in" role="status" aria-live="polite">
+        <FileText className="mx-auto h-12 w-12 mb-4 opacity-50 text-primary" aria-hidden="true" />
+        <h3 className="text-lg font-semibold mb-2">{t("payments.emptyStates.noHistory")}</h3>
+        <p className="text-muted-foreground">{t("payments.emptyStates.noTenancy")}</p>
+      </div>
     );
   }
 
   if (!hasPayments) {
     return (
-      <EmptyState
-        icon={FileText}
-        title={t("payments.emptyStates.noHistory")}
-        description={noAgreements ? t("payments.emptyStates.waitingForAgreement") : t("payments.emptyStates.noPaymentsDesc")}
-        variant="info"
-      />
+      <div className="text-center py-12 animate-fade-in" role="status" aria-live="polite">
+        <FileText className="mx-auto h-12 w-12 mb-4 opacity-50 text-primary" aria-hidden="true" />
+        <h3 className="text-lg font-semibold mb-2">{t("payments.emptyStates.noHistory")}</h3>
+        <p className="text-muted-foreground">{noAgreements ? t("payments.emptyStates.waitingForAgreement") : t("payments.emptyStates.noPaymentsDesc")}</p>
+      </div>
     );
   }
 

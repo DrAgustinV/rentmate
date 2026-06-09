@@ -1,6 +1,9 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/dateUtils";
+import { EmptyState } from "@/components/EmptyState";
+import { MessageSquare } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Comment {
   id: string;
@@ -19,11 +22,14 @@ interface CommentsListProps {
 }
 
 export const CommentsList = ({ comments }: CommentsListProps) => {
+  const { t } = useLanguage();
   if (comments.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        No comments yet. Start the conversation!
-      </div>
+      <EmptyState
+        icon={MessageSquare}
+        title={t("tickets.commentsEmpty")}
+        size="compact"
+      />
     );
   }
 

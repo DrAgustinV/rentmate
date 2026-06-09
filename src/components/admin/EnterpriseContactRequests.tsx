@@ -128,7 +128,7 @@ export function EnterpriseContactRequests() {
                 {requests?.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                      No requests yet
+                      {t("enterprise.noRequests")}
                     </TableCell>
                   </TableRow>
                 ) : (
