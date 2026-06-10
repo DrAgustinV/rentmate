@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -18,6 +19,7 @@ import { useUtilityPayments } from "@/hooks/useUtilityPayments";
 import { useBackfillPayments } from "@/hooks/useBackfillPayments";
 import { tenancyService } from "@/services";
 import { showToast } from "@/lib/toast";
+import { filterTenantsByPill, type TenantFilter } from "@/lib/tenantFilterUtils";
 import { isWithinInterval, subMonths, startOfMonth, endOfMonth } from "date-fns";
 
 interface AgreementRow {
@@ -38,6 +40,15 @@ interface PaymentsTabProps {
     tenancy_status: string;
     started_at?: string;
   } | null;
+  allTenants?: Array<{
+    id: string;
+    tenant_id: string;
+    tenancy_status: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  }> | null;
+  tenantFilter?: TenantFilter;
   propertyId: string;
   userRole: { isManager: boolean } | undefined;
   requirementsRentAmountCents?: number | null;
@@ -49,7 +60,7 @@ type PeriodFilter = "this_month" | "last_month" | "last_3_months" | "last_6_mont
 
 const ITEMS_PER_PAGE = 10;
 
-export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsRentAmountCents }: PaymentsTabProps) {
+export function PaymentsTab({ currentTenant, allTenants, tenantFilter, propertyId, userRole, requirementsRentAmountCents }: PaymentsTabProps) {
   const { t } = useLanguage();
   const isManager = userRole?.isManager || false;
   const queryClient = useQueryClient();
@@ -61,9 +72,14 @@ export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsR
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("all_time");
+  const [yearFilter, setYearFilter] = useState<string>("all");
+  const [amountMin, setAmountMin] = useState<string>("");
+  const [amountMax, setAmountMax] = useState<string>("");
+  const [historicTenantId, setHistoricTenantId] = useState<string | null>(null);
+  const effectiveTenantFilter = tenantFilter || "current";
 
   const { isStarted, formattedStartDate } = useTenancyStarted(propertyId, currentTenant?.id);
-  const { gapAnalysis } = useBackfillPayments(propertyId, currentTenant?.id ?? "", {
+  const { gapAnalysis } = useBackfillPayments(propertyId, currentTenant?.id ?? "", currentTenant?.tenant_id, {
     fallbackStartDate: currentTenant?.started_at ? new Date(currentTenant.started_at) : null,
     fallbackRentAmountCents: requirementsRentAmountCents,
   });
@@ -73,6 +89,14 @@ export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsR
   const { data: rentAgreements, isLoading: agreementsLoading } = useRentAgreements(propertyId);
 
   const isLoading = rentLoading || utilityLoading || agreementsLoading;
+
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    [...(rentPayments || []), ...(utilityPayments || [])].forEach(p => {
+      years.add(new Date(p.payment_due_date).getFullYear().toString());
+    });
+    return Array.from(years).sort().reverse();
+  }, [rentPayments, utilityPayments]);
 
   useEffect(() => {
     tenancyService.getPropertyManagerId(propertyId).then(setManagerId);
@@ -93,7 +117,29 @@ export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsR
 
   const allPayments: UnifiedPayment[] = useMemo(() => {
     if (!rentPayments || !utilityPayments) return [];
-    if (!currentTenant?.tenant_id) return [];
+
+    let tenantIdsToInclude: string[] | null = null;
+
+    if (allTenants && effectiveTenantFilter) {
+      const filtered = filterTenantsByPill(allTenants, effectiveTenantFilter);
+      if (effectiveTenantFilter === "historic" && historicTenantId) {
+        const t = filtered.find(t => t.id === historicTenantId);
+        tenantIdsToInclude = t ? [t.tenant_id] : [];
+      } else {
+        tenantIdsToInclude = filtered.map(t => t.tenant_id).filter(Boolean);
+      }
+      if (tenantIdsToInclude.length === 0) {
+        if (filtered.length > 0) {
+          tenantIdsToInclude = null;
+        } else {
+          return [];
+        }
+      }
+    } else if (currentTenant) {
+      tenantIdsToInclude = currentTenant.tenant_id ? [currentTenant.tenant_id] : null;
+    } else {
+      return [];
+    }
 
     const now = new Date();
     let periodStart: Date | null = null;
@@ -116,7 +162,7 @@ export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsR
     }
 
     const rent: UnifiedPayment[] = (rentPayments || [])
-      .filter(p => p.tenant_id === currentTenant.tenant_id)
+      .filter(p => !tenantIdsToInclude || tenantIdsToInclude.includes(p.tenant_id))
       .map(p => ({
         id: p.id,
         type: "rent" as const,
@@ -130,7 +176,7 @@ export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsR
       }));
 
     const utility: UnifiedPayment[] = (utilityPayments || [])
-      .filter(p => p.tenant_id === currentTenant.tenant_id)
+      .filter(p => !tenantIdsToInclude || tenantIdsToInclude.includes(p.tenant_id))
       .map(p => ({
         id: p.id,
         type: "utility" as const,
@@ -151,10 +197,16 @@ export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsR
           const dueDate = new Date(p.dueDate);
           if (!isWithinInterval(dueDate, { start: periodStart, end: endOfMonth(now) })) return false;
         }
+        if (yearFilter !== "all") {
+          const paymentYear = new Date(p.dueDate).getFullYear().toString();
+          if (paymentYear !== yearFilter) return false;
+        }
+        if (amountMin !== "" && p.amountCents < parseFloat(amountMin) * 100) return false;
+        if (amountMax !== "" && p.amountCents > parseFloat(amountMax) * 100) return false;
         return true;
       })
       .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
-  }, [rentPayments, utilityPayments, currentTenant, typeFilter, statusFilter, periodFilter]);
+  }, [rentPayments, utilityPayments, allTenants, effectiveTenantFilter, historicTenantId, currentTenant, typeFilter, statusFilter, periodFilter, yearFilter, amountMin, amountMax]);
 
   const totalPages = Math.ceil(allPayments.length / ITEMS_PER_PAGE);
   const paginatedPayments = allPayments.slice(
@@ -164,7 +216,11 @@ export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsR
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [typeFilter, statusFilter, periodFilter]);
+  }, [typeFilter, statusFilter, periodFilter, yearFilter, amountMin, amountMax]);
+
+  useEffect(() => {
+    setHistoricTenantId(null);
+  }, [tenantFilter]);
 
   const currentAgreement = rentAgreements?.find(
     (ra: AgreementRow) => ra.tenancy_id === currentTenant?.id && ra.is_active
@@ -246,6 +302,36 @@ export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsR
               <SelectItem value="all_time">{t("payments.filters.allTime")}</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select value={yearFilter} onValueChange={setYearFilter}>
+            <SelectTrigger className="w-[110px]">
+              <SelectValue placeholder={t("payments.filters.allYears")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("payments.filters.allYears")}</SelectItem>
+              {availableYears.map(year => (
+                <SelectItem key={year} value={year}>{year}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center gap-1">
+            <Input
+              type="number"
+              placeholder={t("payments.filters.min")}
+              className="w-[70px] h-9"
+              value={amountMin}
+              onChange={(e) => setAmountMin(e.target.value)}
+            />
+            <span className="text-muted-foreground">—</span>
+            <Input
+              type="number"
+              placeholder={t("payments.filters.max")}
+              className="w-[70px] h-9"
+              value={amountMax}
+              onChange={(e) => setAmountMax(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -259,6 +345,26 @@ export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsR
           </Button>
         </div>
       </div>
+
+      {allTenants && effectiveTenantFilter === "historic" && allTenants.filter(t => t.tenancy_status === "historic").length > 0 && (
+        <div className="flex items-center gap-2">
+          <Select value={historicTenantId || "__all__"} onValueChange={(v) => setHistoricTenantId(v === "__all__" ? null : v)}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder={t("common.all")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">
+                {t("common.all")} ({t("propertyHub.filter.historic").toLowerCase()})
+              </SelectItem>
+              {allTenants.filter(t => t.tenancy_status === "historic").map(t => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.first_name || t.last_name ? `${t.first_name || ""} ${t.last_name || ""}`.trim() : t.email}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {isManager && currentAgreement && (
         <div className="flex items-center justify-end">
@@ -323,6 +429,7 @@ export function PaymentsTab({ currentTenant, propertyId, userRole, requirementsR
           onOpenChange={setBackfillDialogOpen}
           propertyId={propertyId}
           tenancyId={currentTenant.id}
+          tenantProfileId={currentTenant.tenant_id}
         />
       )}
     </div>

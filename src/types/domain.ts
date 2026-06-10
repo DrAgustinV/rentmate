@@ -183,6 +183,26 @@ export interface TicketAttachmentDomain {
   createdAt: string;
 }
 
+// ========== PROPERTY COST DOMAIN ==========
+export type CostCategory = 'community_fee' | 'property_tax' | 'maintenance' | 'exceptional' | 'insurance' | 'other';
+export type CostStatus = 'pending' | 'paid';
+
+export interface PropertyCostDomain {
+  id: string;
+  propertyId: string;
+  costCategory: string;
+  description: string | null;
+  amountCents: number;
+  currency: string;
+  dueDate: string | null;
+  paidDate: string | null;
+  status: CostStatus;
+  recurrence: string;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ========== UPLOAD RESULT ==========
 export interface UploadResult {
   storagePath: string;

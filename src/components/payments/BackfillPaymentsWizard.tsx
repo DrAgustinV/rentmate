@@ -23,15 +23,16 @@ interface BackfillPaymentsWizardProps {
   onOpenChange: (open: boolean) => void;
   propertyId: string;
   tenancyId: string;
+  tenantProfileId?: string;
 }
 
 function pad(n: number): string {
   return n.toString().padStart(2, "0");
 }
 
-export function BackfillPaymentsWizard({ open, onOpenChange, propertyId, tenancyId }: BackfillPaymentsWizardProps) {
+export function BackfillPaymentsWizard({ open, onOpenChange, propertyId, tenancyId, tenantProfileId }: BackfillPaymentsWizardProps) {
   const { t } = useLanguage();
-  const { gapAnalysis, backfillMutation } = useBackfillPayments(propertyId, tenancyId);
+  const { gapAnalysis, backfillMutation } = useBackfillPayments(propertyId, tenancyId, tenantProfileId);
 
   const [step, setStep] = useState(1);
   const [fromIdx, setFromIdx] = useState(0);
@@ -83,6 +84,10 @@ export function BackfillPaymentsWizard({ open, onOpenChange, propertyId, tenancy
     }));
     setRows(newRows);
     setStep(2);
+  };
+
+  const handleProceedToStep3 = () => {
+    setStep(3);
   };
 
   const handleMarkAllPaid = () => {

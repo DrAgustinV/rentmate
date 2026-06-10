@@ -24,7 +24,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { showToast } from "@/lib/toast";
 import { OverviewTab } from "@/components/property-hub/OverviewTab";
 import { PaymentsTab } from "@/components/property-tenants/PaymentsTab";
+import { CostsTab } from "@/components/property-tenants/CostsTab";
 import { TicketsTab } from "@/components/property-tenants/TicketsTab";
+import { FinancialAnalysisTab } from "@/components/property-hub/FinancialAnalysisTab";
 import { usePropertyTenantsData } from "@/hooks/usePropertyTenants";
 import { TenantStatusPills } from "@/components/property-hub/TenantStatusPills";
 import { filterTenantsByPill, type TenantFilter } from "@/lib/tenantFilterUtils";
@@ -389,8 +391,14 @@ export default function PropertyHub() {
           <TabsTrigger value="payments" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
             {t("propertyHub.tabs.payments") || "Payments"}
           </TabsTrigger>
+          <TabsTrigger value="costs" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+            {t("propertyHub.tabs.costs") || "Costs"}
+          </TabsTrigger>
           <TabsTrigger value="tickets" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
             {t("propertyHub.tabs.tickets") || "Tickets"}
+          </TabsTrigger>
+          <TabsTrigger value="financial" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+            {t("propertyHub.tabs.financial") || "Financial Analysis"}
           </TabsTrigger>
         </TabsList>
 
@@ -601,9 +609,18 @@ export default function PropertyHub() {
           <TenantStatusPills value={tenantFilter} onChange={setTenantFilter} />
           <PaymentsTab
             currentTenant={activeTenantWithProfile}
+            allTenants={allTenants}
+            tenantFilter={tenantFilter}
             propertyId={propertyId!}
             userRole={userRole}
             requirementsRentAmountCents={requirements?.find(r => r.status !== 'cancelled' && r.rent_amount_cents)?.rent_amount_cents}
+          />
+        </TabsContent>
+
+        <TabsContent value="costs" className="pt-6 space-y-4">
+          <CostsTab
+            propertyId={propertyId!}
+            userRole={userRole}
           />
         </TabsContent>
 
@@ -613,6 +630,13 @@ export default function PropertyHub() {
             propertyId={propertyId!}
             tenancyId={selectedTenant?.id}
             isManager={userRole?.isManager}
+          />
+        </TabsContent>
+
+        <TabsContent value="financial" className="pt-6 space-y-4">
+          <FinancialAnalysisTab
+            propertyId={propertyId!}
+            allTenants={allTenants}
           />
         </TabsContent>
       </Tabs>

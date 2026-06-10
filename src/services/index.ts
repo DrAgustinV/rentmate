@@ -10,3 +10,4 @@ export * from './tenancyService';
 export * from './brandSettingsService';
 export * from './identityService';
 export * from './adminService';
+export * from './costService';

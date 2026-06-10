@@ -96,7 +96,7 @@ export function useTenancyRequirements(propertyId: string) {
           property_id: input.property_id,
           tenant_email: input.tenant_email,
           created_by: userData.user.id,
-          require_email_verification: input.require_email_verification ?? true,
+          require_email_verification: input.require_email_verification,
           require_kyc_verification: input.require_kyc_verification ?? false,
           require_phone_verification: input.require_phone_verification ?? false,
           contract_method: input.contract_method,

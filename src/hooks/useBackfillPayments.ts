@@ -41,6 +41,7 @@ function pad(n: number): string {
 export function useBackfillPayments(
   propertyId: string,
   tenancyId: string,
+  tenantProfileId?: string,
   options?: {
     fallbackStartDate?: Date | null;
     fallbackRentAmountCents?: number | null;
@@ -59,13 +60,13 @@ export function useBackfillPayments(
   );
 
   const existingPaymentKeys = useMemo(() => {
-    if (!rentPayments) return new Set<string>();
+    if (!rentPayments || !tenantProfileId) return new Set<string>();
     return new Set(
       rentPayments
-        .filter(p => p.tenancy_id === tenancyId)
+        .filter(p => p.tenant_id === tenantProfileId)
         .map(p => p.payment_due_date.slice(0, 7)),
     );
-  }, [rentPayments, tenancyId]);
+  }, [rentPayments, tenantProfileId]);
 
   const backfillSource = useMemo(() => {
     if (activeAgreement) {
@@ -88,12 +89,12 @@ export function useBackfillPayments(
         rentAmountCents: fallbackRentAmountCents,
         paymentDay: 1,
         currency: "EUR",
-        tenantId: "",
+        tenantId: tenantProfileId ?? "",
       };
     }
 
     return null;
-  }, [activeAgreement, fallbackStartDate, fallbackRentAmountCents]);
+  }, [activeAgreement, fallbackStartDate, fallbackRentAmountCents, tenantProfileId]);
 
   const gapAnalysis = useMemo((): GapAnalysis | null => {
     if (!backfillSource) return null;
@@ -153,7 +154,6 @@ export function useBackfillPayments(
 
       const payments = months.map(m => {
         const payment: Record<string, string | number | undefined> = {
-          tenancy_id: tenancyId,
           property_id: propertyId,
           tenant_id: backfillSource.tenantId,
           manager_id: user.id,
@@ -174,7 +174,7 @@ export function useBackfillPayments(
 
       return paymentService.backfillRentPayments(payments as Parameters<typeof paymentService.backfillRentPayments>[0]);
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY, propertyId] });
       showToast.success(t("payments.backfill.success"));
     },

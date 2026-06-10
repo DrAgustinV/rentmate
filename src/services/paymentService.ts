@@ -42,7 +42,6 @@ interface UtilityPaymentUpdates {
 
 export interface BackfillPaymentInput {
   rent_agreement_id?: string;
-  tenancy_id: string;
   property_id: string;
   tenant_id: string;
   manager_id: string;
@@ -142,7 +141,7 @@ export async function getRentPaymentSummary(tenantId: string, propertyId: string
   const { data, error } = await supabase
     .from('rent_payments')
     .select('payment_received_date, amount_cents')
-    .eq('tenancy_id', tenantId)
+    .eq('tenant_id', tenantId)
     .eq('property_id', propertyId)
     .eq('status', 'paid')
     .order('payment_received_date', { ascending: false });

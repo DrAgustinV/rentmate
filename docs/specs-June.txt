@@ -1,0 +1,17 @@
+we need to add:
+- NEW: costs for property, like community fee, property tax, maintenance, exceptional costs etc. These are non-tenant related. we should have a similar if not the same style tab as Payments
+- Payments tab: should we have a switch pills like in Tickets tab? So the manager can see current next or historic payments
+- NEW: Financial analysis: rent payments, costs, net benefits, per year, per tenant, for each property of course. ANotther tab to add on /properties
+
+
+Small changes and fixes:
+application wise:
+- apply data format set in /account appearance tab everywhere in the app: in cards, in date picker, everywhere
+- entry validations for numerica entries like rent amount: allow for digits only, ie with decimals if needd be
+
+
+- /properties Active card: it is not showing the data correctly. We have a tenant, self-managed tenancy with name and that name and other data are not shown on the card. In addition, enrich ie add some columns with relevant data for manager. 
+- /properties tab=info: can we make the property name large, large font? Perhaps not in the edit field? 
+- /properties ?tab=tenants, enrich the table with relevant data from rental agreement
+- ?tab=payments make MIN and MAX amount entry fields wider to fit at least 5 digits. Move automatic reminders switch button just before the backfill button. remove the "This tenancy has 40 months without payment records" alert
+

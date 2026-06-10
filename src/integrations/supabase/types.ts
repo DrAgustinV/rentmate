@@ -3037,6 +3037,62 @@ export type Database = {
         ]
       }
     }
+    property_costs: {
+      Row: {
+        id: string
+        property_id: string
+        cost_category: string
+        description: string | null
+        amount_cents: number
+        currency: string
+        due_date: string | null
+        paid_date: string | null
+        status: string
+        recurrence: string
+        notes: string | null
+        created_at: string
+        updated_at: string
+      }
+      Insert: {
+        id?: string
+        property_id: string
+        cost_category: string
+        description?: string | null
+        amount_cents: number
+        currency?: string
+        due_date?: string | null
+        paid_date?: string | null
+        status?: string
+        recurrence?: string
+        notes?: string | null
+        created_at?: string
+        updated_at?: string
+      }
+      Update: {
+        id?: string
+        property_id?: string
+        cost_category?: string
+        description?: string | null
+        amount_cents?: number
+        currency?: string
+        due_date?: string | null
+        paid_date?: string | null
+        status?: string
+        recurrence?: string
+        notes?: string | null
+        created_at?: string
+        updated_at?: string
+      }
+      Relationships: [
+        {
+          foreignKeyName: "property_costs_property_id_fkey"
+          columns: ["property_id"]
+          isOneToOne: false
+          referencedRelation: "properties"
+          referencedColumns: ["id"]
+        }
+      ]
+    }
     Views: {
       invitations_safe: {
         Row: {
