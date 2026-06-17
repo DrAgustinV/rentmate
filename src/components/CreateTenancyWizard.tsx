@@ -35,9 +35,15 @@ const formSchema = z.object({
   self_manage_only: z.boolean().default(false),
   contract_method: z.enum(['digital', 'manual', 'none']),
   selected_template_id: z.string().nullable(),
-  rent_amount: z.string().min(1, "Rent amount is required"),
+  rent_amount: z.string().min(1, "Rent amount is required").refine(
+    (val) => /^\d+(\.\d{1,2})?$/.test(val) && Number(val) > 0,
+    { message: "Rent amount must be a positive number" }
+  ),
   currency: z.string().default('EUR'),
-  security_deposit: z.string().min(1, "Security deposit is required"),
+  security_deposit: z.string().min(1, "Security deposit is required").refine(
+    (val) => /^\d+(\.\d{1,2})?$/.test(val) && Number(val) >= 0,
+    { message: "Security deposit must be a positive number or zero" }
+  ),
   payment_day: z.string().min(1, "Payment day is required"),
   start_date: z.string().min(1, "Start date is required"),
   end_date: z.string().optional(),

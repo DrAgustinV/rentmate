@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FileSignature, CheckCircle2, Clock, Shield, AlertCircle, X, FileText, Upload, Bell, Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { QualifiedSignatureFlow } from "@/components/signature/QualifiedSignatureFlow";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -590,7 +590,7 @@ export const ContractSignatureManager = ({
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <span>|</span>
               <Clock className="h-3 w-3" />
-              <span>{format(new Date(signature.expires_at), 'MMM d, yyyy')}</span>
+              <span>{formatDate(signature.expires_at)}</span>
             </div>
           )}
           
@@ -647,7 +647,7 @@ export const ContractSignatureManager = ({
           <div className="flex-1">
             <div className="font-medium">{t('contractSignature.downloadContract') || 'Download Signed Contract'}</div>
             <div className="text-sm text-muted-foreground">
-              {t('contractSignature.signedOn') || 'Signed on'}: {format(new Date(signature.completed_at!), 'PPP')}
+              {t('contractSignature.signedOn') || 'Signed on'}: {formatDate(signature.completed_at!)}
             </div>
           </div>
           <Button 
@@ -707,7 +707,7 @@ export const ContractSignatureManager = ({
   const sectionMeta = (
     <>
       <p className="text-sm text-muted-foreground">
-        {t('contractSignature.initiated')}: {format(new Date(signature.initiated_at), 'PPP')}
+        {t('contractSignature.initiated')}: {formatDate(signature.initiated_at)}
       </p>
       {sourceDocument && (
         <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
@@ -756,7 +756,7 @@ export const ContractSignatureManager = ({
           )}
         </CardTitle>
         <CardDescription>
-          {t('contractSignature.initiated')}: {format(new Date(signature.initiated_at), 'PPP')}
+{t('contractSignature.initiated')}: {formatDate(signature.initiated_at)}
         </CardDescription>
         {sourceDocument && (
           <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">

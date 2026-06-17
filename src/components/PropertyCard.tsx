@@ -9,6 +9,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 
+function formatCurrency(cents?: number | null): string {
+  if (cents == null) return "";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR" }).format(cents / 100);
+}
+
 export interface PropertyStatusIndicators {
   property_id: string;
   rent_overdue: boolean;
@@ -26,6 +31,12 @@ export interface TenantStatusInfo {
   tenant_name?: string;
   tenant_email?: string;
   pending_invites?: number;
+  manager_tenant_name?: string | null;
+  manager_tenant_surname?: string | null;
+  manager_tenant_phone?: string | null;
+  started_at?: string | null;
+  end_date?: string | null;
+  rent_amount_cents?: number | null;
 }
 
 interface PropertyCardProps {
@@ -148,7 +159,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
                     <>
                       {tenantStatus.status === "occupied" && (
                         <div className="flex items-center gap-1.5 text-sm">
-                          <Users className="h-3.5 w-3.5 text-success" />
+                          <Users className="h-3.5 w-3.5 text-success shrink-0" />
                           <span className="font-medium text-success truncate">
                             {tenantStatus.tenant_name}
                           </span>
@@ -157,7 +168,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
 
                       {tenantStatus.status === "invited" && (
                         <div className="flex items-center gap-1.5 text-sm">
-                          <Mail className="h-3.5 w-3.5 text-warning" />
+                          <Mail className="h-3.5 w-3.5 text-warning shrink-0" />
                           <span className="font-medium text-warning">
                             {tenantStatus.pending_invites} {t("properties.pending")}
                           </span>
@@ -166,8 +177,35 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
 
                       {tenantStatus.status === "free" && (
                         <div className="flex items-center gap-1.5 text-sm">
-                          <Home className="h-3.5 w-3.5 text-info" />
+                          <Home className="h-3.5 w-3.5 text-info shrink-0" />
                           <span className="font-medium text-info">{t("properties.freeToRent")}</span>
+                        </div>
+                      )}
+
+                      {/* Enriched data for managers — occupied only */}
+                      {isManager && tenantStatus.status === "occupied" && (
+                        <div className="mt-1.5 space-y-1">
+                          {tenantStatus.rent_amount_cents != null && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <span>{t("rentAgreement.rentAmount")}:</span>
+                              <span className="font-medium tabular-nums">{formatCurrency(tenantStatus.rent_amount_cents)}</span>
+                            </div>
+                          )}
+                          {tenantStatus.started_at && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <span>{t("rentAgreement.startDate")}:</span>
+                              <span className="font-medium">{formatDate(tenantStatus.started_at)}</span>
+                              {tenantStatus.end_date && (
+                                <span>→ {formatDate(tenantStatus.end_date)}</span>
+                              )}
+                            </div>
+                          )}
+                          {tenantStatus.manager_tenant_phone && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <span>{t("common.phone")}:</span>
+                              <span className="font-medium">{tenantStatus.manager_tenant_phone}</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </>

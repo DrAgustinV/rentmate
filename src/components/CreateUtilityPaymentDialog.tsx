@@ -5,9 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { dateToISODateString } from "@/lib/dateUtils";
 import { useUtilityPaymentMutations } from "@/hooks/useUtilityPayments";
 
 interface CreateUtilityPaymentDialogProps {
@@ -160,11 +162,13 @@ export function CreateUtilityPaymentDialog({
                 control={form.control}
                 name="billingStart"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>{t("utilityPayments.billingPeriodStart")}</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
+                    <DatePicker
+                      value={field.value ? new Date(field.value + "T00:00:00") : undefined}
+                      onChange={(date) => field.onChange(date ? dateToISODateString(date) : "")}
+                      placeholder={t("utilityPayments.selectDate")}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -173,11 +177,13 @@ export function CreateUtilityPaymentDialog({
                 control={form.control}
                 name="billingEnd"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>{t("utilityPayments.billingPeriodEnd")}</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
+                    <DatePicker
+                      value={field.value ? new Date(field.value + "T00:00:00") : undefined}
+                      onChange={(date) => field.onChange(date ? dateToISODateString(date) : "")}
+                      placeholder={t("utilityPayments.selectDate")}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -188,11 +194,13 @@ export function CreateUtilityPaymentDialog({
               control={form.control}
               name="dueDate"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>{t("utilityPayments.dueDate")}</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
+                  <DatePicker
+                    value={field.value ? new Date(field.value + "T00:00:00") : undefined}
+                    onChange={(date) => field.onChange(date ? dateToISODateString(date) : "")}
+                    placeholder={t("utilityPayments.selectDate")}
+                  />
                   <FormMessage />
                 </FormItem>
               )}

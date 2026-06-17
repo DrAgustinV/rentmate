@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, ReactNode, useCallback } from 'react';
-import { setUserDateFormat, setUserLocale } from '@/lib/dateUtils';
+import { setUserDateFormat, setUserLocale, getBrowserDateFormat } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 import { useUserPreferences, UserPreferences } from './UserPreferencesContext';
 
@@ -60,7 +60,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     const defaults = {
       theme_mode: 'system' as const,
       font_size: 'md' as const,
-      date_format: 'PPP',
+      date_format: getBrowserDateFormat(),
       language: 'en',
       week_start_day: 'monday' as const,
     };
@@ -91,6 +91,9 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     updateTheme,
     resetToDefaults,
   }), [preferences, loading, updateTheme, resetToDefaults]);
+
+  setUserDateFormat(preferences.date_format);
+  setUserLocale(preferences.language || 'en');
 
   return (
     <ThemeContext.Provider value={value}>

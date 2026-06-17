@@ -255,8 +255,8 @@ export function FinancialAnalysisTab({ propertyId, allTenants }: FinancialAnalys
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="rent" name={t("financial.rent")} fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="costs" name={t("financial.costs")} fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="rent" name={t("financial.rent")} fill="#86efac" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="costs" name={t("financial.costs")} fill="#fca5a5" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
 

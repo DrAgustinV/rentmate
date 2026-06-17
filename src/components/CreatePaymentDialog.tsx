@@ -55,24 +55,27 @@ export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId,
   const createRentPayment = useCreateRentPayment();
 
   const createPaymentMutation = useMutation({
-    mutationFn: async ({ type, payload }: { type: 'utility' | 'rent'; payload: { property_id: string; tenancy_id: string; amount: number; notes?: string } }) => {
+    mutationFn: async ({ type, payload }: { type: 'utility' | 'rent'; payload: { property_id: string; amount: number; notes?: string } }) => {
       if (type === 'utility') {
         return createUtilityPayment.mutateAsync({
           property_id: payload.property_id,
           type: 'electricity' as UtilityType,
           amount_cents: payload.amount,
-          currency: 'EUR',
+        currency: 'eur',
           status: 'pending' as UtilityPaymentStatus,
           payment_due_date: new Date().toISOString().split('T')[0],
           provider: 'manual',
         });
       }
+      const agreement = rentAgreements?.find(ra => ra.tenancy_id === tenancyId && ra.is_active);
+      if (!agreement) throw new Error(t('payments.backfill.noData'));
       return createRentPayment.mutateAsync({
+        rent_agreement_id: agreement.id,
+        tenant_id: agreement.tenant_id,
+        manager_id: agreement.manager_id,
         property_id: payload.property_id,
-        tenancy_id: payload.tenancy_id,
-        tenant_id: '',
         amount_cents: payload.amount,
-        currency: 'EUR',
+        currency: 'eur',
         status: 'pending',
         payment_due_date: new Date().toISOString().split('T')[0],
         notes: payload.notes,
@@ -100,7 +103,6 @@ export const CreatePaymentDialog = ({ open, onOpenChange, propertyId, tenancyId,
       type: values.type,
       payload: {
         property_id: propertyId,
-        tenancy_id: tenancyId,
         amount: Number(values.amount),
         notes: values.notes,
       },

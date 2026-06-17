@@ -2,7 +2,20 @@ import { format as dateFnsFormat } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
 
-let userDateFormat = 'PPP'; // Default
+export function getBrowserDateFormat(): string {
+  if (typeof navigator === 'undefined') return 'PPP';
+
+  const locale = navigator.language || 'en-US';
+
+  if (locale === 'en-US' || locale === 'en') return 'MM/dd/yyyy';
+
+  const isoLocales = ['ja', 'zh', 'ko', 'sv', 'fi'];
+  if (isoLocales.some(l => locale.startsWith(l))) return 'yyyy-MM-dd';
+
+  return 'dd/MM/yyyy';
+}
+
+let userDateFormat = getBrowserDateFormat();
 let userLocale = 'en'; // Default
 
 export const setUserDateFormat = (format: string) => {
@@ -12,6 +25,17 @@ export const setUserDateFormat = (format: string) => {
 export const setUserLocale = (locale: string) => {
   userLocale = locale;
 };
+
+export const getUserDateFormat = () => userDateFormat;
+export const getUserLocale = () => userLocale;
+
+/** Convert a local-midnight Date to "yyyy-MM-dd" using local timezone methods. */
+export function dateToISODateString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
 export const formatDate = (date: Date | string, formatOverride?: string) => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;

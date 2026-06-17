@@ -1,19 +1,16 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { authService } from "@/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar as CalendarIcon, Wrench } from "lucide-react";
+import { Wrench } from "lucide-react";
 import { format } from "date-fns";
-import { formatDate } from "@/lib/dateUtils";
-import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { showToast } from "@/lib/toast";
 import { priorityColors, typeColors } from "@/lib/maintenanceColors";
@@ -234,44 +231,21 @@ export function ScheduleStandardTaskDialog({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("maintenance.scheduleStandard.startDate") || "Start Date"} *</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? formatDate(startDate.toISOString()) : t("maintenance.scheduleStandard.pickDate") || "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
-                  </PopoverContent>
-                </Popover>
+                <DatePicker
+                  value={startDate}
+                  onChange={setStartDate}
+                  placeholder={t("maintenance.scheduleStandard.pickDate") || "Pick a date"}
+                />
               </div>
 
               <div className="space-y-2">
                 <Label>{t("maintenance.scheduleStandard.endDate") || "End Date"} ({t("common.optional") || "Optional"})</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !endDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? formatDate(endDate.toISOString()) : t("maintenance.scheduleStandard.pickDate") || "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus disabled={(date) => startDate ? date < startDate : false} />
-                  </PopoverContent>
-                </Popover>
+                <DatePicker
+                  value={endDate}
+                  onChange={setEndDate}
+                  placeholder={t("maintenance.scheduleStandard.pickDate") || "Pick a date"}
+                  disabledDays={(date) => startDate ? date < startDate : false}
+                />
               </div>
             </div>
 

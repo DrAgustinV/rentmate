@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Handshake, Building, Users, Calendar, Mail, Bell, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { toast } from "sonner";
 import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { useQueryClient } from '@tanstack/react-query';
@@ -339,7 +339,7 @@ export default function Rentals() {
               <CardHeader>
                 <CardTitle>{invitation.property_title}</CardTitle>
                 <CardDescription>
-                  Invited on {format(new Date(invitation.created_at), "PPP")}
+                  Invited on {formatDate(invitation.created_at)}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -434,10 +434,10 @@ export default function Rentals() {
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">
-                          {format(new Date(tenancy.contract_start), "PP")}
+                          {formatDate(tenancy.contract_start)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {tenancy.contract_end ? `Until ${format(new Date(tenancy.contract_end), "PP")}` : "Ongoing"}
+                          {tenancy.contract_end ? `Until ${formatDate(tenancy.contract_end)}` : "Ongoing"}
                         </p>
                       </div>
                     </div>

@@ -24,7 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Gift, Crown, Loader2, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 
 interface GrantAccessDialogProps {
   userId: string;
@@ -276,7 +276,7 @@ export function GrantAccessDialog({
   const getDialogDescription = () => {
     if (isManageMode) {
       const expiryText = currentPeriodEnd 
-        ? `Current access expires: ${format(new Date(currentPeriodEnd), "PPP")}`
+        ? `Current access expires: ${formatDate(new Date(currentPeriodEnd))}`
         : "No expiry date set";
       return `${expiryText}. You can extend access or revoke it entirely.`;
     }

@@ -2,7 +2,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { Download, Eye } from "lucide-react";
 
 interface Version {
@@ -75,7 +75,7 @@ export function DocumentVersionHistoryModal({
                     {formatFileSize(version.file_size_bytes)}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {format(new Date(version.created_at), 'PP')}
+                    {formatDate(version.created_at)}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">

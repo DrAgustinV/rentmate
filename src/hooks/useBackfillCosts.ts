@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { PROPERTY_COSTS_QUERY_KEY } from "@/hooks/usePropertyCosts";
 import { costService, authService } from "@/services";
+import { formatDate } from "@/lib/dateUtils";
 import { showToast } from "@/lib/toast";
 
 export interface BackfillEntry {
@@ -10,6 +11,8 @@ export interface BackfillEntry {
   dueDate: string;
   amountCents: number;
   status: "paid" | "pending" | "missed";
+  costCategory: string;
+  description: string;
 }
 
 export function useBackfillCosts(propertyId: string) {
@@ -25,11 +28,13 @@ export function useBackfillCosts(propertyId: string) {
         .filter(e => e.status !== "missed")
         .map(e => ({
           property_id: propertyId,
+          cost_category: e.costCategory,
+          description: e.description,
           amount_cents: e.amountCents,
           due_date: e.dueDate,
           status: e.status === "paid" ? "paid" : "pending",
           recurrence: "once" as const,
-          notes: t("costs.backfill.notesDefault").replace("{date}", new Date().toLocaleDateString()),
+          notes: t("costs.backfill.notesDefault").replace("{date}", formatDate(new Date())),
         }));
 
       if (toInsert.length === 0) return [];

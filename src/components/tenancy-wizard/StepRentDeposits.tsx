@@ -1,9 +1,11 @@
 import { UseFormReturn } from "react-hook-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText } from "lucide-react";
+import { dateToISODateString } from "@/lib/dateUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StepProps {
@@ -68,16 +70,24 @@ export function StepRentDeposits({ form }: StepProps) {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <FormField control={form.control} name="start_date" render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col">
               <FormLabel>{t('rentAgreement.startDate')}</FormLabel>
-              <FormControl><Input type="date" {...field} /></FormControl>
+              <DatePicker
+                value={field.value ? new Date(field.value + "T00:00:00") : undefined}
+                onChange={(date) => field.onChange(date ? dateToISODateString(date) : "")}
+                placeholder={t('rentAgreements.selectDate')}
+              />
               <FormMessage />
             </FormItem>
           )} />
           <FormField control={form.control} name="end_date" render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col">
               <FormLabel>{t('rentAgreement.endDateOptional')}</FormLabel>
-              <FormControl><Input type="date" {...field} /></FormControl>
+              <DatePicker
+                value={field.value ? new Date(field.value + "T00:00:00") : undefined}
+                onChange={(date) => field.onChange(date ? dateToISODateString(date) : "")}
+                placeholder={t('rentAgreements.selectDate')}
+              />
               <FormMessage />
             </FormItem>
           )} />

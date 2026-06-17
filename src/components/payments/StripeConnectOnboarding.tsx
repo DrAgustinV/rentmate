@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ExternalLink, CheckCircle2, AlertCircle } from "lucide-react";
+import { formatDate } from "@/lib/dateUtils";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -182,7 +183,7 @@ export function StripeConnectOnboarding() {
             {stripeAccount.onboarding_completed_at && (
               <p className="text-muted-foreground">
                 {t("payments.connectedOn")}:{" "}
-                {new Date(stripeAccount.onboarding_completed_at).toLocaleDateString()}
+                {formatDate(stripeAccount.onboarding_completed_at)}
               </p>
               )}
             </div>

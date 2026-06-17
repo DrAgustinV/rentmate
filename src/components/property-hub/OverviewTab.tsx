@@ -200,14 +200,13 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
             <Card className="card-shine border-none">
               <CardHeader className="px-6 pt-2 pb-0">
                 <div className="flex items-center justify-between">
-                  {/* LEFT - Title (takes all remaining space) */}
+                  {/* LEFT - Title */}
                   <div className="flex-1 min-w-0">
-                    {userRole?.isManager ? (
+                    {userRole?.isManager && isEditing ? (
                       <Input
                         id="title"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        disabled={!isEditing}
                         required
                         className={cn(
                           !title.trim() && isEditing && "border-destructive",
@@ -215,7 +214,7 @@ export function OverviewTab({ property, propertyId, userRole, activeTenant, temp
                         )}
                       />
                     ) : (
-                      <p className="text-lg font-bold py-1 truncate">{title}</p>
+                      <p className="text-lg font-bold truncate">{title}</p>
                     )}
                   </div>
 

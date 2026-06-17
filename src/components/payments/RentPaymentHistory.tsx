@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CheckCircle2, Clock, Loader2, Upload, Eye, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { formatDate } from '@/lib/dateUtils';
 import { ProofOfPaymentUpload } from '@/components/ProofOfPaymentUpload';
 import { PaymentProofReview } from './PaymentProofReview';
 import { EmptyState } from '@/components/EmptyState';
@@ -193,7 +193,7 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
               {payments.map((payment) => (
                 <TableRow key={payment.id}>
                   <TableCell>
-                    {format(new Date(payment.payment_due_date), 'PP')}
+                    {formatDate(payment.payment_due_date)}
                   </TableCell>
                   <TableCell className="font-medium">
                     {formatCurrency(payment.amount_cents, payment.currency)}

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode } from 'react';
 import { authService } from '@/services';
 import { supabase } from '@/integrations/supabase/client';
+import { getBrowserDateFormat } from '@/lib/dateUtils';
 
 export interface UserPreferences {
   theme_mode: 'light' | 'dark' | 'system';
@@ -21,7 +22,7 @@ export interface UserPreferencesContextType {
 const getDefaultPreferences = (): UserPreferences => ({
   theme_mode: 'system',
   font_size: 'md',
-  date_format: 'PPP',
+  date_format: getBrowserDateFormat(),
   language: 'en',
   week_start_day: 'monday',
   cookie_consent_analytics: false,
@@ -86,7 +87,7 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
           const dbPrefs: UserPreferences = {
             theme_mode: (data.theme_mode as 'light' | 'dark' | 'system') || 'system',
             font_size: (data.font_size as 'sm' | 'md' | 'lg') || 'md',
-            date_format: data.date_format || 'PPP',
+            date_format: data.date_format || getBrowserDateFormat(),
             language: data.language || 'en',
             week_start_day: (data.week_start_day as 'monday' | 'sunday') || 'monday',
             cookie_consent_analytics: data.cookie_consent_analytics || false,

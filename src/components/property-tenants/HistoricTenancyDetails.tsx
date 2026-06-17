@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { paymentService } from "@/services";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -167,13 +167,13 @@ export function HistoricTenancyDetails({
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">{t("historicTenancies.details.startDate")}</span>
                     <span className="text-sm font-medium">
-                      {tenancy.started_at ? format(new Date(tenancy.started_at), 'PP') : '-'}
+                      {tenancy.started_at ? formatDate(tenancy.started_at) : '-'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">{t("historicTenancies.details.endDate")}</span>
                     <span className="text-sm font-medium">
-                      {tenancy.ended_at ? format(new Date(tenancy.ended_at), 'PP') : '-'}
+                      {tenancy.ended_at ? formatDate(tenancy.ended_at) : '-'}
                     </span>
                   </div>
                 </div>
@@ -223,7 +223,7 @@ export function HistoricTenancyDetails({
                       <span className="text-sm text-muted-foreground">{t("historicTenancies.details.lastPayment")}</span>
                       <span className="text-sm font-medium">
                         {paymentSummary.lastPaymentDate
-                          ? format(new Date(paymentSummary.lastPaymentDate), 'PP')
+                          ? formatDate(paymentSummary.lastPaymentDate)
                           : '-'}
                       </span>
                     </div>

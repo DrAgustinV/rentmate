@@ -10,7 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { supabase } from "@/integrations/supabase/client";
 import { tenantService } from "@/services";
-import { format, isWithinInterval, subYears, startOfYear, endOfYear } from "date-fns";
+import { isWithinInterval, subYears, startOfYear, endOfYear } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { Search, History, Eye } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { HistoricTenancyDetails } from "./HistoricTenancyDetails";
@@ -267,10 +268,10 @@ export function HistoricTab({ propertyId, isManager }: HistoricTabProps) {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {tenant.started_at ? format(new Date(tenant.started_at), 'PP') : '-'}
+                      {tenant.started_at ? formatDate(tenant.started_at) : '-'}
                     </TableCell>
                     <TableCell>
-                      {tenant.ended_at ? format(new Date(tenant.ended_at), 'PP') : '-'}
+                      {tenant.ended_at ? formatDate(tenant.ended_at) : '-'}
                     </TableCell>
                     <TableCell>
                       <Button

@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2, ShieldCheck, AlertCircle, QrCode, CheckCircle2, Gift, ExternalLink, RefreshCw, Lock } from "lucide-react";
+import { formatDate } from "@/lib/dateUtils";
 import { QRCodeSVG } from "qrcode.react";
 import { useKYC, KYCProvider } from "@/hooks/useKYC";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -148,7 +149,7 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
             <p className="text-sm font-medium">{t('kyc.statusLabel')}</p>
             <p className="text-xs text-muted-foreground">
               {isVerified && kycProfile?.kycVerifiedAt
-                ? `${t('kyc.verifiedOn')} ${new Date(kycProfile.kycVerifiedAt).toLocaleDateString()}`
+                ? `${t('kyc.verifiedOn')} ${formatDate(kycProfile.kycVerifiedAt)}`
                 : t('kyc.notVerified')}
             </p>
           </div>
@@ -189,7 +190,7 @@ export function IdentityVerification({ returnTo }: IdentityVerificationProps) {
         {isVerified && kycProfile?.kycExpiresAt && (
           <Alert>
             <AlertDescription>
-              {t('kyc.expiresOn')} {new Date(kycProfile.kycExpiresAt).toLocaleDateString()}
+              {t('kyc.expiresOn')} {formatDate(kycProfile.kycExpiresAt)}
             </AlertDescription>
           </Alert>
         )}

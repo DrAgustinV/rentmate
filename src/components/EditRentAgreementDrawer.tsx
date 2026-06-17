@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, parseISO } from 'date-fns';
-import { CalendarIcon, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Drawer,
@@ -16,6 +16,7 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Form,
   FormControl,
@@ -33,9 +34,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
 import { useRentAgreementMutations } from '@/hooks/useRentAgreements';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
@@ -346,35 +344,11 @@ export function EditRentAgreementDrawer({
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>{t('rentAgreements.startDate')}</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  'pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, 'PPP')
-                                ) : (
-                                  <span>{t('rentAgreements.selectDate')}</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) => date < new Date('1900-01-01')}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <DatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder={t('rentAgreements.selectDate')}
+                        />
                         <FormMessage />
                       </FormItem>
                     )}
@@ -386,37 +360,14 @@ export function EditRentAgreementDrawer({
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel>{t('rentAgreements.endDate')} ({t('common.optional')})</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  'pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, 'PPP')
-                                ) : (
-                                  <span>{t('rentAgreements.selectDate')}</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) =>
-                                date < (form.getValues('start_date') || new Date())
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <DatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder={t('rentAgreements.selectDate')}
+                          disabledDays={(date) =>
+                            date < (form.getValues('start_date') || new Date())
+                          }
+                        />
                         <FormMessage />
                       </FormItem>
                     )}

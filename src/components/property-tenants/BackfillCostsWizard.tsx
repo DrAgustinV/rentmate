@@ -69,13 +69,28 @@ function generateOptions(startYear: number, startMonth: number, recurrenceMonths
   return opts;
 }
 
+function findFirstOption(options: MonthOption[], year: number, month: number): number {
+  const idx = options.findIndex(o => o.year > year || (o.year === year && o.month >= month));
+  return idx >= 0 ? idx : 0;
+}
+
+function findLastOption(options: MonthOption[], year: number, month: number): number {
+  for (let i = options.length - 1; i >= 0; i--) {
+    if (options[i].year < year || (options[i].year === year && options[i].month <= month)) {
+      return i;
+    }
+  }
+  return options.length - 1;
+}
+
 interface BackfillCostsWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   propertyId: string;
+  propertyCreatedAt?: string;
 }
 
-export function BackfillCostsWizard({ open, onOpenChange, propertyId }: BackfillCostsWizardProps) {
+export function BackfillCostsWizard({ open, onOpenChange, propertyId, propertyCreatedAt }: BackfillCostsWizardProps) {
   const { t } = useLanguage();
   const { backfillMutation } = useBackfillCosts(propertyId);
 
@@ -83,13 +98,28 @@ export function BackfillCostsWizard({ open, onOpenChange, propertyId }: Backfill
 
   const [category, setCategory] = useState<CostCategory>("community_fee");
   const [description, setDescription] = useState("");
-  const [amountCents, setAmountCents] = useState(0);
+  const [amountRaw, setAmountRaw] = useState("");
+  const amountCents = useMemo(() => Math.round(parseFloat(amountRaw || "0") * 100), [amountRaw]);
   const [recurrence, setRecurrence] = useState("monthly");
-  const [startYear, setStartYear] = useState(new Date().getFullYear());
-  const [startMonth, setStartMonth] = useState(new Date().getMonth() + 1);
 
-  const [fromIdx, setFromIdx] = useState(0);
-  const [toIdx, setToIdx] = useState(0);
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  const { minYear, minMonth } = useMemo(() => {
+    const fiftyYearsAgo = currentYear - 50;
+    if (!propertyCreatedAt) return { minYear: fiftyYearsAgo, minMonth: 1 };
+    const d = new Date(propertyCreatedAt);
+    const propYear = d.getFullYear();
+    const propMonth = d.getMonth() + 1;
+    if (propYear < fiftyYearsAgo) return { minYear: propYear, minMonth: propMonth };
+    return { minYear: fiftyYearsAgo, minMonth: 1 };
+  }, [propertyCreatedAt, currentYear]);
+
+  const [fromYear, setFromYear] = useState(minYear);
+  const [fromMonth, setFromMonth] = useState(minMonth);
+  const [toYear, setToYear] = useState(currentYear);
+  const [toMonth, setToMonth] = useState(currentMonth);
 
   const [rows, setRows] = useState<BackfillEntry[]>([]);
   const [notes, setNotes] = useState("");
@@ -97,57 +127,76 @@ export function BackfillCostsWizard({ open, onOpenChange, propertyId }: Backfill
   const recurrenceMonths = RECURRENCE_MONTHS[recurrence] || 1;
 
   const generatedOptions = useMemo(
-    () => generateOptions(startYear, startMonth, recurrenceMonths),
-    [startYear, startMonth, recurrenceMonths],
+    () => generateOptions(minYear, minMonth, recurrenceMonths),
+    [minYear, minMonth, recurrenceMonths],
   );
 
-  const safeFromIdx = Math.min(fromIdx, generatedOptions.length - 1);
-  const safeToIdx = Math.min(toIdx, generatedOptions.length - 1);
+  const safeFromIdx = useMemo(
+    () => Math.min(findFirstOption(generatedOptions, fromYear, fromMonth), generatedOptions.length - 1),
+    [generatedOptions, fromYear, fromMonth],
+  );
+
+  const safeToIdx = useMemo(() => {
+    const idx = findLastOption(generatedOptions, toYear, toMonth);
+    return Math.max(idx, safeFromIdx);
+  }, [generatedOptions, toYear, toMonth, safeFromIdx]);
+
   const visibleOptions = generatedOptions.slice(safeFromIdx, safeToIdx + 1);
 
-  useEffect(() => {
-    if (step === 1) {
-      setFromIdx(0);
-      setToIdx(generatedOptions.length - 1);
+  const yearOptions = useMemo(() => {
+    const years: number[] = [];
+    for (let y = minYear; y <= currentYear; y++) {
+      years.push(y);
     }
-  }, [category, recurrence, startYear, startMonth, generatedOptions.length, step]);
+    return years;
+  }, [minYear, currentYear]);
+
+  const fromMonthOptions = useMemo(() => {
+    const months = Array.from({ length: 12 }, (_, i) => i + 1);
+    if (fromYear === minYear) return months.slice(minMonth - 1);
+    return months;
+  }, [fromYear, minYear, minMonth]);
+
+  const toMonthOptions = useMemo(() => {
+    const months = Array.from({ length: 12 }, (_, i) => i + 1);
+    if (toYear === currentYear) return months.slice(0, currentMonth);
+    return months;
+  }, [toYear, currentYear, currentMonth]);
 
   useEffect(() => {
     if (!open) {
       setStep(1);
       setCategory("community_fee");
       setDescription("");
-      setAmountCents(0);
+      setAmountRaw("");
       setRecurrence("monthly");
-      setStartYear(new Date().getFullYear());
-      setStartMonth(new Date().getMonth() + 1);
-      setFromIdx(0);
-      setToIdx(0);
+      setFromYear(minYear);
+      setFromMonth(minMonth);
+      setToYear(currentYear);
+      setToMonth(currentMonth);
       setRows([]);
       setNotes("");
     }
-  }, [open]);
+  }, [open, minYear, minMonth, currentYear, currentMonth]);
 
   const isDefined = category && amountCents > 0;
 
   const handleProceedFromStep1 = () => {
-    setStep(2);
-  };
-
-  const handleProceedFromStep2 = () => {
     const newRows: BackfillEntry[] = visibleOptions.map(o => ({
       key: `${o.year}-${pad(o.month)}`,
       monthLabel: o.label,
       dueDate: o.dueDate,
       amountCents,
       status: "paid" as const,
+      costCategory: category,
+      description,
     }));
     setRows(newRows);
-    setStep(3);
+    setStep(2);
   };
 
-  const handleProceedFromStep3 = () => {
-    setStep(4);
+  const handleProceedFromStep2 = () => {
+    setStep(3);
   };
 
   const handleMarkAllPaid = () => {
@@ -171,20 +220,6 @@ export function BackfillCostsWizard({ open, onOpenChange, propertyId }: Backfill
   const totalCreate = rows.filter(r => r.status !== "missed").length;
   const totalAmountCents = rows.filter(r => r.status !== "missed").reduce((s, r) => s + r.amountCents, 0);
 
-  const yearOptions = useMemo(() => {
-    const now = new Date();
-    const years: number[] = [];
-    for (let y = now.getFullYear() - 5; y <= now.getFullYear(); y++) {
-      years.push(y);
-    }
-    return years;
-  }, []);
-
-  const optionLabels = useMemo(() => generatedOptions.map(o => ({
-    value: `${o.year}-${pad(o.month)}`,
-    label: o.label,
-  })), [generatedOptions]);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -193,13 +228,12 @@ export function BackfillCostsWizard({ open, onOpenChange, propertyId }: Backfill
           <DialogDescription>
             {step === 1 && t("costs.backfill.step1.desc")}
             {step === 2 && t("costs.backfill.step2.desc")}
-            {step === 3 && t("costs.backfill.step2.desc")}
-            {step === 4 && t("costs.backfill.step3.desc")}
+            {step === 3 && t("costs.backfill.step3.desc")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex items-center gap-2 text-sm mb-4">
-          {[1, 2, 3, 4].map(s => (
+          {[1, 2, 3].map(s => (
             <div key={s} className="flex items-center gap-2">
               <div
                 className={cn(
@@ -223,11 +257,9 @@ export function BackfillCostsWizard({ open, onOpenChange, propertyId }: Backfill
                   ? t("costs.backfill.step1.short")
                   : s === 2
                     ? t("costs.backfill.step2.short")
-                    : s === 3
-                      ? t("costs.backfill.step2.short")
-                      : t("costs.backfill.step3.short")}
+                    : t("costs.backfill.step3.short")}
               </span>
-              {s < 4 && <div className="w-6 h-px bg-border" />}
+              {s < 3 && <div className="w-6 h-px bg-border" />}
             </div>
           ))}
         </div>
@@ -262,13 +294,12 @@ export function BackfillCostsWizard({ open, onOpenChange, propertyId }: Backfill
             <div className="space-y-2">
               <Label>{t("costs.fields.amount")}</Label>
               <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={amountCents > 0 ? (amountCents / 100).toFixed(2) : ""}
+                type="text"
+                inputMode="decimal"
+                value={amountRaw}
                 onChange={(e) => {
-                  const cents = Math.round(parseFloat(e.target.value || "0") * 100);
-                  setAmountCents(cents);
+                  const val = e.target.value;
+                  if (/^\d*\.?\d{0,2}$/.test(val) || val === "") setAmountRaw(val);
                 }}
                 placeholder="0.00"
               />
@@ -289,109 +320,68 @@ export function BackfillCostsWizard({ open, onOpenChange, propertyId }: Backfill
             </div>
 
             <div className="space-y-2">
-              <Label>{t("costs.fields.dueDate")}</Label>
-              <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <Select
-                    value={String(startMonth)}
-                    onValueChange={(v) => setStartMonth(parseInt(v))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MONTH_NAMES.map((name, i) => (
-                        <SelectItem key={i + 1} value={String(i + 1)}>{name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-1">
-                  <Select
-                    value={String(startYear)}
-                    onValueChange={(v) => setStartYear(parseInt(v))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {yearOptions.map(y => (
-                        <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-6 py-2">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm text-muted-foreground">{t("costs.fields.category")}</span>
-                <span className="font-medium">{t(`costs.filters.${category}`)}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm text-muted-foreground">{t("costs.fields.amount")}</span>
-                <span className="font-medium">€{(amountCents / 100).toFixed(2)}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm text-muted-foreground">{t("costs.fields.recurrence")}</span>
-                <span className="font-medium">{t(`costs.fields.${recurrence}`)}</span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
               <Label>{t("payments.backfill.step1.range")}</Label>
               <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <Select
-                    value={optionLabels[safeFromIdx]?.value || ""}
-                    onValueChange={(val) => {
-                      const idx = optionLabels.findIndex(o => o.value === val);
-                      if (idx >= 0 && idx <= safeToIdx) setFromIdx(idx);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {optionLabels.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex-1 space-y-1">
+                  <span className="text-xs text-muted-foreground">{t("common.from")}</span>
+                  <div className="flex gap-2">
+                    <Select value={String(fromYear)} onValueChange={(v) => setFromYear(parseInt(v))}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {yearOptions.map(y => (
+                          <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={String(fromMonth)} onValueChange={(v) => setFromMonth(parseInt(v))}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {fromMonthOptions.map(m => (
+                          <SelectItem key={m} value={String(m)}>{MONTH_NAMES[m - 1]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <span className="text-muted-foreground">→</span>
-                <div className="flex-1">
-                  <Select
-                    value={optionLabels[safeToIdx]?.value || ""}
-                    onValueChange={(val) => {
-                      const idx = optionLabels.findIndex(o => o.value === val);
-                      if (idx >= safeFromIdx) setToIdx(idx);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {optionLabels.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <span className="text-muted-foreground mt-5">→</span>
+                <div className="flex-1 space-y-1">
+                  <span className="text-xs text-muted-foreground">{t("common.to")}</span>
+                  <div className="flex gap-2">
+                    <Select value={String(toYear)} onValueChange={(v) => setToYear(parseInt(v))}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {yearOptions.map(y => (
+                          <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={String(toMonth)} onValueChange={(v) => setToMonth(parseInt(v))}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {toMonthOptions.map(m => (
+                          <SelectItem key={m} value={String(m)}>{MONTH_NAMES[m - 1]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground pt-1">
                 {t("costs.backfill.step1.monthsSelected").replace("{count}", String(visibleOptions.length))}
               </p>
             </div>
           </div>
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <div className="space-y-4 py-2">
             <div className="flex items-center justify-between">
               <Button variant="outline" size="sm" onClick={handleMarkAllPaid}>
@@ -458,7 +448,7 @@ export function BackfillCostsWizard({ open, onOpenChange, propertyId }: Backfill
           </div>
         )}
 
-        {step === 4 && (
+        {step === 3 && (
           <div className="space-y-6 py-2">
             <div className="p-4 bg-muted/30 rounded-lg text-center">
               <p className="text-lg font-semibold">
@@ -492,10 +482,10 @@ export function BackfillCostsWizard({ open, onOpenChange, propertyId }: Backfill
             </Button>
           )}
 
-          {step < 4 ? (
+          {step < 3 ? (
             <Button
-              onClick={step === 1 ? handleProceedFromStep1 : step === 2 ? handleProceedFromStep2 : handleProceedFromStep3}
-              disabled={step === 1 ? !isDefined : step === 2 ? visibleOptions.length === 0 : false}
+              onClick={step === 1 ? handleProceedFromStep1 : handleProceedFromStep2}
+              disabled={step === 1 ? (!isDefined || visibleOptions.length === 0) : false}
             >
               {t("common.next")}
               <ChevronRight className="h-4 w-4 ml-2" />

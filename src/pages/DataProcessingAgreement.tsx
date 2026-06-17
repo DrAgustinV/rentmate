@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDate } from "@/lib/dateUtils";
 
 export default function DataProcessingAgreement() {
   return (
@@ -7,7 +8,7 @@ export default function DataProcessingAgreement() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <h1 className="text-4xl font-bold mb-2">Data Processing Agreement (DPA)</h1>
         <p className="text-muted-foreground mb-6">
-          Last updated: {new Date().toLocaleDateString()}
+          Last updated: {formatDate(new Date())}
         </p>
 
         <div className="space-y-6">

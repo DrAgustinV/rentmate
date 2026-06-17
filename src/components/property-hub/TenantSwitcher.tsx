@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LogOut, LogIn, History } from "lucide-react";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 
 interface Tenant {
   id: string;
@@ -58,7 +58,7 @@ export function TenantSwitcher({ tenants, selectedTenantId, onSelectTenant, onVi
           </Badge>
           {departingTenant.planned_ending_date && (
             <span className="text-xs text-muted-foreground">
-              {format(new Date(departingTenant.planned_ending_date), 'MMM d')}
+              {formatDate(departingTenant.planned_ending_date)}
             </span>
           )}
         </button>

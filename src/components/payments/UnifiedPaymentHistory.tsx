@@ -11,7 +11,7 @@ import { PaymentProofReview } from "./PaymentProofReview";
 import { UtilityProofUpload } from "./UtilityProofUpload";
 import { UtilityProofReview } from "./UtilityProofReview";
 import { FileText, CheckCircle2, Clock, Upload, Eye, Loader2, DollarSign, Zap } from "lucide-react";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { RentPayment } from "@/hooks/useRentPayments";
 import { UtilityPayment } from "@/hooks/useUtilityPayments";
 
@@ -173,7 +173,7 @@ export function UnifiedPaymentHistory({
                   {getTypeLabel(payment)}
                 </TableCell>
                 <TableCell>
-                  {format(new Date(payment.dueDate), 'PP')}
+                  {formatDate(payment.dueDate)}
                 </TableCell>
                 <TableCell className="font-medium">
                   {formatCurrency(payment.amountCents, payment.currency)}

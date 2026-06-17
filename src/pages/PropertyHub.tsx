@@ -30,8 +30,10 @@ import { FinancialAnalysisTab } from "@/components/property-hub/FinancialAnalysi
 import { usePropertyTenantsData } from "@/hooks/usePropertyTenants";
 import { TenantStatusPills } from "@/components/property-hub/TenantStatusPills";
 import { filterTenantsByPill, type TenantFilter } from "@/lib/tenantFilterUtils";
+import { useRentAgreements } from "@/hooks/useRentAgreements";
 import { StatusBadge } from "@/components/property-tenants/StatusBadge";
 import { getTenancyDisplayLabel } from "@/lib/tenancyStatus";
+import { formatDate } from "@/lib/dateUtils";
 
 interface WizardFormData {
   id?: string;
@@ -87,6 +89,8 @@ export default function PropertyHub() {
     createRequirement, requirements, deleteRequirement,
     inviteMutation,
   } = usePropertyTenantsData(propertyId, t);
+
+  const { data: rentAgreements } = useRentAgreements(propertyId);
 
   const actionParam = searchParams.get("action");
   const activeTenant = useMemo(
@@ -378,6 +382,7 @@ export default function PropertyHub() {
           <ArrowLeft className="h-4 w-4" />
           {t("properties.backToList") || "Back to Properties"}
         </Button>
+        <h1 className="text-3xl font-bold truncate">{property.title}</h1>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -457,6 +462,9 @@ export default function PropertyHub() {
                         <th className="text-left px-4 py-3 font-medium text-muted-foreground">
                           {t("tenants.startDate") || "Start Date"}
                         </th>
+                        <th className="text-right px-4 py-3 font-medium text-muted-foreground">
+                          {t("rentAgreement.rentAmount") || "Rent"}
+                        </th>
                         <th className="w-[80px] px-4 py-3" />
                       </tr>
                     </thead>
@@ -484,7 +492,12 @@ export default function PropertyHub() {
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">
                             {tenant.started_at
-                              ? new Date(tenant.started_at).toLocaleDateString()
+                              ? formatDate(tenant.started_at)
+                              : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                            {(rentAgreements?.find(ra => ra.tenancy_id === tenant.id)?.rent_amount_cents ?? null) != null
+                              ? "€" + ((rentAgreements!.find(ra => ra.tenancy_id === tenant.id)!.rent_amount_cents) / 100).toFixed(2)
                               : "—"}
                           </td>
                           <td className="px-4 py-3 text-right">
@@ -541,7 +554,7 @@ export default function PropertyHub() {
                   <div>
                     <span className="text-muted-foreground">{t("tenants.startDate") || "Start Date"}:</span>{" "}
                     {selectedTenant.started_at
-                      ? new Date(selectedTenant.started_at).toLocaleDateString()
+                      ? formatDate(selectedTenant.started_at)
                       : "—"}
                   </div>
                   <div>
@@ -549,7 +562,7 @@ export default function PropertyHub() {
                       {t("tenancy.plannedEnd") || "End Date"}:
                     </span>{" "}
                     {selectedTenant.end_date
-                      ? new Date(selectedTenant.end_date).toLocaleDateString()
+                      ? formatDate(selectedTenant.end_date)
                       : "—"}
                   </div>
                 </div>
@@ -621,6 +634,7 @@ export default function PropertyHub() {
           <CostsTab
             propertyId={propertyId!}
             userRole={userRole}
+            propertyCreatedAt={property?.createdAt}
           />
         </TabsContent>
 

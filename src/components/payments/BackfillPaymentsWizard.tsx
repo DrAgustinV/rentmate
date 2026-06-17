@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBackfillPayments } from "@/hooks/useBackfillPayments";
 import { Loader2, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { formatDate } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 
 interface BackfillRow {
@@ -26,6 +27,11 @@ interface BackfillPaymentsWizardProps {
   tenantProfileId?: string;
 }
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
 function pad(n: number): string {
   return n.toString().padStart(2, "0");
 }
@@ -35,16 +41,22 @@ export function BackfillPaymentsWizard({ open, onOpenChange, propertyId, tenancy
   const { gapAnalysis, backfillMutation } = useBackfillPayments(propertyId, tenancyId, tenantProfileId);
 
   const [step, setStep] = useState(1);
-  const [fromIdx, setFromIdx] = useState(0);
-  const [toIdx, setToIdx] = useState(0);
+  const [fromYear, setFromYear] = useState(0);
+  const [fromMonth, setFromMonth] = useState(1);
+  const [toYear, setToYear] = useState(0);
+  const [toMonth, setToMonth] = useState(1);
   const [rows, setRows] = useState<BackfillRow[]>([]);
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
     if (gapAnalysis && gapAnalysis.months.length > 0 && step === 1) {
-      setFromIdx(0);
-      setToIdx(gapAnalysis.months.length - 1);
-      setNotes(t("payments.backfill.notesDefault").replace("{date}", new Date().toLocaleDateString()));
+      const first = gapAnalysis.months[0];
+      const last = gapAnalysis.months[gapAnalysis.months.length - 1];
+      setFromYear(first.year);
+      setFromMonth(first.month);
+      setToYear(last.year);
+      setToMonth(last.month);
+      setNotes(t("payments.backfill.notesDefault").replace("{date}", formatDate(new Date())));
     }
   }, [gapAnalysis, step, t]);
 
@@ -52,22 +64,52 @@ export function BackfillPaymentsWizard({ open, onOpenChange, propertyId, tenancy
     if (!open) {
       setStep(1);
       setRows([]);
-      setFromIdx(0);
-      setToIdx(0);
+      setFromYear(0);
+      setFromMonth(1);
+      setToYear(0);
+      setToMonth(1);
     }
   }, [open]);
 
-  const monthOptions = useMemo(() => {
+  const gapYears = useMemo(() => {
     if (!gapAnalysis) return [];
-    return gapAnalysis.months.map((m, i) => ({
-      index: i,
-      value: `${m.year}-${pad(m.month)}`,
-      label: m.monthLabel,
-    }));
+    return [...new Set(gapAnalysis.months.map(m => m.year))].sort();
   }, [gapAnalysis]);
 
-  const safeFromIdx = Math.min(fromIdx, (gapAnalysis?.months.length ?? 1) - 1);
-  const safeToIdx = Math.min(toIdx, (gapAnalysis?.months.length ?? 1) - 1);
+  const fromMonthEntries = useMemo(() => {
+    if (!gapAnalysis) return [];
+    return gapAnalysis.months
+      .filter(m => m.year === fromYear)
+      .map(m => ({ value: m.month, label: MONTH_NAMES[m.month - 1] }));
+  }, [gapAnalysis, fromYear]);
+
+  const toMonthEntries = useMemo(() => {
+    if (!gapAnalysis) return [];
+    return gapAnalysis.months
+      .filter(m => m.year === toYear)
+      .map(m => ({ value: m.month, label: MONTH_NAMES[m.month - 1] }));
+  }, [gapAnalysis, toYear]);
+
+  const safeFromIdx = useMemo(() => {
+    if (!gapAnalysis) return 0;
+    const idx = gapAnalysis.months.findIndex(
+      m => m.year > fromYear || (m.year === fromYear && m.month >= fromMonth)
+    );
+    return idx >= 0 ? idx : 0;
+  }, [gapAnalysis, fromYear, fromMonth]);
+
+  const safeToIdx = useMemo(() => {
+    if (!gapAnalysis) return 0;
+    let idx = -1;
+    for (let i = gapAnalysis.months.length - 1; i >= 0; i--) {
+      if (gapAnalysis.months[i].year < toYear || (gapAnalysis.months[i].year === toYear && gapAnalysis.months[i].month <= toMonth)) {
+        idx = i;
+        break;
+      }
+    }
+    idx = idx >= 0 ? idx : gapAnalysis.months.length - 1;
+    return Math.max(idx, safeFromIdx);
+  }, [gapAnalysis, toYear, toMonth, safeFromIdx]);
 
   const visibleMonths = useMemo(() => {
     if (!gapAnalysis) return [];
@@ -206,46 +248,56 @@ export function BackfillPaymentsWizard({ open, onOpenChange, propertyId, tenancy
             <div className="space-y-3">
               <Label>{t("payments.backfill.step1.range")}</Label>
               <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <Select
-                    value={monthOptions[safeFromIdx]?.value}
-                    onValueChange={(val) => {
-                      const idx = monthOptions.findIndex(o => o.value === val);
-                      if (idx >= 0 && idx <= toIdx) setFromIdx(idx);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {monthOptions.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex-1 space-y-1">
+                  <span className="text-xs text-muted-foreground">{t("common.from")}</span>
+                  <div className="flex gap-2">
+                    <Select value={String(fromYear)} onValueChange={(v) => setFromYear(parseInt(v))}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {gapYears.map(y => (
+                          <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={String(fromMonth)} onValueChange={(v) => setFromMonth(parseInt(v))}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {fromMonthEntries.map(e => (
+                          <SelectItem key={e.value} value={String(e.value)}>{e.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <span className="text-muted-foreground">→</span>
-                <div className="flex-1">
-                  <Select
-                    value={monthOptions[safeToIdx]?.value}
-                    onValueChange={(val) => {
-                      const idx = monthOptions.findIndex(o => o.value === val);
-                      if (idx >= fromIdx) setToIdx(idx);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {monthOptions.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <span className="text-muted-foreground mt-5">→</span>
+                <div className="flex-1 space-y-1">
+                  <span className="text-xs text-muted-foreground">{t("common.to")}</span>
+                  <div className="flex gap-2">
+                    <Select value={String(toYear)} onValueChange={(v) => setToYear(parseInt(v))}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {gapYears.map(y => (
+                          <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={String(toMonth)} onValueChange={(v) => setToMonth(parseInt(v))}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {toMonthEntries.map(e => (
+                          <SelectItem key={e.value} value={String(e.value)}>{e.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">

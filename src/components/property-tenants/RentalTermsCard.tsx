@@ -289,7 +289,7 @@ export function RentalTermsCard({
                 <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <span className="font-medium truncate">
                   {pendingRequirement.start_date 
-                    ? format(new Date(pendingRequirement.start_date), 'MMM d, yyyy')
+                    ? formatDate(pendingRequirement.start_date)
                     : '-'}
                 </span>
               </div>

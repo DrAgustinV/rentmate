@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Plus, Clock, Bell, BellOff, History, X } from "lucide-react";
+import { Plus, Clock, Bell, BellOff, History } from "lucide-react";
 import { UnifiedPaymentHistory, UnifiedPayment } from "@/components/payments/UnifiedPaymentHistory";
 import { CreatePaymentDialog } from "@/components/CreatePaymentDialog";
 import { BackfillPaymentsWizard } from "@/components/payments/BackfillPaymentsWizard";
@@ -66,7 +66,6 @@ export function PaymentsTab({ currentTenant, allTenants, tenantFilter, propertyI
   const queryClient = useQueryClient();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [backfillDialogOpen, setBackfillDialogOpen] = useState(false);
-  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [managerId, setManagerId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -251,20 +250,6 @@ export function PaymentsTab({ currentTenant, allTenants, tenantFilter, propertyI
         </div>
       )}
 
-      {isManager && !bannerDismissed && gapAnalysis?.hasGap && (
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg text-sm">
-          <span>{t("payments.backfill.banner").replace("{count}", String(gapAnalysis.totalCount))}</span>
-          <div className="flex items-center gap-2">
-            <Button variant="link" size="sm" onClick={() => setBackfillDialogOpen(true)} className="h-auto p-0">
-              {t("payments.backfill.button")}
-            </Button>
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setBannerDismissed(true)}>
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-      )}
-
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={typeFilter} onValueChange={(v: TypeFilter) => setTypeFilter(v)}>
@@ -319,7 +304,7 @@ export function PaymentsTab({ currentTenant, allTenants, tenantFilter, propertyI
             <Input
               type="number"
               placeholder={t("payments.filters.min")}
-              className="w-[70px] h-9"
+              className="w-[100px] h-9"
               value={amountMin}
               onChange={(e) => setAmountMin(e.target.value)}
             />
@@ -327,7 +312,7 @@ export function PaymentsTab({ currentTenant, allTenants, tenantFilter, propertyI
             <Input
               type="number"
               placeholder={t("payments.filters.max")}
-              className="w-[70px] h-9"
+              className="w-[100px] h-9"
               value={amountMax}
               onChange={(e) => setAmountMax(e.target.value)}
             />
@@ -335,6 +320,31 @@ export function PaymentsTab({ currentTenant, allTenants, tenantFilter, propertyI
         </div>
 
         <div className="flex items-center gap-2">
+          {isManager && currentAgreement && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    {currentAgreement.auto_reminders_enabled !== false ? (
+                      <Bell className="h-4 w-4 text-primary" />
+                    ) : (
+                      <BellOff className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <Switch
+                      checked={currentAgreement.auto_reminders_enabled !== false}
+                      onCheckedChange={(checked) =>
+                        toggleRemindersMutation.mutate({ agreementId: currentAgreement.id, enabled: checked })
+                      }
+                      disabled={toggleRemindersMutation.isPending}
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("payments.autoReminders")}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           <Button variant="outline" onClick={() => setBackfillDialogOpen(true)} disabled={!gapAnalysis?.hasGap}>
             <History className="h-4 w-4 mr-2" />
             {t("payments.backfill.button")}
@@ -363,34 +373,6 @@ export function PaymentsTab({ currentTenant, allTenants, tenantFilter, propertyI
               ))}
             </SelectContent>
           </Select>
-        </div>
-      )}
-
-      {isManager && currentAgreement && (
-        <div className="flex items-center justify-end">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2">
-                  {currentAgreement.auto_reminders_enabled !== false ? (
-                    <Bell className="h-4 w-4 text-primary" />
-                  ) : (
-                    <BellOff className="h-4 w-4 text-muted-foreground" />
-                  )}
-                  <Switch
-                    checked={currentAgreement.auto_reminders_enabled !== false}
-                    onCheckedChange={(checked) =>
-                      toggleRemindersMutation.mutate({ agreementId: currentAgreement.id, enabled: checked })
-                    }
-                    disabled={toggleRemindersMutation.isPending}
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t("payments.autoReminders")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
       )}
 

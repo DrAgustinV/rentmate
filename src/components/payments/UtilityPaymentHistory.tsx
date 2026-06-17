@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useUtilityPayments, useUtilityPaymentMutations, type UtilityPayment } from "@/hooks/useUtilityPayments";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { CheckCircle2, Clock, Loader2, Upload, Eye, FileText } from "lucide-react";
 import { UtilityProofUpload } from "./UtilityProofUpload";
 import { UtilityProofReview } from "./UtilityProofReview";
@@ -113,7 +113,7 @@ export function UtilityPaymentHistory({ propertyId, isManager }: UtilityPaymentH
                   {getUtilityLabel(payment.utility_type, payment.custom_utility_name)}
                 </TableCell>
                 <TableCell>
-                  {format(new Date(payment.payment_due_date), 'PP')}
+                  {formatDate(payment.payment_due_date)}
                 </TableCell>
                 <TableCell className="font-medium">
                   {formatCurrency(payment.amount_cents, payment.currency)}

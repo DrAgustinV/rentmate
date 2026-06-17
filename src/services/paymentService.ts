@@ -4,8 +4,9 @@ import type { PaymentStatus, UtilityPaymentStatus, UtilityType } from '@/types/e
 
 interface RentPaymentInput {
   property_id: string;
-  tenancy_id: string;
+  rent_agreement_id: string;
   tenant_id: string;
+  manager_id: string;
   amount_cents: number;
   currency: string;
   status: PaymentStatus;

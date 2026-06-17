@@ -3,12 +3,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { dateToISODateString } from "@/lib/dateUtils";
 import { Loader2 } from "lucide-react";
 import type { PropertyCostDomain } from "@/types/domain";
 import type { CreateCostInput, UpdateCostInput } from "@/services/costService";
@@ -151,11 +153,13 @@ export const CostDialog = ({ open, onOpenChange, propertyId, cost, onSave, isSub
                 control={form.control}
                 name="due_date"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>{t("costs.fields.dueDate")}</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
+                    <DatePicker
+                      value={field.value ? new Date(field.value + "T00:00:00") : undefined}
+                      onChange={(date) => field.onChange(date ? dateToISODateString(date) : "")}
+                      placeholder={t("costs.selectDate")}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -165,11 +169,13 @@ export const CostDialog = ({ open, onOpenChange, propertyId, cost, onSave, isSub
                 control={form.control}
                 name="paid_date"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>{t("costs.fields.paidDate")}</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
+                    <DatePicker
+                      value={field.value ? new Date(field.value + "T00:00:00") : undefined}
+                      onChange={(date) => field.onChange(date ? dateToISODateString(date) : "")}
+                      placeholder={t("costs.selectDate")}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

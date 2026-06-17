@@ -12,7 +12,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { usePropertyCosts, usePropertyCostMutations } from "@/hooks/usePropertyCosts";
 import { CostDialog } from "@/components/property-tenants/CostDialog";
 import { BackfillCostsWizard } from "@/components/property-tenants/BackfillCostsWizard";
-import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { isWithinInterval, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { formatDate as formatDateUtil } from "@/lib/dateUtils";
 import type { PropertyCostDomain, CostCategory } from "@/types/domain";
 import type { CreateCostInput, UpdateCostInput } from "@/services/costService";
 
@@ -25,6 +26,7 @@ type PeriodFilter = "this_month" | "last_month" | "last_3_months" | "last_6_mont
 interface CostsTabProps {
   propertyId: string;
   userRole: { isManager: boolean } | undefined;
+  propertyCreatedAt?: string;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -43,7 +45,7 @@ const recurrenceLabels: Record<string, string> = {
   yearly: "costs.fields.yearly",
 };
 
-export function CostsTab({ propertyId, userRole }: CostsTabProps) {
+export function CostsTab({ propertyId, userRole, propertyCreatedAt }: CostsTabProps) {
   const { t } = useLanguage();
   const isManager = userRole?.isManager || false;
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -148,10 +150,12 @@ export function CostsTab({ propertyId, userRole }: CostsTabProps) {
     return new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR" }).format(cents / 100);
   };
 
-  const formatDate = (dateStr: string | null) => {
+  const localFormatDate = (dateStr: string | null) => {
     if (!dateStr) return "—";
-    return format(new Date(dateStr), "MMM d, yyyy");
+    return formatDateUtil(dateStr);
   };
+
+  // Keep a reference for the JSX usage
 
   if (isLoading) {
     return (
@@ -311,10 +315,10 @@ export function CostsTab({ propertyId, userRole }: CostsTabProps) {
                         {formatCurrency(cost.amountCents)}
                       </td>
                       <td className="py-3 pr-4 text-muted-foreground">
-                        {cost.dueDate ? formatDate(cost.dueDate) : "—"}
+                        {cost.dueDate ? localFormatDate(cost.dueDate) : "—"}
                         {cost.paidDate && (
                           <span className="block text-xs text-success">
-                            {t("costs.fields.paidDate")}: {formatDate(cost.paidDate)}
+                            {t("costs.fields.paidDate")}: {localFormatDate(cost.paidDate)}
                           </span>
                         )}
                       </td>
@@ -392,6 +396,7 @@ export function CostsTab({ propertyId, userRole }: CostsTabProps) {
         open={backfillDialogOpen}
         onOpenChange={setBackfillDialogOpen}
         propertyId={propertyId}
+        propertyCreatedAt={propertyCreatedAt}
       />
     </div>
   );

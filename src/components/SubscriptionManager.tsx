@@ -11,7 +11,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { authService } from "@/services";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/dateUtils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 
@@ -148,7 +148,7 @@ export function SubscriptionManager() {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {t("subscription.alerts.trialEnds")} {format(new Date(subscription.trial_end), "PPP")}
+                {t("subscription.alerts.trialEnds")} {formatDate(new Date(subscription.trial_end))}
               </AlertDescription>
             </Alert>
           )}
@@ -158,7 +158,7 @@ export function SubscriptionManager() {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {t("subscription.alerts.gracePeriod")}{" "}
-                {format(new Date(subscription.grace_period_ends_at), "PPP")}
+                {formatDate(new Date(subscription.grace_period_ends_at))}
               </AlertDescription>
             </Alert>
           )}
@@ -167,7 +167,7 @@ export function SubscriptionManager() {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {t("subscription.alerts.subscriptionEnds")} {format(new Date(subscription.current_period_end), "PPP")}
+                {t("subscription.alerts.subscriptionEnds")} {formatDate(new Date(subscription.current_period_end))}
               </AlertDescription>
             </Alert>
           )}
@@ -200,7 +200,7 @@ export function SubscriptionManager() {
               <p className="text-sm font-medium mb-2">{t("subscription.billingLabel")}</p>
               {subscription.current_period_end && (
                 <p className="text-sm text-muted-foreground">
-                  {t("subscription.currentPeriodEnd")} {format(new Date(subscription.current_period_end), "PPP")}
+                  {t("subscription.currentPeriodEnd")} {formatDate(new Date(subscription.current_period_end))}
                 </p>
               )}
             </div>

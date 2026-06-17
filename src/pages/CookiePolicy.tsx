@@ -2,6 +2,7 @@ import { AppLayout } from "@/components/layouts/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatDate } from "@/lib/dateUtils";
 import { useNavigate } from "react-router-dom";
 
 export default function CookiePolicy() {
@@ -12,7 +13,7 @@ export default function CookiePolicy() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <h1 className="text-4xl font-bold mb-2">Cookie Policy</h1>
         <p className="text-muted-foreground mb-6">
-          Last updated: {new Date().toLocaleDateString()}
+          Last updated: {formatDate(new Date())}
         </p>
 
         <div className="space-y-6">

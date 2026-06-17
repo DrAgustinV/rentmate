@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { UserCircle, ShieldCheck, Crown, Download, Trash2, AlertTriangle, Palette, ArrowRightLeft, Building2, Home } from "lucide-react";
 import { AppearanceSettings } from "@/components/AppearanceSettings";
 import { showToast } from "@/lib/toast";
+import { formatDate } from "@/lib/dateUtils";
 import { User } from "@supabase/supabase-js";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -181,7 +182,7 @@ export default function Account() {
 
       showToast.success(
         t('account.deletionScheduled') || 'Account Deletion Scheduled',
-        `${t('account.deletionScheduledDesc') || 'Your account will be deleted on'} ${new Date(data.deletion_date).toLocaleDateString()}. ${t('account.deletionCancelHint') || 'You can cancel this anytime before that date.'}`
+        `${t('account.deletionScheduledDesc') || 'Your account will be deleted on'} ${formatDate(data.deletion_date)}. ${t('account.deletionCancelHint') || 'You can cancel this anytime before that date.'}`
       );
 
       if (user) {
@@ -519,7 +520,7 @@ export default function Account() {
                 {deletionScheduled ? (
                   <div className="space-y-3">
                     <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                      <p className="font-semibold text-destructive">{t('account.deletionScheduledFor') || 'Deletion scheduled for'} {new Date(deletionScheduled).toLocaleDateString()}</p>
+                      <p className="font-semibold text-destructive">{t('account.deletionScheduledFor') || 'Deletion scheduled for'} {formatDate(deletionScheduled)}</p>
                     </div>
                     <Button onClick={handleCancelDeletion} variant="outline">
                       {t('account.cancelDeletion') || 'Cancel Deletion'}

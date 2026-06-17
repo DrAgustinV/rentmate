@@ -76,7 +76,7 @@ export function useBackfillPayments(
         startDate: activeAgreement.start_date,
         rentAmountCents: activeAgreement.rent_amount_cents,
         paymentDay: activeAgreement.payment_day || 1,
-        currency: activeAgreement.currency || "EUR",
+        currency: activeAgreement.currency || "eur",
         tenantId: activeAgreement.tenant_id,
       };
     }
@@ -88,7 +88,7 @@ export function useBackfillPayments(
         startDate: fallbackStartDate.toISOString().split("T")[0],
         rentAmountCents: fallbackRentAmountCents,
         paymentDay: 1,
-        currency: "EUR",
+        currency: "eur",
         tenantId: tenantProfileId ?? "",
       };
     }
