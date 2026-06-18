@@ -184,9 +184,9 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
             <TableHeader>
               <TableRow>
                 <TableHead>{t("common.dueDate")}</TableHead>
-                <TableHead>{t("common.amount")}</TableHead>
-                <TableHead>{t("common.status")}</TableHead>
-                <TableHead>{t("common.actions")}</TableHead>
+                <TableHead className="text-right">{t("common.amount")}</TableHead>
+                <TableHead className="text-center">{t("common.status")}</TableHead>
+                <TableHead className="text-right">{t("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -195,14 +195,14 @@ export function RentPaymentHistory({ propertyId, isManager, hasRentAgreement = t
                   <TableCell>
                     {formatDate(payment.payment_due_date)}
                   </TableCell>
-                  <TableCell className="font-medium">
+                  <TableCell className="text-right font-medium">
                     {formatCurrency(payment.amount_cents, payment.currency)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                     {getSimpleStatusBadge(payment.status)}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
                       {/* Tenant: Mark as Paid (opens upload dialog) */}
                       {!isManager && payment.status !== 'paid' && (
                         <Button

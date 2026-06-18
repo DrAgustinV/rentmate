@@ -188,7 +188,8 @@ export function InspectionCard({
                       size="sm"
                       onClick={() => handleOpenInspection(inspection)}
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-4 w-4 mr-2" />
+                      {t("common.view")}
                     </Button>
                     {inspection.pdf_url && (
                       <Button 
@@ -196,7 +197,8 @@ export function InspectionCard({
                         size="sm"
                         onClick={() => handleDownloadPdf(inspection.pdf_url!)}
                       >
-                        <Download className="h-4 w-4" />
+                        <Download className="h-4 w-4 mr-2" />
+                        {t("common.download")}
                       </Button>
                     )}
                     {isManager && !isReadOnly && (
@@ -207,7 +209,8 @@ export function InspectionCard({
                           className="text-destructive hover:text-destructive"
                           onClick={() => handleOpenDeleteConfirm(inspection)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          {t("common.delete")}
                         </Button>
                       )
                     )}

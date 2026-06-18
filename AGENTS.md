@@ -141,6 +141,20 @@ VITE_APP_ENV=development
 - Use `useQuery` / `useMutation` from `@tanstack/react-query` for async data
 - Mutation callbacks: `onSuccess` → `showToast.success()` + `queryClient.invalidateQueries()
 
+### Actions Buttons Convention
+- **All action buttons** use icon + text label — never icon-only or text-only.
+- **Table Actions columns** → `variant="ghost" size="sm"` with `<Pencil className="h-4 w-4 mr-2" />{t("common.edit")}` for edit, `<Trash2 className="h-4 w-4 mr-2" />{t("common.delete")}` for delete. Use `title` attr for extra accessibility.
+- **Standalone buttons** (card headers, dialogs) → `variant="outline" size="sm"` with icon + text: `<Pencil className="h-4 w-4 mr-2" />{t("common.edit")}`
+- **Delete buttons** in tables use `className="text-destructive hover:text-destructive"` on ghost variant; standalone delete uses `variant="destructive"`.
+- **Exceptions** (keep icon-only): kebab menu triggers (`MoreHorizontal`), universal media controls (`Play`/`Pause`), and standard recognizable icons in tight modals (Eye/Download in version history). These must still use `title` or `aria-label`.
+
+### Table Column Alignment Convention
+- Use shadcn `<Table>` components exclusively — never plain HTML `<table>` tags
+- **Numeric columns** (Amount, Rent, etc.) → right-aligned: `className="text-right"`
+- **Status/State columns** → center-aligned: `className="text-center"`
+- **Actions columns** → right-aligned header + `justify-end gap-1` on the actions flex container
+- **All other columns** → left-aligned (default)
+
 ### Empty States
 Every tab must have empty states for all zero-data scenarios. Never use early returns that hide the full UI chrome (filters, buttons, layout) — follow the TicketsTab pattern instead:
 - Always render the full layout (filter bars, action buttons, card wrappers)

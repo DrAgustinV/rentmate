@@ -5,8 +5,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { authService, adminService } from "@/services";
 import { useState } from "react";
-import { Download, FileText, Shield, Trash2, Ban, AlertCircle, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Download, FileText, Shield, Trash2, Ban, AlertCircle, Lock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 
 export default function PrivacyRights() {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [objectionDetails, setObjectionDetails] = useState("");
@@ -167,10 +169,10 @@ export default function PrivacyRights() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Trash2 className="h-5 w-5 text-destructive" />
-                <CardTitle>Delete My Account</CardTitle>
+                <CardTitle>{t("account.deleteAccountTitle")}</CardTitle>
               </div>
               <CardDescription>
-                Permanently delete your account and personal data
+                {t("account.deleteAccountDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -183,7 +185,7 @@ export default function PrivacyRights() {
                 className="w-full"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete My Account
+                {t("account.deleteAccountTitle")}
               </Button>
             </CardContent>
           </Card>

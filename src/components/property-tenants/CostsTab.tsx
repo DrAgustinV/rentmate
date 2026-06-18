@@ -1,12 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Plus, Wallet, Receipt, AlertCircle, History } from "lucide-react";
+import { Plus, Receipt, AlertCircle, History, Pencil, Trash2 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePropertyCosts, usePropertyCostMutations } from "@/hooks/usePropertyCosts";
@@ -263,12 +264,6 @@ export function CostsTab({ propertyId, userRole, propertyCreatedAt }: CostsTabPr
       </div>
 
       <Card className="card-shine">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5 text-muted-foreground" />
-            {t("costs.title")}
-          </CardTitle>
-        </CardHeader>
         <CardContent>
           {filteredCosts.length === 0 ? (
             !costs || costs.length === 0 ? (
@@ -286,66 +281,68 @@ export function CostsTab({ propertyId, userRole, propertyCreatedAt }: CostsTabPr
               />
             )
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-muted-foreground">
-                    <th className="text-left font-medium pb-3 pr-4">{t("costs.fields.category")}</th>
-                    <th className="text-left font-medium pb-3 pr-4">{t("costs.fields.description")}</th>
-                    <th className="text-right font-medium pb-3 pr-4">{t("costs.fields.amount")}</th>
-                    <th className="text-left font-medium pb-3 pr-4">{t("costs.fields.dueDate")}</th>
-                    <th className="text-center font-medium pb-3 pr-4">{t("costs.fields.status")}</th>
-                    <th className="text-center font-medium pb-3 pr-4">{t("costs.fields.recurrence")}</th>
-                    {isManager && <th className="text-right font-medium pb-3">{t("common.actions")}</th>}
-                  </tr>
-                </thead>
-                <tbody>
+            <div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("costs.fields.category")}</TableHead>
+                    <TableHead>{t("costs.fields.description")}</TableHead>
+                    <TableHead className="text-right">{t("costs.fields.amount")}</TableHead>
+                    <TableHead>{t("costs.fields.dueDate")}</TableHead>
+                    <TableHead className="text-center">{t("costs.fields.status")}</TableHead>
+                    <TableHead className="text-center">{t("costs.fields.recurrence")}</TableHead>
+                    {isManager && <TableHead className="text-right">{t("common.actions")}</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {paginatedCosts.map((cost) => (
-                    <tr key={cost.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                      <td className="py-3 pr-4">
+                    <TableRow key={cost.id}>
+                      <TableCell>
                         <span className="inline-flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full bg-primary/40" />
                           {t(categoryLabels[cost.costCategory] || cost.costCategory)}
                         </span>
-                      </td>
-                      <td className="py-3 pr-4 text-muted-foreground max-w-[200px] truncate">
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate text-muted-foreground">
                         {cost.description || "—"}
-                      </td>
-                      <td className="py-3 pr-4 text-right font-medium tabular-nums">
+                      </TableCell>
+                      <TableCell className="text-right font-medium tabular-nums">
                         {formatCurrency(cost.amountCents)}
-                      </td>
-                      <td className="py-3 pr-4 text-muted-foreground">
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
                         {cost.dueDate ? localFormatDate(cost.dueDate) : "—"}
                         {cost.paidDate && (
                           <span className="block text-xs text-success">
                             {t("costs.fields.paidDate")}: {localFormatDate(cost.paidDate)}
                           </span>
                         )}
-                      </td>
-                      <td className="py-3 pr-4 text-center">
+                      </TableCell>
+                      <TableCell className="text-center">
                         <Badge variant={cost.status === "paid" ? "secondary" : "outline"}>
                           {cost.status === "paid" ? t("costs.filters.paid") : t("costs.filters.pending")}
                         </Badge>
-                      </td>
-                      <td className="py-3 pr-4 text-center text-muted-foreground text-xs">
+                      </TableCell>
+                      <TableCell className="text-center text-muted-foreground text-xs">
                         {t(recurrenceLabels[cost.recurrence] || cost.recurrence)}
-                      </td>
+                      </TableCell>
                       {isManager && (
-                        <td className="py-3 text-right">
+                        <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => handleEdit(cost)}>
+                            <Button variant="ghost" size="sm" onClick={() => handleEdit(cost)} title={t("common.edit")}>
+                              <Pencil className="h-4 w-4 mr-2" />
                               {t("common.edit")}
                             </Button>
-                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDelete(cost.id)}>
+                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDelete(cost.id)} title={t("common.delete")}>
+                              <Trash2 className="h-4 w-4 mr-2" />
                               {t("common.delete")}
                             </Button>
                           </div>
-                        </td>
+                        </TableCell>
                       )}
-                    </tr>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )}
 

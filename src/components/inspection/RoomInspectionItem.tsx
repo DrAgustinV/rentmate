@@ -18,6 +18,7 @@ import { STORAGE_BUCKETS, FILE_SIZE_LIMITS } from "@/constants";
 import { showToast } from "@/lib/toast";
 import { InspectionItem, ConditionRating, CONDITION_RATINGS } from "./types";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RoomInspectionItemProps {
   item: InspectionItem;
@@ -38,6 +39,7 @@ export function RoomInspectionItem({
   const [isUploading, setIsUploading] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useLanguage();
 
   const handleConditionChange = async (condition: ConditionRating) => {
     await onUpdate({ itemId: item.id, updates: { condition } });
@@ -168,7 +170,8 @@ export function RoomInspectionItem({
                 }}
                 className="text-muted-foreground hover:text-destructive"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-4 w-4 mr-2" />
+                {t("common.delete")}
               </Button>
             )}
             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}

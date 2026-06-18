@@ -301,12 +301,13 @@ export function UsersManagement() {
                         </Select>
                         <Button
                           variant="destructive"
-                          size="icon"
+                          size="sm"
                           onClick={() => setDeletingUserId(user.id)}
                           disabled={user.id === currentUserId}
                           title={user.id === currentUserId ? t('admin.cannotDeleteSelf') : t('admin.deleteUser')}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          {t("common.delete")}
                         </Button>
                       </div>
                     </TableCell>

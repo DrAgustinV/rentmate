@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Pencil, Clock, User, Wrench } from "lucide-react";
+import { Plus, Eye, Clock, User, Wrench } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTickets } from "@/hooks/useTickets";
@@ -198,7 +198,8 @@ export function TicketsTab({ propertyId, tenancyId, isManager }: TicketsTabProps
                           size="sm"
                           onClick={() => navigate(`/properties/${propertyId}/tickets/${ticket.id}`)}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Eye className="h-4 w-4 mr-2" />
+                          {t("common.view")}
                         </Button>
                       </TableCell>
                     </TableRow>

@@ -160,18 +160,18 @@ export function EditRentAgreementDrawer({
               variant="outline" 
               size="sm"
               disabled={isContractSigning}
-              title={isContractSigning ? "Cannot edit during contract signing" : "Edit rent agreement"}
+              title={isContractSigning ? t("rentAgreement.cannotEditDuringSigning") : t("rentAgreement.editTitle")}
             >
               <Pencil className="h-4 w-4" />
-              Edit
+              {t("common.edit")}
             </Button>
           )}
         </DrawerTrigger>
         <DrawerContent className="max-h-[90vh]">
           <DrawerHeader>
-            <DrawerTitle>Edit Rent Agreement</DrawerTitle>
+            <DrawerTitle>{t("rentAgreement.editTitle")}</DrawerTitle>
             <DrawerDescription>
-              Update the rent agreement details. Tenant will be notified of changes.
+              {t("rentAgreement.editDesc")}
             </DrawerDescription>
           </DrawerHeader>
 

@@ -247,10 +247,10 @@ export function HistoricTab({ propertyId, isManager }: HistoricTabProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("common.tenant")}</TableHead>
-                  <TableHead>{t("common.status")}</TableHead>
+                  <TableHead className="text-center">{t("common.status")}</TableHead>
                   <TableHead>{t("historicTenancies.details.startDate")}</TableHead>
                   <TableHead>{t("historicTenancies.details.endDate")}</TableHead>
-                  <TableHead className="w-[100px]">{t("common.actions")}</TableHead>
+                  <TableHead className="w-[100px] text-right">{t("common.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -262,7 +262,7 @@ export function HistoricTab({ propertyId, isManager }: HistoricTabProps) {
                         <div className="text-xs text-muted-foreground">{tenant.email}</div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">
                       <Badge variant="outline" className="text-muted-foreground">
                         {t("propertyTenancies.tabs.historic")}
                       </Badge>
@@ -273,7 +273,7 @@ export function HistoricTab({ propertyId, isManager }: HistoricTabProps) {
                     <TableCell>
                       {tenant.ended_at ? formatDate(tenant.ended_at) : '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-right">
                       <Button
                         variant="outline"
                         size="sm"

@@ -377,9 +377,9 @@ export function PaymentsTab({ currentTenant, allTenants, tenantFilter, propertyI
       )}
 
       <Card className="card-shine">
-        <CardHeader>
+        {/* <CardHeader>
           <CardTitle>{t("payments.title")}</CardTitle>
-        </CardHeader>
+        </CardHeader> */}
         <CardContent>
           <UnifiedPaymentHistory
             propertyId={propertyId}

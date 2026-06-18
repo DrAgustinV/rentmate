@@ -15,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Building, Users, Plus } from "lucide-react";
+import { ArrowLeft, Building, Users, Plus, Pencil } from "lucide-react";
 import { EditTenantDialog } from "@/components/EditTenantDialog";
 import { CreateTenancyWizard } from "@/components/CreateTenancyWizard";
 import type { CreateTenancyRequirementInput } from "@/hooks/useTenancyRequirements";
@@ -34,6 +34,7 @@ import { useRentAgreements } from "@/hooks/useRentAgreements";
 import { StatusBadge } from "@/components/property-tenants/StatusBadge";
 import { getTenancyDisplayLabel } from "@/lib/tenancyStatus";
 import { formatDate } from "@/lib/dateUtils";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface WizardFormData {
   id?: string;
@@ -447,41 +448,31 @@ export default function PropertyHub() {
                 </div>
               ) : (
                 <div className="border rounded-lg card-shine">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="text-left px-4 py-3 font-medium text-muted-foreground">
-                          {t("tenants.name") || "Name"}
-                        </th>
-                        <th className="text-left px-4 py-3 font-medium text-muted-foreground">
-                          {t("tenants.email") || "Email"}
-                        </th>
-                        <th className="text-left px-4 py-3 font-medium text-muted-foreground">
-                          {t("tenants.status") || "Status"}
-                        </th>
-                        <th className="text-left px-4 py-3 font-medium text-muted-foreground">
-                          {t("tenants.startDate") || "Start Date"}
-                        </th>
-                        <th className="text-right px-4 py-3 font-medium text-muted-foreground">
-                          {t("rentAgreement.rentAmount") || "Rent"}
-                        </th>
-                        <th className="w-[80px] px-4 py-3" />
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("tenants.name") || "Name"}</TableHead>
+                        <TableHead>{t("tenants.email") || "Email"}</TableHead>
+                        <TableHead>{t("tenants.status") || "Status"}</TableHead>
+                        <TableHead>{t("tenants.startDate") || "Start Date"}</TableHead>
+                        <TableHead className="text-right">{t("rentAgreement.rentAmount") || "Rent"}</TableHead>
+                        <TableHead className="w-[100px] text-right">{t("common.actions")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {filteredTenants.length > 0 && filteredTenants.map((tenant) => (
-                        <tr
+                        <TableRow
                           key={tenant.id}
-                          className="border-b last:border-0 hover:bg-muted/30 cursor-pointer"
+                          className="cursor-pointer"
                           onClick={() => setSelectedTenantId(tenant.id)}
                         >
-                          <td className="px-4 py-3 font-medium">
+                          <TableCell className="font-medium">
                             {tenant.first_name || tenant.manager_tenant_name || tenant.email || "—"}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
                             {tenant.email || "—"}
-                          </td>
-                          <td className="px-4 py-3">
+                          </TableCell>
+                          <TableCell>
                             <StatusBadge
                               status={tenant.tenancy_status}
                               label={getTenancyDisplayLabel(
@@ -489,34 +480,37 @@ export default function PropertyHub() {
                                 tenant.vacate_date ?? null,
                               )}
                             />
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
                             {tenant.started_at
                               ? formatDate(tenant.started_at)
                               : "—"}
-                          </td>
-                          <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums text-muted-foreground">
                             {(rentAgreements?.find(ra => ra.tenancy_id === tenant.id)?.rent_amount_cents ?? null) != null
                               ? "€" + ((rentAgreements!.find(ra => ra.tenancy_id === tenant.id)!.rent_amount_cents) / 100).toFixed(2)
                               : "—"}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingTenant(tenant);
-                                setEditDialogOpen(true);
-                              }}
-                            >
-                              {t("common.edit") || "Edit"}
-                            </Button>
-                          </td>
-                        </tr>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingTenant(tenant);
+                                  setEditDialogOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4 mr-2" />
+                                {t("common.edit")}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </>

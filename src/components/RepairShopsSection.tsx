@@ -160,10 +160,12 @@ export function RepairShopsSection() {
                           <Badge variant="secondary">{t("repairShops.inactive")}</Badge>
                         )}
                         <Button variant="ghost" size="sm" onClick={() => setEditingShop(shop)}>
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-4 w-4 mr-2" />
+                          {t("common.edit")}
                         </Button>
                         <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeletingShop(shop)}>
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          {t("common.delete")}
                         </Button>
                       </div>
                     </div>
@@ -215,7 +217,7 @@ export function RepairShopsSection() {
                     <TableHead>{t("repairShops.phone")}</TableHead>
                     <TableHead>{t("repairShops.specializations")}</TableHead>
                     <TableHead>{t("repairShops.status")}</TableHead>
-                    <TableHead className="text-right">{t("common.edit")}</TableHead>
+                    <TableHead className="text-right">{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -258,11 +260,13 @@ export function RepairShopsSection() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => setEditingShop(shop)}>
-                            <Pencil className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" onClick={() => setEditingShop(shop)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            {t("common.edit")}
                           </Button>
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeletingShop(shop)}>
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeletingShop(shop)}>
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            {t("common.delete")}
                           </Button>
                         </div>
                       </TableCell>

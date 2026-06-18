@@ -204,15 +204,15 @@ export function UnifiedPaymentHistory({
 
   return (
     <>
-      <div className="rounded-md border">
+      <div className="rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>{t("payments.filters.type")}</TableHead>
               <TableHead>{t("common.dueDate")}</TableHead>
-              <TableHead>{t("common.amount")}</TableHead>
-              <TableHead>{t("common.status")}</TableHead>
-              <TableHead>{t("common.actions")}</TableHead>
+              <TableHead className="text-right">{t("common.amount")}</TableHead>
+              <TableHead className="text-center">{t("common.status")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -224,21 +224,23 @@ export function UnifiedPaymentHistory({
                 <TableCell>
                   {formatDate(payment.dueDate)}
                 </TableCell>
-                <TableCell className="font-medium">
+                <TableCell className="text-right font-medium">
                   {formatCurrency(payment.amountCents, payment.currency)}
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   {getStatusBadge(payment.status)}
                 </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
                     {isManager && (
                       <>
-                        <Button size="sm" variant="ghost" onClick={() => handleEdit(payment)}>
-                          <Pencil className="h-4 w-4" />
+                        <Button size="sm" variant="ghost" onClick={() => handleEdit(payment)} title={t("common.edit")}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          {t("common.edit")}
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDelete(payment)}>
-                          <Trash2 className="h-4 w-4" />
+                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDelete(payment)} title={t("common.delete")}>
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          {t("common.delete")}
                         </Button>
                       </>
                     )}

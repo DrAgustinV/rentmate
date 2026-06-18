@@ -83,6 +83,7 @@ export function DocumentVersionHistoryModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => onView(version)}
+                        title={t("common.view")}
                       >
                         <Eye className="h-3 w-3" />
                       </Button>
@@ -90,6 +91,7 @@ export function DocumentVersionHistoryModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => onDownload(version)}
+                        title={t("common.download")}
                       >
                         <Download className="h-3 w-3" />
                       </Button>

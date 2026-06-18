@@ -139,7 +139,8 @@ export default function KiltSetup() {
                       size="sm"
                       onClick={() => copyToClipboard(credentials.did, 'did')}
                     >
-                      {copied.did ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      {copied.did ? <CheckCircle className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                      {copied.did ? t("common.copied") : t("common.copy")}
                     </Button>
                   </div>
                   <code className="text-xs block break-all">{credentials.did}</code>
@@ -153,7 +154,8 @@ export default function KiltSetup() {
                       size="sm"
                       onClick={() => copyToClipboard(credentials.mnemonic, 'mnemonic')}
                     >
-                      {copied.mnemonic ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      {copied.mnemonic ? <CheckCircle className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                      {copied.mnemonic ? t("common.copied") : t("common.copy")}
                     </Button>
                   </div>
                   <code className="text-xs block break-all bg-yellow-50 p-2 rounded border border-yellow-200">
@@ -169,7 +171,8 @@ export default function KiltSetup() {
                       size="sm"
                       onClick={() => copyToClipboard(credentials.address, 'address')}
                     >
-                      {copied.address ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      {copied.address ? <CheckCircle className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                      {copied.address ? t("common.copied") : t("common.copy")}
                     </Button>
                   </div>
                   <code className="text-xs block break-all">{credentials.address}</code>

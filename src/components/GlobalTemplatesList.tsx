@@ -214,7 +214,7 @@ export const GlobalTemplatesList = () => {
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="icon" className="text-destructive hover:text-destructive shrink-0">
+                      <Button variant="outline" size="icon" className="text-destructive hover:text-destructive shrink-0" title={t("common.delete")}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </AlertDialogTrigger>
@@ -271,15 +271,17 @@ export const GlobalTemplatesList = () => {
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="sm"
                           onClick={() => handleDownload(template.file_path, template.file_name)}
                         >
-                          <Download className="h-4 w-4" />
+                          <Download className="h-4 w-4 mr-2" />
+                          {t("common.download")}
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4" />
+                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {t("common.delete")}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>

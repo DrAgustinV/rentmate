@@ -143,7 +143,7 @@ export const TemplatesManagerContent = ({
                               {schedule.frequency}
                             </Badge>
                             <Badge variant={schedule.is_active ? "default" : "secondary"}>
-                              {schedule.is_active ? "Active" : "Paused"}
+                              {schedule.is_active ? t("common.active") : t("common.paused")}
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
@@ -157,7 +157,7 @@ export const TemplatesManagerContent = ({
                         <div className="flex gap-2">
                           <Button
                             variant="outline"
-                            size="icon"
+                            size="sm"
                             onClick={() =>
                               setEditingTask({
                                 templateId: task.id,
@@ -175,12 +175,14 @@ export const TemplatesManagerContent = ({
                               })
                             }
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-4 w-4 mr-2" />
+                            {t("common.edit")}
                           </Button>
                           <Button
                             variant="outline"
                             size="icon"
                             onClick={() => onToggleSchedule(schedule.id, schedule.is_active)}
+                            title={schedule.is_active ? t("common.pause") : t("common.play")}
                           >
                             {schedule.is_active ? (
                               <Pause className="h-4 w-4" />
@@ -201,7 +203,7 @@ export const TemplatesManagerContent = ({
                     onClick={() => setDeleteTemplateId(task.id)}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Task
+                    {t("common.delete")}
                   </Button>
                 </div>
               </AccordionContent>

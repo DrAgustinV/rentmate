@@ -159,7 +159,7 @@ export function FinancialAnalysisTab({ propertyId, allTenants }: FinancialAnalys
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t("financial.title")}</h2>
+        {/* <h2 className="text-lg font-semibold">{t("financial.title")}</h2> */}
         <Select value={selectedYear} onValueChange={setSelectedYear}>
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder={t("financial.year")} />
