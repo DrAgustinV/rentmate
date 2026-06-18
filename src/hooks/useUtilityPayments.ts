@@ -146,11 +146,23 @@ export function useUtilityPaymentMutations() {
     },
   });
 
+  const deletePayment = useMutation({
+    mutationFn: async (id: string) => paymentService.deleteUtilityPayment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [UTILITY_PAYMENTS_QUERY_KEY] });
+      toast.success(t("payments.deleteSuccess"));
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t("utilityPayments.deleteFailed"));
+    },
+  });
+
   return {
     createPayment,
     updatePayment,
     uploadProof,
     reviewProof,
     markAsPaid,
+    deletePayment,
   };
 }

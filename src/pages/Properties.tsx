@@ -5,7 +5,6 @@ import { Plus, Building, Archive, Upload, ImageIcon, Search } from "lucide-react
 import { PropertyCard } from "@/components/PropertyCard";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { CreatePropertyDialog } from "@/components/CreatePropertyDialog";
-import { ArchiveToggle } from "@/components/ArchiveToggle";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { AppLayout } from "@/components/layouts/AppLayout";
 import { EmptyState } from "@/components/EmptyState";
@@ -19,10 +18,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatDate } from "@/lib/dateUtils";
+import { cn } from "@/lib/utils";
 import { usePropertyDashboard, MAX_PROPERTIES_LIMIT } from "@/hooks/usePropertyDashboard";
 import { authService } from "@/services";
 import { OnboardingTour } from "@/components/welcome/OnboardingTour";
 import { shouldShowTour } from "@/services/profileService";
+
+function formatCurrency(cents?: number | null): string {
+  if (cents == null) return "";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR" }).format(cents / 100);
+}
 
 export default function Properties() {
   const { t } = useLanguage();
@@ -50,8 +56,6 @@ export default function Properties() {
     sortBy,
     setSortBy,
     activeProperties,
-    endingTenancyProperties,
-    archivedProperties,
     filteredProperties: filteredAndSortedProperties,
   } = usePropertyDashboard();
 
@@ -152,16 +156,7 @@ export default function Properties() {
         </div>
       </div>
 
-      <div className="mb-6 space-y-4">
-        <ArchiveToggle
-          activeCount={activeProperties.length}
-          endingTenancyCount={endingTenancyProperties.length}
-          archivedCount={archivedProperties.length}
-          currentView={propertyView}
-          onViewChange={setPropertyView}
-          showEndingTenancy={false}
-        />
-
+      <div className="mb-6">
         <SearchFilterBar
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
@@ -169,6 +164,30 @@ export default function Properties() {
           onSortChange={setSortBy}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          pills={
+            <div className="bg-muted rounded-lg p-1 flex gap-1">
+              {[
+                { value: "active" as const, label: t("properties.status.active") },
+                { value: "ending" as const, label: t("properties.status.ending_tenancy") },
+                { value: "historic" as const, label: "Historic" },
+              ].map((pill) => (
+                <Button
+                  key={pill.value}
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "text-xs font-medium px-3 py-1.5 h-auto rounded-md",
+                    propertyView === pill.value
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  onClick={() => setPropertyView(pill.value)}
+                >
+                  {pill.label}
+                </Button>
+              ))}
+            </div>
+          }
         />
       </div>
 
@@ -191,19 +210,19 @@ export default function Properties() {
               </Button>
             }
           />
-        ) : propertyView === "ending_tenancy" ? (
-          <EmptyState
-            icon={Archive}
-            title={t("properties.endingTenancy.emptyTitle")}
-            description={t("properties.endingTenancy.emptyDesc")}
-          />
-        ) : (
-          <EmptyState
-            icon={Archive}
-            title={t("dashboard.noArchivedProperties")}
-            description={t("dashboard.allPropertiesArchived")}
-          />
-        )
+        ) : propertyView === "ending" ? (
+            <EmptyState
+              icon={Archive}
+              title={t("properties.endingTenancy.emptyTitle")}
+              description={t("properties.endingTenancy.emptyDesc")}
+            />
+          ) : (
+            <EmptyState
+              icon={Archive}
+              title={t("dashboard.noArchivedProperties")}
+              description={t("dashboard.allPropertiesArchived")}
+            />
+          )
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {filteredAndSortedProperties.map((property) => (
@@ -226,10 +245,12 @@ export default function Properties() {
               <TableRow>
                 <TableHead className="w-14">{t('properties.photo')}</TableHead>
                 <TableHead>{t('properties.propertyTitle')}</TableHead>
-                <TableHead className="hidden md:table-cell">Occupancy</TableHead>
+                <TableHead>Occupancy</TableHead>
                 <TableHead className="hidden lg:table-cell">Tenant</TableHead>
+                <TableHead className="hidden lg:table-cell">{t('rentAgreement.rentAmount')}</TableHead>
+                <TableHead className="hidden lg:table-cell">{t("properties.period")}</TableHead>
                 <TableHead className="hidden sm:table-cell">Payment</TableHead>
-                <TableHead>Tickets</TableHead>
+                <TableHead className="hidden lg:table-cell">Tickets</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -265,20 +286,37 @@ export default function Properties() {
                       </div>
                     </TableCell>
                     <TableCell
-                      className="hidden md:table-cell cursor-pointer hover:text-primary"
+                      className="cursor-pointer hover:text-primary"
                       onClick={() => navigate(`/properties/${property.id}/tenants?tab=contracts`)}
                     >
                       <OccupancyBadge status={occupancyStatus} />
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {tenantStatus?.tenant_name || '—'}
+                      {!tenantStatus?.tenant_email && tenantStatus?.manager_tenant_name
+                        ? t("tenancy.selfManaged")
+                        : tenantStatus?.tenant_name || '—'}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {tenantStatus?.rent_amount_cents != null
+                        ? formatCurrency(tenantStatus.rent_amount_cents)
+                        : '—'}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {tenantStatus?.started_at ? (
+                        <div className="tabular-nums leading-tight">
+                          <div>{formatDate(tenantStatus.started_at)}</div>
+                          <div className="text-muted-foreground">
+                            {tenantStatus.end_date ? formatDate(tenantStatus.end_date) : t("tenancy.ongoing")}
+                          </div>
+                        </div>
+                      ) : '—'}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       {indicators?.rent_has_data ? (
                         <PaymentBadge status={paymentStatus} />
                       ) : '—'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <TicketCount count={ticketCount} />
                     </TableCell>
                   </TableRow>

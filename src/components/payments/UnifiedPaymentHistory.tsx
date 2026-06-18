@@ -10,7 +10,8 @@ import { ProofOfPaymentUpload } from "@/components/ProofOfPaymentUpload";
 import { PaymentProofReview } from "./PaymentProofReview";
 import { UtilityProofUpload } from "./UtilityProofUpload";
 import { UtilityProofReview } from "./UtilityProofReview";
-import { FileText, CheckCircle2, Clock, Upload, Eye, Loader2, DollarSign, Zap } from "lucide-react";
+import { EditPaymentDialog } from "@/components/property-tenants/EditPaymentDialog";
+import { FileText, CheckCircle2, Clock, Upload, Eye, Loader2, DollarSign, Zap, Pencil, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { RentPayment } from "@/hooks/useRentPayments";
 import { UtilityPayment } from "@/hooks/useUtilityPayments";
@@ -53,13 +54,16 @@ export function UnifiedPaymentHistory({
   noAgreements,
 }: UnifiedPaymentHistoryProps) {
   const { t } = useLanguage();
-  const { markAsPaid: markRentPaid } = useRentPaymentMutations();
-  const { markAsPaid: markUtilityPaid } = useUtilityPaymentMutations();
+  const { markAsPaid: markRentPaid, updatePayment: updateRentPayment, deletePayment: deleteRentPayment } = useRentPaymentMutations();
+  const { markAsPaid: markUtilityPaid, updatePayment: updateUtilityPayment, deletePayment: deleteUtilityPayment } = useUtilityPaymentMutations();
 
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<UnifiedPayment | null>(null);
+  const [editingPayment, setEditingPayment] = useState<UnifiedPayment | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   const formatCurrency = (cents: number, currency: string = 'EUR') => {
     const amount = cents / 100;
@@ -133,6 +137,51 @@ export function UnifiedPaymentHistory({
     setReviewDialogOpen(true);
   };
 
+  const handleEdit = (payment: UnifiedPayment) => {
+    setEditingPayment(payment);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSave = async (updates: { amountCents: number; dueDate: string; status: string; notes?: string }) => {
+    if (!editingPayment) return;
+    setEditSubmitting(true);
+    try {
+      if (editingPayment.type === 'rent') {
+        await updateRentPayment.mutateAsync({
+          id: editingPayment.id,
+          updates: {
+            amount_cents: updates.amountCents,
+            payment_due_date: updates.dueDate,
+            status: updates.status,
+            notes: updates.notes || null,
+          },
+        });
+      } else {
+        await updateUtilityPayment.mutateAsync({
+          id: editingPayment.id,
+          updates: {
+            amount_cents: updates.amountCents,
+            payment_due_date: updates.dueDate,
+            status: updates.status,
+            notes: updates.notes || null,
+          },
+        });
+      }
+      setEditDialogOpen(false);
+      setEditingPayment(null);
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (payment: UnifiedPayment) => {
+    if (payment.type === 'rent') {
+      await deleteRentPayment.mutateAsync(payment.id);
+    } else {
+      await deleteUtilityPayment.mutateAsync(payment.id);
+    }
+  };
+
   if (!hasTenant) {
     return (
       <div className="text-center py-12 animate-fade-in" role="status" aria-live="polite">
@@ -183,6 +232,16 @@ export function UnifiedPaymentHistory({
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
+                    {isManager && (
+                      <>
+                        <Button size="sm" variant="ghost" onClick={() => handleEdit(payment)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDelete(payment)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                     {!isManager && payment.status !== 'paid' && !payment.proofOfPaymentUrl && (
                       <Button
                         size="sm"
@@ -316,6 +375,19 @@ export function UnifiedPaymentHistory({
             setReviewDialogOpen(open);
             if (!open) setSelectedPayment(null);
           }}
+        />
+      )}
+
+      {editingPayment && (
+        <EditPaymentDialog
+          open={editDialogOpen}
+          onOpenChange={(open) => {
+            setEditDialogOpen(open);
+            if (!open) setEditingPayment(null);
+          }}
+          payment={editingPayment}
+          onSave={handleEditSave}
+          isSubmitting={editSubmitting}
         />
       )}
     </>

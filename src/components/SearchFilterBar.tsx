@@ -18,6 +18,7 @@ interface SearchFilterBarProps {
   onSortChange: (value: 'newest' | 'oldest' | 'alphabetical' | 'status') => void;
   viewMode?: 'grid' | 'list';
   onViewModeChange?: (value: 'grid' | 'list') => void;
+  pills?: React.ReactNode;
 }
 
 export function SearchFilterBar({
@@ -27,11 +28,13 @@ export function SearchFilterBar({
   onSortChange,
   viewMode,
   onViewModeChange,
+  pills,
 }: SearchFilterBarProps) {
   const { t } = useLanguage();
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      {pills && <div className="flex-shrink-0">{pills}</div>}
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input

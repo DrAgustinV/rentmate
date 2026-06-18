@@ -16,8 +16,8 @@ interface UsePropertyDashboardReturn {
   propertyPhotoUrls: Record<string, string>;
   statusIndicators: Record<string, PropertyStatusIndicators>;
   tenantStatusMap: Record<string, TenantStatusInfo | null>;
-  propertyView: "active" | "ending_tenancy" | "archived";
-  setPropertyView: (view: "active" | "ending_tenancy" | "archived") => void;
+  propertyView: "active" | "ending" | "historic";
+  setPropertyView: (view: "active" | "ending" | "historic") => void;
   viewMode: "grid" | "list";
   setViewMode: (mode: "grid" | "list") => void;
   searchTerm: string;
@@ -106,7 +106,7 @@ export function usePropertyDashboard(): UsePropertyDashboardReturn {
     return () => { mounted = false; };
   }, [propertiesData]);
 
-  const [propertyView, setPropertyView] = useState<"active" | "ending_tenancy" | "archived">("active");
+  const [propertyView, setPropertyView] = useState<"active" | "ending" | "historic">("active");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "createdAt">("createdAt");
   const [viewMode, setViewMode] = useState<"grid" | "list">(() =>
@@ -130,9 +130,9 @@ export function usePropertyDashboard(): UsePropertyDashboardReturn {
   const filteredProperties = useMemo(() => {
     let properties = activeProperties;
 
-    if (propertyView === "ending_tenancy") {
+    if (propertyView === "ending") {
       properties = endingTenancyProperties;
-    } else if (propertyView === "archived") {
+    } else if (propertyView === "historic") {
       properties = archivedProperties;
     }
 

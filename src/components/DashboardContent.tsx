@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
-import { PropertyDashboardCard } from "@/components/PropertyDashboardCard";
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDashboardData } from "@/hooks/useDashboardData";
@@ -22,7 +21,6 @@ export function DashboardContent() {
     openTicketsCount,
     ticketsByStatus,
     monthlyPayments,
-    propertyCards,
     isLoading,
   } = useDashboardData();
 
@@ -208,30 +206,6 @@ export function DashboardContent() {
             )}
           </CardContent>
         </Card>
-      </div>
-
-      {/* Property Cards Section */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">{t("properties.title")}</h2>
-          <Button variant="outline" size="sm" onClick={() => navigate("/properties")}>
-            {t("dashboard.viewAllProperties")}
-          </Button>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {propertyCards.map((card) => (
-            <PropertyDashboardCard
-              key={card.id}
-              property={card}
-              dashboard={{
-                occupancy_status: card.occupancy_status,
-                tenant_name: card.tenant_name,
-                payment_status: card.payment_status,
-                open_tickets_count: card.open_tickets_count,
-              }}
-            />
-          ))}
-        </div>
       </div>
     </div>
   );

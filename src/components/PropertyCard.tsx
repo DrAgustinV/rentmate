@@ -27,7 +27,7 @@ export interface PropertyStatusIndicators {
 }
 
 export interface TenantStatusInfo {
-  status: "occupied" | "invited" | "free";
+  status: "occupied" | "invited" | "vacant";
   tenant_name?: string;
   tenant_email?: string;
   pending_invites?: number;
@@ -161,7 +161,9 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
                         <div className="flex items-center gap-1.5 text-sm">
                           <Users className="h-3.5 w-3.5 text-success shrink-0" />
                           <span className="font-medium text-success truncate">
-                            {tenantStatus.tenant_name}
+                            {!tenantStatus.tenant_email && tenantStatus.manager_tenant_name
+                              ? t("tenancy.selfManaged")
+                              : tenantStatus.tenant_name}
                           </span>
                         </div>
                       )}
@@ -175,7 +177,7 @@ export function PropertyCard({ property, isManager, onUpdate, statusIndicators, 
                         </div>
                       )}
 
-                      {tenantStatus.status === "free" && (
+                      {tenantStatus.status === "vacant" && (
                         <div className="flex items-center gap-1.5 text-sm">
                           <Home className="h-3.5 w-3.5 text-info shrink-0" />
                           <span className="font-medium text-info">{t("properties.freeToRent")}</span>

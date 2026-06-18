@@ -643,7 +643,6 @@ export const en = {
     rentOverTimeDesc: "Monthly rent collection overview",
     ticketsByStatus: "Tickets by Status",
     noTicketData: "No ticket data yet",
-    viewAllProperties: "View All Properties",
     noPropertiesTitle: "No properties yet",
     noPropertiesDesc: "Create your first property to get started",
     noTenantRentalsTitle: "No rentals yet",
@@ -710,6 +709,7 @@ export const en = {
     markPaidFailed: "Failed to mark as paid",
     proofReviewed: "Proof reviewed successfully",
     proofReviewFailed: "Failed to review proof",
+    deleteFailed: "Failed to delete payment",
   },
   settings: {
     profileTitle: "Settings",
@@ -792,9 +792,12 @@ export const en = {
       noPaymentsDesc: "Payments will appear here once the rent schedule is generated",
       waitingForAgreement: "Create a rent agreement to start tracking payments",
     },
+    editTitle: "Edit Payment",
+    editDesc: "Update payment details.",
+    deleteSuccess: "Payment deleted",
     statistics: {
       noData: "No data available",
-      totalPaid: "Total Paid",
+      totalPaid: "12 Months",
       payments: "payments",
       nextDue: "Next Due",
       onTimeRate: "On-Time Rate",
@@ -1017,6 +1020,7 @@ export const en = {
       history: "History",
       versionHistory: "Version History",
     },
+    period: "Period",
   },
   propertyTenants: {
     tabs: {
@@ -1387,6 +1391,7 @@ export const en = {
     proofReviewFailed: "Failed to review proof",
     markedPaid: "Utility payment marked as paid",
     markPaidFailed: "Failed to mark as paid",
+    deleteFailed: "Failed to delete utility payment",
   },
   costs: {
     title: "Property Costs",
@@ -1588,6 +1593,7 @@ export const en = {
     deleteDraftSetup: "Delete Draft",
     deleteDraftSetupTitle: "Delete Draft Setup?",
     deleteDraftSetupDesc: "This will permanently delete the draft tenancy requirements, cancel pending invitations, and remove any self-managed tenancy. This action cannot be undone.",
+    ongoing: "(ongoing)",
   },
   invitations: {
     title: "Pending Invitations",
@@ -1818,6 +1824,8 @@ export const en = {
     editContactInfo: "Edit Contact Info",
     contactInfoSaved: "Contact info saved",
     contactInfoSavedDesc: "Tenant contact information has been updated",
+    tenantColumn: "Tenant",
+    property: "Property",
   },
   contracts: {
     tenantInfo: "Tenant Information",

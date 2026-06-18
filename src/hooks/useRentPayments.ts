@@ -50,6 +50,7 @@ export function useRentPaymentMutations() {
     mutationFn: async (payment: Parameters<typeof paymentService.createRentPayment>[0]) => paymentService.createRentPayment(payment),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-rent-payments'] });
       toast.success(t("rentPayments.createSuccess"));
     },
     onError: (error: Error) => {
@@ -61,6 +62,7 @@ export function useRentPaymentMutations() {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<RentPayment> }) => paymentService.updateRentPayment(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-rent-payments'] });
       toast.success(t("rentPayments.updateSuccess"));
     },
     onError: (error: Error) => {
@@ -82,6 +84,7 @@ export function useRentPaymentMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-rent-payments'] });
       toast.success(t("payments.proofUploaded"));
     },
     onError: (error: Error) => {
@@ -97,6 +100,7 @@ export function useRentPaymentMutations() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-rent-payments'] });
       toast.success(t("payments.toasts.markedPaid"));
     },
     onError: (error: Error) => {
@@ -133,10 +137,23 @@ export function useRentPaymentMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-rent-payments'] });
       toast.success(t("payments.proofReview.approvedSuccess"));
     },
     onError: (error: Error) => {
       toast.error(error.message || t("rentPayments.proofReviewFailed"));
+    },
+  });
+
+  const deletePayment = useMutation({
+    mutationFn: async (id: string) => paymentService.deleteRentPayment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [RENT_PAYMENTS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-rent-payments'] });
+      toast.success(t("payments.deleteSuccess"));
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t("rentPayments.deleteFailed"));
     },
   });
 
@@ -146,5 +163,6 @@ export function useRentPaymentMutations() {
     uploadProof,
     markAsPaid,
     reviewProof,
+    deletePayment,
   };
 }

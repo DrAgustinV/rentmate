@@ -136,6 +136,16 @@ export async function updateUtilityPaymentSimple(id: string, updates: UtilityPay
   if (error) throw error;
 }
 
+export async function deleteRentPayment(id: string): Promise<void> {
+  const { error } = await supabase.from('rent_payments').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteUtilityPayment(id: string): Promise<void> {
+  const { error } = await supabase.from('utility_payments').delete().eq('id', id);
+  if (error) throw error;
+}
+
 // ========== SHARED ==========
 
 export async function getRentPaymentSummary(tenantId: string, propertyId: string) {
@@ -168,6 +178,8 @@ export const paymentService = {
   createUtilityPayment,
   updateUtilityPayment,
   updateUtilityPaymentSimple,
+  deleteRentPayment,
+  deleteUtilityPayment,
   getRentPaymentSummary,
   backfillRentPayments,
 };

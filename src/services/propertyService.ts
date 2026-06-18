@@ -171,7 +171,7 @@ export async function getPropertiesByIds(ids: string[], page = 1, pageSize = 10)
 
 export async function getPropertyStatusIndicators(propertyId: string) {
   const { data, error } = await supabase
-    .rpc('get_property_status_indicators', { p_property_id: propertyId });
+    .rpc('get_properties_status_indicators', { p_property_ids: [propertyId] });
   if (error) throw error;
   return (data && data.length > 0) ? data[0] : null;
 }

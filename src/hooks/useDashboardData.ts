@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useRole } from "@/contexts/RoleContext";
 import { useProperties } from "@/hooks/useProperties";
 import { useTenantProperties } from "@/hooks/useTenantProperties";
-import { propertyService } from "@/services";
 import { supabase } from "@/integrations/supabase/client";
 import type { PropertyDomain } from "@/types/domain";
 
@@ -11,19 +10,6 @@ interface MonthlyPayment {
   month: string;
   paid: number;
   overdue: number;
-}
-
-export interface PropertyCardData {
-  id: string;
-  title: string;
-  address?: string;
-  city?: string;
-  images?: string[];
-  status: string;
-  occupancy_status: string;
-  tenant_name: string | null;
-  payment_status: string;
-  open_tickets_count: number;
 }
 
 export interface DashboardData {
@@ -35,7 +21,6 @@ export interface DashboardData {
   openTicketsCount: number;
   ticketsByStatus: { status: string; count: number }[];
   monthlyPayments: MonthlyPayment[];
-  propertyCards: PropertyCardData[];
   userId: string | null;
   isLoading: boolean;
 }
@@ -51,21 +36,6 @@ interface PaymentRow {
   status: string;
   payment_due_date: string;
   property_id: string;
-}
-
-interface IndicatorRow {
-  property_id: string;
-  rent_overdue: boolean;
-  utility_overdue: boolean;
-  rent_has_data: boolean;
-}
-
-interface TenantStatusRow {
-  property_id: string;
-  status: string;
-  tenant_name: string | null;
-  tenant_email: string | null;
-  pending_invites: number;
 }
 
 export function useDashboardData(): DashboardData {
@@ -167,93 +137,18 @@ export function useDashboardData(): DashboardData {
     }
     return Object.entries(byMonth)
       .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-12)
+      .filter(([month]) => {
+        const d = new Date(month + '-01');
+        const cutoff = new Date();
+        cutoff.setMonth(cutoff.getMonth() - 12);
+        return d >= cutoff;
+      })
       .map(([month, data]) => ({
         month,
         paid: Math.round(data.paid / 100),
         overdue: Math.round(data.overdue / 100),
       }));
   }, [rentPayments]);
-
-  // Fetch status indicators for all properties
-  const { data: indicators } = useQuery<IndicatorRow[]>({
-    queryKey: ["dashboard-status-indicators", ...propertyIds],
-    queryFn: async () => {
-      if (propertyIds.length === 0) return [];
-      const results = await Promise.all(
-        propertyIds.map((id) => propertyService.getPropertyStatusIndicators(id)),
-      );
-      return results.filter(Boolean) as IndicatorRow[];
-    },
-    enabled: propertyIds.length > 0,
-    staleTime: 60_000,
-  });
-
-  const indicatorMap = useMemo(() => {
-    const map: Record<string, IndicatorRow | undefined> = {};
-    if (indicators) {
-      for (const ind of indicators) {
-        map[ind.property_id] = ind;
-      }
-    }
-    return map;
-  }, [indicators]);
-
-  // Fetch tenant status for all properties
-  const { data: tenantStatuses } = useQuery<TenantStatusRow[]>({
-    queryKey: ["dashboard-tenant-statuses", ...propertyIds],
-    queryFn: async () => {
-      if (propertyIds.length === 0) return [];
-      const results = await Promise.all(
-        propertyIds.map((id) => propertyService.getPropertyTenantStatus(id)),
-      );
-      return results.filter(Boolean) as TenantStatusRow[];
-    },
-    enabled: propertyIds.length > 0,
-    staleTime: 60_000,
-  });
-
-  const tenantStatusMap = useMemo(() => {
-    const map: Record<string, TenantStatusRow | undefined> = {};
-    if (tenantStatuses) {
-      for (const ts of tenantStatuses) {
-        map[ts.property_id] = ts;
-      }
-    }
-    return map;
-  }, [tenantStatuses]);
-
-  // Build property card data
-  const propertyCards = useMemo<PropertyCardData[]>(() => {
-    return allProperties.map((p) => {
-      const indicator = indicatorMap[p.id];
-      const tenantStatus = tenantStatusMap[p.id];
-
-      const occupancy = tenantStatus?.status === "occupied" ? "Active"
-        : tenantStatus?.status === "invited" ? "Ending"
-        : "Vacant";
-
-      const paymentStatus = indicator?.rent_overdue ? "Overdue"
-        : indicator?.utility_overdue ? "Partial"
-        : indicator?.rent_has_data ? "Paid"
-        : "No rent";
-
-      const openTickets = allTickets?.filter(t => t.property_id === p.id && t.status === "open").length || 0;
-
-      return {
-        id: p.id,
-        title: p.title,
-        address: p.address,
-        city: p.city,
-        images: p.images as string[] | undefined,
-        status: p.status,
-        occupancy_status: occupancy,
-        tenant_name: tenantStatus?.tenant_name || null,
-        payment_status: paymentStatus,
-        open_tickets_count: openTickets,
-      };
-    });
-  }, [allProperties, indicatorMap, tenantStatusMap, allTickets]);
 
   const isLoading = propertiesLoading || tenantLoading;
 
@@ -270,7 +165,6 @@ export function useDashboardData(): DashboardData {
       { status: "resolved", count: ticketCounts.resolved },
     ],
     monthlyPayments,
-    propertyCards,
     userId,
     isLoading,
   };
